@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring Boot Course Prerequisites Setup Guide</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .progress-bar {
+            background: rgba(255, 255, 255, 0.2);
+            height: 8px;
+            border-radius: 4px;
+            margin-top: 1rem;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            background: #10b981;
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 4px;
+        }
+        
+        .content {
+            padding: 2rem;
+        }
+        
+        .prerequisite-item {
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .prerequisite-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #6366f1, #8b5cf6);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+        
+        .prerequisite-item.completed::before {
+            transform: scaleX(1);
+        }
+        
+        .prerequisite-item.completed {
+            border-color: #10b981;
+            background: linear-gradient(135deg, #f0fdf4, #ffffff);
+        }
+        
+        .item-header {
+            display: flex;
+            align-items: center;
+            padding: 1.5rem;
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .item-header:hover {
+            background: rgba(99, 102, 241, 0.02);
+        }
+        
+        .checkbox {
+            width: 24px;
+            height: 24px;
+            border: 2px solid #d1d5db;
+            border-radius: 6px;
+            margin-right: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .checkbox.checked {
+            background: #10b981;
+            border-color: #10b981;
+        }
+        
+        .checkbox::after {
+            content: '✓';
+            color: white;
+            font-weight: bold;
+            opacity: 0;
+            transform: scale(0);
+            transition: all 0.2s ease;
+        }
+        
+        .checkbox.checked::after {
+            opacity: 1;
+            transform: scale(1);
+        }
+        
+        .item-title {
+            flex: 1;
+        }
+        
+        .item-title h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.25rem;
+        }
+        
+        .item-title p {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+        
+        .expand-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #f3f4f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .expand-icon:hover {
+            background: #e5e7eb;
+        }
+        
+        .expand-icon.rotated {
+            transform: rotate(180deg);
+        }
+        
+        .item-content {
+            padding: 0 1.5rem;
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .item-content.expanded {
+            max-height: 2000px;
+            padding-bottom: 1.5rem;
+        }
+        
+        .steps {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .step {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+        
+        .step:last-child {
+            margin-bottom: 0;
+        }
+        
+        .step-number {
+            background: #6366f1;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-right: 0.75rem;
+            flex-shrink: 0;
+        }
+        
+        .step-content {
+            flex: 1;
+        }
+        
+        .step-content h4 {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.25rem;
+        }
+        
+        .step-content p {
+            color: #6b7280;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        
+        .download-link {
+            display: inline-block;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            margin-top: 0.5rem;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+        
+        .download-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+        
+        .completion-summary {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            margin-top: 2rem;
+            display: none;
+        }
+        
+        .completion-summary.show {
+            display: block;
+            animation: slideUp 0.5s ease;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .summary-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .summary-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .summary-text {
+            opacity: 0.9;
+        }
+        
+        .reset-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .reset-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .content {
+                padding: 1rem;
+            }
+            
+            .item-header {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Spring Boot Course Prerequisites</h1>
+            <p>Complete setup guide for IV Year Spring Boot Course (UGAI7T1122)</p>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+        
+        <div class="content">
+            <!-- Java JDK -->
+            <div class="prerequisite-item" data-item="java">
+                <div class="item-header" onclick="toggleItem(this)">
+                    <div class="checkbox"></div>
+                    <div class="item-title">
+                        <h3>☕ Java Development Kit (JDK)</h3>
+                        <p>Essential foundation for Spring Boot development</p>
+                    </div>
+                    <div class="expand-icon">▼</div>
+                </div>
+                <div class="item-content">
+                    <div class="steps">
+                        <div class="step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <h4>Download JDK 11 or higher</h4>
+                                <p>Recommended: Oracle JDK 17 or OpenJDK 17 for best Spring Boot compatibility</p>
+                                <a href="https://www.oracle.com/java/technologies/downloads/" class="download-link" target="_blank">Download Oracle JDK</a>
+                                <a href="https://adoptopenjdk.net/" class="download-link" target="_blank">Download OpenJDK</a>
+                            </div>
+                        </div>
+                        <div class="step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <h4>Install and Configure</h4>
+                                <p>Set JAVA_HOME (JDK installation directory) environment variable and add to PATH (%JAVA_HOME%\bin). Verify with: java -version</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- IDE -->
+            <div class="prerequisite-item" data-item="ide">
+                <div class="item-header" onclick="toggleItem(this)">
+                    <div class="checkbox"></div>
+                    <div class="item-title">
+                        <h3>💻 Integrated Development Environment (IDE)</h3>
+                        <p>Choose your preferred development environment</p>
+                    </div>
+                    <div class="expand-icon">▼</div>
+                </div>
+                <div class="item-content">
+                    <div class="steps">
+                        <div class="step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <h4>Eclipse IDE (Recommended by course)</h4>
+                                <p>Free, popular IDE with excellent Spring Boot support via Spring Tools Suite</p>
+                                <a href="https://www.eclipse.org/downloads/" class="download-link" target="_blank">Download Eclipse</a>
+                                <a href="https://spring.io/tools" class="download-link" target="_blank">Spring Tools Suite</a>
+                            </div>
+                        </div>
+                        <div class="step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <h4>Alternative: IntelliJ IDEA</h4>
+                                <p>Professional IDE with built-in Spring Boot support. Community edition is free.</p>
+                                <a href="https://www.jetbrains.com/idea/download/" class="download-link" target="_blank">Download IntelliJ IDEA</a>
+                            </div>
+                        </div>
+                        <div class="step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <h4>Alternative: VS Code</h4>
+                                <p>Lightweight editor with Spring Boot extensions for Java development</p>
+                                <a href="https://code.visualstudio.com/" class="download-link" target="_blank">Download VS Code</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Maven -->
+            <div class="prerequisite-item" data-item="maven">
+                <div class="item-header" onclick="toggleItem(this)">
+                    <div class="checkbox"></div>
+                    <div class="item-title">
+                        <h3>📦 Apache Maven</h3>
+                        <p>Build automation and dependency management tool</p>
+                    </div>
+                    <div class="expand-icon">▼</div>
+                </div>
+                <div class="item-content">
+                    <div class="steps">
+                        <div class="step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <h4>Download Maven</h4>
+                                <p>Download the latest stable version of Apache Maven</p>
+                                <a href="https://maven.apache.org/download.cgi" class="download-link" target="_blank">Download Maven</a>
+                            </div>
+                        </div>
+                        <div class="step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <h4>Configure Environment</h4>
+                                <p>Set M2_HOME and add Maven bin directory to PATH. Verify with: mvn -version</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Database -->
+            <div class="prerequisite-item" data-item="database">
+                <div class="item-header" onclick="toggleItem(this)">
+                    <div class="checkbox"></div>
+                    <div class="item-title">
+                        <h3>🗄️ Database Systems</h3>
+                        <p>Required for data access modules (JDBC, JPA, MongoDB)*</p>
+                    </div>
+                    <div class="expand-icon">▼</div>
+                </div>
+                <div class="item-content">
+                    <div class="steps">
+                        <div class="step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <h4>MySQL Database</h4>
+                                <p>For JDBC and JPA integration exercises</p>
+                                <a href="https://dev.mysql.com/downloads/mysql/" class="download-link" target="_blank">Download MySQL</a>
+                            </div>
+                        </div>
+                        <div class="step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <h4>MongoDB</h4>
+                                <p>NoSQL database for MongoDB integration module</p>
+                                <a href="https://www.mongodb.com/try/download/community" class="download-link" target="_blank">Download MongoDB</a>
+                            </div>
+                        </div>
+                        <div class="step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <h4>Alternative: H2 Database</h4>
+                                <p>In-memory database for quick testing (can be added via Maven dependency)</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- API Testing -->
+            <div class="prerequisite-item" data-item="postman">
+                <div class="item-header" onclick="toggleItem(this)">
+                    <div class="checkbox"></div>
+                    <div class="item-title">
+                        <h3>🚀 API Testing Tools</h3>
+                        <p>Essential for testing RESTful web services</p>
+                    </div>
+                    <div class="expand-icon">▼</div>
+                </div>
+                <div class="item-content">
+                    <div class="steps">
+                        <div class="step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <h4>Postman (Recommended)</h4>
+                                <p>Popular API testing tool with intuitive interface</p>
+                                <a href="https://www.postman.com/downloads/" class="download-link" target="_blank">Download Postman</a>
+                            </div>
+                        </div>
+                        <div class="step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <h4>Alternative: Insomnia</h4>
+                                <p>Lightweight REST client alternative</p>
+                                <a href="https://insomnia.rest/download" class="download-link" target="_blank">Download Insomnia</a>
+                            </div>
+                        </div>
+                        <div class="step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <h4>Browser Extensions</h4>
+                                <p>REST Client extensions for Chrome/Firefox as backup options</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Git -->
+            <div class="prerequisite-item" data-item="git">
+                <div class="item-header" onclick="toggleItem(this)">
+                    <div class="checkbox"></div>
+                    <div class="item-title">
+                        <h3>🌿 Version Control</h3>
+                        <p>Essential for project management and collaboration</p>
+                    </div>
+                    <div class="expand-icon">▼</div>
+                </div>
+                <div class="item-content">
+                    <div class="steps">
+                        <div class="step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <h4>Git Installation</h4>
+                                <p>Distributed version control system</p>
+                                <a href="https://git-scm.com/downloads" class="download-link" target="_blank">Download Git</a>
+                            </div>
+                        </div>
+                        <div class="step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <h4>GitHub Account</h4>
+                                <p>Create account for hosting your Spring Boot projects</p>
+                                <a href="https://github.com" class="download-link" target="_blank">Sign up GitHub</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Web Browser -->
+            <div class="prerequisite-item" data-item="browser">
+                <div class="item-header" onclick="toggleItem(this)">
+                    <div class="checkbox"></div>
+                    <div class="item-title">
+                        <h3>🌐 Modern Web Browser</h3>
+                        <p>For testing web applications and accessing development tools</p>
+                    </div>
+                    <div class="expand-icon">▼</div>
+                </div>
+                <div class="item-content">
+                    <div class="steps">
+                        <div class="step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <h4>Chrome/Firefox (Recommended)</h4>
+                                <p>Latest versions with developer tools for debugging</p>
+                                <a href="https://www.google.com/chrome/" class="download-link" target="_blank">Download Chrome</a>
+                                <a href="https://www.mozilla.org/firefox/" class="download-link" target="_blank">Download Firefox</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Optional Tools -->
+            <div class="prerequisite-item" data-item="optional">
+                <div class="item-header" onclick="toggleItem(this)">
+                    <div class="checkbox"></div>
+                    <div class="item-title">
+                        <h3>⚡ Optional Enhancement Tools</h3>
+                        <p>Additional tools for better development experience</p>
+                    </div>
+                    <div class="expand-icon">▼</div>
+                </div>
+                <div class="item-content">
+                    <div class="steps">
+                        <div class="step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <h4>Docker</h4>
+                                <p>For containerizing applications and databases</p>
+                                <a href="https://www.docker.com/products/docker-desktop" class="download-link" target="_blank">Download Docker</a>
+                            </div>
+                        </div>
+                        <div class="step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <h4>MySQL Workbench</h4>
+                                <p>GUI tool for MySQL database management</p>
+                                <a href="https://dev.mysql.com/downloads/workbench/" class="download-link" target="_blank">Download Workbench</a>
+                            </div>
+                        </div>
+                        <div class="step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <h4>MongoDB Compass</h4>
+                                <p>GUI for MongoDB database management</p>
+                                <a href="https://www.mongodb.com/products/compass" class="download-link" target="_blank">Download Compass</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="completion-summary" id="completionSummary">
+                <div class="summary-icon">🎉</div>
+                <div class="summary-title">Congratulations!</div>
+                <div class="summary-text">You've completed all prerequisites setup. You're ready to start your Spring Boot journey!</div>
+                <button class="reset-btn" onclick="resetProgress()">Reset Progress</button>
+            </div>
+        </div>
+
+        <div class="prerequisite-item" style="margin-top: 2rem; border: 2px solid #3b82f6;">
+                <div class="item-header" onclick="toggleItem(this)" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; border-radius: 12px 12px 0 0;">
+                    <div class="item-title">
+                        <h3>📊 Understanding SQL vs NoSQL Databases</h3>
+                        <p style="color: rgba(255,255,255,0.9);">Essential knowledge for database selection in Spring Boot projects</p>
+                    </div>
+                    <div class="expand-icon" style="background: rgba(255,255,255,0.2); color: white;">▼</div>
+                </div>
+                <div class="item-content">
+                    <div style="background: #f8fafc; border-radius: 8px; padding: 1.5rem; margin: 1rem 0;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+                            <div style="background: white; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #10b981;">
+                                <h4 style="color: #10b981; font-size: 1.2rem; margin-bottom: 1rem; display: flex; align-items: center;">
+                                    <span style="margin-right: 0.5rem;">📋</span> SQL Databases (Relational)
+                                </h4>
+                                <div style="space-y: 0.75rem;">
+                                    <p style="margin-bottom: 0.75rem;"><strong>Structure:</strong> Like Excel tables with rows & columns</p>
+                                    <p style="margin-bottom: 0.75rem;"><strong>Rules:</strong> Very strict - every data piece has a specific place</p>
+                                    <p style="margin-bottom: 0.75rem;"><strong>Relationships:</strong> Tables connect to each other</p>
+                                    <p style="margin-bottom: 0.75rem;"><strong>Language:</strong> SQL (Structured Query Language)</p>
+                                    <p style="margin-bottom: 0.75rem;"><strong>Examples:</strong> MySQL, PostgreSQL, Oracle</p>
+                                    <p style="color: #059669;"><strong>Best for:</strong> Banking, inventory, precise data relationships</p>
+                                </div>
+                            </div>
+                            
+                            <div style="background: white; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #f59e0b;">
+                                <h4 style="color: #f59e0b; font-size: 1.2rem; margin-bottom: 1rem; display: flex; align-items: center;">
+                                    <span style="margin-right: 0.5rem;">📄</span> NoSQL Databases (Non-Relational)
+                                </h4>
+                                <div>
+                                    <p style="margin-bottom: 0.75rem;"><strong>Structure:</strong> Like flexible document folders</p>
+                                    <p style="margin-bottom: 0.75rem;"><strong>Rules:</strong> Very flexible - different data formats allowed</p>
+                                    <p style="margin-bottom: 0.75rem;"><strong>Relationships:</strong> Less emphasis on connecting data</p>
+                                    <p style="margin-bottom: 0.75rem;"><strong>Language:</strong> Each database has its own way</p>
+                                    <p style="margin-bottom: 0.75rem;"><strong>Examples:</strong> MongoDB, Cassandra, Redis</p>
+                                    <p style="color: #d97706;"><strong>Best for:</strong> Social media, catalogs, real-time analytics</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="background: white; padding: 1.5rem; border-radius: 8px; border: 2px solid #e5e7eb;">
+                            <h4 style="color: #1f2937; margin-bottom: 1rem; text-align: center;">🔍 Key Differences Summary</h4>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 1rem; text-align: center;">
+                                <div>
+                                    <div style="background: #ddd6fe; padding: 0.75rem; border-radius: 6px; margin-bottom: 0.5rem;">
+                                        <strong>Flexibility</strong>
+                                    </div>
+                                    <p style="font-size: 0.9rem; color: #6b7280;">SQL: Strict office<br>NoSQL: Creative workspace</p>
+                                </div>
+                                <div>
+                                    <div style="background: #fecaca; padding: 0.75rem; border-radius: 6px; margin-bottom: 0.5rem;">
+                                        <strong>Scaling</strong>
+                                    </div>
+                                    <p style="font-size: 0.9rem; color: #6b7280;">SQL: Bigger computer<br>NoSQL: More computers</p>
+                                </div>
+                                <div>
+                                    <div style="background: #fed7aa; padding: 0.75rem; border-radius: 6px; margin-bottom: 0.5rem;">
+                                        <strong>Speed</strong>
+                                    </div>
+                                    <p style="font-size: 0.9rem; color: #6b7280;">SQL: Complex queries<br>NoSQL: Simple operations</p>
+                                </div>
+                                <div>
+                                    <div style="background: #bbf7d0; padding: 0.75rem; border-radius: 6px; margin-bottom: 0.5rem;">
+                                        <strong>Data Integrity</strong>
+                                    </div>
+                                    <p style="font-size: 0.9rem; color: #6b7280;">SQL: Ensures accuracy<br>NoSQL: Prioritizes speed</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; padding: 1rem; border-radius: 8px; margin-top: 1rem; text-align: center;">
+                            <p style="margin: 0; font-weight: 500;">💡 In Spring Boot: You'll work with both! MySQL/PostgreSQL for structured data, MongoDB for flexible document storage.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>    
+
+    </div>
+
+    <script>
+        let completedItems = new Set();
+        const totalItems = document.querySelectorAll('.prerequisite-item').length;
+
+        function toggleItem(header) {
+            const item = header.parentElement;
+            const content = item.querySelector('.item-content');
+            const expandIcon = header.querySelector('.expand-icon');
+            
+            content.classList.toggle('expanded');
+            expandIcon.classList.toggle('rotated');
+        }
+
+        function toggleCompletion(item) {
+            const checkbox = item.querySelector('.checkbox');
+            const itemId = item.dataset.item;
+            
+            if (completedItems.has(itemId)) {
+                completedItems.delete(itemId);
+                checkbox.classList.remove('checked');
+                item.classList.remove('completed');
+            } else {
+                completedItems.add(itemId);
+                checkbox.classList.add('checked');
+                item.classList.add('completed');
+            }
+            
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const progress = (completedItems.size / totalItems) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            
+            if (completedItems.size === totalItems) {
+                document.getElementById('completionSummary').classList.add('show');
+            } else {
+                document.getElementById('completionSummary').classList.remove('show');
+            }
+        }
+
+        function resetProgress() {
+            completedItems.clear();
+            document.querySelectorAll('.checkbox').forEach(cb => cb.classList.remove('checked'));
+            document.querySelectorAll('.prerequisite-item').forEach(item => item.classList.remove('completed'));
+            document.getElementById('completionSummary').classList.remove('show');
+            updateProgress();
+        }
+
+        // Add click handlers
+        document.querySelectorAll('.prerequisite-item').forEach(item => {
+            const checkbox = item.querySelector('.checkbox');
+            const header = item.querySelector('.item-header');
+            
+            checkbox.addEventListener('click', (e) => {
+                e.stopPropagation();
+                toggleCompletion(item);
+            });
+        });
+
+        // Initialize progress
+        updateProgress();
+    </script>
+</body>
+</html>

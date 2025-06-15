@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JVM, JDK & JRE Interactive Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 2rem;
+        }
+
+        .analogy-section {
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .analogy-section h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .analogy-section p {
+            font-size: 1.1rem;
+            opacity: 0.95;
+            line-height: 1.6;
+        }
+
+        .main-demo {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .component-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 3px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .component-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .component-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .jvm-card {
+            border-color: #ff6b6b;
+        }
+
+        .jvm-card::before {
+            background: linear-gradient(90deg, #ff6b6b, #ee5a24);
+        }
+
+        .jre-card {
+            border-color: #74b9ff;
+        }
+
+        .jre-card::before {
+            background: linear-gradient(90deg, #74b9ff, #0984e3);
+        }
+
+        .jdk-card {
+            border-color: #00b894;
+        }
+
+        .jdk-card::before {
+            background: linear-gradient(90deg, #00b894, #00a085);
+        }
+
+        .card-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-subtitle {
+            color: #6c757d;
+            margin-bottom: 1rem;
+            font-style: italic;
+        }
+
+        .card-description {
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-features {
+            list-style: none;
+            padding: 0;
+        }
+
+        .card-features li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e9ecef;
+            position: relative;
+            padding-left: 1.5rem;
+        }
+
+        .card-features li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #00b894;
+            font-weight: bold;
+        }
+
+        .interactive-demo {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .demo-title {
+            text-align: center;
+            font-size: 1.8rem;
+            margin-bottom: 2rem;
+            color: #2d3436;
+        }
+
+        .scenario-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .scenario-btn {
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .scenario-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(108, 92, 231, 0.3);
+        }
+
+        .scenario-btn.active {
+            background: linear-gradient(135deg, #00b894, #00a085);
+        }
+
+        .scenario-result {
+            background: white;
+            border-radius: 10px;
+            padding: 2rem;
+            min-height: 200px;
+            border-left: 5px solid #6c5ce7;
+            display: none;
+        }
+
+        .scenario-result.active {
+            display: block;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hierarchy-section {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .hierarchy-title {
+            text-align: center;
+            font-size: 1.8rem;
+            margin-bottom: 2rem;
+            color: #2d3436;
+        }
+
+        .hierarchy-diagram {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .hierarchy-level {
+            background: linear-gradient(135deg, #fdcb6e, #e17055);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            font-weight: 600;
+            position: relative;
+            min-width: 200px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .hierarchy-level:hover {
+            transform: scale(1.05);
+        }
+
+        .hierarchy-level::after {
+            content: '↓';
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.5rem;
+            color: #2d3436;
+        }
+
+        .hierarchy-level:last-child::after {
+            display: none;
+        }
+
+        .level-jdk {
+            background: linear-gradient(135deg, #00b894, #00a085);
+        }
+
+        .level-jre {
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+        }
+
+        .level-jvm {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+        }
+
+        .memory-palace {
+            background: linear-gradient(135deg, #fd79a8, #e84393);
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+        }
+
+        .memory-palace h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .memory-items {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .memory-item {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 1rem;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .memory-item strong {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .quiz-section {
+            background: linear-gradient(135deg, #a29bfe, #6c5ce7);
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+        }
+
+        .quiz-question {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .quiz-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .quiz-option {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid transparent;
+            color: white;
+            padding: 1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .quiz-option:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .quiz-option.correct {
+            background: #00b894;
+            border-color: #00a085;
+        }
+
+        .quiz-option.incorrect {
+            background: #ff6b6b;
+            border-color: #ee5a24;
+        }
+
+        .quiz-result {
+            text-align: center;
+            font-size: 1.1rem;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .main-demo {
+                grid-template-columns: 1fr;
+            }
+            
+            .memory-items {
+                grid-template-columns: 1fr;
+            }
+            
+            .quiz-options {
+                grid-template-columns: 1fr;
+            }
+            
+            .scenario-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>☕ JVM, JDK & JRE Explained</h1>
+            <p>Interactive Guide to Java's Core Components</p>
+        </div>
+
+        <div class="content">
+            <!-- Analogy Section -->
+            <div class="analogy-section">
+                <h2>🏠 Think of it like Building a House</h2>
+                <p>
+                    <strong>JDK</strong> = Complete construction toolkit (hammer, nails, blueprint) 🔨<br>
+                    <strong>JRE</strong> = Furnished house ready to live in (walls, electricity, furniture) 🏡<br>
+                    <strong>JVM</strong> = The foundation that makes everything work (plumbing, electricity system) ⚡
+                </p>
+            </div>
+
+            <!-- Main Component Cards -->
+            <div class="main-demo">
+                <div class="component-card jdk-card" onclick="highlightCard('jdk')">
+                    <span class="card-icon">🔧</span>
+                    <h3 class="card-title">JDK</h3>
+                    <p class="card-subtitle">Java Development Kit</p>
+                    <p class="card-description">The complete toolkit for Java developers. Like a carpenter's toolbox with everything needed to build.</p>
+                    <ul class="card-features">
+                        <li>Java Compiler (javac)</li>
+                        <li>Debugger & Profiler</li>
+                        <li>Documentation tools</li>
+                        <li>Includes JRE + JVM</li>
+                        <li>Development libraries</li>
+                    </ul>
+                </div>
+
+                <div class="component-card jre-card" onclick="highlightCard('jre')">
+                    <span class="card-icon">🏠</span>
+                    <h3 class="card-title">JRE</h3>
+                    <p class="card-subtitle">Java Runtime Environment</p>
+                    <p class="card-description">Everything needed to RUN Java programs. Like a furnished house ready to move in.</p>
+                    <ul class="card-features">
+                        <li>Java Libraries</li>
+                        <li>Class Loader</li>
+                        <li>Runtime APIs</li>
+                        <li>Includes JVM</li>
+                        <li>No development tools</li>
+                    </ul>
+                </div>
+
+                <div class="component-card jvm-card" onclick="highlightCard('jvm')">
+                    <span class="card-icon">⚡</span>
+                    <h3 class="card-title">JVM</h3>
+                    <p class="card-subtitle">Java Virtual Machine</p>
+                    <p class="card-description">The engine that actually runs Java code. Like the heart that pumps blood through the body.</p>
+                    <ul class="card-features">
+                        <li>Executes Bytecode</li>
+                        <li>Memory Management</li>
+                        <li>Garbage Collection</li>
+                        <li>Platform Independence</li>
+                        <li>Just-In-Time Compiler</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Hierarchy Diagram -->
+            <div class="hierarchy-section">
+                <h3 class="hierarchy-title">📊 Containment Hierarchy</h3>
+                <div class="hierarchy-diagram">
+                    <div class="hierarchy-level level-jdk">
+                        JDK (Java Development Kit)
+                        <small style="display: block; margin-top: 0.5rem;">Biggest Box - Contains Everything</small>
+                    </div>
+                    <div class="hierarchy-level level-jre">
+                        JRE (Java Runtime Environment)
+                        <small style="display: block; margin-top: 0.5rem;">Medium Box - Inside JDK</small>
+                    </div>
+                    <div class="hierarchy-level level-jvm">
+                        JVM (Java Virtual Machine)
+                        <small style="display: block; margin-top: 0.5rem;">Smallest Box - Core Engine</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive Scenarios -->
+            <div class="interactive-demo">
+                <h3 class="demo-title">🎯 Real-World Scenarios</h3>
+                <div class="scenario-buttons">
+                    <button class="scenario-btn" onclick="showScenario('student')">CS Student</button>
+                    <button class="scenario-btn" onclick="showScenario('user')">End User</button>
+                    <button class="scenario-btn" onclick="showScenario('server')">Server Admin</button>
+                    <button class="scenario-btn" onclick="showScenario('company')">Software Company</button>
+                </div>
+
+                <div id="student-scenario" class="scenario-result">
+                    <h4>👨‍🎓 Computer Science Student</h4>
+                    <p><strong>Situation:</strong> You need to learn Java programming and build projects.</p>
+                    <p><strong>What you need:</strong> <span style="color: #00b894; font-weight: bold;">JDK (Full Development Kit)</span></p>
+                    <p><strong>Why:</strong> You need to write code (.java files), compile them (javac), debug, and run programs. JDK gives you everything!</p>
+                    <p><strong>Real Example:</strong> Writing your first Hello World program, compiling it, and running it.</p>
+                </div>
+
+                <div id="user-scenario" class="scenario-result">
+                    <h4>👤 Regular User</h4>
+                    <p><strong>Situation:</strong> You want to use software like NetBeans, Eclipse, or play Minecraft.</p>
+                    <p><strong>What you need:</strong> <span style="color: #74b9ff; font-weight: bold;">JRE (Runtime Environment)</span></p>
+                    <p><strong>Why:</strong> You only need to RUN Java applications, not develop them. JRE is lighter and sufficient.</p>
+                    <p><strong>Real Example:</strong> Installing JRE to play Minecraft or use banking software.</p>
+                </div>
+
+                <div id="server-scenario" class="scenario-result">
+                    <h4>🖥️ Server Administrator</h4>
+                    <p><strong>Situation:</strong> You need to deploy Java web applications on production servers.</p>
+                    <p><strong>What you need:</strong> <span style="color: #74b9ff; font-weight: bold;">JRE (Runtime Environment)</span></p>
+                    <p><strong>Why:</strong> Production servers only run applications, they don't need development tools. JRE keeps servers lean.</p>
+                    <p><strong>Real Example:</strong> Running Spring Boot applications on AWS or Google Cloud.</p>
+                </div>
+
+                <div id="company-scenario" class="scenario-result">
+                    <h4>🏢 Software Development Company</h4>
+                    <p><strong>Situation:</strong> Team of developers working on multiple Java projects.</p>
+                    <p><strong>What you need:</strong> <span style="color: #00b894; font-weight: bold;">JDK (Full Development Kit)</span></p>
+                    <p><strong>Why:</strong> Developers need to code, compile, test, debug, and create documentation. Full development power needed.</p>
+                    <p><strong>Real Example:</strong> Building enterprise applications, creating APIs, generating JavaDoc.</p>
+                </div>
+            </div>
+
+            
+
+            <!-- Quick Quiz -->
+            <div class="quiz-section">
+                <h3>🧪 Quick Quiz - Test Your Understanding</h3>
+                <div id="quiz-container">
+                    <div class="quiz-question">What do you need to develop Java applications from scratch?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" onclick="checkAnswer(this, false)">JRE only</div>
+                        <div class="quiz-option" onclick="checkAnswer(this, true)">JDK (includes JRE & JVM)</div>
+                        <div class="quiz-option" onclick="checkAnswer(this, false)">JVM only</div>
+                        <div class="quiz-option" onclick="checkAnswer(this, false)">Just a text editor</div>
+                    </div>
+                    <div class="quiz-result" id="quiz-result"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentHighlight = null;
+
+        function highlightCard(type) {
+            // Remove previous highlight
+            if (currentHighlight) {
+                currentHighlight.style.transform = 'scale(1)';
+                currentHighlight.style.zIndex = '1';
+            }
+
+            // Add new highlight
+            const card = document.querySelector(`.${type}-card`);
+            card.style.transform = 'scale(1.05)';
+            card.style.zIndex = '10';
+            currentHighlight = card;
+
+            // Auto-remove highlight after 3 seconds
+            setTimeout(() => {
+                if (currentHighlight === card) {
+                    card.style.transform = 'scale(1)';
+                    card.style.zIndex = '1';
+                    currentHighlight = null;
+                }
+            }, 3000);
+        }
+
+        function showScenario(scenario) {
+            // Hide all scenarios
+            document.querySelectorAll('.scenario-result').forEach(result => {
+                result.classList.remove('active');
+            });
+
+            // Remove active state from all buttons
+            document.querySelectorAll('.scenario-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Show selected scenario
+            document.getElementById(scenario + '-scenario').classList.add('active');
+
+            // Activate clicked button
+            event.target.classList.add('active');
+        }
+
+        function checkAnswer(option, isCorrect) {
+            const allOptions = document.querySelectorAll('.quiz-option');
+            const result = document.getElementById('quiz-result');
+
+            // Disable all options
+            allOptions.forEach(opt => {
+                opt.style.pointerEvents = 'none';
+                if (opt.onclick && opt.onclick.toString().includes('true')) {
+                    opt.classList.add('correct');
+                } else {
+                    opt.classList.add('incorrect');
+                }
+            });
+
+            // Show result
+            if (isCorrect) {
+                result.innerHTML = '🎉 Correct! JDK contains everything needed for development including JRE and JVM!';
+                result.style.color = '#00b894';
+            } else {
+                result.innerHTML = '❌ Not quite right. JDK is the complete development kit that includes JRE and JVM!';
+                result.style.color = '#ff6b6b';
+            }
+            result.style.display = 'block';
+
+            // Reset quiz after 5 seconds
+            setTimeout(() => {
+                allOptions.forEach(opt => {
+                    opt.style.pointerEvents = 'auto';
+                    opt.classList.remove('correct', 'incorrect');
+                });
+                result.style.display = 'none';
+            }, 5000);
+        }
+
+        // Auto-show first scenario on load
+        window.addEventListener('load', () => {
+            showScenario('student');
+        });
+    </script>
+</body>
+</html>
