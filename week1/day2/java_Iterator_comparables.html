@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iterator, Comparable & Comparator Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .section {
+            margin-bottom: 40px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            border-left: 5px solid #667eea;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+
+        button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        input, select {
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .output {
+            background: #fff;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 15px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            min-height: 100px;
+            max-height: 300px;
+            overflow-y: auto;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .code-snippet {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            border-left: 4px solid #667eea;
+        }
+
+        .highlight {
+            background: linear-gradient(90deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .person-card {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 10px 15px;
+            margin: 5px;
+            border-radius: 8px;
+            font-size: 14px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease;
+        }
+
+        .person-card:hover {
+            transform: scale(1.05);
+        }
+
+        .collection-display {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .tab-container {
+            display: flex;
+            border-bottom: 2px solid #e0e0e0;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            background: linear-gradient(90deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            button, input, select {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Java Interfaces Interactive Demo</h1>
+        
+        <div class="tab-container">
+            <button class="tab active" onclick="showTab('iterator')">Iterator</button>
+            <button class="tab" onclick="showTab('comparable')">Comparable</button>
+            <button class="tab" onclick="showTab('comparator')">Comparator</button>
+            <button class="tab" onclick="showTab('collections')">Collections</button>
+        </div>
+
+        <!-- Iterator Section -->
+        <div id="iterator" class="tab-content active">
+            <div class="section">
+                <h2>🔄 Iterator Interface</h2>
+                <p>The Iterator interface provides a way to access elements of a collection sequentially without exposing its underlying structure.</p>
+                
+                <div class="code-snippet">
+// Iterator Interface Methods
+public interface Iterator&lt;E&gt; {
+    boolean hasNext();    // Returns true if more elements exist
+    E next();            // Returns the next element
+    void remove();       // Removes the current element (optional)
+}
+                </div>
+
+                <div class="controls">
+                    <input type="text" id="iteratorInput" placeholder="Add item to list" />
+                    <button onclick="addToIteratorList()">Add Item</button>
+                    <button onclick="iterateForward()">Iterate Forward</button>
+                    <button onclick="iterateBackward()">Iterate Backward</button>
+                    <button onclick="resetIterator()">Reset</button>
+                    <button onclick="clearIteratorList()">Clear List</button>
+                </div>
+
+                <div class="collection-display" id="iteratorCollection"></div>
+                <div class="output" id="iteratorOutput">Iterator demo ready. Add some items and try iterating!</div>
+            </div>
+        </div>
+
+        <!-- Comparable Section -->
+        <div id="comparable" class="tab-content">
+            <div class="section">
+                <h2>⚖️ Comparable Interface</h2>
+                <p>The Comparable interface allows objects to be compared and sorted in their natural ordering.</p>
+                
+                <div class="code-snippet">
+// Comparable Interface
+public interface Comparable&lt;T&gt; {
+    int compareTo(T other);
+    // Returns: negative if this &lt; other
+    //          zero if this == other  
+    //          positive if this &gt; other
+}
+
+// Person class implementing Comparable
+class Person implements Comparable&lt;Person&gt; {
+    String name;
+    int age;
+    
+    public int compareTo(Person other) {
+        return this.age - other.age; // Sort by age
+    }
+}
+                </div>
+
+                <div class="controls">
+                    <input type="text" id="personName" placeholder="Name" />
+                    <input type="number" id="personAge" placeholder="Age" min="1" max="100" />
+                    <button onclick="addPerson()">Add Person</button>
+                    <button onclick="sortByNaturalOrder()">Sort by Age (Natural Order)</button>
+                    <button onclick="clearPersons()">Clear All</button>
+                </div>
+
+                <div class="collection-display" id="personCollection"></div>
+                <div class="output" id="comparableOutput">Add people to see Comparable in action!</div>
+            </div>
+        </div>
+
+        <!-- Comparator Section -->
+        <div id="comparator" class="tab-content">
+            <div class="section">
+                <h2>🔄 Comparator Interface</h2>
+                <p>The Comparator interface allows you to define custom comparison logic separate from the object's natural ordering.</p>
+                
+                <div class="code-snippet">
+// Comparator Interface
+public interface Comparator&lt;T&gt; {
+    int compare(T obj1, T obj2);
+}
+
+// Custom Comparators
+Comparator&lt;Person&gt; nameComparator = (p1, p2) -&gt; p1.name.compareTo(p2.name);
+Comparator&lt;Person&gt; ageComparator = (p1, p2) -&gt; p1.age - p2.age;
+Comparator&lt;Person&gt; ageDescComparator = (p1, p2) -&gt; p2.age - p1.age;
+                </div>
+
+                <div class="controls">
+                    <input type="text" id="comparatorPersonName" placeholder="Name" />
+                    <input type="number" id="comparatorPersonAge" placeholder="Age" min="1" max="100" />
+                    <button onclick="addComparatorPerson()">Add Person</button>
+                    <select id="sortMethod">
+                        <option value="name">Sort by Name</option>
+                        <option value="age">Sort by Age (Ascending)</option>
+                        <option value="ageDesc">Sort by Age (Descending)</option>
+                        <option value="nameLength">Sort by Name Length</option>
+                    </select>
+                    <button onclick="sortByComparator()">Apply Sort</button>
+                    <button onclick="clearComparatorPersons()">Clear All</button>
+                </div>
+
+                <div class="collection-display" id="comparatorPersonCollection"></div>
+                <div class="output" id="comparatorOutput">Add people and try different sorting methods!</div>
+            </div>
+        </div>
+
+        <!-- Collections Section -->
+        <div id="collections" class="tab-content">
+            <div class="section">
+                <h2>📚 Collections Framework</h2>
+                <p>Within the Collections Framework, the Tree-based implementations like TreeSet and TreeMap are designed to keep their elements sorted automatically, either by natural order or a custom comparator..</p>
+                
+                
+
+                
+            </div>
+        </div>
+    </div>
+
+    <script src="java_Iterator_comparables.js"></script>
+</body>
+</html>

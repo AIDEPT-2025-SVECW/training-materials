@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Java Object Equality & Methods Tutorial</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            background: linear-gradient(45deg, #2c3e50, #3498db);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .nav {
+            background: #34495e;
+            padding: 15px 0;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .nav button {
+            background: transparent;
+            color: white;
+            border: 2px solid #3498db;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .nav button:hover, .nav button.active {
+            background: #3498db;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .section {
+            display: none;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .code-block {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            position: relative;
+            border-left: 4px solid #3498db;
+        }
+
+        .code-block::before {
+            content: "Java";
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            background: #3498db;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 10px;
+        }
+
+        .interactive-demo {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .demo-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .demo-controls button {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .demo-controls button:hover {
+            background: #218838;
+            transform: scale(1.05);
+        }
+
+        .output {
+            background: #343a40;
+            color: #28a745;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            min-height: 100px;
+            border: 2px solid #28a745;
+        }
+
+        .concept-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .concept-box h3 {
+            margin-bottom: 10px;
+            font-size: 1.3em;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .comparison-table th, .comparison-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .comparison-table th {
+            background: #3498db;
+            color: white;
+            font-weight: bold;
+        }
+
+        .comparison-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .comparison-table tr:hover {
+            background: #e3f2fd;
+            transition: background 0.3s ease;
+        }
+
+        .visual-demo {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin: 20px 0;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .object-visual {
+            background: #fff;
+            border: 3px solid #3498db;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            min-width: 150px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .object-visual:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .object-visual.equal {
+            border-color: #28a745;
+            background: #d4edda;
+        }
+
+        .object-visual.not-equal {
+            border-color: #dc3545;
+            background: #f8d7da;
+        }
+
+        .arrow {
+            font-size: 2em;
+            color: #3498db;
+        }
+
+        h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 2em;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        h3 {
+            color: #34495e;
+            margin: 20px 0 10px 0;
+            font-size: 1.4em;
+        }
+
+        .highlight {
+            background: #fff3cd;
+            padding: 15px;
+            border-left: 4px solid #ffc107;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+
+        .quiz-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .quiz-question {
+            margin-bottom: 15px;
+        }
+
+        .quiz-options {
+            display: grid;
+            gap: 10px;
+        }
+
+        .quiz-option {
+            background: white;
+            border: 2px solid #e9ecef;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .quiz-option:hover {
+            border-color: #3498db;
+            background: #e3f2fd;
+        }
+
+        .quiz-option.correct {
+            background: #d4edda;
+            border-color: #28a745;
+        }
+
+        .quiz-option.incorrect {
+            background: #f8d7da;
+            border-color: #dc3545;
+        }
+
+        @media (max-width: 768px) {
+            .nav {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .visual-demo {
+                flex-direction: column;
+            }
+            
+            .demo-controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Java Object Equality & Methods</h1>
+            <p>Master equals(), toString(), clone(), and hashCode() methods</p>
+        </div>
+
+        <div class="nav">
+            <button onclick="showSection('overview')" class="active">Overview</button>
+            <button onclick="showSection('equality')">Object Equality</button>
+            <button onclick="showSection('tostring')">toString() Method</button>
+            <button onclick="showSection('clone')">clone() Method</button>
+            <button onclick="showSection('hashcode')">hashCode() Method</button>
+            <button onclick="showSection('quiz')">Interactive Quiz</button>
+        </div>
+
+        <div class="content">
+            <!-- Overview Section -->
+            <div id="overview" class="section active">
+                <h2>📚 Overview</h2>
+                <div class="concept-box">
+                    <h3>What You'll Learn</h3>
+                    <p>In this interactive tutorial, you'll master the fundamental Object class methods that every Java developer needs to understand:</p>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li><strong>equals()</strong> - Compare objects for logical equality</li>
+                        <li><strong>toString()</strong> - Provide string representation of objects</li>
+                        <li><strong>clone()</strong> - Create copies of objects</li>
+                        <li><strong>hashCode()</strong> - Generate hash codes for objects</li>
+                    </ul>
+                </div>
+
+                <h3>🎯 Why These Methods Matter</h3>
+                <p>The Object class is the root of all Java classes. Understanding these methods is crucial for:</p>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin: 20px 0;">
+                    <div class="object-visual">
+                        <h4>🔍 Object Comparison</h4>
+                        <p>Properly comparing objects in collections, databases, and business logic</p>
+                    </div>
+                    <div class="object-visual">
+                        <h4>🖨️ Debugging</h4>
+                        <p>Creating meaningful string representations for logging and debugging</p>
+                    </div>
+                    <div class="object-visual">
+                        <h4>📋 Object Copying</h4>
+                        <p>Creating independent copies of objects when needed</p>
+                    </div>
+                    <div class="object-visual">
+                        <h4>🗂️ Hash-based Collections</h4>
+                        <p>Using objects as keys in HashMap, HashSet, etc.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Object Equality Section -->
+            <div id="equality" class="section">
+                <h2>⚖️ Object Equality</h2>
+                
+                <div class="concept-box">
+                    <h3>Reference vs. Value Equality</h3>
+                    <p><strong>== operator:</strong> Compares references (memory addresses)<br>
+                    <strong>equals() method:</strong> Compares logical equality (content)</p>
+                </div>
+
+                <div class="code-block">
+public class Student {
+    private String name;
+    private int id;
+    
+    public Student(String name, int id) {
+        this.name = name;
+        this.id = id;
+    }
+    
+    // Default equals() only compares references
+    // We need to override it for meaningful comparison
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        
+        Student student = (Student) obj;
+        return id == student.id && 
+               Objects.equals(name, student.name);
+    }
+}</div>
+
+                <div class="interactive-demo">
+                    <h3>🎮 Interactive Equality Demo</h3>
+                    <div class="demo-controls">
+                        <button onclick="demonstrateEquality('reference')">Reference Equality (==)</button>
+                        <button onclick="demonstrateEquality('logical')">Logical Equality (equals)</button>
+                        <button onclick="demonstrateEquality('string')">String Equality</button>
+                        <button onclick="clearOutput('equalityOutput')">Clear</button>
+                    </div>
+                    <div id="equalityOutput" class="output">Click a button above to see equality demonstrations...</div>
+                </div>
+
+                <div class="visual-demo">
+                    <div class="object-visual">
+                        <h4>Object A</h4>
+                        <p>Student("John", 123)</p>
+                        <small>Memory: 0x1A2B</small>
+                    </div>
+                    <div class="arrow">≠</div>
+                    <div class="object-visual">
+                        <h4>Object B</h4>
+                        <p>Student("John", 123)</p>
+                        <small>Memory: 0x3C4D</small>
+                    </div>
+                </div>
+
+                <div class="highlight">
+                    <strong>Key Rule:</strong> Always override both equals() and hashCode() together! Objects that are equal must have the same hash code.
+                </div>
+
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Comparison Type</th>
+                            <th>Operator/Method</th>
+                            <th>What it Compares</th>
+                            <th>Use Case</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Reference Equality</td>
+                            <td>==</td>
+                            <td>Memory addresses</td>
+                            <td>Check if two variables point to same object</td>
+                        </tr>
+                        <tr>
+                            <td>Logical Equality</td>
+                            <td>equals()</td>
+                            <td>Object content/state</td>
+                            <td>Check if two objects are logically equivalent</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- toString Section -->
+            <div id="tostring" class="section">
+                <h2>🖨️ toString() Method</h2>
+                
+                <div class="concept-box">
+                    <h3>Purpose of toString()</h3>
+                    <p>The toString() method returns a string representation of an object. It's automatically called when you print an object or concatenate it with a string.</p>
+                </div>
+
+                <div class="code-block">
+public class Student {
+    private String name;
+    private int id;
+    private double gpa;
+    
+    // Default toString() returns: ClassName@hashCode
+    // Override for meaningful representation
+    @Override
+    public String toString() {
+        return String.format("Student{name='%s', id=%d, gpa=%.2f}", 
+                           name, id, gpa);
+    }
+    
+    // Alternative formats:
+    public String toShortString() {
+        return name + " (" + id + ")";
+    }
+    
+    public String toDetailedString() {
+        return "Student Details:\n" +
+               "  Name: " + name + "\n" +
+               "  ID: " + id + "\n" +
+               "  GPA: " + gpa;
+    }
+}</div>
+
+                <div class="interactive-demo">
+                    <h3>🎮 toString() Demo</h3>
+                    <div class="demo-controls">
+                        <button onclick="demonstrateToString('default')">Default toString()</button>
+                        <button onclick="demonstrateToString('custom')">Custom toString()</button>
+                        <button onclick="demonstrateToString('formatted')">Formatted toString()</button>
+                        <button onclick="clearOutput('toStringOutput')">Clear</button>
+                    </div>
+                    <div id="toStringOutput" class="output">Click a button above to see toString() demonstrations...</div>
+                </div>
+
+                <div class="highlight">
+                    <strong>Best Practices:</strong>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li>Include class name and key fields</li>
+                        <li>Use consistent format across your application</li>
+                        <li>Don't include sensitive information (passwords, etc.)</li>
+                        <li>Consider performance for frequently printed objects</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Clone Section -->
+            <div id="clone" class="section">
+                <h2>📋 clone() Method</h2>
+                
+                <div class="concept-box">
+                    <h3>Object Cloning Concepts</h3>
+                    <p><strong>Shallow Copy:</strong> Copies object fields, but referenced objects are shared<br>
+                    <strong>Deep Copy:</strong> Recursively copies all referenced objects</p>
+                </div>
+
+                <div class="code-block">
+public class Student implements Cloneable {
+    private String name;
+    private int id;
+    private List&lt;String&gt; courses;
+    
+    // Shallow clone - courses list is shared!
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        return super.clone();
+    }
+    
+    // Deep clone - creates new courses list
+    public Student deepClone() {
+        Student cloned = new Student(this.name, this.id);
+        cloned.courses = new ArrayList&lt;&gt;(this.courses);
+        return cloned;
+    }
+    
+    // Copy constructor approach (preferred)
+    public Student(Student other) {
+        this.name = other.name;
+        this.id = other.id;
+        this.courses = new ArrayList&lt;&gt;(other.courses);
+    }
+}</div>
+
+                <div class="interactive-demo">
+                    <h3>🎮 Cloning Demo</h3>
+                    <div class="demo-controls">
+                        <button onclick="demonstrateCloning('shallow')">Shallow Copy</button>
+                        <button onclick="demonstrateCloning('deep')">Deep Copy</button>
+                        <button onclick="demonstrateCloning('constructor')">Copy Constructor</button>
+                        <button onclick="clearOutput('cloneOutput')">Clear</button>
+                    </div>
+                    <div id="cloneOutput" class="output">Click a button above to see cloning demonstrations...</div>
+                </div>
+
+                <div class="visual-demo">
+                    <div style="text-align: center;">
+                        <h4>Shallow vs Deep Copy</h4>
+                        <div style="display: flex; justify-content: space-around; margin-top: 20px;">
+                            <div class="object-visual">
+                                <h5>Original Object</h5>
+                                <p>Student: "Alice"</p>
+                                <p>Courses: [Math, Science]</p>
+                            </div>
+                            <div class="object-visual">
+                                <h5>Shallow Copy</h5>
+                                <p>Student: "Alice"</p>
+                                <p>Courses: → Same Reference</p>
+                            </div>
+                            <div class="object-visual">
+                                <h5>Deep Copy</h5>
+                                <p>Student: "Alice"</p>
+                                <p>Courses: [Math, Science] ✓</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="highlight">
+                    <strong>Modern Approach:</strong> Instead of implementing Cloneable, prefer copy constructors or factory methods. They're clearer, safer, and more flexible.
+                </div>
+            </div>
+
+            <!-- hashCode Section -->
+            <div id="hashcode" class="section">
+                <h2>🔢 hashCode() Method</h2>
+                
+                <div class="concept-box">
+                    <h3>hashCode() Contract</h3>
+                    <p>If two objects are equal (equals() returns true), they MUST have the same hash code. However, objects with the same hash code don't need to be equal.</p>
+                </div>
+
+                <div class="code-block">
+public class Student {
+    private String name;
+    private int id;
+    
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        Student student = (Student) obj;
+        return id == student.id && Objects.equals(name, student.name);
+    }
+    
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, id);
+    }
+    
+    // Manual implementation (not recommended)
+    public int manualHashCode() {
+        int result = name != null ? name.hashCode() : 0;
+        result = 31 * result + id;
+        return result;
+    }
+}</div>
+
+                <div class="interactive-demo">
+                    <h3>🎮 hashCode() Demo</h3>
+                    <div class="demo-controls">
+                        <button onclick="demonstrateHashCode('good')">Good hashCode()</button>
+                        <button onclick="demonstrateHashCode('bad')">Bad hashCode()</button>
+                        <button onclick="demonstrateHashCode('collision')">Hash Collision</button>
+                        <button onclick="clearOutput('hashOutput')">Clear</button>
+                    </div>
+                    <div id="hashOutput" class="output">Click a button above to see hashCode() demonstrations...</div>
+                </div>
+
+                <div class="highlight">
+                    <strong>Why 31?</strong> The number 31 is used in hash calculations because it's an odd prime, provides good distribution, and can be optimized by the JVM (31 * i == (i << 5) - i).
+                </div>
+            </div>
+
+            <!-- Quiz Section -->
+            <div id="quiz" class="section">
+                <h2>🧠 Interactive Quiz</h2>
+                
+                <div class="quiz-section">
+                    <div class="quiz-question">
+                        <h3>Question 1: What does the == operator compare for objects?</h3>
+                        <div class="quiz-options">
+                            <div class="quiz-option" onclick="selectAnswer(this, false)">A) Object content and values</div>
+                            <div class="quiz-option" onclick="selectAnswer(this, true)">B) Memory addresses (references)</div>
+                            <div class="quiz-option" onclick="selectAnswer(this, false)">C) Hash codes of objects</div>
+                            <div class="quiz-option" onclick="selectAnswer(this, false)">D) Class types of objects</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="quiz-section">
+                    <div class="quiz-question">
+                        <h3>Question 2: If two objects are equal (equals() returns true), what must be true about their hash codes?</h3>
+                        <div class="quiz-options">
+                            <div class="quiz-option" onclick="selectAnswer(this, false)">A) They must be different</div>
+                            <div class="quiz-option" onclick="selectAnswer(this, true)">B) They must be the same</div>
+                            <div class="quiz-option" onclick="selectAnswer(this, false)">C) They can be anything</div>
+                            <div class="quiz-option" onclick="selectAnswer(this, false)">D) One must be zero</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="quiz-section">
+                    <div class="quiz-question">
+                        <h3>Question 3: What's the difference between shallow and deep copying?</h3>
+                        <div class="quiz-options">
+                            <div class="quiz-option" onclick="selectAnswer(this, false)">A) Shallow copies are faster, deep copies are slower</div>
+                            <div class="quiz-option" onclick="selectAnswer(this, true)">B) Shallow copies share referenced objects, deep copies create new ones</div>
+                            <div class="quiz-option" onclick="selectAnswer(this, false)">C) There's no difference</div>
+                            <div class="quiz-option" onclick="selectAnswer(this, false)">D) Deep copies only work with primitive types</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="quizResults" style="margin-top: 20px; padding: 15px; background: #e3f2fd; border-radius: 5px; display: none;">
+                    <h4>Quiz Results:</h4>
+                    <p id="scoreText"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="java_tutorial_js.js"></script>
+    <!--<script>
+        let quizScore = 0;
+        let questionsAnswered = 0;
+
+        function showSection(sectionId) {
+            // Hide all sections
+            const sections = document.querySelectorAll('.section');
+            sections.forEach(section => section.classList.remove('active'));
+            
+            // Remove active class from all nav buttons
+            const navButtons = document.querySelectorAll('.nav button');
+            navButtons.forEach(button => button.classList.remove('active'));
+            
+            // Show selected section and mark nav button as active
+            document.getElementById(sectionId).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function clearOutput(outputId) {
+            document.getElementById(outputId).textContent = '';
+        }
+
+        function demonstrateCloning(type) {
+    const output = document.getElementById('cloneOutput');
+    let result = '';
+
+    switch(type) {
+        case 'shallow':
+            result = `Shallow Copy Demo:
+            
+Student original = new Student("Alice", 123);
+original.addCourse("Math");
+original.addCourse("Science");
+
+Student shallowCopy = (Student) original.clone();
+original.addCourse("History");
+
+Original: [Math, Science, History]
+Shallow Copy: [Math, Science, History] ← same list (shared reference)`;
+            break;
+        case 'deep':
+            result = `Deep Copy Demo:
+
+Student original = new Student("Alice", 123);
+original.addCourse("Math");
+original.addCourse("Science");
+
+Student deepCopy = original.deepClone();
+original.addCourse("History");
+
+Original: [Math, Science, History]
+Deep Copy: [Math, Science] ← independent copy`;
+            break;
+        case 'constructor':
+            result = `Copy Constructor Demo:
+
+Student original = new Student("Alice", 123);
+original.addCourse("Math");
+
+Student copy = new Student(original);
+original.addCourse("Science");
+
+Original: [Math, Science]
+Copy: [Math] ← safe copy via constructor`;
+            break;
+    }
+    output.textContent = result;
+}
+
+function demonstrateHashCode(type) {
+    const output = document.getElementById('hashOutput');
+    let result = '';
+
+    switch(type) {
+        case 'good':
+            result = `Good hashCode() Example:
+
+@Override
+public int hashCode() {
+    return Objects.hash(name, id);
+}
+
+This ensures consistency with equals() and is easy to maintain.`;
+            break;
+        case 'bad':
+            result = `Bad hashCode() Example:
+
+@Override
+public int hashCode() {
+    return 42;
+}
+
+This causes many hash collisions → performance issues in hash-based collections.`;
+            break;
+        case 'collision':
+            result = `Hash Collision Demo:
+
+Student s1 = new Student("Tom", 101);
+Student s2 = new Student("Jerry", 202);
+
+Both return hashCode() = 42 (bad design)
+
+Result: Both go into the same bucket in HashMap → slow retrieval`;
+            break;
+    }
+    output.textContent = result;
+}
+
+function selectAnswer(option, isCorrect) {
+    if (option.classList.contains('correct') || option.classList.contains('incorrect')) return;
+
+    option.classList.add(isCorrect ? 'correct' : 'incorrect');
+    if (isCorrect) quizScore++;
+
+    questionsAnswered++;
+
+    if (questionsAnswered >= 3) {
+        const results = document.getElementById('quizResults');
+        const scoreText = document.getElementById('scoreText');
+        results.style.display = 'block';
+        scoreText.textContent = `You got ${quizScore} out of 3 correct! 🎉`;
+    }
+}
+
+        function demonstrateEquality(type) {
+            const output = document.getElementById('equalityOutput');
+            let result = '';
+
+            switch(type) {
+                case 'reference':
+                    result = `Reference Equality Demo:
+                    
+Student s1 = new Student("Alice", 123);
+Student s2 = new Student("Alice", 123);
+Student s3 = s1;
+
+s1 == s2  →  false  (different objects in memory)
+s1 == s3  →  true   (same object reference)
+
+Memory addresses:
+s1: 0x1A2B3C4D
+s2: 0x5E6F7A8B  ← Different!
+s3: 0x1A2B3C4D  ← Same as s1`;
+                    break;
+                case 'logical':
+                    result = `Logical Equality Demo:
+
+Student s1 = new Student("Alice", 123);
+Student s2 = new Student("Alice", 123);
+Student s3 = new Student("Bob", 456);
+
+// With proper equals() override:
+s1.equals(s2)  →  true   (same name and id)
+s1.equals(s3)  →  false  (different name and id)
+s1.equals(null) →  false  (null check)
+
+// Without override (default Object.equals):
+s1.equals(s2)  →  false  (only compares references)`;
+                    break;
+                case 'string':
+                    result = `String Equality Demo:
+
+String str1 = "Hello";
+String str2 = "Hello";
+String str3 = new String("Hello");
+
+str1 == str2      →  true   (string pool)
+str1 == str3      →  false  (different objects)
+str1.equals(str3) →  true   (same content)
+
+Lesson: Always use equals() for string comparison!`;
+                    break;
+            }
+            output.textContent = result;
+        }
+
+        function demonstrateToString(type) {
+            const output = document.getElementById('toStringOutput');
+            let result = '';
+
+            switch(type) {
+                case 'default':
+                    result = `Default toString() Demo:
+
+Student student = new Student("Alice", 123, 3.8);
+
+// Without override:
+System.out.println(student);
+Output: Student@1a2b3c4d
+
+// Problem: Not human-readable!
+// The @1a2b3c4d is the hash code in hexadecimal.`;
+                    break;
+                case 'custom':
+                    result = `Custom toString() Demo:
+
+@Override
+public String toString() {
+    return "Student{name='" + name + "', id=" + id + ", gpa=" + gpa + "}";
+}
+
+// With override:
+System.out.println(student);
+Output: Student{name='Alice', id=123, gpa=3.8}
+
+// Much better for debugging and logging!`;
+                    break;
+                case 'formatted':
+                    result = `Formatted toString() Variations:
+
+// Compact format:
+public String toShortString() {
+    return name + " (" + id + ")";
+}
+Output: Alice (123)
+
+// Detailed format:
+public String toDetailedString() {
+    return "Student Details:\\n" +
+           "  Name: " + name + "\\n" +
+           "  ID: " + id + "\\n" +
+           "  GPA: " + gpa;
+}
+Output: Student Details:
+        Name: Alice
+        ID: 123
+        GPA: 3.8`;
+                    break;
+            }
+            output.textContent = result;
+        }
+
+        function demonstrateCloning(type) {
+            const output = document.getElementById('cloneOutput');
+            let result = '';
+
+            switch(type) {
+                case 'shallow':
+                    result = `Shallow Copy Demo:
+
+Student original = new Student("Alice", 123);
+original.addCourse("Math");
+original.addCourse("Science");
+
+Student shallowCopy = (Student) original.clone();
+
+// Modify original's courses
+original.addCourse("History");
+
+System.out.println("Original courses: " + original.getCourses());
+System.out.println("Shallow copy courses: " + shallowCopy.getCourses());
+
+Output:
+Original courses: [Math, Science, History]
+Shallow copy courses: [Math, Science, History]  ← Same!
+
+Problem: Both share the same courses list!`;
+                    break;
+                case 'deep':
+                    result = `Deep Copy Demo:
+
+Student original =-->

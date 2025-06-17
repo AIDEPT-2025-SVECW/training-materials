@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Java Collections Framework Interactive Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .hierarchy {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-left: 5px solid #3498db;
+        }
+
+        .hierarchy h2 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .hierarchy-tree {
+            font-family: 'Courier New', monospace;
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 10px;
+            overflow-x: auto;
+            white-space: pre;
+        }
+
+        .tabs {
+            display: flex;
+            background: #34495e;
+            border-radius: 10px 10px 0 0;
+            overflow: hidden;
+            margin-bottom: 0;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px 20px;
+            background: #34495e;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .tab.active {
+            background: #3498db;
+            transform: translateY(-2px);
+        }
+
+        .tab:hover:not(.active) {
+            background: #4a5f7a;
+        }
+
+        .tab-content {
+            display: none;
+            background: white;
+            border-radius: 0 0 15px 15px;
+            padding: 25px;
+            border: 2px solid #3498db;
+            border-top: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .demo-section {
+            margin-bottom: 30px;
+        }
+
+        .demo-section h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.4em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 5px;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        input[type="text"], input[type="number"] {
+            padding: 8px 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="text"]:focus, input[type="number"]:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        button {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .visualization {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            min-height: 150px;
+            border: 2px dashed #ddd;
+            position: relative;
+        }
+
+        .collection-item {
+            display: inline-block;
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            color: white;
+            padding: 8px 15px;
+            margin: 5px;
+            border-radius: 20px;
+            font-weight: 500;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .collection-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .collection-item.new {
+            animation: bounceIn 0.5s ease;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .collection-item.removed {
+            animation: fadeOut 0.3s ease;
+        }
+
+        @keyframes fadeOut {
+            to { opacity: 0; transform: scale(0); }
+        }
+
+        .output {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            min-height: 100px;
+            overflow-y: auto;
+            max-height: 200px;
+        }
+
+        .operation-log {
+            margin-top: 10px;
+            padding: 10px;
+            background: #ecf0f1;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 12px;
+            color: #2c3e50;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .comparison-table th {
+            background: #3498db;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .comparison-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .comparison-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .performance-indicator {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .performance-excellent {
+            background: #2ecc71;
+            color: white;
+        }
+
+        .performance-good {
+            background: #f39c12;
+            color: white;
+        }
+
+        .performance-poor {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .tooltip {
+            position: relative;
+            cursor: help;
+        }
+
+        .tooltip:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2c3e50;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Java Collections Framework Interactive Demo</h1>
+        
+        <div class="hierarchy">
+            <h2>📊 Collections Hierarchy</h2>
+            <div class="hierarchy-tree">Collection (Interface)
+├── List (Interface)
+│   ├── ArrayList (Class)
+│   ├── LinkedList (Class)
+│   └── Vector (Class)
+├── Set (Interface)
+│   ├── HashSet (Class)
+│   ├── LinkedHashSet (Class)
+│   └── TreeSet (Class)
+└── Queue (Interface)
+    ├── LinkedList (Class)
+    ├── PriorityQueue (Class)
+    └── ArrayDeque (Class)
+
+Map (Interface)
+├── HashMap (Class)
+├── LinkedHashMap (Class)
+├── TreeMap (Class)
+└── Hashtable (Class)</div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('list')">📋 List Collections</button>
+            <button class="tab" onclick="showTab('set')">🔢 Set Collections</button>
+            <button class="tab" onclick="showTab('map')">🔑 Map Collections</button>
+            <button class="tab" onclick="showTab('queue')">⏳ Queue Collections</button>
+            <button class="tab" onclick="showTab('comparison')">⚡ Performance Comparison</button>
+        </div>
+
+        <div id="list-tab" class="tab-content active">
+            <div class="demo-section">
+                <h3>ArrayList Demo</h3>
+                <div class="controls">
+                    <div class="input-group">
+                        <label>Value:</label>
+                        <input type="text" id="arraylist-input" placeholder="Enter value">
+                        <button onclick="addToArrayList()">Add</button>
+                        <button onclick="removeFromArrayList()">Remove</button>
+                        <button onclick="clearArrayList()">Clear</button>
+                    </div>
+                    <div class="input-group">
+                        <label>Index:</label>
+                        <input type="number" id="arraylist-index" placeholder="Index" min="0">
+                        <button onclick="getFromArrayList()">Get</button>
+                        <button onclick="insertIntoArrayList()">Insert</button>
+                    </div>
+                </div>
+                <div id="arraylist-visualization" class="visualization"></div>
+                <div id="arraylist-output" class="output"></div>
+            </div>
+
+            <div class="demo-section">
+                <h3>LinkedList Demo</h3>
+                <div class="controls">
+                    <div class="input-group">
+                        <label>Value:</label>
+                        <input type="text" id="linkedlist-input" placeholder="Enter value">
+                        <button onclick="addToLinkedList()">Add Last</button>
+                        <button onclick="addFirstToLinkedList()">Add First</button>
+                        <button onclick="removeFromLinkedList()">Remove Last</button>
+                        <button onclick="removeFirstFromLinkedList()">Remove First</button>
+                        <button onclick="clearLinkedList()">Clear</button>
+                    </div>
+                </div>
+                <div id="linkedlist-visualization" class="visualization"></div>
+                <div id="linkedlist-output" class="output"></div>
+            </div>
+        </div>
+
+        <div id="set-tab" class="tab-content">
+            <div class="demo-section">
+                <h3>HashSet Demo</h3>
+                <div class="controls">
+                    <div class="input-group">
+                        <label>Value:</label>
+                        <input type="text" id="hashset-input" placeholder="Enter value">
+                        <button onclick="addToHashSet()">Add</button>
+                        <button onclick="removeFromHashSet()">Remove</button>
+                        <button onclick="containsInHashSet()">Contains</button>
+                        <button onclick="clearHashSet()">Clear</button>
+                    </div>
+                </div>
+                <div id="hashset-visualization" class="visualization"></div>
+                <div id="hashset-output" class="output"></div>
+            </div>
+
+            <div class="demo-section">
+                <h3>TreeSet Demo</h3>
+                <div class="controls">
+                    <div class="input-group">
+                        <label>Value:</label>
+                        <input type="text" id="treeset-input" placeholder="Enter value">
+                        <button onclick="addToTreeSet()">Add</button>
+                        <button onclick="removeFromTreeSet()">Remove</button>
+                        <button onclick="firstInTreeSet()">First</button>
+                        <button onclick="lastInTreeSet()">Last</button>
+                        <button onclick="clearTreeSet()">Clear</button>
+                    </div>
+                </div>
+                <div id="treeset-visualization" class="visualization"></div>
+                <div id="treeset-output" class="output"></div>
+            </div>
+        </div>
+
+        <div id="map-tab" class="tab-content">
+            <div class="demo-section">
+                <h3>HashMap Demo</h3>
+                <div class="controls">
+                    <div class="input-group">
+                        <label>Key:</label>
+                        <input type="text" id="hashmap-key" placeholder="Enter key">
+                        <label>Value:</label>
+                        <input type="text" id="hashmap-value" placeholder="Enter value">
+                        <button onclick="putInHashMap()">Put</button>
+                        <button onclick="getFromHashMap()">Get</button>
+                        <button onclick="removeFromHashMap()">Remove</button>
+                        <button onclick="clearHashMap()">Clear</button>
+                    </div>
+                </div>
+                <div id="hashmap-visualization" class="visualization"></div>
+                <div id="hashmap-output" class="output"></div>
+            </div>
+
+            <div class="demo-section">
+                <h3>TreeMap Demo</h3>
+                <div class="controls">
+                    <div class="input-group">
+                        <label>Key:</label>
+                        <input type="text" id="treemap-key" placeholder="Enter key">
+                        <label>Value:</label>
+                        <input type="text" id="treemap-value" placeholder="Enter value">
+                        <button onclick="putInTreeMap()">Put</button>
+                        <button onclick="getFromTreeMap()">Get</button>
+                        <button onclick="firstKeyInTreeMap()">First Key</button>
+                        <button onclick="lastKeyInTreeMap()">Last Key</button>
+                        <button onclick="clearTreeMap()">Clear</button>
+                    </div>
+                </div>
+                <div id="treemap-visualization" class="visualization"></div>
+                <div id="treemap-output" class="output"></div>
+            </div>
+        </div>
+
+        <div id="queue-tab" class="tab-content">
+            <div class="demo-section">
+                <h3>LinkedList as Queue Demo</h3>
+                <div class="controls">
+                    <div class="input-group">
+                        <label>Value:</label>
+                        <input type="text" id="queue-input" placeholder="Enter value">
+                        <button onclick="enqueue()">Enqueue</button>
+                        <button onclick="dequeue()">Dequeue</button>
+                        <button onclick="peekQueue()">Peek</button>
+                        <button onclick="clearQueue()">Clear</button>
+                    </div>
+                </div>
+                <div id="queue-visualization" class="visualization"></div>
+                <div id="queue-output" class="output"></div>
+            </div>
+
+            <div class="demo-section">
+                <h3>PriorityQueue Demo</h3>
+                <div class="controls">
+                    <div class="input-group">
+                        <label>Value (Number):</label>
+                        <input type="number" id="priorityqueue-input" placeholder="Enter number">
+                        <button onclick="addToPriorityQueue()">Add</button>
+                        <button onclick="pollFromPriorityQueue()">Poll</button>
+                        <button onclick="peekPriorityQueue()">Peek</button>
+                        <button onclick="clearPriorityQueue()">Clear</button>
+                    </div>
+                </div>
+                <div id="priorityqueue-visualization" class="visualization"></div>
+                <div id="priorityqueue-output" class="output"></div>
+            </div>
+        </div>
+
+        <div id="comparison-tab" class="tab-content">
+            <div class="demo-section">
+                <h3>Performance Comparison</h3>
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Collection</th>
+                            <th>Add</th>
+                            <th>Remove</th>
+                            <th>Contains</th>
+                            <th>Get (by index)</th>
+                            <th>Best Use Case</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>ArrayList</strong></td>
+                            <td><span class="performance-indicator performance-excellent tooltip" data-tooltip="Amortized O(1)">O(1)</span></td>
+                            <td><span class="performance-indicator performance-good tooltip" data-tooltip="O(n) for arbitrary position">O(n)</span></td>
+                            <td><span class="performance-indicator performance-good tooltip" data-tooltip="Linear search">O(n)</span></td>
+                            <td><span class="performance-indicator performance-excellent tooltip" data-tooltip="Direct access">O(1)</span></td>
+                            <td>Frequent random access, less frequent insertions/deletions</td>
+                        </tr>
+                        <tr>
+                            <td><strong>LinkedList</strong></td>
+                            <td><span class="performance-indicator performance-excellent tooltip" data-tooltip="At beginning or end">O(1)</span></td>
+                            <td><span class="performance-indicator performance-excellent tooltip" data-tooltip="At beginning or end">O(1)</span></td>
+                            <td><span class="performance-indicator performance-good tooltip" data-tooltip="Linear search">O(n)</span></td>
+                            <td><span class="performance-indicator performance-good tooltip" data-tooltip="Sequential access">O(n)</span></td>
+                            <td>Frequent insertions/deletions, less random access</td>
+                        </tr>
+                        <tr>
+                            <td><strong>HashSet</strong></td>
+                            <td><span class="performance-indicator performance-excellent tooltip" data-tooltip="Average case">O(1)</span></td>
+                            <td><span class="performance-indicator performance-excellent tooltip" data-tooltip="Average case">O(1)</span></td>
+                            <td><span class="performance-indicator performance-excellent tooltip" data-tooltip="Average case">O(1)</span></td>
+                            <td>N/A</td>
+                            <td>Fast lookups, unique elements, no ordering</td>
+                        </tr>
+                        <tr>
+                            <td><strong>TreeSet</strong></td>
+                            <td><span class="performance-indicator performance-good tooltip" data-tooltip="Balanced tree">O(log n)</span></td>
+                            <td><span class="performance-indicator performance-good tooltip" data-tooltip="Balanced tree">O(log n)</span></td>
+                            <td><span class="performance-indicator performance-good tooltip" data-tooltip="Balanced tree">O(log n)</span></td>
+                            <td>N/A</td>
+                            <td>Sorted unique elements, range operations</td>
+                        </tr>
+                        <tr>
+                            <td><strong>HashMap</strong></td>
+                            <td><span class="performance-indicator performance-excellent tooltip" data-tooltip="Average case">O(1)</span></td>
+                            <td><span class="performance-indicator performance-excellent tooltip" data-tooltip="Average case">O(1)</span></td>
+                            <td><span class="performance-indicator performance-excellent tooltip" data-tooltip="Average case">O(1)</span></td>
+                            <td><span class="performance-indicator performance-excellent tooltip" data-tooltip="By key">O(1)</span></td>
+                            <td>Fast key-value lookups, no ordering</td>
+                        </tr>
+                        <tr>
+                            <td><strong>TreeMap</strong></td>
+                            <td><span class="performance-indicator performance-good tooltip" data-tooltip="Balanced tree">O(log n)</span></td>
+                            <td><span class="performance-indicator performance-good tooltip" data-tooltip="Balanced tree">O(log n)</span></td>
+                            <td><span class="performance-indicator performance-good tooltip" data-tooltip="Balanced tree">O(log n)</span></td>
+                            <td><span class="performance-indicator performance-good tooltip" data-tooltip="By key">O(log n)</span></td>
+                            <td>Sorted key-value pairs, range operations</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script src="collections_demo_js.js"></script>
+    
+</body>
+</html>
