@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Threading Concepts - Interactive Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .tab-button {
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 25px;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .tab-button.active {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .tab-content {
+            display: none;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .concept-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border-left: 4px solid #667eea;
+            background: #f8f9fa;
+            border-radius: 0 10px 10px 0;
+        }
+
+        .demo-area {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .thread-visualization {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .thread {
+            width: 120px;
+            height: 80px;
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            position: relative;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .thread.running {
+            animation: pulse 1s infinite;
+            background: linear-gradient(45deg, #2196F3, #1976D2);
+        }
+
+        .thread.blocked {
+            background: linear-gradient(45deg, #f44336, #d32f2f);
+            animation: shake 0.5s infinite;
+        }
+
+        .thread.waiting {
+            background: linear-gradient(45deg, #ff9800, #f57c00);
+            opacity: 0.7;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .control-panel {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .code-example {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+
+        .highlight {
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+        .lifecycle-diagram {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin: 30px 0;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .state {
+            padding: 15px 25px;
+            border-radius: 50px;
+            font-weight: bold;
+            color: white;
+            text-align: center;
+            min-width: 120px;
+            position: relative;
+        }
+
+        .state.new { background: #9e9e9e; }
+        .state.runnable { background: #4caf50; }
+        .state.running { background: #2196f3; }
+        .state.blocked { background: #f44336; }
+        .state.waiting { background: #ff9800; }
+        .state.terminated { background: #795548; }
+
+        .arrow {
+            font-size: 24px;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .sync-demo {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .shared-resource {
+            background: #ffeb3b;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: bold;
+            border: 3px solid #ffc107;
+        }
+
+        .log {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+
+        .problem-demo {
+            background: #ffebee;
+            border-left: 4px solid #f44336;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 0 10px 10px 0;
+        }
+
+        .solution-demo {
+            background: #e8f5e8;
+            border-left: 4px solid #4caf50;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 0 10px 10px 0;
+        }
+
+        @media (max-width: 768px) {
+            .tabs {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .thread-visualization {
+                justify-content: center;
+            }
+            
+            .lifecycle-diagram {
+                flex-direction: column;
+            }
+            
+            .arrow {
+                transform: rotate(90deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧵 Multi-Threading Concepts</h1>
+            <p>Interactive Java Multi-Threading Tutorial</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-button active" onclick="showTab('basics')">Basics & Need</button>
+            <button class="tab-button" onclick="showTab('creation')">Thread Creation</button>
+            <button class="tab-button" onclick="showTab('lifecycle')">Thread Lifecycle</button>
+            <button class="tab-button" onclick="showTab('issues')">Concurrency Issues</button>
+            <button class="tab-button" onclick="showTab('solutions')">Solutions</button>
+            <button class="tab-button" onclick="showTab('synchronization')">Synchronization</button>
+        </div>
+
+        <!-- Basics Tab -->
+        <div id="basics" class="tab-content active">
+            <h2>What is Multi-Threading and Why Do We Need It?</h2>
+            
+            <div class="concept-section">
+                <h3>🎯 What is Multi-Threading?</h3>
+                <p>Multi-threading is a programming concept where multiple threads run concurrently within a single process, allowing multiple tasks to be executed simultaneously.</p>
+            </div>
+
+            <div class="demo-area">
+                <h4>Single-threaded vs Multi-threaded Execution Demo</h4>
+                <div class="control-panel">
+                    <button class="btn" onclick="runSingleThreaded()">Run Single-threaded</button>
+                    <button class="btn" onclick="runMultiThreaded()">Run Multi-threaded</button>
+                    <button class="btn" onclick="clearDemo()">Clear</button>
+                </div>
+                <div id="execution-demo"></div>
+                <div id="demo-log" class="log"></div>
+            </div>
+
+            <div class="concept-section">
+                <h3>🚀 Why Do We Need Multi-Threading?</h3>
+                <ul>
+                    <li><strong>Performance:</strong> Parallel execution of tasks</li>
+                    <li><strong>Responsiveness:</strong> UI remains responsive during background tasks</li>
+                    <li><strong>Resource Utilization:</strong> Better CPU and I/O utilization</li>
+                    <li><strong>Modularity:</strong> Logical separation of different tasks</li>
+                </ul>
+            </div>
+
+            <div class="code-example">
+<span class="highlight">// Example: Without threading (blocking)</span>
+public void downloadFiles() {
+    downloadFile1(); // Blocks until complete
+    downloadFile2(); // Waits for file1 to finish
+    downloadFile3(); // Waits for file2 to finish
+}
+
+<span class="highlight">// Example: With threading (concurrent)</span>
+public void downloadFilesParallel() {
+    Thread t1 = new Thread(() -> downloadFile1());
+    Thread t2 = new Thread(() -> downloadFile2());
+    Thread t3 = new Thread(() -> downloadFile3());
+    
+    t1.start(); // All files download
+    t2.start(); // simultaneously
+    t3.start();
+}
+            </div>
+        </div>
+
+        <!-- Thread Creation Tab -->
+        <div id="creation" class="tab-content">
+            <h2>Thread Creation Methods in Java</h2>
+            
+            <div class="concept-section">
+                <h3>Method 1: Extending Thread Class</h3>
+                <div class="code-example">
+class MyThread extends Thread {
+    public void run() {
+        for (int i = 0; i < 5; i++) {
+            System.out.println("Thread: " + getName() + ", Count: " + i);
+            try { Thread.sleep(1000); } catch (InterruptedException e) {}
+        }
+    }
+}
+
+// Usage
+MyThread thread1 = new MyThread();
+thread1.start();
+                </div>
+            </div>
+
+            <div class="concept-section">
+                <h3>Method 2: Implementing Runnable Interface</h3>
+                <div class="code-example">
+class MyRunnable implements Runnable {
+    public void run() {
+        for (int i = 0; i < 5; i++) {
+            System.out.println("Runnable: " + Thread.currentThread().getName());
+            try { Thread.sleep(1000); } catch (InterruptedException e) {}
+        }
+    }
+}
+
+// Usage
+Thread thread2 = new Thread(new MyRunnable());
+thread2.start();
+                </div>
+            </div>
+
+            <div class="concept-section">
+                <h3>Method 3: Lambda Expressions (Java 8+)</h3>
+                <div class="code-example">
+Thread thread3 = new Thread(() -> {
+    for (int i = 0; i < 5; i++) {
+        System.out.println("Lambda Thread: " + i);
+        try { Thread.sleep(1000); } catch (InterruptedException e) {}
+    }
+});
+thread3.start();
+                </div>
+            </div>
+
+            <div class="concept-section">
+                <h3>Method 4: Executor Framework</h3>
+                <div class="code-example">
+ExecutorService executor = Executors.newFixedThreadPool(3);
+
+executor.submit(() -> {
+    System.out.println("Task executed by: " + Thread.currentThread().getName());
+});
+
+executor.shutdown();
+                </div>
+            </div>
+
+            <div class="demo-area">
+                <h4>Thread Creation Demo</h4>
+                <div class="control-panel">
+                    <button class="btn" onclick="createThreadByExtending()">Create by Extending</button>
+                    <button class="btn" onclick="createThreadByRunnable()">Create by Runnable</button>
+                    <button class="btn" onclick="createThreadByLambda()">Create by Lambda</button>
+                    <button class="btn" onclick="clearThreads()">Clear All</button>
+                </div>
+                <div id="thread-container" class="thread-visualization"></div>
+            </div>
+        </div>
+
+        <!-- Thread Lifecycle Tab -->
+        <div id="lifecycle" class="tab-content">
+            <h2>Thread Lifecycle</h2>
+            
+            <div class="lifecycle-diagram">
+                <div class="state new">NEW</div>
+                <div class="arrow">→</div>
+                <div class="state runnable">RUNNABLE</div>
+                <div class="arrow">→</div>
+                <div class="state running">RUNNING</div>
+                <div class="arrow">→</div>
+                <div class="state terminated">TERMINATED</div>
+            </div>
+
+            <div class="lifecycle-diagram">
+                <div class="state blocked">BLOCKED</div>
+                <div class="arrow">↑</div>
+                <div style="text-align: center;">
+                    <div class="state waiting">WAITING</div>
+                    <div class="state waiting">TIMED_WAITING</div>
+                </div>
+            </div>
+
+            <div class="concept-section">
+                <h3>Thread States Explained</h3>
+                <ul>
+                    <li><strong>NEW:</strong> Thread created but not started</li>
+                    <li><strong>RUNNABLE:</strong> Thread is ready to run or running</li>
+                    <li><strong>BLOCKED:</strong> Thread blocked waiting for monitor lock</li>
+                    <li><strong>WAITING:</strong> Thread waiting indefinitely for another thread</li>
+                    <li><strong>TIMED_WAITING:</strong> Thread waiting for specified time</li>
+                    <li><strong>TERMINATED:</strong> Thread has completed execution</li>
+                </ul>
+            </div>
+
+            <div class="demo-area">
+                <h4>Thread Lifecycle Demo</h4>
+                <div class="control-panel">
+                    <button class="btn" onclick="startLifecycleDemo()">Start Demo Thread</button>
+                    <button class="btn" onclick="interruptThread()">Interrupt Thread</button>
+                    <button class="btn" onclick="resetLifecycle()">Reset</button>
+                </div>
+                <div id="lifecycle-status"></div>
+                <div id="lifecycle-log" class="log"></div>
+            </div>
+
+            <div class="code-example">
+Thread thread = new Thread(() -> {
+    try {
+        Thread.sleep(2000); // TIMED_WAITING
+        synchronized(lock) {
+            // Could be BLOCKED if lock not available
+            wait(); // WAITING
+        }
+    } catch (InterruptedException e) {
+        // Handle interruption
+    }
+}); // NEW
+
+thread.start(); // RUNNABLE -> RUNNING -> TERMINATED
+            </div>
+        </div>
+
+        <!-- Concurrency Issues Tab -->
+        <div id="issues" class="tab-content">
+            <h2>Concurrency Issues</h2>
+            
+            <div class="problem-demo">
+                <h3>🔴 Race Condition</h3>
+                <p>Multiple threads accessing shared data simultaneously, leading to unpredictable results.</p>
+                <div class="demo-area">
+                    <div class="control-panel">
+                        <button class="btn" onclick="demonstrateRaceCondition()">Demonstrate Race Condition</button>
+                        <button class="btn" onclick="clearRaceDemo()">Clear</button>
+                    </div>
+                    <div>Shared Counter: <span id="race-counter">0</span></div>
+                    <div id="race-log" class="log"></div>
+                </div>
+            </div>
+
+            <div class="problem-demo">
+                <h3>🔴 Deadlock</h3>
+                <p>Two or more threads waiting for each other indefinitely.</p>
+                <div class="demo-area">
+                    <div class="control-panel">
+                        <button class="btn" onclick="demonstrateDeadlock()">Demonstrate Deadlock</button>
+                        <button class="btn" onclick="clearDeadlockDemo()">Clear</button>
+                    </div>
+                    <div id="deadlock-status"></div>
+                    <div id="deadlock-log" class="log"></div>
+                </div>
+            </div>
+
+            <div class="problem-demo">
+                <h3>🔴 Starvation</h3>
+                <p>A thread is unable to gain access to shared resources and cannot make progress.</p>
+            </div>
+
+            <div class="problem-demo">
+                <h3>🔴 Livelock</h3>
+                <p>Threads are not blocked but constantly changing states in response to others, making no progress.</p>
+            </div>
+
+            <div class="code-example">
+<span class="highlight">// Race Condition Example</span>
+class Counter {
+    private int count = 0;
+    
+    public void increment() {
+        count++; // Not atomic! Can cause race condition
+    }
+    
+    public int getCount() { return count; }
+}
+
+<span class="highlight">// Deadlock Example</span>
+Object lock1 = new Object();
+Object lock2 = new Object();
+
+Thread t1 = new Thread(() -> {
+    synchronized(lock1) {
+        synchronized(lock2) { /* work */ }
+    }
+});
+
+Thread t2 = new Thread(() -> {
+    synchronized(lock2) {
+        synchronized(lock1) { /* work */ } // Deadlock!
+    }
+});
+            </div>
+        </div>
+
+        <!-- Solutions Tab -->
+        <div id="solutions" class="tab-content">
+            <h2>Solutions to Concurrency Issues</h2>
+            
+            <div class="solution-demo">
+                <h3>✅ Synchronized Methods/Blocks</h3>
+                <p>Ensures only one thread can access critical sections at a time.</p>
+                <div class="code-example">
+public synchronized void increment() {
+    count++; // Thread-safe now
+}
+
+// Or using synchronized block
+public void increment() {
+    synchronized(this) {
+        count++;
+    }
+}
+                </div>
+            </div>
+
+            <div class="solution-demo">
+                <h3>✅ Atomic Classes</h3>
+                <p>Thread-safe operations without explicit synchronization.</p>
+                <div class="code-example">
+AtomicInteger atomicCounter = new AtomicInteger(0);
+
+public void increment() {
+    atomicCounter.incrementAndGet(); // Thread-safe atomic operation
+}
+                </div>
+            </div>
+
+            <div class="solution-demo">
+                <h3>✅ Locks (ReentrantLock)</h3>
+                <p>More flexible than synchronized with additional features.</p>
+                <div class="code-example">
+private final ReentrantLock lock = new ReentrantLock();
+
+public void increment() {
+    lock.lock();
+    try {
+        count++;
+    } finally {
+        lock.unlock();
+    }
+}
+                </div>
+            </div>
+
+            <div class="demo-area">
+                <h4>Solutions Demo</h4>
+                <div class="control-panel">
+                    <button class="btn" onclick="demonstrateSynchronized()">Test Synchronized</button>
+                    <button class="btn" onclick="demonstrateAtomic()">Test Atomic</button>
+                    <button class="btn" onclick="demonstrateLocks()">Test Locks</button>
+                    <button class="btn" onclick="clearSolutionsDemo()">Clear</button>
+                </div>
+                <div class="sync-demo">
+                    <div>
+                        <h4>Synchronized Counter</h4>
+                        <div>Value: <span id="sync-counter">0</span></div>
+                    </div>
+                    <div>
+                        <h4>Atomic Counter</h4>
+                        <div>Value: <span id="atomic-counter">0</span></div>
+                    </div>
+                    <div>
+                        <h4>Lock Counter</h4>
+                        <div>Value: <span id="lock-counter">0</span></div>
+                    </div>
+                </div>
+                <div id="solutions-log" class="log"></div>
+            </div>
+        </div>
+
+        <!-- Synchronization Tab -->
+        <div id="synchronization" class="tab-content">
+            <h2>Synchronization Deep Dive</h2>
+            
+            <div class="concept-section">
+                <h3>🔒 Monitor Locks (Intrinsic Locks)</h3>
+                <p>Every object in Java has an intrinsic lock. Synchronized methods/blocks use this lock.</p>
+                <div class="code-example">
+public class BankAccount {
+    private double balance;
+    
+    public synchronized void deposit(double amount) {
+        balance += amount; // Only one thread can execute this
+    }
+    
+    public synchronized void withdraw(double amount) {
+        if (balance >= amount) {
+            balance -= amount;
+        }
+    }
+}
+                </div>
+            </div>
+
+            <div class="concept-section">
+                <h3>🎯 Wait, Notify, NotifyAll</h3>
+                <p>Inter-thread communication using object monitors.</p>
+                <div class="code-example">
+class ProducerConsumer {
+    private Queue&lt;Integer&gt; queue = new LinkedList&lt;&gt;();
+    private final int CAPACITY = 5;
+    
+    public synchronized void produce(int item) throws InterruptedException {
+        while (queue.size() == CAPACITY) {
+            wait(); // Release lock and wait
+        }
+        queue.offer(item);
+        notifyAll(); // Notify waiting consumers
+    }
+    
+    public synchronized int consume() throws InterruptedException {
+        while (queue.isEmpty()) {
+            wait(); // Release lock and wait
+        }
+        int item = queue.poll();
+        notifyAll(); // Notify waiting producers
+        return item;
+    }
+}
+                </div>
+            </div>
+
+            <div class="concept-section">
+                <h3>🔧 Advanced Synchronization Tools</h3>
+                <ul>
+                    <li><strong>Semaphore:</strong> Controls access to resources with permits</li>
+                    <li><strong>CountDownLatch:</strong> One-time barrier for thread coordination</li>
+                    <li><strong>CyclicBarrier:</strong> Reusable barrier for thread synchronization</li>
+                    <li><strong>ReadWriteLock:</strong> Separate locks for read and write operations</li>
+                </ul>
+            </div>
+
+            <div class="demo-area">
+                <h4>Producer-Consumer Demo</h4>
+                <div class="control-panel">
+                    <button class="btn" onclick="startProducerConsumer()">Start Demo</button>
+                    <button class="btn" onclick="stopProducerConsumer()">Stop Demo</button>
+                    <button class="btn" onclick="clearProducerConsumer()">Clear</button>
+                </div>
+                <div class="shared-resource">
+                    <div>Queue: <span id="queue-contents">[]</span></div>
+                    <div>Size: <span id="queue-size">0</span>/5</div>
+                </div>
+                <div id="producer-consumer-log" class="log"></div>
+            </div>
+
+            <div class="code-example">
+<span class="highlight">// Semaphore Example</span>
+Semaphore semaphore = new Semaphore(3); // Allow 3 concurrent access
+
+public void accessResource() {
+    try {
+        semaphore.acquire(); // Get permit
+        // Use resource
+    } finally {
+        semaphore.release(); // Return permit
+    }
+}
+
+<span class="highlight">// CountDownLatch Example</span>
+CountDownLatch latch = new CountDownLatch(3);
+
+// Worker threads
+new Thread(() -> {
+    // Do work
+    latch.countDown(); // Signal completion
+}).start();
+
+latch.await(); // Wait for all workers to complete
+            </div>
+        </div>
+    </div>
+
+    <script src="multithreading.js"></script>
+</body>
+</html>
