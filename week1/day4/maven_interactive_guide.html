@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maven Interactive Guide</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        .header h1 {
+            font-size: 3.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 40px;
+            animation: fadeInUp 1s ease-out 0.3s both;
+        }
+
+        .nav-btn {
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+
+        .nav-btn.active {
+            background: #ff6b6b;
+            border-color: #ff6b6b;
+        }
+
+        .section {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            display: none;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .section h2 {
+            color: #4a5568;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .section h2::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(90deg, #ff6b6b, #4ecdc4);
+            border-radius: 2px;
+        }
+
+        .content {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #2d3748;
+        }
+
+        .highlight {
+            background: linear-gradient(120deg, #a8edea 0%, #fed6e3 100%);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            border-left: 5px solid #4ecdc4;
+        }
+
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            position: relative;
+        }
+
+        .code-block::before {
+            content: 'CODE';
+            position: absolute;
+            top: 5px;
+            right: 15px;
+            font-size: 0.8rem;
+            color: #a0aec0;
+        }
+
+        .interactive-demo {
+            background: #f7fafc;
+            border: 2px dashed #cbd5e0;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .demo-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+
+        .demo-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .file-structure {
+            background: #1a202c;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 15px;
+            font-family: 'Courier New', monospace;
+            margin: 20px 0;
+        }
+
+        .folder {
+            color: #fbd38d;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .folder:hover {
+            background: rgba(251, 211, 141, 0.2);
+            border-radius: 5px;
+            padding: 2px 5px;
+        }
+
+        .file {
+            color: #90cdf4;
+            margin-left: 20px;
+        }
+
+        .xml-tag {
+            color: #f6ad55;
+        }
+
+        .xml-content {
+            color: #68d391;
+        }
+
+        .lifecycle-container {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .lifecycle-phase {
+            background: linear-gradient(135deg, #4ecdc4, #44a08d);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .lifecycle-phase:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(78, 205, 196, 0.3);
+        }
+
+        .command-demo {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .command-demo:hover {
+            background: #4a5568;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 3px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b6b, #4ecdc4);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5rem;
+            }
+            
+            .navigation {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .lifecycle-container {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>🔧 Maven Interactive Guide</h1>
+            <p>Master Maven Build Tool for Java Projects</p>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </header>
+
+        <nav class="navigation">
+            <button class="nav-btn active" onclick="showSection('introduction')">Introduction</button>
+            <button class="nav-btn" onclick="showSection('structure')">Project Structure</button>
+            <button class="nav-btn" onclick="showSection('pom')">POM.xml</button>
+            <button class="nav-btn" onclick="showSection('dependencies')">Dependencies</button>
+            <button class="nav-btn" onclick="showSection('lifecycle')">Lifecycle</button>
+            <button class="nav-btn" onclick="showSection('commands')">Commands</button>
+        </nav>
+
+        <!-- Introduction Section -->
+        <section id="introduction" class="section active">
+            <h2>🚀 Maven Introduction</h2>
+            <div class="content">
+                <div class="highlight">
+                    <strong>What is Maven?</strong><br>
+                    Apache Maven is a powerful build automation and project management tool primarily used for Java projects. It simplifies the build process and provides a uniform build system.
+                </div>
+
+                <h3>🎯 Key Benefits:</h3>
+                <ul style="margin: 20px 0; padding-left: 30px;">
+                    <li><strong>Dependency Management:</strong> Automatically downloads and manages libraries</li>
+                    <li><strong>Standard Directory Layout:</strong> Consistent project structure</li>
+                    <li><strong>Build Lifecycle:</strong> Predefined phases for building projects</li>
+                    <li><strong>Plugin Architecture:</strong> Extensible with numerous plugins</li>
+                    <li><strong>Repository System:</strong> Central and local repositories for artifacts</li>
+                </ul>
+
+                <div class="interactive-demo">
+                    <h3>🎮 Interactive Demo</h3>
+                    <p>Click the button to see Maven in action!</p>
+                    <button class="demo-btn" onclick="simulateMavenBuild()">Start Maven Build</button>
+                    <div id="buildOutput" style="margin-top: 20px; font-family: monospace; text-align: left;"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Project Structure Section -->
+        <section id="structure" class="section">
+            <h2>📁 Maven Project Structure</h2>
+            <div class="content">
+                <div class="highlight">
+                    Maven follows a <strong>Convention over Configuration</strong> approach with a standard directory layout that makes navigation intuitive for all developers.
+                </div>
+
+                <h3>📂 Standard Directory Layout:</h3>
+                <div class="file-structure">
+                    <div class="folder" onclick="toggleFolder('root')">📁 my-maven-project/</div>
+                    <div id="root" style="margin-left: 20px;">
+                        <div class="file">📄 pom.xml</div>
+                        <div class="folder" onclick="toggleFolder('src')">📁 src/</div>
+                        <div id="src" style="margin-left: 20px;">
+                            <div class="folder" onclick="toggleFolder('main')">📁 main/</div>
+                            <div id="main" style="margin-left: 20px;">
+                                <div class="folder">📁 java/ <span style="color: #a0aec0;">← Source code</span></div>
+                                <div class="folder">📁 resources/ <span style="color: #a0aec0;">← Resources</span></div>
+                            </div>
+                            <div class="folder" onclick="toggleFolder('test')">📁 test/</div>
+                            <div id="test" style="margin-left: 20px;">
+                                <div class="folder">📁 java/ <span style="color: #a0aec0;">← Test code</span></div>
+                                <div class="folder">📁 resources/ <span style="color: #a0aec0;">← Test resources</span></div>
+                            </div>
+                        </div>
+                        <div class="folder">📁 target/ <span style="color: #a0aec0;">← Build output</span></div>
+                    </div>
+                </div>
+
+                <div class="interactive-demo">
+                    <h3>🎯 Structure Benefits</h3>
+                    <button class="demo-btn" onclick="explainStructure('java')">Why separate src/main/java?</button>
+                    <button class="demo-btn" onclick="explainStructure('test')">Why src/test/java?</button>
+                    <button class="demo-btn" onclick="explainStructure('target')">What's in target/?</button>
+                    <div id="structureExplanation" style="margin-top: 20px; padding: 15px; background: #edf2f7; border-radius: 10px;"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- POM.xml Section -->
+        <section id="pom" class="section">
+            <h2>📋 Project Object Model (POM.xml)</h2>
+            <div class="content">
+                <div class="highlight">
+                    The <strong>POM.xml</strong> is the heart of any Maven project. It contains information about the project and configuration details used by Maven to build the project.
+                </div>
+
+                <h3>🔧 Basic POM Structure:</h3>
+                <div class="code-block">
+<span class="xml-tag">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span>
+<span class="xml-tag">&lt;project xmlns="http://maven.apache.org/POM/4.0.0"&gt;</span>
+    <span class="xml-tag">&lt;modelVersion&gt;</span><span class="xml-content">4.0.0</span><span class="xml-tag">&lt;/modelVersion&gt;</span>
+    
+    <span class="xml-tag">&lt;groupId&gt;</span><span class="xml-content">com.example</span><span class="xml-tag">&lt;/groupId&gt;</span>
+    <span class="xml-tag">&lt;artifactId&gt;</span><span class="xml-content">my-app</span><span class="xml-tag">&lt;/artifactId&gt;</span>
+    <span class="xml-tag">&lt;version&gt;</span><span class="xml-content">1.0-SNAPSHOT</span><span class="xml-tag">&lt;/version&gt;</span>
+    <span class="xml-tag">&lt;packaging&gt;</span><span class="xml-content">jar</span><span class="xml-tag">&lt;/packaging&gt;</span>
+    
+    <span class="xml-tag">&lt;properties&gt;</span>
+        <span class="xml-tag">&lt;maven.compiler.source&gt;</span><span class="xml-content">11</span><span class="xml-tag">&lt;/maven.compiler.source&gt;</span>
+        <span class="xml-tag">&lt;maven.compiler.target&gt;</span><span class="xml-content">11</span><span class="xml-tag">&lt;/maven.compiler.target&gt;</span>
+    <span class="xml-tag">&lt;/properties&gt;</span>
+<span class="xml-tag">&lt;/project&gt;</span>
+                </div>
+
+                <div class="interactive-demo">
+                    <h3>🎯 POM Elements Explained</h3>
+                    <button class="demo-btn" onclick="explainPOMElement('coordinates')">Maven Coordinates</button>
+                    <button class="demo-btn" onclick="explainPOMElement('properties')">Properties</button>
+                    <button class="demo-btn" onclick="explainPOMElement('packaging')">Packaging Types</button>
+                    <div id="pomExplanation" style="margin-top: 20px; padding: 15px; background: #edf2f7; border-radius: 10px;"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dependencies Section -->
+        <section id="dependencies" class="section">
+            <h2>📦 Dependency Management</h2>
+            <div class="content">
+                <div class="highlight">
+                    Maven's <strong>dependency management</strong> automatically downloads and includes libraries your project needs, resolving transitive dependencies and version conflicts.
+                </div>
+
+                <h3>📚 Adding Dependencies:</h3>
+                <div class="code-block">
+<span class="xml-tag">&lt;dependencies&gt;</span>
+    <span class="xml-tag">&lt;dependency&gt;</span>
+        <span class="xml-tag">&lt;groupId&gt;</span><span class="xml-content">junit</span><span class="xml-tag">&lt;/groupId&gt;</span>
+        <span class="xml-tag">&lt;artifactId&gt;</span><span class="xml-content">junit</span><span class="xml-tag">&lt;/artifactId&gt;</span>
+        <span class="xml-tag">&lt;version&gt;</span><span class="xml-content">4.13.2</span><span class="xml-tag">&lt;/version&gt;</span>
+        <span class="xml-tag">&lt;scope&gt;</span><span class="xml-content">test</span><span class="xml-tag">&lt;/scope&gt;</span>
+    <span class="xml-tag">&lt;/dependency&gt;</span>
+<span class="xml-tag">&lt;/dependencies&gt;</span>
+                </div>
+
+                <h3>🎯 Dependency Scopes:</h3>
+                <div class="lifecycle-container">
+                    <div class="lifecycle-phase" onclick="explainScope('compile')">
+                        <h4>compile</h4>
+                        <p>Default scope</p>
+                    </div>
+                    <div class="lifecycle-phase" onclick="explainScope('test')">
+                        <h4>test</h4>
+                        <p>Testing only</p>
+                    </div>
+                    <div class="lifecycle-phase" onclick="explainScope('provided')">
+                        <h4>provided</h4>
+                        <p>Runtime provided</p>
+                    </div>
+                </div>
+
+                <div class="interactive-demo">
+                    <h3>🔍 Dependency Resolver</h3>
+                    <button class="demo-btn" onclick="simulateDependencyResolution()">Resolve Dependencies</button>
+                    <div id="dependencyOutput" style="margin-top: 20px; font-family: monospace; text-align: left;"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Lifecycle Section -->
+        <section id="lifecycle" class="section">
+            <h2>🔄 Maven Build Lifecycle</h2>
+            <div class="content">
+                <div class="highlight">
+                    Maven has <strong>three built-in build lifecycles</strong>: default, clean, and site. Each lifecycle consists of phases that execute in a specific order.
+                </div>
+
+                <h3>🎯 Default Lifecycle Phases:</h3>
+                <div class="lifecycle-container">
+                    <div class="lifecycle-phase" onclick="runPhase('validate')">
+                        <h4>validate</h4>
+                        <p>Validate project</p>
+                    </div>
+                    <div class="lifecycle-phase" onclick="runPhase('compile')">
+                        <h4>compile</h4>
+                        <p>Compile source</p>
+                    </div>
+                    <div class="lifecycle-phase" onclick="runPhase('test')">
+                        <h4>test</h4>
+                        <p>Run tests</p>
+                    </div>
+                    <div class="lifecycle-phase" onclick="runPhase('package')">
+                        <h4>package</h4>
+                        <p>Create JAR/WAR</p>
+                    </div>
+                    <div class="lifecycle-phase" onclick="runPhase('install')">
+                        <h4>install</h4>
+                        <p>Install to local repo</p>
+                    </div>
+                    <div class="lifecycle-phase" onclick="runPhase('deploy')">
+                        <h4>deploy</h4>
+                        <p>Deploy to remote repo</p>
+                    </div>
+                </div>
+
+                <div class="interactive-demo">
+                    <h3>▶️ Lifecycle Demo</h3>
+                    <button class="demo-btn" onclick="runFullBuild()">Run Full Build</button>
+                    <div id="lifecycleOutput" style="margin-top: 20px; font-family: monospace; text-align: left;"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Commands Section -->
+        <section id="commands" class="section">
+            <h2>⌨️ Common Maven Commands</h2>
+            <div class="content">
+                <div class="highlight">
+                    Maven commands follow the pattern: <strong>mvn [phase/goal]</strong>. Here are the most commonly used commands that every developer should know.
+                </div>
+
+                <h3>🚀 Essential Commands:</h3>
+                
+                <div class="command-demo" onclick="runCommand('clean')">
+                    <strong>mvn clean</strong> - Clean the project (remove target directory)
+                </div>
+                
+                <div class="command-demo" onclick="runCommand('compile')">
+                    <strong>mvn compile</strong> - Compile the source code
+                </div>
+                
+                <div class="command-demo" onclick="runCommand('test')">
+                    <strong>mvn test</strong> - Run unit tests
+                </div>
+                
+                <div class="command-demo" onclick="runCommand('package')">
+                    <strong>mvn package</strong> - Create JAR/WAR file
+                </div>
+                
+                <div class="command-demo" onclick="runCommand('install')">
+                    <strong>mvn install</strong> - Install artifact to local repository
+                </div>
+                
+                <div class="command-demo" onclick="runCommand('clean-install')">
+                    <strong>mvn clean install</strong> - Clean and install (most common)
+                </div>
+
+                <h3>🔧 Advanced Commands:</h3>
+                
+                <div class="command-demo" onclick="runCommand('dependency-tree')">
+                    <strong>mvn dependency:tree</strong> - Show dependency hierarchy
+                </div>
+                
+                <div class="command-demo" onclick="runCommand('archetype')">
+                    <strong>mvn archetype:generate</strong> - Create new project from template
+                </div>
+
+                <div class="interactive-demo">
+                    <h3>💻 Command Simulator</h3>
+                    <div id="commandOutput" style="margin-top: 20px; min-height: 100px; background: #2d3748; color: #e2e8f0; padding: 15px; border-radius: 10px; font-family: monospace; text-align: left;">
+                        Click any command above to see its output simulation!
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+<script src="maven_guide_js.js"></script>
+    </body>
+    </html>

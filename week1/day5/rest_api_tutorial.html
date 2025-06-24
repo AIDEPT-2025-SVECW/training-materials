@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>REST API Interactive Tutorial</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 10px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+        .nav-tab {
+            padding: 12px 24px;
+            background: transparent;
+            border: none;
+            color: white;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            margin: 0 5px;
+        }
+
+        .nav-tab:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+        }
+
+        .nav-tab.active {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+            box-shadow: 0 4px 15px rgba(255,107,107,0.4);
+        }
+
+        .content-section {
+            display: none;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            animation: slideInUp 0.6s ease-out;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            border-left: 5px solid #667eea;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+
+        .http-method {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .method-GET { background: #4CAF50; color: white; }
+        .method-POST { background: #2196F3; color: white; }
+        .method-PUT { background: #FF9800; color: white; }
+        .method-DELETE { background: #f44336; color: white; }
+        .method-PATCH { background: #9C27B0; color: white; }
+
+        .http-method:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .interactive-demo {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .demo-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .demo-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .demo-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .response-display {
+            background: #1e1e1e;
+            color: #00ff00;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            min-height: 150px;
+            overflow-x: auto;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .principle-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 15px 0;
+            transform: translateX(-20px);
+            opacity: 0;
+            animation: slideInLeft 0.6s ease-out forwards;
+        }
+
+        .principle-card:nth-child(even) {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            transform: translateX(20px);
+            animation: slideInRight 0.6s ease-out forwards;
+        }
+
+        .best-practice {
+            background: #e8f5e8;
+            border-left: 4px solid #4CAF50;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .best-practice::before {
+            content: '✓';
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 2rem;
+            color: #4CAF50;
+        }
+
+        .code-example {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 15px 0;
+            position: relative;
+            overflow-x: auto;
+        }
+
+        .code-example::before {
+            content: 'CODE';
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            background: #4299e1;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @media (max-width: 768px) {
+            .nav-tabs {
+                flex-wrap: wrap;
+            }
+            
+            .nav-tab {
+                margin: 5px;
+                padding: 10px 16px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .content-section {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>🚀 REST API Mastery</h1>
+            <p>Interactive Guide to RESTful Web Services</p>
+        </header>
+
+        <nav class="nav-tabs">
+            <button class="nav-tab active" data-section="basics">API Basics</button>
+            <button class="nav-tab" data-section="methods">HTTP Methods</button>
+            <button class="nav-tab" data-section="principles">REST Principles</button>
+            <button class="nav-tab" data-section="best-practices">Best Practices</button>
+        </nav>
+
+        <!-- API Basics Section -->
+        <section id="basics" class="content-section active">
+            <h2 class="section-title">🎯 HTTP REST API Basics</h2>
+            
+            <div class="card">
+                <h3>What is a REST API?</h3>
+                <p><strong>REST</strong> (Representational State Transfer) is an architectural style for designing networked applications. A REST API is a web service that follows REST principles to enable communication between different systems over HTTP.</p>
+            </div>
+
+            <div class="card">
+                <h3>Key Components</h3>
+                <ul>
+                    <li><strong>Resources:</strong> Everything is treated as a resource (users, posts, products)</li>
+                    <li><strong>URLs:</strong> Each resource has a unique identifier (endpoint)</li>
+                    <li><strong>HTTP Methods:</strong> Actions you can perform on resources</li>
+                    <li><strong>Status Codes:</strong> Server responses indicating success/failure</li>
+                </ul>
+            </div>
+
+            <div class="interactive-demo">
+                <h3>🎮 Try It: Basic API Structure</h3>
+                <div class="demo-controls">
+                    <button class="demo-btn" style="background: #4CAF50; color: white;" onclick="showApiExample('users')">Get Users</button>
+                    <button class="demo-btn" style="background: #2196F3; color: white;" onclick="showApiExample('posts')">Get Posts</button>
+                    <button class="demo-btn" style="background: #FF9800; color: white;" onclick="showApiExample('products')">Get Products</button>
+                </div>
+                <div class="response-display" id="basicResponse">
+                    Click a button above to see API responses!
+                </div>
+            </div>
+        </section>
+
+        <!-- HTTP Methods Section -->
+        <section id="methods" class="content-section">
+            <h2 class="section-title">🔧 HTTP Methods</h2>
+            
+            <div class="card">
+                <h3>The Big Five HTTP Methods</h3>
+                <div>
+                    <span class="http-method method-GET" onclick="explainMethod('GET')">GET</span>
+                    <span class="http-method method-POST" onclick="explainMethod('POST')">POST</span>
+                    <span class="http-method method-PUT" onclick="explainMethod('PUT')">PUT</span>
+                    <span class="http-method method-DELETE" onclick="explainMethod('DELETE')">DELETE</span>
+                    <span class="http-method method-PATCH" onclick="explainMethod('PATCH')">PATCH</span>
+                </div>
+            </div>
+
+            <div class="card" id="methodExplanation">
+                <h3>Click on any HTTP method above to learn more!</h3>
+                <p>Each method serves a specific purpose in REST API operations.</p>
+            </div>
+
+            <div class="interactive-demo">
+                <h3>🎮 Interactive HTTP Methods Demo</h3>
+                <div class="demo-controls">
+                    <button class="demo-btn method-GET" onclick="simulateRequest('GET', '/api/users')">GET Request</button>
+                    <button class="demo-btn method-POST" onclick="simulateRequest('POST', '/api/users')">POST Request</button>
+                    <button class="demo-btn method-PUT" onclick="simulateRequest('PUT', '/api/users/1')">PUT Request</button>
+                    <button class="demo-btn method-DELETE" onclick="simulateRequest('DELETE', '/api/users/1')">DELETE Request</button>
+                </div>
+                <div class="response-display" id="methodResponse">
+                    Select an HTTP method to see the request/response simulation
+                </div>
+            </div>
+        </section>
+
+        <!-- REST Principles Section -->
+        <section id="principles" class="content-section">
+            <h2 class="section-title">📋 REST Principles</h2>
+            
+            <div class="principle-card">
+                <h3>1. Client-Server Architecture</h3>
+                <p>Separation of concerns between client (user interface) and server (data storage). They can evolve independently.</p>
+            </div>
+
+            <div class="principle-card">
+                <h3>2. Stateless</h3>
+                <p>Each request contains all information needed to process it. Server doesn't store client context between requests.</p>
+            </div>
+
+            <div class="principle-card">
+                <h3>3. Cacheable</h3>
+                <p>Responses should be cacheable to improve performance. Use proper HTTP cache headers.</p>
+            </div>
+
+            <div class="principle-card">
+                <h3>4. Uniform Interface</h3>
+                <p>Consistent way to interact with resources using standard HTTP methods and URIs.</p>
+            </div>
+
+            <div class="principle-card">
+                <h3>5. Layered System</h3>
+                <p>Architecture can have multiple layers (proxies, gateways) without affecting client-server communication.</p>
+            </div>
+
+            <div class="principle-card">
+                <h3>6. Code on Demand (Optional)</h3>
+                <p>Server can send executable code to clients when needed (like JavaScript).</p>
+            </div>
+
+            <div class="interactive-demo">
+                <h3>🎮 Principle Demonstration</h3>
+                <div class="demo-controls">
+                    <button class="demo-btn" onclick="demonstratePrinciple('stateless')" style="background: #6366f1; color: white;">Show Stateless</button>
+                    <button class="demo-btn" onclick="demonstratePrinciple('cacheable')" style="background: #8b5cf6; color: white;">Show Caching</button>
+                    <button class="demo-btn" onclick="demonstratePrinciple('uniform')" style="background: #06b6d4; color: white;">Show Uniform Interface</button>
+                </div>
+                <div class="response-display" id="principleDemo">
+                    Click a button to see REST principles in action!
+                </div>
+            </div>
+        </section>
+
+        <!-- Best Practices Section -->
+        <section id="best-practices" class="content-section">
+            <h2 class="section-title">⭐ API Design Best Practices</h2>
+            
+            <div class="best-practice">
+                <h3>1. Use Nouns for Resources</h3>
+                <p>URLs should represent resources, not actions.</p>
+                <div class="code-example">
+Good: GET /api/users
+Bad:  GET /api/getUsers</div>
+            </div>
+
+            <div class="best-practice">
+                <h3>2. Use Proper HTTP Status Codes</h3>
+                <p>Return meaningful status codes to indicate request results.</p>
+                <div class="code-example">
+200 OK - Success
+201 Created - Resource created
+400 Bad Request - Invalid request
+404 Not Found - Resource not found
+500 Internal Server Error - Server error</div>
+            </div>
+
+            <div class="best-practice">
+                <h3>3. Version Your APIs</h3>
+                <p>Include version numbers to maintain backward compatibility.</p>
+                <div class="code-example">
+/api/v1/users
+/api/v2/users</div>
+            </div>
+
+            <div class="best-practice">
+                <h3>4. Use Consistent Naming</h3>
+                <p>Follow consistent conventions for resource naming.</p>
+                <div class="code-example">
+/api/users (collection)
+/api/users/123 (specific resource)
+/api/users/123/posts (nested resources)</div>
+            </div>
+
+            <div class="best-practice">
+                <h3>5. Implement Filtering and Pagination</h3>
+                <p>Allow clients to filter and paginate large datasets.</p>
+                <div class="code-example">
+/api/users?page=1&limit=10
+/api/users?role=admin&active=true</div>
+            </div>
+
+            <div class="best-practice">
+                <h3>6. Handle Errors Gracefully</h3>
+                <p>Provide clear, helpful error messages.</p>
+                <div class="code-example">
+{
+  "error": {
+    "code": 400,
+    "message": "Invalid email format",
+    "details": "Email must contain @ symbol"
+  }
+}</div>
+            </div>
+
+            <div class="interactive-demo">
+                <h3>🎮 Best Practices Quiz</h3>
+                <div class="demo-controls">
+                    <button class="demo-btn" onclick="showQuiz()" style="background: #f59e0b; color: white;">Start Quiz</button>
+                    <button class="demo-btn" onclick="showBestPracticeExample()" style="background: #10b981; color: white;">Show Examples</button>
+                </div>
+                <div class="response-display" id="practiceDemo">
+                    Test your knowledge of REST API best practices!
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
