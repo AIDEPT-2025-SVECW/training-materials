@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>REST API Basics - Interactive Tutorial</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            animation: fadeInUp 1s ease-out 0.5s both;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 20px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00f260, #0575e6);
+            width: 0%;
+            transition: width 0.5s ease;
+            border-radius: 20px;
+        }
+
+        .topic-nav {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .nav-btn {
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-btn:hover, .nav-btn.active {
+            background: rgba(255,255,255,0.3);
+            border-color: rgba(255,255,255,0.8);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .content-section {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: none;
+            animation: slideInUp 0.6s ease-out;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        .content-section h2 {
+            color: #4a5568;
+            margin-bottom: 20px;
+            font-size: 2rem;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .interactive-demo {
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .demo-button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
+        .demo-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            position: relative;
+        }
+
+        .code-block::before {
+            content: 'CODE';
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .comparison-card {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .comparison-card:hover {
+            border-color: #667eea;
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .method-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .method-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .method-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+
+        .quiz-section {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .quiz-question {
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #856404;
+        }
+
+        .quiz-options {
+            display: grid;
+            gap: 10px;
+        }
+
+        .quiz-option {
+            background: white;
+            border: 2px solid #ffc107;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .quiz-option:hover {
+            background: #fff3cd;
+        }
+
+        .quiz-option.correct {
+            background: #d4edda;
+            border-color: #28a745;
+        }
+
+        .quiz-option.incorrect {
+            background: #f8d7da;
+            border-color: #dc3545;
+        }
+
+        .result-display {
+            background: #e3f2fd;
+            border: 2px solid #2196f3;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: monospace;
+            min-height: 100px;
+        }
+
+        .navigation-controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+
+        .nav-control {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .nav-control:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .nav-control:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .best-practice {
+            background: #e8f5e8;
+            border-left: 4px solid #4CAF50;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .best-practice::before {
+            content: '✓';
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 2rem;
+            color: #4CAF50;
+        }
+
+        .code-example {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 15px 0;
+            position: relative;
+            overflow-x: auto;
+        }
+
+        .code-example::before {
+            content: 'CODE';
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            background: #4299e1;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        .demo-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .demo-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .response-display {
+            background: #1e1e1e;
+            color: #00ff00;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            min-height: 150px;
+            overflow-x: auto;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .method-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+            
+            .navigation-controls {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>REST API Fundamentals</h1>
+            <p>Interactive Tutorial for Engineering Students</p>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="topic-nav">
+            <button class="nav-btn active" data-section="client-server">Client-Server Basics</button>
+            <button class="nav-btn" data-section="servers">App vs Web Server</button>
+            <button class="nav-btn" data-section="services">Web Services vs API</button>
+            <button class="nav-btn" data-section="rest-intro">REST API Intro</button>
+            <button class="nav-btn" data-section="principles">REST Principles</button>
+            <button class="nav-btn" data-section="methods">HTTP Methods</button>
+            <button class="nav-btn" data-section="best-practices">Best Practices</button>
+        </div>
+
+        <!-- Client-Server Basics -->
+        <div class="content-section active" id="client-server">
+            <h2>🔄 Client-Server Interaction Basics</h2>
+            <p>Understanding the fundamental architecture of modern web applications starts with the client-server model. This is the foundation upon which all REST APIs are built.</p>
+            
+            <div class="interactive-demo">
+                <h3>Interactive Client-Server Demo</h3>
+                <p>Click the button below to simulate a client-server interaction:</p>
+                <button class="demo-button" onclick="simulateClientServer()">Send Request to Server</button>
+                <div class="result-display" id="clientServerResult">
+                    Waiting for request...
+                </div>
+            </div>
+
+            <div class="comparison-grid">
+                <div class="comparison-card" onclick="showDetails('client')">
+                    <h3>👤 Client</h3>
+                    <p>Requests data or services</p>
+                    <ul style="text-align: left; margin-top: 10px;">
+                        <li>Web browsers</li>
+                        <li>Mobile apps</li>
+                        <li>Desktop applications</li>
+                    </ul>
+                </div>
+                <div class="comparison-card" onclick="showDetails('server')">
+                    <h3>🖥️ Server</h3>
+                    <p>Provides data or services</p>
+                    <ul style="text-align: left; margin-top: 10px;">
+                        <li>Processes requests</li>
+                        <li>Returns responses</li>
+                        <li>Manages resources</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="quiz-section">
+                <div class="quiz-question">Quick Quiz: What initiates communication in the client-server model?</div>
+                <div class="quiz-options">
+                    <div class="quiz-option" onclick="checkAnswer(this, false)">The server automatically sends data</div>
+                    <div class="quiz-option" onclick="checkAnswer(this, true)">The client sends a request to the server</div>
+                    <div class="quiz-option" onclick="checkAnswer(this, false)">Both client and server communicate simultaneously</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- App Server vs Web Server -->
+        <div class="content-section" id="servers">
+            <h2>🏗️ Application Server vs Web Server</h2>
+            <p>Understanding the difference between application servers and web servers is crucial for grasping how modern web applications work.</p>
+
+            <div class="comparison-grid">
+                <div class="comparison-card">
+                    <h3>🌐 Web Server</h3>
+                    <h4>Primary Function:</h4>
+                    <p>Serves static content and handles HTTP requests</p>
+                    <h4>Examples:</h4>
+                    <ul style="text-align: left;">
+                        <li>Apache HTTP Server</li>
+                        <li>Nginx</li>
+                        <li>IIS</li>
+                    </ul>
+                    <h4>Handles:</h4>
+                    <ul style="text-align: left;">
+                        <li>HTML files</li>
+                        <li>CSS, JavaScript</li>
+                        <li>Images, videos</li>
+                    </ul>
+                </div>
+                <div class="comparison-card">
+                    <h3>⚙️ Application Server</h3>
+                    <h4>Primary Function:</h4>
+                    <p>Executes application logic and processes dynamic content</p>
+                    <h4>Examples:</h4>
+                    <ul style="text-align: left;">
+                        <li>Node.js</li>
+                        <li>Apache Tomcat</li>
+                        <li>Django</li>
+                    </ul>
+                    <h4>Handles:</h4>
+                    <ul style="text-align: left;">
+                        <li>Business logic</li>
+                        <li>Database connections</li>
+                        <li>Dynamic content generation</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="interactive-demo">
+                <h3>Server Type Simulator</h3>
+                <p>Click to see how different servers handle requests:</p>
+                <button class="demo-button" onclick="simulateWebServer()">Web Server Request</button>
+                <button class="demo-button" onclick="simulateAppServer()">App Server Request</button>
+                <div class="result-display" id="serverResult">
+                    Click a button to simulate server behavior...
+                </div>
+            </div>
+
+            <div class="code-block">
+// Example: Web Server handling static file
+GET /images/logo.png HTTP/1.1
+Host: example.com
+
+Response: Returns the actual image file
+
+// Example: App Server processing dynamic request
+GET /api/users/123 HTTP/1.1
+Host: example.com
+
+Response: Queries database, processes data, returns JSON
+            </div>
+        </div>
+
+        <!-- Web Services vs API vs REST API -->
+        <div class="content-section" id="services">
+            <h2>🔗 Web Services vs API vs REST API</h2>
+            <p>These terms are often used interchangeably, but they have distinct meanings and relationships.</p>
+
+            <div class="comparison-grid">
+                <div class="comparison-card" onclick="showServiceDetails('webservice')">
+                    <h3>🌐 Web Service</h3>
+                    <p><strong>Broadest concept</strong></p>
+                    <p>Any service available over the web using standardized protocols</p>
+                    <ul style="text-align: left; margin-top: 10px;">
+                        <li>SOAP</li>
+                        <li>REST</li>
+                        <li>GraphQL</li>
+                    </ul>
+                </div>
+                <div class="comparison-card" onclick="showServiceDetails('api')">
+                    <h3>🔌 API</h3>
+                    <p><strong>Interface definition</strong></p>
+                    <p>Set of rules and protocols for building software applications</p>
+                    <ul style="text-align: left; margin-top: 10px;">
+                        <li>Web APIs</li>
+                        <li>Library APIs</li>
+                        <li>OS APIs</li>
+                    </ul>
+                </div>
+                <div class="comparison-card" onclick="showServiceDetails('rest')">
+                    <h3>🎯 REST API</h3>
+                    <p><strong>Specific architecture</strong></p>
+                    <p>API that follows REST architectural principles</p>
+                    <ul style="text-align: left; margin-top: 10px;">
+                        <li>Stateless</li>
+                        <li>Resource-based</li>
+                        <li>HTTP methods</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="interactive-demo">
+                <h3>Relationship Visualizer</h3>
+                <button class="demo-button" onclick="showRelationship()">Show Hierarchy</button>
+                <div class="result-display" id="relationshipResult">
+                    Click to see how these concepts relate to each other...
+                </div>
+            </div>
+
+            <div class="quiz-section">
+                <div class="quiz-question">Which statement is correct about the relationship between these concepts?</div>
+                <div class="quiz-options">
+                    <div class="quiz-option" onclick="checkAnswer(this, false)">REST API is broader than Web Service</div>
+                    <div class="quiz-option" onclick="checkAnswer(this, true)">REST API is a specific type of Web Service</div>
+                    <div class="quiz-option" onclick="checkAnswer(this, false)">API and Web Service are the same thing</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- REST API Introduction -->
+        <div class="content-section" id="rest-intro">
+            <h2>🚀 REST API Introduction</h2>
+            <p><strong>REST</strong> stands for <em>Representational State Transfer</em>. It's an architectural style for designing networked applications, particularly web services.</p>
+
+            <div class="interactive-demo">
+                <h3>What makes an API "RESTful"?</h3>
+                <p>Explore the key characteristics:</p>
+                <button class="demo-button" onclick="exploreRESTCharacteristic('stateless')">Stateless</button>
+                <button class="demo-button" onclick="exploreRESTCharacteristic('resource')">Resource-Based</button>
+                <button class="demo-button" onclick="exploreRESTCharacteristic('http')">Uses HTTP</button>
+                <div class="result-display" id="restCharacteristic">
+                    Click on a characteristic to learn more...
+                </div>
+            </div>
+
+            <div class="code-block">
+// Example REST API endpoint structure
+Base URL: https://api.example.com
+
+Resources:
+GET    /users           - Get all users
+GET    /users/123       - Get user with ID 123
+POST   /users           - Create a new user
+PUT    /users/123       - Update user 123
+DELETE /users/123       - Delete user 123
+            </div>
+
+            <h3>🎯 Why REST APIs?</h3>
+            <div class="comparison-grid">
+                <div class="comparison-card">
+                    <h4>📱 Platform Independent</h4>
+                    <p>Works with any programming language or platform</p>
+                </div>
+                <div class="comparison-card">
+                    <h4>🔧 Simple & Flexible</h4>
+                    <p>Easy to understand and implement</p>
+                </div>
+                <div class="comparison-card">
+                    <h4>📈 Scalable</h4>
+                    <p>Stateless nature supports horizontal scaling</p>
+                </div>
+                <div class="comparison-card">
+                    <h4>🌐 Web Standard</h4>
+                    <p>Built on HTTP, widely supported</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- REST Principles -->
+        <div class="content-section" id="principles">
+            <h2>📋 REST Architectural Principles</h2>
+            <p>REST is defined by six architectural constraints that ensure scalability, simplicity, and reliability:</p>
+
+            <div class="interactive-demo">
+                <h3>Explore REST Principles</h3>
+                <p>Click on each principle to understand it better:</p>
+                <button class="demo-button" onclick="explainPrinciple('client-server-principle')">Client-Server</button>
+                <button class="demo-button" onclick="explainPrinciple('stateless-principle')">Stateless</button>
+                <button class="demo-button" onclick="explainPrinciple('cacheable')">Cacheable</button>
+                <button class="demo-button" onclick="explainPrinciple('uniform')">Uniform Interface</button>
+                <button class="demo-button" onclick="explainPrinciple('layered')">Layered System</button>
+                <button class="demo-button" onclick="explainPrinciple('code-on-demand')">Code on Demand</button>
+                <div class="result-display" id="principleExplanation">
+                    Click on a principle above to learn more...
+                </div>
+            </div>
+
+            <div class="code-block">
+// Example: Stateless Request
+// Each request contains all necessary information
+
+Request 1:
+GET /api/users/123
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+Request 2:
+PUT /api/users/123
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+Content-Type: application/json
+{
+  "name": "John Doe",
+  "email": "john@example.com"
+}
+            </div>
+
+            <div class="quiz-section">
+                <div class="quiz-question">Which principle means the server doesn't store client context between requests?</div>
+                <div class="quiz-options">
+                    <div class="quiz-option" onclick="checkAnswer(this, false)">Client-Server</div>
+                    <div class="quiz-option" onclick="checkAnswer(this, true)">Stateless</div>
+                    <div class="quiz-option" onclick="checkAnswer(this, false)">Cacheable</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- REST API Methods -->
+        <div class="content-section" id="methods">
+            <h2>🔧 HTTP Methods in REST APIs</h2>
+            <p>REST APIs use standard HTTP methods to perform different operations on resources. Each method has a specific purpose and behavior:</p>
+
+            <div class="method-grid">
+                <div class="method-card" onclick="demonstrateMethod('GET')">
+                    <h3>GET</h3>
+                    <p>Retrieve data</p>
+                    <small>Safe & Idempotent</small>
+                </div>
+                <div class="method-card" onclick="demonstrateMethod('POST')">
+                    <h3>POST</h3>
+                    <p>Create new resource</p>
+                    <small>Not Safe, Not Idempotent</small>
+                </div>
+                <div class="method-card" onclick="demonstrateMethod('PUT')">
+                    <h3>PUT</h3>
+                    <p>Update/Replace resource</p>
+                    <small>Not Safe, Idempotent</small>
+                </div>
+                <div class="method-card" onclick="demonstrateMethod('PATCH')">
+                    <h3>PATCH</h3>
+                    <p>Partial update</p>
+                    <small>Not Safe, Not Idempotent</small>
+                </div>
+                <div class="method-card" onclick="demonstrateMethod('DELETE')">
+                    <h3>DELETE</h3>
+                    <p>Remove resource</p>
+                    <small>Not Safe, Idempotent</small>
+                </div>
+                <div class="method-card" onclick="demonstrateMethod('HEAD')">
+                    <h3>HEAD</h3>
+                    <p>Get headers only</p>
+                    <small>Safe & Idempotent</small>
+                </div>
+            </div>
+
+            <div class="interactive-demo">
+                <h3>HTTP Method Simulator</h3>
+                <p>See how different HTTP methods work:</p>
+                <div class="result-display" id="methodDemo">
+                    Click on any HTTP method above to see it in action...
+                </div>
+            </div>
+
+            <div class="code-block">
+// HTTP Status Codes commonly used with REST APIs
+
+Success (2xx):
+200 OK - Request successful
+201 Created - Resource created
+204 No Content - Request successful, no content to return
+
+Client Error (4xx):
+400 Bad Request - Invalid request
+401 Unauthorized - Authentication required
+404 Not Found - Resource not found
+
+Server Error (5xx):
+500 Internal Server Error - Server error
+503 Service Unavailable - Server temporarily unavailable
+            </div>
+
+            <div class="quiz-section">
+                <div class="quiz-question">Which HTTP method should you use to completely replace an existing resource?</div>
+                <div class="quiz-options">
+                    <div class="quiz-option" onclick="checkAnswer(this, false)">POST</div>
+                    <div class="quiz-option" onclick="checkAnswer(this, true)">PUT</div>
+                    <div class="quiz-option" onclick="checkAnswer(this, false)">PATCH</div>
+                </div>
+            </div>
+        </div>
+        <!-- Best Practices Section -->
+        <div  class="content-section" id="best-practices">
+            <h2 class="section-title">⭐ API Design Best Practices</h2>
+            
+            <div class="best-practice">
+                <h3>1. Use Nouns for Resources</h3>
+                <p>URLs should represent resources, not actions.</p>
+                <div class="code-example">
+Good: GET /api/users
+Bad:  GET /api/getUsers</div>
+            </div>
+
+            <div class="best-practice">
+                <h3>2. Use Proper HTTP Status Codes</h3>
+                <p>Return meaningful status codes to indicate request results.</p>
+                <div class="code-example">
+200 OK - Success
+201 Created - Resource created
+400 Bad Request - Invalid request
+404 Not Found - Resource not found
+500 Internal Server Error - Server error</div>
+            </div>
+
+            <div class="best-practice">
+                <h3>3. Version Your APIs</h3>
+                <p>Include version numbers to maintain backward compatibility.</p>
+                <div class="code-example">
+/api/v1/users
+/api/v2/users</div>
+            </div>
+
+            <div class="best-practice">
+                <h3>4. Use Consistent Naming</h3>
+                <p>Follow consistent conventions for resource naming.</p>
+                <div class="code-example">
+/api/users (collection)
+/api/users/123 (specific resource)
+/api/users/123/posts (nested resources)</div>
+            </div>
+
+            <div class="best-practice">
+                <h3>5. Implement Filtering and Pagination</h3>
+                <p>Allow clients to filter and paginate large datasets.</p>
+                <div class="code-example">
+/api/users?page=1&limit=10
+/api/users?role=admin&active=true</div>
+            </div>
+
+            <div class="best-practice">
+                <h3>6. Handle Errors Gracefully</h3>
+                <p>Provide clear, helpful error messages.</p>
+                <div class="code-example">
+{
+  "error": {
+    "code": 400,
+    "message": "Invalid email format",
+    "details": "Email must contain @ symbol"
+  }
+}</div>
+            </div>
+
+            <div class="interactive-demo">
+                <h3>🎮 Best Practices Quiz</h3>
+                <div class="demo-controls">
+                    <button class="demo-btn" onclick="showQuiz()" style="background: #f59e0b; color: white;">Start Quiz</button>
+                    <button class="demo-btn" onclick="showBestPracticeExample()" style="background: #10b981; color: white;">Show Examples</button>
+                </div>
+                <div class="response-display" id="practiceDemo">
+                    Test your knowledge of REST API best practices!
+                </div>
+            </div>
+        </div>
+        <div class="navigation-controls">
+            <button class="nav-control" id="prevBtn" onclick="previousSection()">← Previous</button>
+            <button class="nav-control" id="nextBtn" onclick="nextSection()">Next →</button>
+        </div>
+    </div>
+
+    
+
+    <script src="rest_api.js"></script>
+</body>
+</html>
