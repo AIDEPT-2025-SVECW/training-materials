@@ -214,27 +214,7 @@ function showServiceDetails(type) {
     alert(details[type]);
 }
 
-function showRelationship() {
-    const resultDiv = document.getElementById('relationshipResult');
-    resultDiv.innerHTML = `
-        <div style="font-family: monospace; line-height: 1.8;">
-            <div style="color: #2c3e50; font-weight: bold; font-size: 1.1em;">Concept Hierarchy:</div><br>
-            
-            <div style="color: #e74c3c;">📱 <strong>Web Service</strong> (Broadest)</div>
-            <div style="margin-left: 20px; color: #f39c12;">├── SOAP Services</div>
-            <div style="margin-left: 20px; color: #f39c12;">├── GraphQL Services</div>
-            <div style="margin-left: 20px; color: #3498db;">└── <strong>API</strong> (Interface Definition)</div>
-            <div style="margin-left: 40px; color: #27ae60;">    ├── Library APIs</div>
-            <div style="margin-left: 40px; color: #27ae60;">    ├── OS APIs</div>
-            <div style="margin-left: 40px; color: #9b59b6;">    └── <strong>REST API</strong> (Specific Style)</div>
-            
-            <br><div style="color: #34495e; font-style: italic;">
-            💡 Remember: REST API ⊂ API ⊂ Web Service<br>
-            Every REST API is an API, and every Web API is a Web Service!
-            </div>
-        </div>
-    `;
-}
+
 
 // REST Characteristics Functions
 function exploreRESTCharacteristic(characteristic) {
