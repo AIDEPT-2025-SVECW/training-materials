@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Services Comparison: SOAP vs REST vs GraphQL</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            backdrop-filter: blur(10px);
+        }
+
+        .tab-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: #667eea;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .content-area {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            min-height: 500px;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .service-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .service-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 25px;
+            border-radius: 15px;
+            border-left: 5px solid;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .service-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .soap-card { border-left-color: #ff6b6b; }
+        .rest-card { border-left-color: #4ecdc4; }
+        .graphql-card { border-left-color: #e056fd; }
+
+        .service-card h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+
+        .analogy-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+
+        .analogy-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border-left: 4px solid;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .soap-analogy { border-left-color: #ff6b6b; }
+        .rest-analogy { border-left-color: #4ecdc4; }
+        .graphql-analogy { border-left-color: #e056fd; }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .comparison-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .comparison-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+            vertical-align: top;
+        }
+
+        .comparison-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .comparison-table tr:hover {
+            background: #e3f2fd;
+        }
+
+        .highlight {
+            background: linear-gradient(120deg, #a8edea 0%, #fed6e3 100%);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .pros-cons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .pros, .cons {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .pros {
+            border-left: 4px solid #27ae60;
+        }
+
+        .cons {
+            border-left: 4px solid #e74c3c;
+        }
+
+        .pros h4 {
+            color: #27ae60;
+            margin-bottom: 10px;
+        }
+
+        .cons h4 {
+            color: #e74c3c;
+            margin-bottom: 10px;
+        }
+
+        ul {
+            padding-left: 20px;
+        }
+
+        li {
+            margin: 5px 0;
+        }
+
+        .interactive-demo {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+
+        .demo-buttons {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .demo-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .soap-btn { background: #ff6b6b; color: white; }
+        .rest-btn { background: #4ecdc4; color: white; }
+        .graphql-btn { background: #e056fd; color: white; }
+
+        .demo-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .demo-output {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            min-height: 150px;
+            overflow-x: auto;
+        }
+
+        .code-block {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .service-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .pros-cons {
+                grid-template-columns: 1fr;
+            }
+            
+            .demo-buttons {
+                flex-direction: column;
+            }
+            
+            .comparison-table {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Web Services Comparison</h1>
+            <p class="subtitle">Understanding SOAP, REST, and GraphQL</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="showTab('overview')">Overview</button>
+            <button class="tab-btn" onclick="showTab('analogies')">Analogies</button>
+            <button class="tab-btn" onclick="showTab('comparison')">Comparison</button>
+            <button class="tab-btn" onclick="showTab('examples')">Examples</button>
+        </div>
+
+        <div class="content-area">
+            <!-- Overview Tab -->
+            <div id="overview" class="tab-content active">
+                <h2>High-Level Overview</h2>
+                <div class="service-grid">
+                    <div class="service-card soap-card">
+                        <h3>🧼 SOAP</h3>
+                        <p><strong>Simple Object Access Protocol</strong></p>
+                        <p>A protocol-based approach that uses XML for message formatting. SOAP is highly structured, follows strict standards, and provides built-in error handling and security features.</p>
+                        <br>
+                        <p><strong>Key Features:</strong></p>
+                        <ul>
+                            <li>XML-based messaging</li>
+                            <li>Built-in security (WS-Security)</li>
+                            <li>ACID compliance</li>
+                            <li>Formal contracts (WSDL)</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="service-card rest-card">
+                        <h3>🚗 REST</h3>
+                        <p><strong>Representational State Transfer</strong></p>
+                        <p>An architectural style that uses standard HTTP methods and is stateless. REST is simple, lightweight, and works well with web technologies.</p>
+                        <br>
+                        <p><strong>Key Features:</strong></p>
+                        <ul>
+                            <li>HTTP methods (GET, POST, PUT, DELETE)</li>
+                            <li>Stateless communication</li>
+                            <li>Multiple data formats (JSON, XML, HTML)</li>
+                            <li>Cacheable responses</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="service-card graphql-card">
+                        <h3>📊 GraphQL</h3>
+                        <p><strong>Graph Query Language</strong></p>
+                        <p>A query language and runtime that allows clients to request exactly the data they need. GraphQL provides a single endpoint for all operations.</p>
+                        <br>
+                        <p><strong>Key Features:</strong></p>
+                        <ul>
+                            <li>Single endpoint</li>
+                            <li>Flexible data fetching</li>
+                            <li>Strong typing system</li>
+                            <li>Real-time subscriptions</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analogies Tab -->
+            <div id="analogies" class="tab-content">
+                <h2>Simple Analogies to Remember</h2>
+                <div class="analogy-section">
+                    <div class="analogy-card soap-analogy">
+                        <h3>🧼 SOAP is like a Formal Business Letter</h3>
+                        <p>Just like a formal business letter has a specific format (header, body, signature), SOAP has a strict XML structure with envelope, header, and body. It's professional, secure, but requires more overhead and formality.</p>
+                    </div>
+                    
+                    <div class="analogy-card rest-analogy">
+                        <h3>🚗 REST is like a Simple Phone Call</h3>
+                        <p>REST is like making a straightforward phone call - you dial a number (URL), say what you want (HTTP method), and get a response. It's simple, direct, and everyone understands how to use it.</p>
+                    </div>
+                    
+                    <div class="analogy-card graphql-analogy">
+                        <h3>📊 GraphQL is like a Smart Personal Assistant</h3>
+                        <p>GraphQL is like having a personal assistant who knows exactly what you need. Instead of making multiple requests, you tell them once what you want, and they bring back exactly that - no more, no less.</p>
+                    </div>
+                </div>
+                
+                <div class="analogy-section">
+                    <h3>Restaurant Analogy</h3>
+                    <div class="analogy-card soap-analogy">
+                        <h4>SOAP Restaurant</h4>
+                        <p>A formal fine-dining restaurant with strict dress codes, multiple courses served in a specific order, and detailed protocols. Very reliable but inflexible.</p>
+                    </div>
+                    <div class="analogy-card rest-analogy">
+                        <h4>REST Restaurant</h4>
+                        <p>A casual restaurant with a clear menu where you order specific dishes. Simple, familiar, but you might get more food than you need.</p>
+                    </div>
+                    <div class="analogy-card graphql-analogy">
+                        <h4>GraphQL Restaurant</h4>
+                        <p>A build-your-own meal restaurant where you specify exactly what ingredients you want and how much. Efficient but requires more planning.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comparison Tab -->
+            <div id="comparison" class="tab-content">
+                <h2>Detailed Comparison</h2>
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Parameter</th>
+                            <th>SOAP</th>
+                            <th>REST</th>
+                            <th>GraphQL</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Protocol</strong></td>
+                            <td>Protocol-based (HTTP, SMTP, TCP)</td>
+                            <td>HTTP only</td>
+                            <td>HTTP, WebSocket</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Message Format</strong></td>
+                            <td>XML only</td>
+                            <td>JSON, XML, HTML, Plain text</td>
+                            <td>JSON</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Performance</strong></td>
+                            <td><span class="highlight">Slower</span> (XML overhead)</td>
+                            <td><span class="highlight">Fast</span> (lightweight)</td>
+                            <td><span class="highlight">Optimal</span> (precise data)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Speed</strong></td>
+                            <td>Slower due to XML parsing</td>
+                            <td>Fast with JSON</td>
+                            <td>Fast with single requests</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Data Fetching</strong></td>
+                            <td>Fixed structure</td>
+                            <td>Over-fetching common</td>
+                            <td>Precise data fetching</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Flexibility</strong></td>
+                            <td>Low (strict standards)</td>
+                            <td>High (simple implementation)</td>
+                            <td>Very High (customizable queries)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Caching</strong></td>
+                            <td>Limited</td>
+                            <td>Excellent HTTP caching</td>
+                            <td>Complex caching</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Security</strong></td>
+                            <td>Built-in WS-Security</td>
+                            <td>HTTPS, OAuth, JWT</td>
+                            <td>Custom authentication</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Learning Curve</strong></td>
+                            <td>Steep (complex standards)</td>
+                            <td>Easy (familiar HTTP)</td>
+                            <td>Moderate (new concepts)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Best Use Cases</strong></td>
+                            <td>Enterprise systems, Banking</td>
+                            <td>Public APIs, Web services</td>
+                            <td>Mobile apps, Complex UIs</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="pros-cons">
+                    <div class="pros">
+                        <h4>✅ When to Use Each</h4>
+                        <p><strong>SOAP:</strong> Enterprise applications requiring high security and ACID transactions</p>
+                        <p><strong>REST:</strong> Public APIs, simple web services, when caching is important</p>
+                        <p><strong>GraphQL:</strong> Mobile applications, complex frontends, when bandwidth is limited</p>
+                    </div>
+                    <div class="cons">
+                        <h4>❌ When to Avoid Each</h4>
+                        <p><strong>SOAP:</strong> Simple applications, mobile apps, when speed is critical</p>
+                        <p><strong>REST:</strong> When you need real-time data, complex queries, or precise data fetching</p>
+                        <p><strong>GraphQL:</strong> Simple applications, when caching is crucial, small teams</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Examples Tab -->
+            <div id="examples" class="tab-content">
+                <h2>Request/Response Examples</h2>
+                <div class="interactive-demo">
+                    <h3>Interactive Demo</h3>
+                    <p>Click the buttons below to see example requests for getting user information:</p>
+                    <div class="demo-buttons">
+                        <button class="demo-btn soap-btn" onclick="showSOAPExample()">SOAP Request</button>
+                        <button class="demo-btn rest-btn" onclick="showRESTExample()">REST Request</button>
+                        <button class="demo-btn graphql-btn" onclick="showGraphQLExample()">GraphQL Request</button>
+                    </div>
+                    <div class="demo-output" id="demo-output">
+                        Click a button above to see example requests and responses
+                    </div>
+                </div>
+
+                <h3>Real-world Usage Scenarios</h3>
+                <div class="service-grid">
+                    <div class="service-card soap-card">
+                        <h4>SOAP in Banking</h4>
+                        <div class="code-block">
+// Transaction processing
+POST /BankingService
+Content-Type: application/soap+xml
+
+&lt;?xml version="1.0"?&gt;
+&lt;soap:Envelope&gt;
+  &lt;soap:Body&gt;
+    &lt;TransferFunds&gt;
+      &lt;FromAccount&gt;123456&lt;/FromAccount&gt;
+      &lt;ToAccount&gt;789012&lt;/ToAccount&gt;
+      &lt;Amount&gt;1000.00&lt;/Amount&gt;
+    &lt;/TransferFunds&gt;
+  &lt;/soap:Body&gt;
+&lt;/soap:Envelope&gt;
+                        </div>
+                    </div>
+                    
+                    <div class="service-card rest-card">
+                        <h4>REST in Social Media</h4>
+                        <div class="code-block">
+// Get user posts
+GET /api/users/123/posts
+Authorization: Bearer token123
+
+// Create new post
+POST /api/posts
+{
+  "user_id": 123,
+  "content": "Hello World!",
+  "tags": ["greeting", "first-post"]
+}
+                        </div>
+                    </div>
+                    
+                    <div class="service-card graphql-card">
+                        <h4>GraphQL in E-commerce</h4>
+                        <div class="code-block">
+// Get specific product data
+query GetProduct($id: ID!) {
+  product(id: $id) {
+    name
+    price
+    reviews(first: 5) {
+      rating
+      comment
+      author { name }
+    }
+  }
+}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="webservices_deepdive.js"></script>
+</body>
+</html>
