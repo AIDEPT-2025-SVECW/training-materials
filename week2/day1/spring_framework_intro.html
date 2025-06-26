@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring Framework - Interactive Introduction</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        h1 {
+            font-size: 3rem;
+            color: white;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #2196F3);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 25px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .nav-btn.active {
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+        }
+
+        .slide {
+            display: none;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .slide.active {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .slide h2 {
+            font-size: 2.5rem;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .slide h2::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 2px;
+        }
+
+        .slide h3 {
+            font-size: 1.8rem;
+            color: #34495e;
+            margin: 30px 0 15px 0;
+            padding-left: 20px;
+            border-left: 4px solid #3498db;
+        }
+
+        .slide p {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 20px;
+            color: #2c3e50;
+            text-align: justify;
+        }
+
+        .slide ul {
+            margin: 20px 0;
+            padding-left: 30px;
+        }
+
+        .slide li {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        .comparison-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 30px 0;
+        }
+
+        .comparison-box {
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .comparison-box:hover {
+            transform: translateY(-5px);
+        }
+
+        .tight-coupling {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+            color: white;
+        }
+
+        .loose-coupling {
+            background: linear-gradient(135deg, #4ecdc4, #44a08d);
+            color: white;
+        }
+
+        .code-block {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 25px;
+            border-radius: 12px;
+            font-family: 'Courier New', monospace;
+            margin: 20px 0;
+            overflow-x: auto;
+            border-left: 5px solid #3498db;
+            position: relative;
+        }
+
+        .code-block::before {
+            content: 'Java';
+            position: absolute;
+            top: -10px;
+            right: 15px;
+            background: #3498db;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .highlight {
+            background: linear-gradient(120deg, #a8edea 0%, #fed6e3 100%);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            border-left: 5px solid #f39c12;
+        }
+
+        .interactive-demo {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 30px 0;
+            text-align: center;
+        }
+
+        .demo-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid white;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+            font-size: 16px;
+        }
+
+        .demo-btn:hover {
+            background: white;
+            color: #667eea;
+        }
+
+        .demo-output {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 40px;
+        }
+
+        .control-btn {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .control-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .control-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .slide-counter {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            border-radius: 20px;
+            color: white;
+            font-weight: 500;
+        }
+
+        .spring-logo {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #6BAE23, #8BC34A);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .slide {
+                padding: 20px;
+            }
+            
+            .comparison-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                flex-direction: column;
+                gap: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="spring-logo">S</div>
+            <h1>Spring Framework</h1>
+            <p class="subtitle">Interactive Introduction to Spring Framework Concepts</p>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </header>
+
+        <div class="navigation" id="navigation">
+            <!-- Navigation buttons will be generated by JavaScript -->
+        </div>
+
+        <!-- Slide 1: Introduction -->
+        <div class="slide active" id="slide-0">
+            <h2>Welcome to Spring Framework</h2>
+            <div class="spring-logo" style="margin: 20px auto; display: block; width: 80px; height: 80px; font-size: 32px;"></div>
+            <p>Spring Framework is one of the most popular Java frameworks for building enterprise applications. This interactive presentation will guide you through the fundamental concepts of Spring Framework.</p>
+            
+            <h3>What You'll Learn</h3>
+            <ul>
+                <li>What is a Framework and why Spring?</li>
+                <li>Understanding Dependency Injection</li>
+                <li>Inversion of Control (IoC) principles</li>
+                <li>Tight vs Loose Coupling concepts</li>
+                <li>How Spring solves common development problems</li>
+            </ul>
+
+            <div class="highlight">
+                <strong>Fun Fact:</strong> Spring Framework was created by Rod Johnson in 2003 and has become the foundation for millions of Java applications worldwide!
+            </div>
+        </div>
+
+        <!-- Slide 2: What is a Framework -->
+        <div class="slide" id="slide-1">
+            <h2>What is a Framework?</h2>
+            
+            <p>A framework is a pre-written collection of code, libraries, and tools that provides a foundation for developing applications. Think of it as a blueprint or skeleton that you can build upon.</p>
+
+            <h3>Framework vs Library</h3>
+            <div class="comparison-container">
+                <div class="comparison-box tight-coupling">
+                    <h4>Library</h4>
+                    <p>You call the library</p>
+                    <p>You are in control</p>
+                    <p>Example: Apache Commons</p>
+                </div>
+                <div class="comparison-box loose-coupling">
+                    <h4>Framework</h4>
+                    <p>Framework calls your code</p>
+                    <p>Framework is in control</p>
+                    <p>Example: Spring Framework</p>
+                </div>
+            </div>
+
+            <h3>Benefits of Using a Framework</h3>
+            <ul>
+                <li><strong>Faster Development:</strong> Pre-built components save time</li>
+                <li><strong>Best Practices:</strong> Follows proven architectural patterns</li>
+                <li><strong>Consistency:</strong> Standardized way of doing things</li>
+                <li><strong>Community Support:</strong> Large community and documentation</li>
+                <li><strong>Testing:</strong> Built-in testing capabilities</li>
+            </ul>
+
+            <div style="border: 2px dashed #4caf50; border-radius: 12px; padding: 20px; background-color: #f1f8e9; font-family: 'Segoe UI', sans-serif; color: #2e7d32;">
+                <h3>📚 Library vs 🧰 Framework</h3>
+                <ul style="list-style: none; padding-left: 0;">
+                    <li><strong>📚 Library:</strong> You are in control. You call the library functions when needed.</li>
+                    <li><strong>🧰 Framework:</strong> The framework is in control. It calls your code at the right time.</li>
+                </ul>
+                <p><strong>Example:</strong></p>
+                <ul style="list-style: none; padding-left: 0;">
+                    <li>🚕 <em>Library:</em> You call a cab when you want.</li>
+                    <li>🚌 <em>Framework:</em> You join a tour bus; it takes you along the planned route.</li>
+                </ul>
+            </div>
+
+        </div>
+
+        <!-- Slide 3: Why Spring Framework -->
+        <div class="slide" id="slide-2">
+            <h2>Why Do We Need Spring Framework?</h2>
+            
+            <p>Before Spring, Java enterprise development was complex and required a lot of boilerplate code. Spring simplified this by providing a comprehensive programming and configuration model.</p>
+
+            <h3>Problems Spring Solves</h3>
+            <ul>
+                <li><strong>Complex Object Creation:</strong> Manual instantiation and wiring</li>
+                <li><strong>Tight Coupling:</strong> Hard-coded dependencies between classes</li>
+                <li><strong>Configuration Complexity:</strong> XML-heavy configuration</li>
+                <li><strong>Testing Difficulties:</strong> Hard to mock dependencies</li>
+                <li><strong>Resource Management:</strong> Manual handling of connections, transactions</li>
+            </ul>
+
+            <h3>Spring's Core Philosophy</h3>
+            <div class="highlight">
+                <p><strong>"Don't call us, we'll call you"</strong> - This is the essence of Inversion of Control (IoC). Spring manages your objects and their dependencies, so you don't have to.</p>
+            </div>
+
+            <div class="code-block">
+// Without Spring - Manual object creation
+UserService userService = new UserService();
+EmailService emailService = new EmailService();
+userService.setEmailService(emailService);
+
+// With Spring - Framework handles it
+@Autowired
+UserService userService; // Spring injects automatically
+            </div>
+        </div>
+
+        <!-- Slide 4: Dependency Injection & IoC -->
+        <div class="slide" id="slide-3">
+            <h2>Dependency Injection & IoC</h2>
+            
+            <h3>What is Dependency Injection?</h3>
+            <p>Dependency Injection (DI) is a design pattern where objects receive their dependencies from an external source rather than creating them internally.</p>
+
+            <div class="interactive-demo">
+                <h4>Interactive Demo: Coffee Shop Example</h4>
+                <p>Click the buttons to see how dependencies work:</p>
+                <button class="demo-btn" onclick="showTightCoupling()">Tight Coupling</button>
+                <button class="demo-btn" onclick="showLooseCoupling()">Loose Coupling (DI)</button>
+                <div class="demo-output" id="demoOutput">
+                    Click a button to see the difference!
+                </div>
+            </div>
+
+            <h3>Types of Dependency Injection</h3>
+            <ul>
+                <li><strong>Constructor Injection:</strong> Dependencies passed through constructor</li>
+                <li><strong>Setter Injection:</strong> Dependencies set through setter methods</li>
+                <li><strong>Field Injection:</strong> Dependencies injected directly into fields</li>
+            </ul>
+
+            <div class="code-block">
+// Constructor Injection (Recommended)
+@Component
+public class OrderService {
+    private final PaymentService paymentService;
+    
+    public OrderService(PaymentService paymentService) {
+        this.paymentService = paymentService;
+    }
+}
+            </div>
+        </div>
+
+        <!-- Slide 5: Why We Need DI -->
+        <div class="slide" id="slide-4">
+            <h2>Why Do We Need Dependency Injection?</h2>
+            
+            <h3>Benefits of Dependency Injection</h3>
+            <ul>
+                <li><strong>Loose Coupling:</strong> Classes depend on abstractions, not concrete implementations</li>
+                <li><strong>Easier Testing:</strong> Can easily mock dependencies for unit tests</li>
+                <li><strong>Flexibility:</strong> Easy to swap implementations</li>
+                <li><strong>Maintainability:</strong> Changes in one class don't affect others</li>
+                <li><strong>Reusability:</strong> Components can be reused in different contexts</li>
+            </ul>
+
+            <h3>Real-World Example</h3>
+            <div class="code-block">
+// Without DI - Hard to test and maintain
+public class EmailService {
+    private SMTPClient smtpClient = new SMTPClient(); // Tight coupling
+    
+    public void sendEmail(String message) {
+        smtpClient.send(message); // What if we want to use a different client?
+    }
+}
+
+// With DI - Flexible and testable
+public class EmailService {
+    private final EmailClient emailClient;
+    
+    public EmailService(EmailClient emailClient) {
+        this.emailClient = emailClient; // Can be SMTP, REST API, or Mock
+    }
+    
+    public void sendEmail(String message) {
+        emailClient.send(message);
+    }
+}
+            </div>
+        </div>
+
+        <!-- Slide 6: Tight vs Loose Coupling -->
+        <div class="slide" id="slide-5">
+            <h2>Tight Coupling vs Loose Coupling</h2>
+            
+            <div class="comparison-container">
+                <div class="comparison-box tight-coupling">
+                    <h3>Tight Coupling</h3>
+                    <ul style="text-align: left; margin-top: 20px;">
+                        <li>Classes depend on concrete implementations</li>
+                        <li>Hard to change or extend</li>
+                        <li>Difficult to test</li>
+                        <li>Rigid architecture</li>
+                    </ul>
+                </div>
+                <div class="comparison-box loose-coupling">
+                    <h3>Loose Coupling</h3>
+                    <ul style="text-align: left; margin-top: 20px;">
+                        <li>Classes depend on interfaces/abstractions</li>
+                        <li>Easy to change implementations</li>
+                        <li>Easy to test with mocks</li>
+                        <li>Flexible architecture</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>Code Example</h3>
+            <div class="code-block">
+// Tight Coupling - BAD
+public class ReportService {
+    private DatabaseService dbService = new DatabaseService(); // Concrete class
+    
+    public void generateReport() {
+        List<Data> data = dbService.getData(); // Tied to specific implementation
+        // generate report logic
+    }
+}
+
+// Loose Coupling - GOOD
+public class ReportService {
+    private final DataService dataService; // Interface
+    
+    public ReportService(DataService dataService) {
+        this.dataService = dataService; // Can be Database, File, or Mock
+    }
+    
+    public void generateReport() {
+        List<Data> data = dataService.getData(); // Flexible implementation
+        // generate report logic
+    }
+}
+            </div>
+        </div>
+
+        <!-- Slide 7: How IoC Solves the Issues -->
+        <div class="slide" id="slide-6">
+            <h2>How IoC in Spring Framework Solves Issues</h2>
+            
+            <h3>Spring's IoC Container</h3>
+            <p>The IoC container is the heart of Spring Framework. It creates objects, wires them together, configures them, and manages their complete lifecycle.</p>
+
+            <div class="interactive-demo">
+                <h4>Spring Container Demo</h4>
+                <button class="demo-btn" onclick="simulateSpringContainer()">Start Spring Container</button>
+                <button class="demo-btn" onclick="showBeanCreation()">Show Bean Creation</button>
+                <button class="demo-btn" onclick="showDependencyInjection()">Show Dependency Injection</button>
+                <div class="demo-output" id="springDemo">
+                    Click "Start Spring Container" to begin the simulation
+                </div>
+            </div>
+
+            <h3>How Spring IoC Works</h3>
+            <ul>
+                <li><strong>Configuration:</strong> Define beans and their dependencies (XML, annotations, or Java config)</li>
+                <li><strong>Instantiation:</strong> Spring creates objects based on configuration</li>
+                <li><strong>Dependency Resolution:</strong> Spring injects required dependencies</li>
+                <li><strong>Lifecycle Management:</strong> Spring manages object lifecycle (creation to destruction)</li>
+            </ul>
+
+            <div class="code-block">
+// Spring Configuration
+@Configuration
+public class AppConfig {
+    
+    @Bean
+    public PaymentService paymentService() {
+        return new CreditCardPaymentService();
+    }
+    
+    @Bean
+    public OrderService orderService(PaymentService paymentService) {
+        return new OrderService(paymentService); // Spring injects automatically
+    }
+}
+
+// Usage
+@Component
+public class ShoppingController {
+    @Autowired
+    private OrderService orderService; // Spring handles the wiring
+    
+    public void processOrder(Order order) {
+        orderService.processOrder(order);
+    }
+}
+            </div>
+
+            <div class="highlight">
+                <strong>Key Benefits:</strong> With Spring IoC, you focus on business logic while Spring handles object creation, dependency management, and lifecycle. This leads to cleaner, more maintainable, and testable code.
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="control-btn" id="prevBtn" onclick="previousSlide()">← Previous</button>
+            <div class="slide-counter">
+                <span id="currentSlide">1</span> of <span id="totalSlides">7</span>
+            </div>
+            <button class="control-btn" id="nextBtn" onclick="nextSlide()">Next →</button>
+        </div>
+    </div>
+
+    <script src="spring_framework_script.js"></script>
+</body>
+</html>
