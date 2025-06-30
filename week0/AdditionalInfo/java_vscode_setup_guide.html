@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Java Development Setup Guide for VS Code</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .progress-bar {
+            background: rgba(255,255,255,0.2);
+            border-radius: 25px;
+            padding: 4px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            height: 20px;
+            border-radius: 20px;
+            width: 0%;
+            transition: width 0.5s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .step-container {
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            transform: translateY(20px);
+            opacity: 0;
+            transition: all 0.5s ease;
+        }
+
+        .step-container.active {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .step-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .step-number {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-right: 20px;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .step-title {
+            font-size: 1.5rem;
+            color: #333;
+            flex-grow: 1;
+        }
+
+        .step-toggle {
+            font-size: 1.5rem;
+            color: #667eea;
+            transition: transform 0.3s ease;
+        }
+
+        .step-content {
+            display: none;
+            padding-left: 70px;
+        }
+
+        .step-content.expanded {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                max-height: 0;
+            }
+            to {
+                opacity: 1;
+                max-height: 1000px;
+            }
+        }
+
+        .substep {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .substep h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            position: relative;
+            overflow-x: auto;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: background 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: #5a67d8;
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+
+        .nav-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .completion-badge {
+            display: inline-block;
+            background: #4CAF50;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-left: 10px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .completion-badge.show {
+            opacity: 1;
+        }
+
+        .highlight {
+            background: linear-gradient(120deg, #a8edea 0%, #fed6e3 100%);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Java Development Setup Guide</h1>
+            <p>Complete guide to set up VS Code for Java development</p>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressBar"></div>
+        </div>
+
+        <!-- Step 1: VS Code Setup -->
+        <div class="step-container" id="step1">
+            <div class="step-header" onclick="toggleStep(1)">
+                <div class="step-number">1</div>
+                <div class="step-title">Setting up VS Code with Java Extensions</div>
+                <div class="step-toggle" id="toggle1">▼</div>
+                <div class="completion-badge" id="badge1">✓ Complete</div>
+            </div>
+            <div class="step-content" id="content1">
+                <div class="substep">
+                    <h4>📥 Download and Install VS Code</h4>
+                    <p>If you haven't already, download VS Code from <span class="highlight">https://code.visualstudio.com/</span></p>
+                    <div class="warning">
+                        <strong>Note:</strong> Make sure to add VS Code to your system PATH during installation for easier command-line access.
+                    </div>
+                </div>
+
+                <div class="substep">
+                    <h4>🔌 Install Essential Java Extensions</h4>
+                    <p>Open VS Code and install these essential extensions:</p>
+                    <ul style="margin: 10px 0; padding-left: 20px;">
+                        <li><strong>Extension Pack for Java</strong> - This includes multiple Java-related extensions</li>
+                        <li><strong>Language Support for Java(TM) by Red Hat</strong></li>
+                        <li><strong>Debugger for Java</strong></li>
+                        <li><strong>Test Runner for Java</strong></li>
+                        <li><strong>Maven for Java</strong></li>
+                        <li><strong>Project Manager for Java</strong></li>
+                    </ul>
+                    
+                    <h5>Quick Installation Method:</h5>
+                    <p>Press <span class="highlight">Ctrl+Shift+X</span> (Windows/Linux) or <span class="highlight">Cmd+Shift+X</span> (Mac) to open Extensions view, then search for "Extension Pack for Java" and install it.</p>
+                </div>
+
+                <div class="substep">
+                    <h4>⚙️ Alternative: Command Line Installation</h4>
+                    <p>You can also install extensions via command line:</p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+code --install-extension vscjava.vscode-java-pack
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: JDK and Tools Setup -->
+        <div class="step-container" id="step2">
+            <div class="step-header" onclick="toggleStep(2)">
+                <div class="step-number">2</div>
+                <div class="step-title">Installing JDK, Java Compiler & Maven</div>
+                <div class="step-toggle" id="toggle2">▼</div>
+                <div class="completion-badge" id="badge2">✓ Complete</div>
+            </div>
+            <div class="step-content" id="content2">
+                <div class="substep">
+                    <h4>☕ Install Java Development Kit (JDK)</h4>
+                    <p>Download and install JDK from one of these sources:</p>
+                    <ul style="margin: 10px 0; padding-left: 20px;">
+                        <li><strong>Oracle JDK:</strong> https://www.oracle.com/java/technologies/downloads/</li>
+                        <li><strong>OpenJDK:</strong> https://openjdk.org/</li>
+                        <li><strong>Amazon Corretto:</strong> https://aws.amazon.com/corretto/</li>
+                    </ul>
+                    
+                    <div class="warning">
+                        <strong>Recommended:</strong> Install JDK 17 or later for modern Java development.
+                    </div>
+                </div>
+
+                <div class="substep">
+                    <h4>🔧 Set JAVA_HOME Environment Variable</h4>
+                    <p><strong>Windows:</strong></p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+# Add to System Environment Variables
+JAVA_HOME=C:\Program Files\Java\jdk-17
+PATH=%JAVA_HOME%\bin;%PATH%
+                    </div>
+                    
+                    <p><strong>macOS/Linux:</strong></p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+# Add to ~/.bash_profile or ~/.zshrc
+export JAVA_HOME=/usr/lib/jvm/java-17-openjdk
+export PATH=$JAVA_HOME/bin:$PATH
+                    </div>
+                </div>
+
+                <div class="substep">
+                    <h4>✅ Verify Java Installation</h4>
+                    <p>Open terminal/command prompt and run:</p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+java -version
+javac -version
+                    </div>
+                    <p>You should see version information for both commands.</p>
+                </div>
+
+                <div class="substep">
+                    <h4>📦 Install Apache Maven</h4>
+                    <p><strong>Windows:</strong></p>
+                    <ol style="margin: 10px 0; padding-left: 20px;">
+                        <li>Download Maven from https://maven.apache.org/download.cgi</li>
+                        <li>Extract to C:\Program Files\Apache\maven</li>
+                        <li>Add to PATH: C:\Program Files\Apache\maven\bin</li>
+                    </ol>
+                    
+                    <p><strong>macOS:</strong></p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+brew install maven
+                    </div>
+                    
+                    <p><strong>Linux (Ubuntu/Debian):</strong></p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+sudo apt update
+sudo apt install maven
+                    </div>
+                </div>
+
+                <div class="substep">
+                    <h4>✅ Verify Maven Installation</h4>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+mvn -version
+                    </div>
+                </div>
+
+                <div class="substep">
+                    <h4>⚙️ Configure VS Code Java Settings</h4>
+                    <p>Press <span class="highlight">Ctrl+Shift+P</span> and search for "Java: Configure Java Runtime"</p>
+                    <p>Or manually configure in settings.json:</p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+{
+    "java.home": "/path/to/your/jdk",
+    "java.configuration.runtimes": [
+        {
+            "name": "JavaSE-17",
+            "path": "/path/to/your/jdk-17"
+        }
+    ],
+    "maven.executable.path": "/path/to/maven/bin/mvn"
+}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: Hello World App -->
+        <div class="step-container" id="step3">
+            <div class="step-header" onclick="toggleStep(3)">
+                <div class="step-number">3</div>
+                <div class="step-title">Creating Your First Hello World Java App</div>
+                <div class="step-toggle" id="toggle3">▼</div>
+                <div class="completion-badge" id="badge3">✓ Complete</div>
+            </div>
+            <div class="step-content" id="content3">
+                <div class="substep">
+                    <h4>📁 Create a New Java Project</h4>
+                    <p>Method 1: Using VS Code Command Palette</p>
+                    <ol style="margin: 10px 0; padding-left: 20px;">
+                        <li>Press <span class="highlight">Ctrl+Shift+P</span></li>
+                        <li>Type "Java: Create Java Project"</li>
+                        <li>Select "Maven" as the build tool</li>
+                        <li>Choose "maven-archetype-quickstart"</li>
+                        <li>Enter group ID: <span class="highlight">com.example</span></li>
+                        <li>Enter artifact ID: <span class="highlight">hello-world</span></li>
+                    </ol>
+                </div>
+
+                <div class="substep">
+                    <h4>🖥️ Method 2: Using Maven Command Line</h4>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+mvn archetype:generate -DgroupId=com.example -DartifactId=hello-world -DarchetypeArtifactId=maven-archetype-quickstart -DinteractiveMode=false
+                    </div>
+                    <p>Then open the project in VS Code:</p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+cd hello-world
+code .
+                    </div>
+                </div>
+
+                <div class="substep">
+                    <h4>📝 Create Hello World Application</h4>
+                    <p>Navigate to <span class="highlight">src/main/java/com/example/App.java</span> and replace the content:</p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+package com.example;
+
+/**
+ * Hello World Java Application
+ * This is your first Java program in VS Code!
+ */
+public class App {
+    public static void main(String[] args) {
+        System.out.println("🎉 Hello, World!");
+        System.out.println("Welcome to Java development in VS Code!");
+        
+        // Let's add some interactive elements
+        String name = "Developer";
+        int year = 2024;
+        
+        System.out.println("Hello, " + name + "!");
+        System.out.println("Current year: " + year);
+        
+        // Simple calculation
+        int a = 10;
+        int b = 20;
+        System.out.println(a + " + " + b + " = " + (a + b));
+    }
+}
+                    </div>
+                </div>
+
+                <div class="substep">
+                    <h4>🔧 Update pom.xml (Maven Configuration)</h4>
+                    <p>Make sure your pom.xml has the correct Java version:</p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    
+    <groupId>com.example</groupId>
+    <artifactId>hello-world</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+    
+    <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+    
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.13.2</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>
+                    </div>
+                </div>
+
+                <div class="substep">
+                    <h4>▶️ Run Your Application</h4>
+                    <p><strong>Method 1: Using VS Code</strong></p>
+                    <ul style="margin: 10px 0; padding-left: 20px;">
+                        <li>Click the "Run" button that appears above the main method</li>
+                        <li>Or press <span class="highlight">F5</span> to run with debugger</li>
+                        <li>Or right-click in the editor and select "Run Java"</li>
+                    </ul>
+                    
+                    <p><strong>Method 2: Using Terminal</strong></p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+# Compile and run with Maven
+mvn clean compile exec:java -Dexec.mainClass="com.example.App"
+
+# Or compile and run manually
+mvn clean compile
+java -cp target/classes com.example.App
+                    </div>
+                </div>
+
+                <div class="substep">
+                    <h4>🎯 Expected Output</h4>
+                    <div class="success">
+                        <strong>Console Output:</strong><br>
+                        🎉 Hello, World!<br>
+                        Welcome to Java development in VS Code!<br>
+                        Hello, Developer!<br>
+                        Current year: 2024<br>
+                        10 + 20 = 30
+                    </div>
+                </div>
+
+                <div class="substep">
+                    <h4>🐛 Debugging Your Application</h4>
+                    <p>To debug your Java application:</p>
+                    <ol style="margin: 10px 0; padding-left: 20px;">
+                        <li>Set breakpoints by clicking in the gutter next to line numbers</li>
+                        <li>Press <span class="highlight">F5</span> or click "Run and Debug"</li>
+                        <li>Use the debug console to inspect variables</li>
+                        <li>Step through code using F10 (step over) and F11 (step into)</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <div class="navigation">
+            <button class="nav-btn" id="prevBtn" onclick="previousStep()" disabled>← Previous</button>
+            <button class="nav-btn" id="nextBtn" onclick="nextStep()">Next →</button>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        const totalSteps = 3;
+        const completedSteps = new Set();
+
+        function toggleStep(stepNumber) {
+            const content = document.getElementById(`content${stepNumber}`);
+            const toggle = document.getElementById(`toggle${stepNumber}`);
+            
+            if (content.classList.contains('expanded')) {
+                content.classList.remove('expanded');
+                toggle.textContent = '▼';
+                toggle.style.transform = 'rotate(0deg)';
+            } else {
+                content.classList.add('expanded');
+                toggle.textContent = '▲';
+                toggle.style.transform = 'rotate(180deg)';
+                markStepComplete(stepNumber);
+            }
+        }
+
+        function markStepComplete(stepNumber) {
+            completedSteps.add(stepNumber);
+            const badge = document.getElementById(`badge${stepNumber}`);
+            badge.classList.add('show');
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const progress = (completedSteps.size / totalSteps) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+        }
+
+        function nextStep() {
+            if (currentStep < totalSteps) {
+                // Hide current step
+                document.getElementById(`step${currentStep}`).classList.remove('active');
+                
+                currentStep++;
+                
+                // Show next step
+                setTimeout(() => {
+                    document.getElementById(`step${currentStep}`).classList.add('active');
+                    document.getElementById(`step${currentStep}`).scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'center' 
+                    });
+                }, 300);
+                
+                updateNavigationButtons();
+            }
+        }
+
+        function previousStep() {
+            if (currentStep > 1) {
+                // Hide current step
+                document.getElementById(`step${currentStep}`).classList.remove('active');
+                
+                currentStep--;
+                
+                // Show previous step
+                setTimeout(() => {
+                    document.getElementById(`step${currentStep}`).classList.add('active');
+                    document.getElementById(`step${currentStep}`).scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'center' 
+                    });
+                }, 300);
+                
+                updateNavigationButtons();
+            }
+        }
+
+        function updateNavigationButtons() {
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            
+            prevBtn.disabled = currentStep === 1;
+            nextBtn.disabled = currentStep === totalSteps;
+            
+            if (currentStep === totalSteps) {
+                nextBtn.textContent = '🎉 Setup Complete!';
+            } else {
+                nextBtn.textContent = 'Next →';
+            }
+        }
+
+        function copyCode(button) {
+            const codeBlock = button.parentElement;
+            const code = codeBlock.textContent.replace('Copy', '').trim();
+            
+            navigator.clipboard.writeText(code).then(() => {
+                button.textContent = 'Copied!';
+                button.style.background = '#4CAF50';
+                
+                setTimeout(() => {
+                    button.textContent = 'Copy';
+                    button.style.background = '#667eea';
+                }, 2000);
+            });
+        }
+
+        // Initialize the first step
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('step1').classList.add('active');
+            updateNavigationButtons();
+        });
+
+        // Auto-expand first step
+        setTimeout(() => {
+            toggleStep(1);
+        }, 1000);
+    </script>
+</body>
+</html>

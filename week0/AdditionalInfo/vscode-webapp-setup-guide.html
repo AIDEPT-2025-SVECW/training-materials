@@ -1,0 +1,1378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maven Webapp with Tomcat in VS Code - Updated Guide</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .step {
+            margin-bottom: 30px;
+            border: 2px solid #e1e8ed;
+            border-radius: 15px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .step:hover {
+            border-color: #3498db;
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .step-header {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            padding: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.3s ease;
+        }
+
+        .step-header:hover {
+            background: linear-gradient(135deg, #e9ecef, #dee2e6);
+        }
+
+        .step-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+        }
+
+        .step-number {
+            background: #3498db;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-weight: bold;
+        }
+
+        .arrow {
+            font-size: 1.2em;
+            transition: transform 0.3s ease;
+            color: #3498db;
+        }
+
+        .step.active .arrow {
+            transform: rotate(90deg);
+        }
+
+        .step-content {
+            display: none;
+            padding: 25px;
+            background: white;
+            border-top: 1px solid #e1e8ed;
+        }
+
+        .step.active .step-content {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            overflow-x: auto;
+            position: relative;
+            font-family: 'Courier New', monospace;
+            border-left: 4px solid #3498db;
+            cursor: pointer;
+        }
+
+        .code-block::before {
+            content: '📋 Click to Copy';
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: #3498db;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.8em;
+            opacity: 0.7;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        .code-block:hover::before {
+            opacity: 1;
+        }
+
+        .note {
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            border: 1px solid #ffc107;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 4px solid #ffc107;
+        }
+
+        .note::before {
+            content: '💡 ';
+            font-size: 1.2em;
+        }
+
+        .warning {
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+            border: 1px solid #dc3545;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 4px solid #dc3545;
+        }
+
+        .warning::before {
+            content: '⚠️ ';
+            font-size: 1.2em;
+        }
+
+        .success {
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            border: 1px solid #28a745;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 4px solid #28a745;
+        }
+
+        .success::before {
+            content: '✅ ';
+            font-size: 1.2em;
+        }
+
+        .info {
+            background: linear-gradient(135deg, #d1ecf1, #bee5eb);
+            border: 1px solid #17a2b8;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .info::before {
+            content: 'ℹ️ ';
+            font-size: 1.2em;
+        }
+
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 4px;
+            background: linear-gradient(135deg, #3498db, #2ecc71);
+            transition: width 0.3s ease;
+            z-index: 1000;
+        }
+
+        ul, ol {
+            padding-left: 20px;
+            margin: 10px 0;
+        }
+
+        li {
+            margin: 8px 0;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            margin: 10px 5px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+
+        .tomcat-section {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+
+        .tomcat-section h3 {
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        .config-file {
+            background: #1a1a1a;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            border-left: 4px solid #e67e22;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #3498db;
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background: #f5f5f5;
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-bar" id="progressBar"></div>
+    
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Maven Webapp with Tomcat in VS Code</h1>
+            <p>Complete guide using Community Server Connectors with Tomcat fundamentals</p>
+        </div>
+
+        <div class="content">
+            <div class="step" data-step="1">
+                <div class="step-header">
+                    <div class="step-title">
+                        <div class="step-number">1</div>
+                        Prerequisites Setup
+                    </div>
+                    <div class="arrow">▶</div>
+                </div>
+                <div class="step-content">
+                    <p>Before we start, make sure you have the following installed:</p>
+                    
+                    <div class="note">
+                        <strong>Required Software:</strong>
+                        <ul>
+                            <li>Java Development Kit (JDK) 8 or higher</li>
+                            <li>Apache Maven 3.6.0 or higher</li>
+                            <li>Visual Studio Code</li>
+                            <li>Apache Tomcat 9.0 or higher</li>
+                        </ul>
+                    </div>
+
+                    <p><strong>VS Code Extensions to Install:</strong></p>
+                    <ul>
+                        <li><strong>Extension Pack for Java</strong> (by Microsoft) - Essential Java development tools</li>
+                        <li><strong>Community Server Connectors</strong> (by Red Hat) - Replaces deprecated Tomcat extension</li>
+                        <li><strong>Maven for Java</strong> (by Microsoft) - Maven integration</li>
+                        <li><strong>Language Support for Java(TM) by Red Hat</strong> (included in Extension Pack)</li>
+                    </ul>
+
+                    <div class="warning">
+                        <strong>Important:</strong> The "Tomcat for Java" extension is deprecated. Use "Community Server Connectors" instead for modern server management.
+                    </div>
+
+                    <div class="info">
+                        Verify your installations by running these commands in terminal:
+                    </div>
+
+                    <div class="code-block">
+java -version
+mvn -version
+code --version
+                    </div>
+                </div>
+            </div>
+
+            <div class="step" data-step="2">
+                <div class="step-header">
+                    <div class="step-title">
+                        <div class="step-number">2</div>
+                        Create Maven Webapp Project
+                    </div>
+                    <div class="arrow">▶</div>
+                </div>
+                <div class="step-content">
+                    <p>Open terminal/command prompt and navigate to your desired project directory. Run the following Maven archetype command:</p>
+                    
+                    <div class="code-block">
+mvn archetype:generate -DgroupId=com.example.webapp -DartifactId=webapp-demo -DarchetypeArtifactId=maven-archetype-webapp -DinteractiveMode=false
+                    </div>
+
+                    <div class="note">
+                        <strong>Command Breakdown:</strong>
+                        <ul>
+                            <li><code>-DgroupId</code>: Your project's group identifier (reverse domain notation)</li>
+                            <li><code>-DartifactId</code>: Your project name and directory name</li>
+                            <li><code>-DarchetypeArtifactId</code>: The webapp template type</li>
+                            <li><code>-DinteractiveMode=false</code>: Skip interactive prompts for faster setup</li>
+                        </ul>
+                    </div>
+
+                    <p>This creates a standard Maven webapp structure:</p>
+                    <div class="code-block">
+webapp-demo/
+├── pom.xml                    # Maven configuration
+└── src/
+    └── main/
+        ├── java/              # Java source files
+        │   └── com/example/webapp/
+        └── webapp/            # Web resources
+            ├── WEB-INF/
+            │   └── web.xml    # Web app configuration
+            └── index.jsp      # Default page
+                    </div>
+                </div>
+            </div>
+
+            <div class="step" data-step="3">
+                <div class="step-header">
+                    <div class="step-title">
+                        <div class="step-number">3</div>
+                        Open Project in VS Code
+                    </div>
+                    <div class="arrow">▶</div>
+                </div>
+                <div class="step-content">
+                    <p>Navigate to your project directory and open it in VS Code:</p>
+                    
+                    <div class="code-block">
+cd webapp-demo
+code .
+                    </div>
+
+                    <div class="note">
+                        VS Code should automatically detect the Maven project and start importing dependencies. You'll see notifications about Java project import and extension activation.
+                    </div>
+
+                    <p><strong>What happens next:</strong></p>
+                    <ul>
+                        <li>Java Extension Pack activates and scans the project</li>
+                        <li>Maven dependencies are downloaded</li>
+                        <li>Project structure is indexed for IntelliSense</li>
+                        <li>Community Server Connectors becomes available</li>
+                    </ul>
+
+                    <p>If prompted, click "Yes" to trust the workspace and allow Java extensions to activate.</p>
+                </div>
+            </div>
+
+            <div class="step" data-step="4">
+                <div class="step-header">
+                    <div class="step-title">
+                        <div class="step-number">4</div>
+                        Configure pom.xml
+                    </div>
+                    <div class="arrow">▶</div>
+                </div>
+                <div class="step-content">
+                    <p>Update your <code>pom.xml</code> file with modern dependencies and plugins for better Tomcat integration:</p>
+                    <p >Name of the artifact or webapp is "webapp-demo" replace it with the project name you guys created in step 2</p>
+                    <div class="code-block">
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+         http://maven.apache.org/maven-v4_0_0.xsd"&gt;
+  
+  &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+  &lt;groupId&gt;com.example.webapp&lt;/groupId&gt;
+  &lt;artifactId&gt;webapp-demo&lt;/artifactId&gt;
+  &lt;packaging&gt;war&lt;/packaging&gt;
+  &lt;version&gt;1.0-SNAPSHOT&lt;/version&gt;
+  &lt;name&gt;webapp-demo Maven Webapp&lt;/name&gt;
+  &lt;url&gt;http://maven.apache.org&lt;/url&gt;
+
+  &lt;properties&gt;
+    &lt;maven.compiler.source&gt;11&lt;/maven.compiler.source&gt;
+    &lt;maven.compiler.target&gt;11&lt;/maven.compiler.target&gt;
+    &lt;project.build.sourceEncoding&gt;UTF-8&lt;/project.build.sourceEncoding&gt;
+    &lt;failOnMissingWebXml&gt;false&lt;/failOnMissingWebXml&gt;
+  &lt;/properties&gt;
+
+  &lt;dependencies&gt;
+    &lt;!-- Servlet API --&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;javax.servlet&lt;/groupId&gt;
+      &lt;artifactId&gt;javax.servlet-api&lt;/artifactId&gt;
+      &lt;version&gt;4.0.1&lt;/version&gt;
+      &lt;scope&gt;provided&lt;/scope&gt;
+    &lt;/dependency&gt;
+    
+    &lt;!-- JSP API --&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;javax.servlet.jsp&lt;/groupId&gt;
+      &lt;artifactId&gt;jsp-api&lt;/artifactId&gt;
+      &lt;version&gt;2.2&lt;/version&gt;
+      &lt;scope&gt;provided&lt;/scope&gt;
+    &lt;/dependency&gt;
+    
+    &lt;!-- JSTL for JSP --&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;javax.servlet&lt;/groupId&gt;
+      &lt;artifactId&gt;jstl&lt;/artifactId&gt;
+      &lt;version&gt;1.2&lt;/version&gt;
+    &lt;/dependency&gt;
+    
+    &lt;!-- JUnit for testing --&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;junit&lt;/groupId&gt;
+      &lt;artifactId&gt;junit&lt;/artifactId&gt;
+      &lt;version&gt;4.13.2&lt;/version&gt;
+      &lt;scope&gt;test&lt;/scope&gt;
+    &lt;/dependency&gt;
+  &lt;/dependencies&gt;
+
+  &lt;build&gt;
+    &lt;finalName&gt;webapp-demo&lt;/finalName&gt;
+    &lt;plugins&gt;
+      &lt;!-- Compiler Plugin --&gt;
+      &lt;plugin&gt;
+        &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+        &lt;artifactId&gt;maven-compiler-plugin&lt;/artifactId&gt;
+        &lt;version&gt;3.10.1&lt;/version&gt;
+        &lt;configuration&gt;
+          &lt;source&gt;11&lt;/source&gt;
+          &lt;target&gt;11&lt;/target&gt;
+        &lt;/configuration&gt;
+      &lt;/plugin&gt;
+      
+      &lt;!-- WAR Plugin --&gt;
+      &lt;plugin&gt;
+        &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+        &lt;artifactId&gt;maven-war-plugin&lt;/artifactId&gt;
+        &lt;version&gt;3.2.3&lt;/version&gt;
+      &lt;/plugin&gt;
+      
+      &lt;!-- Tomcat Maven Plugin (optional for embedded Tomcat) --&gt;
+      &lt;plugin&gt;
+        &lt;groupId&gt;org.apache.tomcat.maven&lt;/groupId&gt;
+        &lt;artifactId&gt;tomcat7-maven-plugin&lt;/artifactId&gt;
+        &lt;version&gt;2.2&lt;/version&gt;
+        &lt;configuration&gt;
+          &lt;port&gt;8080&lt;/port&gt;
+          &lt;path&gt;/webapp-demo&lt;/path&gt;
+        &lt;/configuration&gt;
+      &lt;/plugin&gt;
+    &lt;/plugins&gt;
+  &lt;/build&gt;
+&lt;/project&gt;
+                    </div>
+
+                    <div class="info">
+                        <strong>Key Updates:</strong>
+                        <ul>
+                            <li>Updated to Java 11 (you can use 8, 11, 17, or 21)</li>
+                            <li>Added JSTL for advanced JSP functionality</li>
+                            <li>Included JUnit for testing</li>
+                            <li>Added WAR plugin for better packaging</li>
+                            <li>Optional Tomcat Maven plugin for embedded server</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="step" data-step="5">
+                <div class="step-header">
+                    <div class="step-title">
+                        <div class="step-number">5</div>
+                        Understanding Apache Tomcat Basics
+                    </div>
+                    <div class="arrow">▶</div>
+                </div>
+                <div class="step-content">
+                    <div class="tomcat-section">
+                        <h3>🐱 Apache Tomcat Fundamentals</h3>
+                        <p>Before configuring Tomcat in VS Code, let's understand the basics of Apache Tomcat server.</p>
+                    </div>
+
+                    <p><strong>What is Apache Tomcat?</strong></p>
+                    <p>Apache Tomcat is an open-source implementation of the Java Servlet, JavaServer Pages (JSP), and Java WebSocket technologies. It's a web server and servlet container that can run Java web applications.</p>
+
+                    <h4>📁 Tomcat Directory Structure</h4>
+                    <div class="code-block">
+apache-tomcat-9.0.x/
+├── bin/           # Startup and shutdown scripts
+│   ├── startup.sh/startup.bat
+│   ├── shutdown.sh/shutdown.bat
+│   └── catalina.sh/catalina.bat
+├── conf/          # Configuration files
+│   ├── server.xml    # Main server configuration
+│   ├── web.xml       # Default web application configuration
+│   ├── tomcat-users.xml  # User authentication
+│   └── context.xml   # Default context configuration
+├── lib/           # JAR files for Tomcat
+├── logs/          # Log files
+├── temp/          # Temporary files
+├── webapps/       # Web applications directory
+│   ├── ROOT/      # Default web application
+│   ├── manager/   # Tomcat Manager app
+│   └── host-manager/  # Host Manager app
+└── work/          # Compiled JSP files
+                    </div>
+
+                    <h4>🔧 Key Configuration Files</h4>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>File</th>
+                                <th>Purpose</th>
+                                <th>Key Elements</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>server.xml</strong></td>
+                                <td>Main server configuration</td>
+                                <td>Ports, SSL, Virtual Hosts, Contexts</td>
+                            </tr>
+                            <tr>
+                                <td><strong>web.xml</strong></td>
+                                <td>Default webapp settings</td>
+                                <td>Default servlets, MIME types, Welcome files</td>
+                            </tr>
+                            <tr>
+                                <td><strong>tomcat-users.xml</strong></td>
+                                <td>User authentication</td>
+                                <td>Users, roles, passwords</td>
+                            </tr>
+                            <tr>
+                                <td><strong>context.xml</strong></td>
+                                <td>Default context for all webapps</td>
+                                <td>Resources, data sources, session config</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h4>🔐 Managing Tomcat Users</h4>
+                    <p>Tomcat uses role-based security. Common roles include:</p>
+                    <ul>
+                        <li><strong>manager-gui:</strong> Access to Manager app via web interface</li>
+                        <li><strong>manager-script:</strong> Access to Manager app via HTTP commands</li>
+                        <li><strong>admin-gui:</strong> Access to Host Manager app</li>
+                        <li><strong>admin-script:</strong> Access to Host Manager via HTTP commands</li>
+                    </ul>
+
+                    <p><strong>Edit tomcat-users.xml to add users:</strong></p>
+                    <div class="config-file">
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;tomcat-users xmlns="http://tomcat.apache.org/xml"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://tomcat.apache.org/xml tomcat-users.xsd"
+              version="1.0"&gt;
+
+  &lt;!-- Define roles --&gt;
+  &lt;role rolename="manager-gui"/&gt;
+  &lt;role rolename="manager-script"/&gt;
+  &lt;role rolename="admin-gui"/&gt;
+  &lt;role rolename="admin-script"/&gt;
+
+  &lt;!-- Define users --&gt;
+  &lt;user username="admin" 
+        password="admin123" 
+        roles="manager-gui,manager-script,admin-gui,admin-script"/&gt;
+  
+  &lt;user username="tomcat" 
+        password="tomcat" 
+        roles="manager-gui"/&gt;
+        
+&lt;/tomcat-users&gt;
+                    </div>
+
+                    <div class="warning">
+                        <strong>Security Note:</strong> Always use strong passwords in production environments. Consider using encrypted passwords or external authentication mechanisms.
+                    </div>
+
+                    <h4>⚙️ Common server.xml Configurations</h4>
+                    <p><strong>Changing HTTP Port (default 8080):</strong></p>
+                    <div class="config-file">
+&lt;Connector port="8080" protocol="HTTP/1.1"
+           connectionTimeout="20000"
+           redirectPort="8443" /&gt;
+                    </div>
+
+                    <p><strong>Enabling SSL/HTTPS:</strong></p>
+                    <div class="config-file">
+&lt;Connector port="8443" protocol="org.apache.coyote.http11.Http11NioProtocol"
+           maxThreads="150" SSLEnabled="true"&gt;
+    &lt;SSLHostConfig&gt;
+        &lt;Certificate certificateKeystoreFile="conf/localhost-rsa.jks"
+                     type="RSA" /&gt;
+    &lt;/SSLHostConfig&gt;
+&lt;/Connector&gt;
+                    </div>
+                </div>
+            </div>
+
+            <div class="step" data-step="6">
+                <div class="step-header">
+                    <div class="step-title">
+                        <div class="step-number">6</div>
+                        Configure Community Server Connectors
+                    </div>
+                    <div class="arrow">▶</div>
+                </div>
+                <div class="step-content">
+                    <p>Set up Tomcat server using the Community Server Connectors extension:</p>
+                    
+                    <div class="info">
+                        <strong>Community Server Connectors</strong> is developed by Red Hat and supports multiple server types including Tomcat, WildFly, and others. It replaces the deprecated Tomcat for Java extension.
+                    </div>
+
+                    <p><strong>Adding a Tomcat Server:</strong></p>
+                    <ol>
+                        <li>Open Command Palette (<code>Ctrl+Shift+P</code> or <code>Cmd+Shift+P</code>)</li>
+                        <li>Type "Servers: Add Server" and select it</li>
+                        <li>Choose "Download Server" or "Browse for Existing Server"</li>
+                        <li>If downloading: Select "Apache Tomcat" and choose version (9.0.x recommended)</li>
+                        <li>If browsing: Navigate to your existing Tomcat installation directory</li>
+                        <li>Give your server a name (e.g., "Tomcat 9.0")</li>
+                    </ol>
+
+                    <div class="note">
+                        <strong>Download vs. Existing Server:</strong>
+                        <ul>
+                            <li><strong>Download Server:</strong> VS Code downloads and manages Tomcat automatically</li>
+                            <li><strong>Browse Existing:</strong> Use an already installed Tomcat instance with your custom configurations</li>
+                        </ul>
+                    </div>
+
+                    <p><strong>Server Configuration Options:</strong></p>
+                    <p>After adding the server, you can configure it by:</p>
+                    <ol>
+                        <li>Right-clicking on the server in the "Servers" panel</li>
+                        <li>Selecting "Edit Server" or"Open server.xml"</li>
+                        <li>Modifying ports, memory settings, and other configurations</li>
+                    </ol>
+
+                    <div class="success">
+                        You should now see a "SERVERS" section in the Explorer panel with your Tomcat server listed.
+                    </div>
+                </div>
+            </div>
+
+            <div class="step" data-step="7">
+                <div class="step-header">
+                    <div class="step-title">
+                        <div class="step-number">7</div>
+                        Build the Project
+                    </div>
+                    <div class="arrow">▶</div>
+                </div>
+                <div class="step-content">
+                    <p>Build your Maven project to create the WAR file:</p>
+                    
+                    <div class="code-block">
+mvn clean package
+                    </div>
+
+                    <p><strong>Alternative ways to build:</strong></p>
+                    <ul>
+                        <li><strong>VS Code Integrated Terminal:</strong> Press <code>Ctrl+`</code> and run the maven command</li>
+                        <li><strong>Command Palette:</strong> <code>Ctrl+Shift+P</code> → "Java: Build Workspace"</li>
+                        <li><strong>Maven Extension:</strong> Right-click on pom.xml → "Run Maven Commands" → "package"</li>
+                    </ul>
+
+                    <div class="success">
+                        If successful, you'll see a <code>webapp-demo.war</code> file created in the <code>target/</code> directory. This WAR file contains your entire web application.
+                    </div>
+
+                    <div class="note">
+                        <strong>Build Output Location:</strong> The WAR file will be located at <code>target/webapp-demo.war</code> and is ready for deployment to Tomcat.
+                    </div>
+                </div>
+            </div>
+
+            <div class="step" data-step="8">
+                <div class="step-header">
+                    <div class="step-title">
+                        <div class="step-number">8</div>
+                        Deploy to Tomcat via Community Server Connectors
+                    </div>
+                    <div class="arrow">▶</div>
+                </div>
+                <div class="step-content">
+                    <p>Deploy your webapp to Tomcat using Community Server Connectors:</p>
+                    
+                    <div class="info">
+                        Community Server Connectors provides multiple deployment options with better integration than the deprecated Tomcat extension.
+                    </div>
+
+                    <p><strong>Method 1: Direct WAR Deployment</strong></p>
+                    <ol>
+                        <li>In the Explorer panel, find the "SERVERS" section</li>
+                        <li>Expand your Tomcat server</li>
+                        <li>Right-click on the server and select "Add Deployment"</li>
+                        <li>Choose "Packaged Archive" and browse to <code>target/webapp-demo.war</code></li>
+                        <li>Click "Finish" to deploy</li>
+                    </ol>
+
+                    <p><strong>Method 2: Project Deployment (Recommended for Development)</strong></p>
+                    <ol>
+                        <li>Right-click on your Tomcat server</li>
+                        <li>Select "Add Deployment"</li>
+                        <li>Choose "Exploded Archive" or "Maven Project"</li>
+                        <li>Select your project root directory</li>
+                        <li>The extension will automatically build and deploy</li>
+                    </ol>
+
+                    <div class="note">
+                        <strong>Exploded vs Packaged Deployment:</strong>
+                        <ul>
+                            <li><strong>Exploded:</strong> Faster for development, supports hot reload</li>
+                            <li><strong>Packaged:</strong> Production-like deployment using WAR file</li>
+                        </ul>
+                    </div>
+
+                    <p><strong>Deployment Status:</strong></p>
+                    <p>You should now see your webapp listed under the Tomcat server with deployment status indicators:</p>
+                    <ul>
+                        <li>🟢 Green: Successfully deployed and running</li>
+                        <li>🟡 Yellow: Deployed but not started</li>
+                        <li>🔴 Red: Deployment failed</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="step" data-step="9">
+                <div class="step-header">
+                    <div class="step-title">
+                        <div class="step-number">9</div>
+                        Start and Manage Tomcat Server
+                    </div>
+                    <div class="arrow">▶</div>
+                </div>
+                <div class="step-content">
+                    <p>Start and manage your Tomcat server through Community Server Connectors:</p>
+                    
+                    <p><strong>Starting the Server:</strong></p>
+                    <ol>
+                        <li>In the "SERVERS" section, right-click on your Tomcat server</li>
+                        <li>Select "Start Server" (or click the play button ▶️)</li>
+                        <li>Monitor the startup process in the Output panel</li>
+                        <li>Wait for the "Server startup completed" message</li>
+                    </ol>
+
+                    <div class="success">
+                        You should see output indicating the server has started successfully, typically showing "Server startup in [X] ms" and the server status will change to "Started".
+                    </div>
+
+                    <p><strong>Server Management Options:</strong></p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Action</th>
+                                <th>Description</th>
+                                <th>Use Case</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Start Server</strong></td>
+                                <td>Starts the Tomcat instance</td>
+                                <td>Initial startup, after stopping</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Stop Server</strong></td>
+                                <td>Gracefully shuts down Tomcat</td>
+                                <td>Clean shutdown, configuration changes</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Restart Server</strong></td>
+                                <td>Stops and starts the server</td>
+                                <td>Apply configuration changes</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Debug Server</strong></td>
+                                <td>Starts server in debug mode</td>
+                                <td>Debugging applications</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Open in Browser</strong></td>
+                                <td>Opens server URL in browser</td>
+                                <td>Quick access to deployed apps</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <p><strong>Monitoring Server Status:</strong></p>
+                    <ul>
+                        <li><strong>Output Panel:</strong> View server logs and startup messages</li>
+                        <li><strong>Server Status:</strong> Check if server is Started, Stopped, or Starting</li>
+                        <li><strong>Port Monitoring:</strong> Ensure default port 8080 is not blocked</li>
+                    </ul>
+
+                    <div class="note">
+                        <strong>Default Ports:</strong>
+                        <ul>
+                            <li>HTTP: 8080</li>
+                            <li>HTTPS: 8443 (if SSL configured)</li>
+                            <li>Shutdown: 8005</li>
+                            <li>AJP: 8009</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="step" data-step="10">
+                <div class="step-header">
+                    <div class="step-title">
+                        <div class="step-number">10</div>
+                        Access Your Web Application
+                    </div>
+                    <div class="arrow">▶</div>
+                </div>
+                <div class="step-content">
+                    <p>Access your deployed web application:</p>
+                    
+                    <p><strong>Direct Browser Access:</strong></p>
+                    <div class="code-block">
+http://localhost:8080/webapp-demo
+                    </div>
+
+                    <p><strong>Quick Access Methods:</strong></p>
+                    <ul>
+                        <li><strong>Right-click on deployed app:</strong> Select "Open in Browser"</li>
+                        <li><strong>Server context menu:</strong> Right-click server → "Open in Browser"</li>
+                        <li><strong>Manual URL:</strong> Open browser and navigate to the URL above</li>
+                    </ul>
+
+                    <div class="success">
+                        You should see the default "Hello World!" page from your JSP file. Congratulations! Your Maven webapp is now running on Tomcat through VS Code with Community Server Connectors.
+                    </div>
+
+                    <p><strong>Testing Your Application:</strong></p>
+                    <div class="code-block">
+# Test with curl
+curl http://localhost:8080/webapp-demo
+
+# Test with wget
+wget -qO- http://localhost:8080/webapp-demo
+
+# Check server status
+curl -I http://localhost:8080/webapp-demo
+                    </div>
+
+                    <div class="info">
+                        <strong>Application URLs:</strong>
+                        <ul>
+                            <li><strong>Your App:</strong> http://localhost:8080/webapp-demo</li>
+                            <li><strong>Tomcat Manager:</strong> http://localhost:8080/manager (if configured)</li>
+                            <li><strong>Tomcat Home:</strong> http://localhost:8080</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="step" data-step="11">
+                <div class="step-header">
+                    <div class="step-title">
+                        <div class="step-number">11</div>
+                        Advanced Tomcat Configuration & Management
+                    </div>
+                    <div class="arrow">▶</div>
+                </div>
+                <div class="step-content">
+                    <div class="tomcat-section">
+                        <h3>🔧 Advanced Tomcat Management</h3>
+                        <p>Learn advanced Tomcat configuration and management techniques for production-ready applications.</p>
+                    </div>
+
+                    <h4>🌐 Accessing Tomcat Manager Application</h4>
+                    <p>The Tomcat Manager provides a web-based interface for managing applications:</p>
+                    
+                    <p><strong>1. Configure Manager Access</strong></p>
+                    <p>Edit <code>tomcat-users.xml</code> (located in <code>conf/</code> directory):</p>
+                    <div class="config-file">
+&lt;tomcat-users&gt;
+  &lt;role rolename="manager-gui"/&gt;
+  &lt;role rolename="manager-script"/&gt;
+  
+  &lt;user username="admin" 
+        password="secure_password" 
+        roles="manager-gui,manager-script"/&gt;
+&lt;/tomcat-users&gt;
+                    </div>
+
+                    <p><strong>2. Access Manager Interface</strong></p>
+                    <p>Navigate to: <code>http://localhost:8080/manager/html</code></p>
+                    <p>Login with the credentials you configured.</p>
+
+                    <p><strong>Manager Application Features:</strong></p>
+                    <ul>
+                        <li><strong>Deploy/Undeploy:</strong> Upload and manage WAR files</li>
+                        <li><strong>Start/Stop Apps:</strong> Control application lifecycle</li>
+                        <li><strong>Reload Apps:</strong> Refresh applications without restart</li>
+                        <li><strong>Session Management:</strong> View and manage user sessions</li>
+                        <li><strong>Server Information:</strong> View JVM and server status</li>
+                    </ul>
+
+                    <h4>🔍 Monitoring and Logging</h4>
+                    <p><strong>Log File Locations:</strong></p>
+                    <div class="code-block">
+logs/
+├── catalina.out           # Main server log
+├── catalina.YYYY-MM-DD.log   # Daily server logs
+├── localhost.YYYY-MM-DD.log  # Host-specific logs
+├── manager.YYYY-MM-DD.log    # Manager app logs
+└── host-manager.YYYY-MM-DD.log # Host manager logs
+                    </div>
+
+                    <p><strong>Configuring Logging Levels:</strong></p>
+                    <p>Edit <code>conf/logging.properties</code>:</p>
+                    <div class="config-file">
+# Root logger level
+.level = INFO
+
+# Console handler level
+java.util.logging.ConsoleHandler.level = INFO
+
+# File handler level
+java.util.logging.FileHandler.level = INFO
+
+# Specific package logging
+org.apache.catalina.core.ContainerBase.[Catalina].[localhost].level = INFO
+org.apache.catalina.core.ContainerBase.[Catalina].[localhost].[/manager].level = INFO
+                    </div>
+
+                    <h4>⚡ Performance Tuning</h4>
+                    <p><strong>JVM Memory Settings:</strong></p>
+                    <p>Edit <code>bin/setenv.sh</code> (Linux/Mac) or <code>bin/setenv.bat</code> (Windows):</p>
+                    <div class="config-file">
+# Linux/Mac (setenv.sh)
+export CATALINA_OPTS="$CATALINA_OPTS -Xms512m -Xmx2048m -XX:PermSize=256m -XX:MaxPermSize=512m"
+
+# Windows (setenv.bat)
+set CATALINA_OPTS=%CATALINA_OPTS% -Xms512m -Xmx2048m -XX:PermSize=256m -XX:MaxPermSize=512m
+                    </div>
+
+                    <p><strong>Connection Pool Configuration:</strong></p>
+                    <p>Edit <code>server.xml</code> for HTTP connector tuning:</p>
+                    <div class="config-file">
+&lt;Connector port="8080" protocol="HTTP/1.1"
+           connectionTimeout="20000"
+           maxConnections="8192"
+           maxThreads="200"
+           minSpareThreads="10"
+           acceptCount="100"
+           disableUploadTimeout="true"
+           compression="on"
+           compressionMinSize="2048"
+           compressibleMimeType="text/html,text/xml,text/css,text/javascript"
+           redirectPort="8443" /&gt;
+                    </div>
+
+                    <h4>🔒 Security Configuration</h4>
+                    <p><strong>Secure Tomcat Installation:</strong></p>
+                    <ul>
+                        <li><strong>Remove default apps:</strong> Delete sample applications from webapps/</li>
+                        <li><strong>Disable directory browsing:</strong> Set listings="false" in web.xml</li>
+                        <li><strong>Hide server information:</strong> Add server attribute to Connector</li>
+                        <li><strong>Use HTTPS:</strong> Configure SSL certificates</li>
+                        <li><strong>Implement access restrictions:</strong> Use IP address filtering</li>
+                    </ul>
+
+                    <p><strong>Example Security Configuration:</strong></p>
+                    <div class="config-file">
+&lt;!-- Hide server information --&gt;
+&lt;Connector port="8080" protocol="HTTP/1.1"
+           server="WebServer"
+           connectionTimeout="20000"
+           redirectPort="8443" /&gt;
+
+&lt;!-- Restrict manager access by IP --&gt;
+&lt;Context docBase="${catalina.home}/webapps/manager"&gt;
+  &lt;Valve className="org.apache.catalina.valves.RemoteAddrValve"
+         allow="127\.0\.0\.1|192\.168\..*" /&gt;
+&lt;/Context&gt;
+                    </div>
+
+                    <h4>🗄️ Database Connection Configuration</h4>
+                    <p><strong>Configure JDBC Data Source in context.xml:</strong></p>
+                    <div class="config-file">
+&lt;Context&gt;
+  &lt;Resource name="jdbc/MyDB"
+            auth="Container"
+            type="javax.sql.DataSource"
+            maxTotal="20"
+            maxIdle="5"
+            maxWaitMillis="10000"
+            driverClassName="com.mysql.cj.jdbc.Driver"
+            url="jdbc:mysql://localhost:3306/mydb?useSSL=false&amp;serverTimezone=UTC"
+            username="dbuser"
+            password="dbpassword"/&gt;
+&lt;/Context&gt;
+                    </div>
+
+                    <div class="warning">
+                        <strong>Production Security:</strong> Never use default passwords, always use HTTPS in production, regularly update Tomcat versions, and implement proper access controls.
+                    </div>
+                </div>
+            </div>
+
+            <div class="step" data-step="12">
+                <div class="step-header">
+                    <div class="step-title">
+                        <div class="step-number">12</div>
+                        Development Tips & Troubleshooting
+                    </div>
+                    <div class="arrow">▶</div>
+                </div>
+                <div class="step-content">
+                    <p><strong>Hot Reload and Development Workflow:</strong></p>
+                    
+                    <div class="note">
+                        <strong>Community Server Connectors Advantages:</strong>
+                        <ul>
+                            <li>Better hot reload support</li>
+                            <li>Integrated debugging</li>
+                            <li>Multiple server type support</li>
+                            <li>Active development and maintenance</li>
+                        </ul>
+                    </div>
+
+                    <p><strong>Enable Hot Reload:</strong></p>
+                    <ol>
+                        <li>Right-click on your Tomcat server in VS Code</li>
+                        <li>Select "Edit Server"</li>
+                        <li>Enable "Auto Publish" and "Auto Reload"</li>
+                        <li>Set publish interval (e.g., 1 second for development)</li>
+                    </ol>
+
+                    <p><strong>Debugging Your Application:</strong></p>
+                    <ol>
+                        <li>Right-click on your Tomcat server</li>
+                        <li>Select "Start in Debug Mode"</li>
+                        <li>Set breakpoints in your Java code</li>
+                        <li>VS Code will automatically attach debugger</li>
+                    </ol>
+
+                    <p><strong>Common Issues & Solutions:</strong></p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Issue</th>
+                                <th>Cause</th>
+                                <th>Solution</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Port 8080 in use</td>
+                                <td>Another process using the port</td>
+                                <td>Change port in server.xml or kill conflicting process</td>
+                            </tr>
+                            <tr>
+                                <td>WAR not deploying</td>
+                                <td>Build failure or incorrect path</td>
+                                <td>Run 'mvn clean package' and check target directory</td>
+                            </tr>
+                            <tr>
+                                <td>Java version mismatch</td>
+                                <td>JAVA_HOME incorrect</td>
+                                <td>Set JAVA_HOME to correct JDK version</td>
+                            </tr>
+                            <tr>
+                                <td>Extension not working</td>
+                                <td>Extension conflicts or not loaded</td>
+                                <td>Restart VS Code, disable conflicting extensions</td>
+                            </tr>
+                            <tr>
+                                <td>404 Error on access</td>
+                                <td>Incorrect context path</td>
+                                <td>Check deployment name and URL path</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <p><strong>Useful VS Code Commands for Development:</strong></p>
+                    <div class="code-block">
+# Command Palette (Ctrl+Shift+P) Commands:
+Java: Restart Projects          # Reload Java project
+Servers: Start Server          # Start selected server
+Servers: Stop Server           # Stop selected server
+Maven: Reload Projects         # Reload Maven dependencies
+Developer: Toggle Developer Tools  # Open VS Code DevTools
+                    </div>
+
+                    <p><strong>Maven Development Commands:</strong></p>
+                    <div class="code-block">
+# Quick development cycle
+mvn clean compile              # Compile only
+mvn clean package             # Full build
+mvn clean install            # Install to local repository
+mvn clean package -DskipTests # Skip tests during build
+
+# Tomcat Maven plugin (if configured)
+mvn tomcat7:run               # Run with embedded Tomcat
+mvn tomcat7:deploy            # Deploy to running Tomcat
+mvn tomcat7:redeploy          # Redeploy application
+                    </div>
+
+                    <p><strong>Performance Monitoring:</strong></p>
+                    <ul>
+                        <li><strong>JVisualVM:</strong> Monitor JVM performance and memory usage</li>
+                        <li><strong>Tomcat Manager:</strong> Check application status and sessions</li>
+                        <li><strong>VS Code Output Panel:</strong> Monitor server logs in real-time</li>
+                        <li><strong>Browser DevTools:</strong> Monitor network requests and responses</li>
+                    </ul>
+
+                    <div class="success">
+                        <strong>Pro Tips for Efficient Development:</strong>
+                        <ul>
+                            <li>Use exploded deployment for faster development cycles</li>
+                            <li>Enable auto-reload for immediate changes</li>
+                            <li>Use debug mode for troubleshooting</li>
+                            <li>Monitor logs in VS Code Output panel</li>
+                            <li>Keep Tomcat Manager handy for deployment management</li>
+                        </ul>
+                    </div>
+
+                    <div class="info">
+                        <strong>Next Steps:</strong>
+                        <ul>
+                            <li>Add more servlets and JSP pages</li>
+                            <li>Integrate with databases using JDBC</li>
+                            <li>Implement security with Spring Security</li>
+                            <li>Add REST APIs with JAX-RS or Spring MVC</li>
+                            <li>Configure production deployment</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 40px;">
+                <button class="btn" onclick="expandAll()">📖 Expand All Steps</button>
+                <button class="btn" onclick="collapseAll()">📚 Collapse All Steps</button>
+                <button class="btn" onclick="window.print()">🖨️ Print Guide</button>
+                <button class="btn" onclick="copyAllCommands()">📋 Copy All Commands</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Step functionality
+        document.querySelectorAll('.step-header').forEach(header => {
+            header.addEventListener('click', function() {
+                const step = this.parentElement;
+                const isActive = step.classList.contains('active');
+                
+                // Close all other steps
+                document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+                
+                // Toggle current step
+                if (!isActive) {
+                    step.classList.add('active');
+                }
+                
+                updateProgress();
+            });
+        });
+
+        // Copy code functionality
+        document.querySelectorAll('.code-block, .config-file').forEach(block => {
+            block.addEventListener('click', function() {
+                const text = this.textContent.trim();
+                navigator.clipboard.writeText(text).then(() => {
+                    // Create and show feedback
+                    const feedback = document.createElement('div');
+                    feedback.textContent = '✅ Copied!';
+                    feedback.style.cssText = `
+                        position: absolute;
+                        top: 10px;
+                        right: 15px;
+                        background: #28a745;
+                        color: white;
+                        padding: 5px 10px;
+                        border-radius: 5px;
+                        font-size: 0.8em;
+                        z-index: 10;
+                        animation: fadeInOut 2s ease;
+                    `;
+                    
+                    this.style.position = 'relative';
+                    this.appendChild(feedback);
+                    
+                    setTimeout(() => {
+                        if (feedback.parentNode) {
+                            feedback.parentNode.removeChild(feedback);
+                        }
+                    }, 2000);
+                }).catch(err => {
+                    console.error('Failed to copy text: ', err);
+                });
+            });
+        });
+
+        // Progress bar
+        function updateProgress() {
+            const totalSteps = document.querySelectorAll('.step').length;
+            const activeSteps = document.querySelectorAll('.step.active').length;
+            const progress = (activeSteps / totalSteps) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+        }
+
+        // Utility functions
+        function expandAll() {
+            document.querySelectorAll('.step').forEach(step => {
+                step.classList.add('active');
+            });
+            updateProgress();
+        }
+
+        function collapseAll() {
+            document.querySelectorAll('.step').forEach(step => {
+                step.classList.remove('active');
+            });
+            updateProgress();
+        }
+
+        function copyAllCommands() {
+            const commands = [];
+            document.querySelectorAll('.code-block').forEach(block => {
+                const text = block.textContent.trim();
+                if (text && !text.includes('<?xml') && !text.includes('webapp-demo/')) {
+                    commands.push(text);
+                }
+            });
+            
+            const allCommands = commands.join('\n\n# ===== Next Command =====\n\n');
+            navigator.clipboard.writeText(allCommands).then(() => {
+                alert('All commands copied to clipboard!');
+            });
+        }
+
+        // Initialize progress
+        updateProgress();
+
+        // Auto-scroll to active step
+        document.querySelectorAll('.step-header').forEach(header => {
+            header.addEventListener('click', function() {
+                setTimeout(() => {
+                    this.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 300);
+            });
+        });
+
+        // Add CSS animation for feedback
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeInOut {
+                0% { opacity: 0; transform: translateY(-10px); }
+                20% { opacity: 1; transform: translateY(0); }
+                80% { opacity: 1; transform: translateY(0); }
+                100% { opacity: 0; transform: translateY(-10px); }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Add hover effects for better interactivity
+        document.querySelectorAll('.step').forEach(step => {
+            step.addEventListener('mouseenter', function() {
+                if (!this.classList.contains('active')) {
+                    this.style.transform = 'translateY(-2px)';
+                }
+            });
+            
+            step.addEventListener('mouseleave', function() {
+                if (!this.classList.contains('active')) {
+                    this.style.transform = 'translateY(0)';
+                }
+            });
+        });
+
+        // Enhanced code block interaction
+        document.querySelectorAll('.code-block, .config-file').forEach(block => {
+            block.addEventListener('mouseenter', function() {
+                this.style.boxShadow = '0 8px 25px rgba(52, 152, 219, 0.15)';
+            });
+            
+            block.addEventListener('mouseleave', function() {
+                this.style.boxShadow = '';
+            });
+        });
+    </script>
+</body>
+</html>
