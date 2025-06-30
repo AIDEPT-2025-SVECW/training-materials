@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring Configuration Demonstrations</title>
+    <link rel="stylesheet" href="spring_config_css.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Spring Framework Configuration Demos</h1>
+            <p>Explore different ways to configure Spring applications</p>
+        </header>
+
+        <nav class="nav-tabs">
+            <button class="tab-btn active" data-tab="xml">XML Configuration</button>
+            <button class="tab-btn" data-tab="annotations">Annotations</button>
+            <button class="tab-btn" data-tab="java">Java Config</button>
+            <button class="tab-btn" data-tab="properties">Properties/YAML</button>
+            <button class="tab-btn" data-tab="comparison">Comparison</button>
+        </nav>
+
+        <main class="content">
+            <!-- XML Configuration -->
+            <section id="xml" class="tab-content active">
+                <div class="config-header">
+                    <h2>XML-Based Configuration</h2>
+                    <p>Traditional Spring configuration using XML files</p>
+                </div>
+                
+                <div class="demo-section">
+                    <h3>Bean Definition Example</h3>
+                    <div class="code-container">
+                        <pre><code class="language-xml">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd"&gt;
+
+    &lt;!-- Simple Bean Definition --&gt;
+    &lt;bean id="userService" class="com.example.UserService"&gt;
+        &lt;property name="userRepository" ref="userRepository"/&gt;
+        &lt;property name="maxUsers" value="1000"/&gt;
+    &lt;/bean&gt;
+
+    &lt;bean id="userRepository" class="com.example.UserRepository"&gt;
+        &lt;constructor-arg value="jdbc:mysql://localhost/users"/&gt;
+    &lt;/bean&gt;
+
+    &lt;!-- Collection Injection --&gt;
+    &lt;bean id="emailService" class="com.example.EmailService"&gt;
+        &lt;property name="recipients"&gt;
+            &lt;list&gt;
+                &lt;value&gt;admin@example.com&lt;/value&gt;
+                &lt;value&gt;support@example.com&lt;/value&gt;
+            &lt;/list&gt;
+        &lt;/property&gt;
+    &lt;/bean&gt;
+&lt;/beans&gt;</code></pre>
+                    </div>
+                    
+                    <div class="interactive-demo">
+                        <h4>Interactive Bean Viewer</h4>
+                        <div class="bean-selector">
+                            <select id="xmlBeanSelect">
+                                <option value="userService">UserService</option>
+                                <option value="userRepository">UserRepository</option>
+                                <option value="emailService">EmailService</option>
+                            </select>
+                            <button onclick="showBeanInfo('xml')">View Bean Details</button>
+                        </div>
+                        <div id="xmlBeanInfo" class="bean-info"></div>
+                    </div>
+                </div>
+
+                <div class="pros-cons">
+                    <div class="pros">
+                        <h4>Advantages</h4>
+                        <ul>
+                            <li>Clear separation of configuration from code</li>
+                            <li>Runtime configuration changes possible</li>
+                            <li>Good for complex enterprise scenarios</li>
+                        </ul>
+                    </div>
+                    <div class="cons">
+                        <h4>Disadvantages</h4>
+                        <ul>
+                            <li>Verbose and can become unwieldy</li>
+                            <li>No compile-time checking</li>
+                            <li>IDE support limitations</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Annotations Configuration -->
+            <section id="annotations" class="tab-content">
+                <div class="config-header">
+                    <h2>Annotation-Based Configuration</h2>
+                    <p>Using annotations to configure Spring beans</p>
+                </div>
+                
+                <div class="demo-section">
+                    <h3>Common Annotations</h3>
+                    <div class="code-container">
+                        <pre><code class="language-java">@Component
+@Service
+public class UserService {
+    
+    @Autowired
+    private UserRepository userRepository;
+    
+    @Value("${app.max-users:1000}")
+    private int maxUsers;
+    
+    @PostConstruct
+    public void init() {
+        System.out.println("UserService initialized");
+    }
+    
+    @PreDestroy
+    public void cleanup() {
+        System.out.println("UserService cleanup");
+    }
+}
+
+@Repository
+public class UserRepository {
+    
+    @Autowired
+    @Qualifier("primaryDataSource")
+    private DataSource dataSource;
+    
+    // Repository methods...
+}
+
+@Controller
+@RequestMapping("/users")
+public class UserController {
+    
+    @Autowired
+    private UserService userService;
+    
+    @RequestMapping(value = "/{id}", method = RequestMethod.GET)
+    @ResponseBody
+    public User getUser(@PathVariable Long id) {
+        return userService.findById(id);
+    }
+}</code></pre>
+                    </div>
+                    
+                    <div class="interactive-demo">
+                        <h4>Annotation Explorer</h4>
+                        <div class="annotation-grid">
+                            <div class="annotation-card" onclick="showAnnotationInfo('@Component')">
+                                <h5>@Component</h5>
+                                <p>Generic stereotype</p>
+                            </div>
+                            <div class="annotation-card" onclick="showAnnotationInfo('@Service')">
+                                <h5>@Service</h5>
+                                <p>Business logic layer</p>
+                            </div>
+                            <div class="annotation-card" onclick="showAnnotationInfo('@Repository')">
+                                <h5>@Repository</h5>
+                                <p>Data access layer</p>
+                            </div>
+                            <div class="annotation-card" onclick="showAnnotationInfo('@Controller')">
+                                <h5>@Controller</h5>
+                                <p>Web layer</p>
+                            </div>
+                            <div class="annotation-card" onclick="showAnnotationInfo('@Autowired')">
+                                <h5>@Autowired</h5>
+                                <p>Dependency injection</p>
+                            </div>
+                            <div class="annotation-card" onclick="showAnnotationInfo('@Value')">
+                                <h5>@Value</h5>
+                                <p>Property injection</p>
+                            </div>
+                        </div>
+                        <div id="annotationInfo" class="annotation-info"></div>
+                    </div>
+                </div>
+
+                <div class="pros-cons">
+                    <div class="pros">
+                        <h4>Advantages</h4>
+                        <ul>
+                            <li>Less verbose than XML</li>
+                            <li>Configuration close to code</li>
+                            <li>Better IDE support</li>
+                        </ul>
+                    </div>
+                    <div class="cons">
+                        <h4>Disadvantages</h4>
+                        <ul>
+                            <li>Configuration scattered across codebase</li>
+                            <li>Harder to modify without recompilation</li>
+                            <li>Annotation pollution in classes</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Java Configuration -->
+            <section id="java" class="tab-content">
+                <div class="config-header">
+                    <h2>Java-Based Configuration</h2>
+                    <p>Type-safe configuration using Java classes</p>
+                </div>
+                
+                <div class="demo-section">
+                    <h3>Configuration Classes</h3>
+                    <div class="code-container">
+                        <pre><code class="language-java">@Configuration
+@EnableWebMvc
+@ComponentScan(basePackages = "com.example")
+public class AppConfig {
+    
+    @Bean
+    @Primary
+    public DataSource primaryDataSource() {
+        HikariDataSource dataSource = new HikariDataSource();
+        dataSource.setJdbcUrl("jdbc:mysql://localhost/users");
+        dataSource.setUsername("user");
+        dataSource.setPassword("password");
+        dataSource.setMaximumPoolSize(20);
+        return dataSource;
+    }
+    
+    @Bean
+    @Qualifier("readOnlyDataSource")
+    public DataSource readOnlyDataSource() {
+        HikariDataSource dataSource = new HikariDataSource();
+        dataSource.setJdbcUrl("jdbc:mysql://localhost-ro/users");
+        dataSource.setReadOnly(true);
+        return dataSource;
+    }
+    
+    @Bean
+    @Scope("prototype")
+    public UserService userService() {
+        UserService service = new UserService();
+        service.setMaxUsers(1000);
+        return service;
+    }
+    
+    @Bean
+    @Profile("development")
+    public MailService devMailService() {
+        return new MockMailService();
+    }
+    
+    @Bean
+    @Profile("production")
+    public MailService prodMailService() {
+        return new SmtpMailService();
+    }
+}</code></pre>
+                    </div>
+                    
+                    <div class="interactive-demo">
+                        <h4>Bean Configuration Simulator</h4>
+                        <div class="config-builder">
+                            <h5>Create a Bean Configuration</h5>
+                            <div class="form-group">
+                                <label>Bean Name:</label>
+                                <input type="text" id="beanName" placeholder="myService" />
+                            </div>
+                            <div class="form-group">
+                                <label>Bean Class:</label>
+                                <input type="text" id="beanClass" placeholder="com.example.MyService" />
+                            </div>
+                            <div class="form-group">
+                                <label>Scope:</label>
+                                <select id="beanScope">
+                                    <option value="singleton">Singleton</option>
+                                    <option value="prototype">Prototype</option>
+                                    <option value="request">Request</option>
+                                    <option value="session">Session</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Profile:</label>
+                                <input type="text" id="beanProfile" placeholder="development" />
+                            </div>
+                            <button onclick="generateBeanConfig()">Generate Configuration</button>
+                        </div>
+                        <div id="generatedConfig" class="generated-config"></div>
+                    </div>
+                </div>
+
+                <div class="pros-cons">
+                    <div class="pros">
+                        <h4>Advantages</h4>
+                        <ul>
+                            <li>Type safety and compile-time checking</li>
+                            <li>Excellent IDE support</li>
+                            <li>Programmatic configuration flexibility</li>
+                        </ul>
+                    </div>
+                    <div class="cons">
+                        <h4>Disadvantages</h4>
+                        <ul>
+                            <li>Requires recompilation for changes</li>
+                            <li>Can become complex for large applications</li>
+                            <li>More Java code to maintain</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Properties/YAML Configuration -->
+            <section id="properties" class="tab-content">
+                <div class="config-header">
+                    <h2>Properties & YAML Configuration</h2>
+                    <p>External configuration using properties and YAML files</p>
+                </div>
+                <div style="border: 2px solid #ccc; background-color: #f9f9f9; padding: 15px; border-radius: 8px; font-family: Arial, sans-serif; line-height: 1.6;">
+                    <p style="margin: 0 0 10px;"><span style="color: green; font-weight: bold;">✅</span> You can use <strong>Spring properties or YAML</strong> to inject primitive values or configuration data (like URLs, usernames, etc.).</p>
+                    <p style="margin: 0;"><span style="color: red; font-weight: bold;">❌</span> But you <strong>CANNOT</strong> directly define and wire beans or perform dependency injection purely in YAML or properties.</p>
+                </div>
+
+                
+                <div class="demo-section">
+                    <h3>Configuration Examples</h3>
+                    <div class="config-toggle">
+                        <button class="toggle-btn active" onclick="showConfigType('properties')">Properties</button>
+                        <button class="toggle-btn" onclick="showConfigType('yaml')">YAML</button>
+                    </div>
+                    
+                    <div id="propertiesConfig" class="code-container">
+                        <pre><code class="language-properties"># Application Properties
+app.name=Spring Demo Application
+app.version=1.0.0
+app.max-users=1000
+
+# Database Configuration
+spring.datasource.url=jdbc:mysql://localhost:3306/users
+spring.datasource.username=admin
+spring.datasource.password=secret
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+
+# Connection Pool Settings
+spring.datasource.hikari.maximum-pool-size=20
+spring.datasource.hikari.minimum-idle=5
+spring.datasource.hikari.connection-timeout=30000
+
+# JPA Configuration
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL8Dialect
+
+# Logging Configuration
+logging.level.com.example=DEBUG
+logging.level.org.springframework=INFO
+logging.pattern.console=%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n
+
+# Server Configuration
+server.port=8080
+server.servlet.context-path=/api
+
+# Email Configuration
+spring.mail.host=smtp.gmail.com
+spring.mail.port=587
+spring.mail.username=your-email@gmail.com
+spring.mail.password=your-password
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.starttls.enable=true</code></pre>
+                    </div>
+                    
+                    <div id="yamlConfig" class="code-container" style="display: none;">
+                        <pre><code class="language-yaml"># Application Configuration
+app:
+  name: Spring Demo Application
+  version: 1.0.0
+  max-users: 1000
+  features:
+    - user-management
+    - email-notifications
+    - audit-logging
+
+# Spring Configuration
+spring:
+  # Database Configuration
+  datasource:
+    url: jdbc:mysql://localhost:3306/users
+    username: admin
+    password: secret
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      
+  # JPA Configuration
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        
+  # Mail Configuration
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: your-email@gmail.com
+    password: your-password
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+# Logging Configuration
+logging:
+  level:
+    com.example: DEBUG
+    org.springframework: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# Server Configuration
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+# Custom Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics</code></pre>
+                    </div>
+                    
+                    <div class="interactive-demo">
+                        <h4>Property Value Resolver</h4>
+                        <div class="property-resolver">
+                            <input type="text" id="propertyKey" placeholder="Enter property key (e.g., app.name)" />
+                            <button onclick="resolveProperty()">Resolve Value</button>
+                            <div id="propertyResult" class="property-result"></div>
+                        </div>
+                        
+                        <h5>Environment Profiles</h5>
+                        <div class="profile-selector">
+                            <button class="profile-btn active" onclick="switchProfile('development')">Development</button>
+                            <button class="profile-btn" onclick="switchProfile('testing')">Testing</button>
+                            <button class="profile-btn" onclick="switchProfile('production')">Production</button>
+                        </div>
+                        <div id="profileConfig" class="profile-config"></div>
+                    </div>
+                </div>
+
+                <div class="pros-cons">
+                    <div class="pros">
+                        <h4>Advantages</h4>
+                        <ul>
+                            <li>External configuration without recompilation</li>
+                            <li>Environment-specific configurations</li>
+                            <li>Easy to version control and manage</li>
+                        </ul>
+                    </div>
+                    <div class="cons">
+                        <h4>Disadvantages</h4>
+                        <ul>
+                            <li>No compile-time validation</li>
+                            <li>Can be scattered across multiple files</li>
+                            <li>Limited support for complex data structures</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+             <section id="comparison" class="tab-content">
+                <table>
+    <thead>
+      <tr>
+        <th>Configuration Type</th>
+        <th>Pros</th>
+        <th>Cons</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>XML Configuration</strong></td>
+        <td>
+          <ul>
+            <li>Clear separation between configuration and code</li>
+            <li>Well-supported and mature</li>
+            <li>Easy to change without recompiling code</li>
+          </ul>
+        </td>
+        <td>
+          <ul>
+            <li>Verbose and harder to maintain</li>
+            <li>Lacks type-safety</li>
+            <li>Difficult to refactor</li>
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Annotation-based Configuration</strong></td>
+        <td>
+          <ul>
+            <li>Concise and less boilerplate</li>
+            <li>Better integration with code</li>
+            <li>Easy to use with component scanning</li>
+          </ul>
+        </td>
+        <td>
+          <ul>
+            <li>Tightly couples configuration with business logic</li>
+            <li>Harder to change without modifying source code</li>
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Java-based Configuration</strong></td>
+        <td>
+          <ul>
+            <li>Type-safe and refactor-friendly</li>
+            <li>Powerful and expressive</li>
+            <li>Great support in modern Spring applications</li>
+          </ul>
+        </td>
+        <td>
+          <ul>
+            <li>Requires Java knowledge</li>
+            <li>Configuration is compiled with code</li>
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <td><strong>YAML/Properties Configuration</strong></td>
+        <td>
+          <ul>
+            <li>Clean and human-readable</li>
+            <li>Excellent for externalizing configuration</li>
+            <li>Supports hierarchical structures</li>
+          </ul>
+        </td>
+        <td>
+          <ul>
+            <li>Syntax-sensitive (indentation errors)</li>
+            <li>Limited to environment/property settings, not bean wiring</li>
+          </ul>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+             </section>
+        </main>
+
+        <footer class="footer">
+            <p>Spring Framework Configuration Demo - Explore different configuration approaches</p>
+        </footer>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="spring_config_js.js"></script>
+    
+</body>
+</html>
