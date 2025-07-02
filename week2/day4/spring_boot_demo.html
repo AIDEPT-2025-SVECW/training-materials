@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring Boot Interactive Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 40px 0;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50px;
+            padding: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-tab {
+            padding: 15px 30px;
+            margin: 0 5px;
+            background: transparent;
+            border: none;
+            border-radius: 25px;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-tab.active {
+            background: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .nav-tab:hover {
+            background: rgba(255,255,255,0.1);
+            transform: translateY(-1px);
+        }
+
+        .tab-content {
+            display: none;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 30px 0;
+        }
+
+        .comparison-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border-radius: 15px;
+            padding: 30px;
+            color: white;
+            text-align: center;
+            transition: transform 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .comparison-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .comparison-card:hover {
+            transform: translateY(-10px);
+        }
+
+        .comparison-card:hover::before {
+            opacity: 1;
+        }
+
+        .spring-card {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .feature-list {
+            list-style: none;
+            text-align: left;
+            margin: 20px 0;
+        }
+
+        .feature-list li {
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            position: relative;
+            padding-left: 30px;
+        }
+
+        .feature-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #4ade80;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .demo-section {
+            margin: 40px 0;
+            padding: 30px;
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .demo-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .demo-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .demo-button:active {
+            transform: translateY(0);
+        }
+
+        .code-display {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            position: relative;
+            overflow-x: auto;
+        }
+
+        .code-display::before {
+            content: 'Code';
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        .auto-config-demo {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .config-box {
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .manual-config {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+        }
+
+        .auto-config {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        }
+
+        .server-demo {
+            display: flex;
+            justify-content: space-around;
+            margin: 30px 0;
+        }
+
+        .server-box {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .server-box:hover {
+            transform: scale(1.05);
+        }
+
+        .server-box.active {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 2s ease;
+        }
+
+        .highlight {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+            padding: 2px 8px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .animated-icon {
+            font-size: 2rem;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .success-message {
+            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+            display: none;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 2rem;
+        }
+
+        h3 {
+            color: #764ba2;
+            margin: 20px 0 10px 0;
+            font-size: 1.5rem;
+        }
+
+        p {
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .comparison-grid,
+            .auto-config-demo {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-tabs {
+                flex-direction: column;
+                border-radius: 15px;
+            }
+            
+            .nav-tab {
+                margin: 5px 0;
+                border-radius: 10px;
+            }
+            
+            .server-demo {
+                flex-direction: column;
+                gap: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍃 Spring Boot Interactive Demo</h1>
+            <p>Explore the power of Spring Boot through interactive examples</p>
+        </div>
+
+        <nav class="nav-tabs">
+            <button class="nav-tab active" data-tab="overview">Overview</button>
+            <button class="nav-tab" data-tab="advantages">Advantages</button>
+            <button class="nav-tab" data-tab="autoconfig">Auto-Configuration</button>
+            <button class="nav-tab" data-tab="servers">Embedded Servers</button>
+        </nav>
+
+        <div id="overview" class="tab-content active">
+            <h2>Spring Boot Overview</h2>
+            <p>Spring Boot is an extension of the Spring framework that eliminates the boilerplate configurations required for setting up a Spring application. It provides a faster and easier way to set up, configure, and run Spring applications.</p>
+            
+            <div class="demo-section">
+                <h3>🚀 What makes Spring Boot special?</h3>
+                <div class="animated-icon">⚡</div>
+                <p>Spring Boot follows the <span class="highlight">"Convention over Configuration"</span> principle, providing sensible defaults and auto-configuration to get you started quickly.</p>
+                
+                <button class="demo-button" onclick="showSpringBootMagic()">See the Magic ✨</button>
+                <div id="magic-demo" class="success-message">
+                    <strong>Spring Boot Magic:</strong> With just @SpringBootApplication annotation, you get auto-configuration, component scanning, and configuration properties support!
+                </div>
+            </div>
+        </div>
+
+        <div id="advantages" class="tab-content">
+            <h2>Spring Boot vs Traditional Spring</h2>
+            
+            <div class="comparison-grid">
+                <div class="comparison-card">
+                    <h3>❌ Traditional Spring</h3>
+                    <ul class="feature-list">
+                        <li>Extensive XML configuration</li>
+                        <li>Manual dependency management</li>
+                        <li>Complex setup process</li>
+                        <li>External server deployment</li>
+                        <li>Boilerplate code</li>
+                        <li>Time-consuming setup</li>
+                    </ul>
+                </div>
+                
+                <div class="comparison-card spring-card">
+                    <h3>✅ Spring Boot</h3>
+                    <ul class="feature-list">
+                        <li>Minimal configuration</li>
+                        <li>Auto-dependency resolution</li>
+                        <li>Quick project setup</li>
+                        <li>Embedded servers</li>
+                        <li>Starter dependencies</li>
+                        <li>Rapid development</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="demo-section">
+                <h3>⏱️ Development Time Comparison</h3>
+                <button class="demo-button" onclick="runTimeComparison()">Start Comparison</button>
+                
+                <div class="auto-config-demo">
+                    <div class="config-box manual-config">
+                        <h4>Traditional Spring</h4>
+                        <div class="progress-bar">
+                            <div id="traditional-progress" class="progress-fill"></div>
+                        </div>
+                        <p id="traditional-time">Setup Time: 0 hours</p>
+                    </div>
+                    
+                    <div class="config-box auto-config">
+                        <h4>Spring Boot</h4>
+                        <div class="progress-bar">
+                            <div id="springboot-progress" class="progress-fill"></div>
+                        </div>
+                        <p id="springboot-time">Setup Time: 0 minutes</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="autoconfig" class="tab-content">
+            <h2>Auto-Configuration Magic</h2>
+            <p>Spring Boot's auto-configuration automatically configures your Spring application based on the jar dependencies that you have added. It eliminates the need for manual configuration.</p>
+            
+            <div class="demo-section">
+                <h3>🎯 How Auto-Configuration Works</h3>
+                <button class="demo-button" onclick="demonstrateAutoConfig()">Demonstrate Auto-Config</button>
+                
+                <div class="loading-spinner" id="autoconfig-spinner"></div>
+                
+                <div class="code-display" id="autoconfig-code" style="display: none;">
+@SpringBootApplication // This annotation enables auto-configuration!
+public class MyApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(MyApplication.class, args);
+    }
+}
+
+// Spring Boot automatically detects:
+// - Database drivers (H2, MySQL, PostgreSQL)
+// - Web frameworks (Spring MVC, WebFlux)
+// - Security configurations
+// - And much more!
+                </div>
+            </div>
+
+            <div class="auto-config-demo">
+                <div class="config-box manual-config">
+                    <h4>Manual Configuration</h4>
+                    <p>Write XML/Java config files</p>
+                    <p>Define beans manually</p>
+                    <p>Configure properties</p>
+                    <p>Setup component scanning</p>
+                </div>
+                
+                <div class="config-box auto-config">
+                    <h4>Auto-Configuration</h4>
+                    <p>Add starter dependency</p>
+                    <p>Use @SpringBootApplication</p>
+                    <p>Spring Boot does the rest!</p>
+                    <p>Override only when needed</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="servers" class="tab-content">
+            <h2>Embedded Servers</h2>
+            <p>Spring Boot includes embedded servers like Tomcat, Jetty, and Undertow. This means you can run your application as a standalone JAR file without needing to deploy to an external server.</p>
+            
+            <div class="demo-section">
+                <h3>🖥️ Choose Your Embedded Server</h3>
+                <div class="server-demo">
+                    <div class="server-box" onclick="selectServer('tomcat')">
+                        <h4>🐱 Tomcat</h4>
+                        <p>Default choice</p>
+                        <p>Most popular</p>
+                    </div>
+                    
+                    <div class="server-box" onclick="selectServer('jetty')">
+                        <h4>🚀 Jetty</h4>
+                        <p>Lightweight</p>
+                        <p>Async support</p>
+                    </div>
+                    
+                    <div class="server-box" onclick="selectServer('undertow')">
+                        <h4>⚡ Undertow</h4>
+                        <p>High performance</p>
+                        <p>Low memory</p>
+                    </div>
+                </div>
+                
+                <div id="server-info" class="success-message">
+                    Select a server to see its configuration!
+                </div>
+            </div>
+            
+            <div class="demo-section">
+                <h3>📦 Deployment Comparison</h3>
+                <button class="demo-button" onclick="showDeploymentDemo()">Show Deployment Process</button>
+                
+                <div class="auto-config-demo">
+                    <div class="config-box manual-config">
+                        <h4>Traditional Deployment</h4>
+                        <div id="traditional-deployment" style="display: none;">
+                            <p>1. Install server (Tomcat/JBoss)</p>
+                            <p>2. Configure server settings</p>
+                            <p>3. Package as WAR file</p>
+                            <p>4. Deploy to server</p>
+                            <p>5. Start server</p>
+                        </div>
+                    </div>
+                    
+                    <div class="config-box auto-config">
+                        <h4>Spring Boot Deployment</h4>
+                        <div id="springboot-deployment" style="display: none;">
+                            <p>1. Package as JAR file</p>
+                            <p>2. Run: java -jar app.jar</p>
+                            <p>3. That's it! 🎉</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="spring_boot_js.js"></script>
+</body>
+</html>

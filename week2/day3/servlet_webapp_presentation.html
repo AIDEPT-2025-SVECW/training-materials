@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plain Servlet Web App Flow - Interactive Presentation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            overflow: hidden;
+        }
+
+        .presentation-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        .slide {
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            animation: slideIn 0.8s ease-in-out;
+        }
+
+        .slide.active {
+            display: flex;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .slide-title {
+            font-size: 3rem;
+            margin-bottom: 30px;
+            text-align: center;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .slide-subtitle {
+            font-size: 1.5rem;
+            margin-bottom: 40px;
+            text-align: center;
+            opacity: 0.9;
+        }
+
+        .slide-content {
+            max-width: 1000px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .flow-diagram {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 40px 0;
+            flex-wrap: wrap;
+        }
+
+        .flow-step {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 30px;
+            border-radius: 15px;
+            margin: 10px;
+            min-width: 200px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .flow-step:hover {
+            transform: translateY(-10px) scale(1.05);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        .flow-step::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .flow-step:hover::before {
+            opacity: 1;
+        }
+
+        .flow-arrow {
+            font-size: 2rem;
+            color: #4ecdc4;
+            margin: 0 20px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        .code-block {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            text-align: left;
+            position: relative;
+            overflow-x: auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .code-block::before {
+            content: 'Java';
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        .interactive-demo {
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 30px;
+            margin: 30px 0;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .demo-button {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .demo-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(255,107,107,0.4);
+        }
+
+        .demo-button:active {
+            transform: translateY(0);
+        }
+
+        .demo-button::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255,255,255,0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .demo-button:active::after {
+            width: 300px;
+            height: 300px;
+        }
+
+        .navigation {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            z-index: 1000;
+        }
+
+        .nav-button {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-button:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+
+        .nav-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .slide-counter {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            background: rgba(255,255,255,0.2);
+            padding: 10px 20px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            font-size: 1rem;
+        }
+
+        .servlet-lifecycle {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .lifecycle-step {
+            background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            opacity: 0.7;
+        }
+
+        .lifecycle-step.active {
+            opacity: 1;
+            transform: scale(1.1);
+            box-shadow: 0 15px 35px rgba(78,205,196,0.4);
+        }
+
+        .lifecycle-step h3 {
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .request-response-demo {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 40px 0;
+            gap: 30px;
+        }
+
+        .browser-mockup {
+            background: #f0f0f0;
+            color: #333;
+            padding: 20px;
+            border-radius: 10px;
+            min-width: 300px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .server-mockup {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            min-width: 300px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .animated-arrow {
+            font-size: 3rem;
+            color: #4ecdc4;
+            animation: bounce 1s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-10px);
+            }
+            60% {
+                transform: translateY(-5px);
+            }
+        }
+
+        .highlight {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+            color: #333;
+            padding: 2px 8px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .loading-animation {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top: 4px solid #4ecdc4;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .fade-in {
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 3px;
+            overflow: hidden;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4ecdc4 0%, #44a08d 100%);
+            transition: width 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+            .slide-title {
+                font-size: 2rem;
+            }
+            
+            .flow-diagram {
+                flex-direction: column;
+            }
+            
+            .flow-arrow {
+                transform: rotate(90deg);
+                margin: 20px 0;
+            }
+            
+            .request-response-demo {
+                flex-direction: column;
+            }
+            
+            .animated-arrow {
+                transform: rotate(90deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+    <div class="slide-counter">
+        <span id="slideNumber">1</span> / <span id="totalSlides">8</span>
+    </div>
+
+    <div class="presentation-container">
+        <!-- Slide 1: Title Slide -->
+        <div class="slide active">
+            <div class="slide-content">
+                <h1 class="slide-title">🚀 Plain Servlet Web Application Flow</h1>
+                <p class="slide-subtitle">Understanding Traditional Java Web Development</p>
+                <div class="interactive-demo">
+                    <p>Welcome to an interactive journey through servlet-based web applications!</p>
+                    <button class="demo-button" onclick="startPresentation()">Start Interactive Demo</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 2: What is a Servlet? -->
+        <div class="slide">
+            <div class="slide-content">
+                <h1 class="slide-title">What is a Servlet? 🤔</h1>
+                <div class="interactive-demo">
+                    <p>A servlet is a <span class="highlight">Java class</span> that extends the capabilities of a server</p>
+                    <div class="code-block">
+public class HelloServlet extends HttpServlet {
+    protected void doGet(HttpServletRequest request, 
+                        HttpServletResponse response) throws ServletException, IOException {
+        response.setContentType("text/html");
+        PrintWriter out = response.getWriter();
+        out.println("&lt;h1&gt;Hello World!&lt;/h1&gt;");
+    }
+}
+                    </div>
+                    <button class="demo-button" onclick="demonstrateServlet()">See Servlet in Action</button>
+                    <div id="servletDemo" style="display: none; margin-top: 20px;">
+                        <div class="browser-mockup">
+                            <strong>Browser Output:</strong><br>
+                            <h1 style="color: #4ecdc4;">Hello World!</h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 3: Servlet Lifecycle -->
+        <div class="slide">
+            <div class="slide-content">
+                <h1 class="slide-title">Servlet Lifecycle 🔄</h1>
+                <p class="slide-subtitle">Click each step to see it in action</p>
+                <div class="servlet-lifecycle">
+                    <div class="lifecycle-step" onclick="activateLifecycleStep(0)">
+                        <h3>1. Loading</h3>
+                        <p>Servlet class is loaded by the container</p>
+                    </div>
+                    <div class="lifecycle-step" onclick="activateLifecycleStep(1)">
+                        <h3>2. Instantiation</h3>
+                        <p>Servlet instance is created</p>
+                    </div>
+                    <div class="lifecycle-step" onclick="activateLifecycleStep(2)">
+                        <h3>3. Initialization</h3>
+                        <p>init() method is called</p>
+                    </div>
+                    <div class="lifecycle-step" onclick="activateLifecycleStep(3)">
+                        <h3>4. Service</h3>
+                        <p>service() method handles requests</p>
+                    </div>
+                    <div class="lifecycle-step" onclick="activateLifecycleStep(4)">
+                        <h3>5. Destruction</h3>
+                        <p>destroy() method is called</p>
+                    </div>
+                </div>
+                <div id="lifecycleCode" class="code-block" style="display: none;">
+                    <div id="codeContent">Click on a lifecycle step to see the code!</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 4: Request-Response Flow -->
+        <div class="slide">
+            <div class="slide-content">
+                <h1 class="slide-title">Request-Response Flow 🔄</h1>
+                <div class="request-response-demo">
+                    <div class="browser-mockup">
+                        <h3>👤 Client (Browser)</h3>
+                        <p>URL: <code>http://localhost:8080/myapp/hello</code></p>
+                        <button class="demo-button" onclick="sendRequest()">Send Request</button>
+                        <div id="clientStatus">Ready to send request...</div>
+                    </div>
+                    
+                    <div class="animated-arrow" id="requestArrow">➡️</div>
+                    
+                    <div class="server-mockup">
+                        <h3>🖥️ Server (Servlet Container)</h3>
+                        <div id="serverStatus">Waiting for requests...</div>
+                        <div class="loading-animation" id="serverLoading" style="display: none;"></div>
+                    </div>
+                </div>
+                <div id="responseFlow" style="display: none;">
+                    <div class="animated-arrow">⬅️</div>
+                    <div class="browser-mockup">
+                        <h3>Response Received!</h3>
+                        <div id="responseContent"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 5: Web.xml Configuration -->
+        <div class="slide">
+            <div class="slide-content">
+                <h1 class="slide-title">Web.xml Configuration 📄</h1>
+                <p class="slide-subtitle">The deployment descriptor</p>
+                <div class="interactive-demo">
+                    <button class="demo-button" onclick="showWebXml()">Show web.xml Structure</button>
+                    <div id="webXmlDemo" style="display: none;">
+                        <div class="code-block">
+&lt;web-app&gt;
+    &lt;!-- Servlet Declaration --&gt;
+    &lt;servlet&gt;
+        &lt;servlet-name&gt;HelloServlet&lt;/servlet-name&gt;
+        &lt;servlet-class&gt;com.example.HelloServlet&lt;/servlet-class&gt;
+    &lt;/servlet&gt;
+    
+    &lt;!-- Servlet Mapping --&gt;
+    &lt;servlet-mapping&gt;
+        &lt;servlet-name&gt;HelloServlet&lt;/servlet-name&gt;
+        &lt;url-pattern&gt;/hello&lt;/url-pattern&gt;
+    &lt;/servlet-mapping&gt;
+&lt;/web-app&gt;
+                        </div>
+                        <p>This configuration maps the URL <span class="highlight">/hello</span> to <span class="highlight">HelloServlet</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 6: Complete Web Application Structure -->
+        <div class="slide">
+            <div class="slide-content">
+                <h1 class="slide-title">Web Application Structure 📁</h1>
+                <div class="flow-diagram">
+                    <div class="flow-step" onclick="showStructureDetail('project')">
+                        <h3>📁 Project Root</h3>
+                        <p>mywebapp/</p>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step" onclick="showStructureDetail('webapp')">
+                        <h3>📁 WebApp</h3>
+                        <p>src/main/webapp/</p>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step" onclick="showStructureDetail('webinf')">
+                        <h3>📁 WEB-INF</h3>
+                        <p>web.xml & classes/</p>
+                    </div>
+                </div>
+                <div id="structureDetail" class="code-block" style="display: none;">
+                    <div id="structureContent">Click on a folder to see its contents!</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 7: HTTP Methods Demo -->
+        <div class="slide">
+            <div class="slide-content">
+                <h1 class="slide-title">HTTP Methods in Action 🌐</h1>
+                <div class="interactive-demo">
+                    <p>Try different HTTP methods:</p>
+                    <button class="demo-button" onclick="demoHttpMethod('GET')">GET Request</button>
+                    <button class="demo-button" onclick="demoHttpMethod('POST')">POST Request</button>
+                    <button class="demo-button" onclick="demoHttpMethod('PUT')">PUT Request</button>
+                    <button class="demo-button" onclick="demoHttpMethod('DELETE')">DELETE Request</button>
+                </div>
+                <div id="httpMethodDemo" class="code-block" style="display: none;">
+                    <div id="httpMethodContent">Select an HTTP method to see the servlet code!</div>
+                </div>
+                <div id="httpResponse" class="browser-mockup" style="display: none; margin-top: 20px;">
+                    <div id="responseOutput"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 8: Summary -->
+        <div class="slide">
+            <div class="slide-content">
+                <h1 class="slide-title">Summary 📝</h1>
+                <div class="flow-diagram">
+                    <div class="flow-step">
+                        <h3>✅ Servlets</h3>
+                        <p>Java classes extending HttpServlet</p>
+                    </div>
+                    <div class="flow-step">
+                        <h3>✅ Lifecycle</h3>
+                        <p>Load → Init → Service → Destroy</p>
+                    </div>
+                    <div class="flow-step">
+                        <h3>✅ Configuration</h3>
+                        <p>web.xml deployment descriptor</p>
+                    </div>
+                    <div class="flow-step">
+                        <h3>✅ HTTP Methods</h3>
+                        <p>GET, POST, PUT, DELETE</p>
+                    </div>
+                </div>
+                <div class="interactive-demo">
+                    <h3>🎉 Congratulations!</h3>
+                    <p>You've learned the fundamentals of servlet-based web applications!</p>
+                    <button class="demo-button" onclick="restartPresentation()">Restart Presentation</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="navigation">
+        <button class="nav-button" id="prevBtn" onclick="previousSlide()">⬅️ Previous</button>
+        <button class="nav-button" id="nextBtn" onclick="nextSlide()">Next ➡️</button>
+    </div>
+
+    <script src="servlet_webapp_js.js"></script>
+</body>
+</html>
