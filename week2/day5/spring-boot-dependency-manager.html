@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring Boot Dependency Manager Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1em;
+        }
+
+        .demo-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .section-title {
+            font-size: 1.8em;
+            color: #4a5568;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .starter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .starter-card {
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .starter-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            border-color: #667eea;
+        }
+
+        .starter-card.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .starter-card h3 {
+            font-size: 1.3em;
+            margin-bottom: 10px;
+            color: inherit;
+        }
+
+        .starter-card p {
+            font-size: 0.9em;
+            opacity: 0.8;
+            margin-bottom: 15px;
+        }
+
+        .starter-card .version {
+            font-size: 0.8em;
+            background: rgba(102, 126, 234, 0.1);
+            padding: 5px 10px;
+            border-radius: 20px;
+            display: inline-block;
+            color: #667eea;
+        }
+
+        .starter-card.selected .version {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .dependency-tree {
+            background: #1a202c;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+            color: #e2e8f0;
+            min-height: 200px;
+            position: relative;
+            overflow-x: auto;
+        }
+
+        .dependency-node {
+            margin: 5px 0;
+            padding: 5px 10px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .dependency-node:hover {
+            background: rgba(102, 126, 234, 0.3);
+        }
+
+        .dependency-node.level-0 {
+            color: #68d391;
+            font-weight: bold;
+        }
+
+        .dependency-node.level-1 {
+            color: #63b3ed;
+            margin-left: 20px;
+        }
+
+        .dependency-node.level-2 {
+            color: #f6ad55;
+            margin-left: 40px;
+        }
+
+        .dependency-node.level-3 {
+            color: #fc8181;
+            margin-left: 60px;
+        }
+
+        .version-manager {
+            background: #f7fafc;
+            border-radius: 10px;
+            padding: 20px;
+            border: 2px solid #e2e8f0;
+        }
+
+        .version-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .version-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+        }
+
+        .version-btn:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+
+        .version-btn.active {
+            background: #764ba2;
+            box-shadow: 0 5px 15px rgba(118, 75, 162, 0.3);
+        }
+
+        .info-panel {
+            background: linear-gradient(135deg, #e6fffa 0%, #f0fff4 100%);
+            border-left: 4px solid #38b2ac;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 8px;
+        }
+
+        .info-panel h4 {
+            color: #2d3748;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .info-panel ul {
+            padding-left: 20px;
+        }
+
+        .info-panel li {
+            margin-bottom: 5px;
+            color: #4a5568;
+        }
+
+        .clear-btn {
+            background: #e53e3e;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .clear-btn:hover {
+            background: #c53030;
+            transform: translateY(-2px);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #68d391;
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #68d391;
+            border-radius: 50%;
+            border-top: 3px solid transparent;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .conflict-warning {
+            background: #fed7d7;
+            border: 2px solid #fc8181;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 10px;
+            color: #c53030;
+        }
+
+        .conflict-warning h4 {
+            margin-bottom: 5px;
+            font-size: 1.1em;
+        }
+
+        @media (max-width: 768px) {
+            .starter-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .version-selector {
+                flex-direction: column;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .container {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Spring Boot Dependency Manager</h1>
+            <p>Interactive demo showing how Spring Boot manages dependencies and versions</p>
+        </div>
+
+        <!-- Introduction Sections - Add these after the header div and before the first demo-section -->
+
+<div class="demo-section">
+    <h2 class="section-title">🔧 What is Spring Boot Dependency Manager?</h2>
+    <p style="font-size: 1.1em; line-height: 1.6; color: #4a5568; margin-bottom: 15px;">
+        Spring Boot Dependency Manager is a powerful feature that automatically handles the complex task of managing dependencies and their versions in your Spring Boot applications. It eliminates the need to manually specify versions for most dependencies by providing a curated set of dependency versions that are known to work well together.
+    </p>
+    <p style="font-size: 1.1em; line-height: 1.6; color: #4a5568;">
+        The dependency manager uses a Bill of Materials (BOM) approach, where Spring Boot maintains a comprehensive list of dependency versions that have been tested for compatibility. This ensures that your application uses consistent, stable versions across all dependencies, reducing the risk of version conflicts and compatibility issues.
+    </p>
+</div>
+
+<div class="demo-section">
+    <h2 class="section-title">🎯 What are Spring Boot Starter Projects?</h2>
+    <p style="font-size: 1.1em; line-height: 1.6; color: #4a5568; margin-bottom: 15px;">
+        Spring Boot Starter Projects are pre-configured dependency templates that provide a quick way to add specific functionality to your application. Each starter is essentially a collection of commonly used libraries and configurations bundled together for a particular use case or technology stack.
+    </p>
+    <p style="font-size: 1.1em; line-height: 1.6; color: #4a5568; margin-bottom: 15px;">
+        For example, <code style="background: #f7fafc; padding: 2px 6px; border-radius: 4px; color: #667eea;">spring-boot-starter-web</code> includes everything you need for building web applications, including Spring MVC, Tomcat, and JSON processing libraries. This eliminates the need to manually add and configure dozens of individual dependencies.
+    </p>
+    <p style="font-size: 1.1em; line-height: 1.6; color: #4a5568;">
+        Starters follow a naming convention of <code style="background: #f7fafc; padding: 2px 6px; border-radius: 4px; color: #667eea;">spring-boot-starter-*</code> and automatically pull in their transitive dependencies with compatible versions, making it incredibly easy to get started with new technologies in your Spring Boot project.
+    </p>
+</div>
+
+        <div class="demo-section">
+            <h2 class="section-title">🎯 Spring Boot Starters</h2>
+            <p>Click on starter dependencies to see how they resolve their transitive dependencies:</p>
+            
+            <div class="starter-grid" id="starterGrid">
+                <!-- Starter cards will be populated by JavaScript -->
+            </div>
+            
+            <button class="clear-btn" onclick="clearSelections()">Clear All Selections</button>
+        </div>
+
+        <div class="demo-section">
+            <h2 class="section-title">📊 Spring Boot Version Management</h2>
+            <p>See how different Spring Boot versions manage dependency versions:</p>
+            
+            <div class="version-manager">
+                <div class="version-selector">
+                    <button class="version-btn active" onclick="selectVersion('3.2.1')">Spring Boot 3.2.1</button>
+                    <button class="version-btn" onclick="selectVersion('3.1.5')">Spring Boot 3.1.5</button>
+                    <button class="version-btn" onclick="selectVersion('2.7.18')">Spring Boot 2.7.18</button>
+                </div>
+                
+                <div id="versionInfo">
+                    <!-- Version information will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2 class="section-title">🌳 Dependency Tree</h2>
+            <p>Visual representation of resolved dependencies:</p>
+            
+            <div class="dependency-tree" id="dependencyTree">
+                <div class="loading">Select a starter to see dependency tree...</div>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2 class="section-title">ℹ️ How It Works</h2>
+            <div class="info-panel">
+                <h4>Spring Boot Dependency Management Features:</h4>
+                <ul>
+                    <li><strong>Starter Dependencies:</strong> Pre-configured dependency bundles for common use cases</li>
+                    <li><strong>Version Management:</strong> Automatic version resolution through spring-boot-dependencies BOM</li>
+                    <li><strong>Transitive Dependencies:</strong> Automatically includes required libraries</li>
+                    <li><strong>Conflict Resolution:</strong> Handles version conflicts using nearest-wins strategy</li>
+                    <li><strong>Exclusions:</strong> Ability to exclude unwanted transitive dependencies</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="spring-boot-dependency-manager.js"></script>
+</body>
+</html>
