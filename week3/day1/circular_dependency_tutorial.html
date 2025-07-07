@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring Boot Circular Dependency Tutorial</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .section:hover {
+            transform: translateY(-5px);
+        }
+
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .section h3 {
+            color: #764ba2;
+            margin: 20px 0 10px 0;
+            font-size: 1.3em;
+        }
+
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            position: relative;
+        }
+
+        .code-block::before {
+            content: attr(data-lang);
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+        }
+
+        .interactive-demo {
+            background: #f7fafc;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .demo-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .dependency-diagram {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 200px;
+            margin: 20px 0;
+        }
+
+        .service-box {
+            background: #667eea;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 10px;
+            text-align: center;
+            font-weight: bold;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .service-box.error {
+            background: #e53e3e;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        .service-box.success {
+            background: #38a169;
+        }
+
+        .arrow {
+            font-size: 2em;
+            color: #667eea;
+            margin: 0 10px;
+            transition: color 0.3s ease;
+        }
+
+        .arrow.error {
+            color: #e53e3e;
+        }
+
+        .arrow.success {
+            color: #38a169;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .solution-tabs {
+            display: flex;
+            border-bottom: 2px solid #e2e8f0;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 15px 25px;
+            background: #f7fafc;
+            border: none;
+            cursor: pointer;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+            margin-right: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .highlight {
+            background: #fef5e7;
+            padding: 15px;
+            border-left: 4px solid #f6ad55;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .quiz-container {
+            background: #f0f4f8;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .quiz-question {
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #2d3748;
+        }
+
+        .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .quiz-option {
+            padding: 10px;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .quiz-option:hover {
+            border-color: #667eea;
+            background: #f7fafc;
+        }
+
+        .quiz-option.correct {
+            background: #c6f6d5;
+            border-color: #38a169;
+        }
+
+        .quiz-option.incorrect {
+            background: #fed7d7;
+            border-color: #e53e3e;
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            padding: 20px;
+            margin-top: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .section {
+                padding: 20px;
+            }
+            
+            .demo-controls {
+                flex-direction: column;
+            }
+            
+            .dependency-diagram {
+                flex-direction: column;
+            }
+            
+            .solution-tabs {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔄 Spring Boot Circular Dependency</h1>
+            <p>Interactive Guide to Understanding and Resolving Circular Dependencies</p>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressBar"></div>
+        </div>
+
+        <section class="section" id="introduction">
+            <h2>🎯 What is Circular Dependency?</h2>
+            <p>A circular dependency occurs when two or more Spring beans depend on each other directly or indirectly, creating a cycle that prevents proper initialization.</p>
+            
+            <div class="interactive-demo">
+                <h3>Interactive Demonstration</h3>
+                <div class="demo-controls">
+                    <button class="btn" onclick="showCircularDependency()">Show Circular Dependency</button>
+                    <button class="btn" onclick="resetDiagram()">Reset</button>
+                </div>
+                <div class="dependency-diagram" id="dependencyDiagram">
+                    <div class="service-box" id="serviceA">Service A</div>
+                    <div class="arrow" id="arrow1">→</div>
+                    <div class="service-box" id="serviceB">Service B</div>
+                    <div class="arrow" id="arrow2">→</div>
+                    <div class="service-box" id="serviceC">Service A</div>
+                </div>
+            </div>
+
+            <div class="code-block" data-lang="Java">
+// Example of Circular Dependency
+@Service
+public class ServiceA {
+    @Autowired
+    private ServiceB serviceB;
+    
+    public void methodA() {
+        serviceB.methodB();
+    }
+}
+
+@Service
+public class ServiceB {
+    @Autowired
+    private ServiceA serviceA;
+    
+    public void methodB() {
+        serviceA.methodA();
+    }
+}
+            </div>
+
+            <div class="highlight">
+                <strong>⚠️ Error:</strong> The dependencies of some of the beans in the application context form a cycle
+            </div>
+        </section>
+
+        <section class="section" id="problems">
+            <h2>⚠️ Problems Caused by Circular Dependencies</h2>
+            <div class="interactive-demo">
+                <h3>Common Issues:</h3>
+                <ul style="margin-left: 20px; line-height: 1.8;">
+                    <li><strong>BeanCurrentlyInCreationException:</strong> Spring cannot create beans due to circular reference</li>
+                    <li><strong>Application startup failure:</strong> Context initialization fails</li>
+                    <li><strong>Runtime errors:</strong> Unexpected behavior during execution</li>
+                    <li><strong>Memory issues:</strong> Stack overflow in extreme cases</li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="section" id="solutions">
+            <h2>💡 Solutions to Resolve Circular Dependencies</h2>
+            
+            <div class="solution-tabs">
+                <button class="tab active" onclick="showTab('lazy')">@Lazy Annotation</button>
+                <button class="tab" onclick="showTab('setter')">Setter Injection</button>
+                <button class="tab" onclick="showTab('postconstruct')">@PostConstruct</button>
+                <button class="tab" onclick="showTab('refactor')">Refactoring</button>
+                <button class="tab" onclick="showTab('applicationcontext')">ApplicationContext</button>
+            </div>
+
+            <div id="lazy" class="tab-content active">
+                <h3>Solution 1: @Lazy Annotation</h3>
+                <p>Break the cycle by lazily initializing one of the dependencies.</p>
+                <div class="code-block" data-lang="Java">
+@Service
+public class ServiceA {
+    @Autowired
+    @Lazy
+    private ServiceB serviceB;
+    
+    public void methodA() {
+        serviceB.methodB();
+    }
+}
+
+@Service
+public class ServiceB {
+    @Autowired
+    private ServiceA serviceA;
+    
+    public void methodB() {
+        serviceA.methodA();
+    }
+}
+                </div>
+                <div class="interactive-demo">
+                    <button class="btn" onclick="demonstrateLazy()">Demonstrate @Lazy Solution</button>
+                    <div id="lazyDemo" style="margin-top: 15px;"></div>
+                </div>
+            </div>
+
+            <div id="setter" class="tab-content">
+                <h3>Solution 2: Setter Injection</h3>
+                <p>Use setter injection instead of constructor injection to break the cycle.</p>
+                <div class="code-block" data-lang="Java">
+@Service
+public class ServiceA {
+    private ServiceB serviceB;
+    
+    @Autowired
+    public void setServiceB(ServiceB serviceB) {
+        this.serviceB = serviceB;
+    }
+    
+    public void methodA() {
+        serviceB.methodB();
+    }
+}
+
+@Service
+public class ServiceB {
+    private ServiceA serviceA;
+    
+    @Autowired
+    public void setServiceA(ServiceA serviceA) {
+        this.serviceA = serviceA;
+    }
+    
+    public void methodB() {
+        serviceA.methodA();
+    }
+}
+                </div>
+                <div class="interactive-demo">
+                    <button class="btn" onclick="demonstrateSetter()">Demonstrate Setter Injection</button>
+                    <div id="setterDemo" style="margin-top: 15px;"></div>
+                </div>
+            </div>
+
+            <div id="postconstruct" class="tab-content">
+                <h3>Solution 3: @PostConstruct</h3>
+                <p>Initialize dependencies after construction using @PostConstruct.</p>
+                <div class="code-block" data-lang="Java">
+@Service
+public class ServiceA {
+    @Autowired
+    private ServiceB serviceB;
+    
+    @PostConstruct
+    public void init() {
+        serviceB.setServiceA(this);
+    }
+    
+    public void methodA() {
+        serviceB.methodB();
+    }
+}
+
+@Service
+public class ServiceB {
+    private ServiceA serviceA;
+    
+    public void setServiceA(ServiceA serviceA) {
+        this.serviceA = serviceA;
+    }
+    
+    public void methodB() {
+        if (serviceA != null) {
+            serviceA.methodA();
+        }
+    }
+}
+                </div>
+                <div class="interactive-demo">
+                    <button class="btn" onclick="demonstratePostConstruct()">Demonstrate @PostConstruct</button>
+                    <div id="postConstructDemo" style="margin-top: 15px;"></div>
+                </div>
+            </div>
+
+            <div id="refactor" class="tab-content">
+                <h3>Solution 4: Refactoring Design</h3>
+                <p>Best approach: Refactor the design to eliminate circular dependencies.</p>
+                <div class="code-block" data-lang="Java">
+// Extract common functionality to a separate service
+@Service
+public class CommonService {
+    public void commonMethod() {
+        // Common functionality
+    }
+}
+
+@Service
+public class ServiceA {
+    @Autowired
+    private CommonService commonService;
+    
+    public void methodA() {
+        commonService.commonMethod();
+    }
+}
+
+@Service
+public class ServiceB {
+    @Autowired
+    private CommonService commonService;
+    
+    public void methodB() {
+        commonService.commonMethod();
+    }
+}
+                </div>
+                <div class="interactive-demo">
+                    <button class="btn" onclick="demonstrateRefactor()">Demonstrate Refactoring</button>
+                    <div id="refactorDemo" style="margin-top: 15px;"></div>
+                </div>
+            </div>
+
+            <div id="applicationcontext" class="tab-content">
+                <h3>Solution 5: ApplicationContext</h3>
+                <p>Use ApplicationContext to get beans dynamically.</p>
+                <div class="code-block" data-lang="Java">
+@Service
+public class ServiceA implements ApplicationContextAware {
+    private ApplicationContext applicationContext;
+    
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
+    }
+    
+    public void methodA() {
+        ServiceB serviceB = applicationContext.getBean(ServiceB.class);
+        serviceB.methodB();
+    }
+}
+
+@Service
+public class ServiceB {
+    @Autowired
+    private ServiceA serviceA;
+    
+    public void methodB() {
+        serviceA.methodA();
+    }
+}
+                </div>
+                <div class="interactive-demo">
+                    <button class="btn" onclick="demonstrateApplicationContext()">Demonstrate ApplicationContext</button>
+                    <div id="applicationContextDemo" style="margin-top: 15px;"></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section" id="quiz">
+            <h2>🧠 Test Your Knowledge</h2>
+            <div class="quiz-container">
+                <div class="quiz-question">Which annotation can help break circular dependencies by deferring bean initialization?</div>
+                <div class="quiz-options">
+                    <div class="quiz-option" onclick="selectAnswer(this, false)">@Autowired</div>
+                    <div class="quiz-option" onclick="selectAnswer(this, true)">@Lazy</div>
+                    <div class="quiz-option" onclick="selectAnswer(this, false)">@Component</div>
+                    <div class="quiz-option" onclick="selectAnswer(this, false)">@Service</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section" id="bestPractices">
+            <h2>🏆 Best Practices</h2>
+            <div class="interactive-demo">
+                <h3>Prevention Tips:</h3>
+                <ul style="margin-left: 20px; line-height: 1.8;">
+                    <li><strong>Design Review:</strong> Review dependencies during design phase</li>
+                    <li><strong>Dependency Injection:</strong> Prefer constructor injection over field injection</li>
+                    <li><strong>Single Responsibility:</strong> Keep classes focused on single responsibilities</li>
+                    <li><strong>Loose Coupling:</strong> Use interfaces to reduce tight coupling</li>
+                    <li><strong>Event-Driven:</strong> Consider event-driven architecture for complex dependencies</li>
+                </ul>
+            </div>
+        </section>
+    </div>
+
+    <div class="footer">
+        <p>🌟 Master Spring Boot Circular Dependencies | Interactive Tutorial</p>
+    </div>
+
+    <script>
+        // Progress tracking
+        let currentProgress = 0;
+        const sections = document.querySelectorAll('.section');
+        const progressBar = document.getElementById('progressBar');
+
+        // Update progress as user scrolls
+        window.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            const maxScroll = document.body.scrollHeight - window.innerHeight;
+            const progress = (scrolled / maxScroll) * 100;
+            progressBar.style.width = progress + '%';
+        });
+
+        // Circular dependency demonstration
+        function showCircularDependency() {
+            const serviceA = document.getElementById('serviceA');
+            const serviceB = document.getElementById('serviceB');
+            const serviceC = document.getElementById('serviceC');
+            const arrow1 = document.getElementById('arrow1');
+            const arrow2 = document.getElementById('arrow2');
+
+            // Add error styling
+            serviceA.classList.add('error');
+            serviceB.classList.add('error');
+            serviceC.classList.add('error');
+            arrow1.classList.add('error');
+            arrow2.classList.add('error');
+
+            // Show error message
+            setTimeout(() => {
+                alert('❌ Circular Dependency Detected!\n\nServiceA → ServiceB → ServiceA creates a cycle that prevents proper initialization.');
+            }, 500);
+        }
+
+        function resetDiagram() {
+            const elements = ['serviceA', 'serviceB', 'serviceC', 'arrow1', 'arrow2'];
+            elements.forEach(id => {
+                const element = document.getElementById(id);
+                element.classList.remove('error', 'success');
+            });
+        }
+
+        // Tab functionality
+        function showTab(tabName) {
+            // Hide all tab contents
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+            });
+
+            // Remove active class from all tabs
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+
+            // Add active class to selected tab
+            event.target.classList.add('active');
+        }
+
+        // Solution demonstrations
+        function demonstrateLazy() {
+            const demoDiv = document.getElementById('lazyDemo');
+            demoDiv.innerHTML = `
+                <div style="background: #c6f6d5; padding: 15px; border-radius: 8px; border: 2px solid #38a169;">
+                    <strong>✅ @Lazy Solution:</strong><br>
+                    1. ServiceA is created first<br>
+                    2. ServiceB dependency is marked as @Lazy<br>
+                    3. ServiceB is created only when first accessed<br>
+                    4. Circular dependency is broken!
+                </div>
+            `;
+        }
+
+        function demonstrateSetter() {
+            const demoDiv = document.getElementById('setterDemo');
+            demoDiv.innerHTML = `
+                <div style="background: #c6f6d5; padding: 15px; border-radius: 8px; border: 2px solid #38a169;">
+                    <strong>✅ Setter Injection Solution:</strong><br>
+                    1. Beans are created without dependencies<br>
+                    2. Dependencies are injected via setters<br>
+                    3. Allows partial initialization<br>
+                    4. Circular dependency is resolved!
+                </div>
+            `;
+        }
+
+        function demonstratePostConstruct() {
+            const demoDiv = document.getElementById('postConstructDemo');
+            demoDiv.innerHTML = `
+                <div style="background: #c6f6d5; padding: 15px; border-radius: 8px; border: 2px solid #38a169;">
+                    <strong>✅ @PostConstruct Solution:</strong><br>
+                    1. Beans are created first<br>
+                    2. @PostConstruct runs after bean creation<br>
+                    3. Dependencies are set manually<br>
+                    4. Initialization is completed successfully!
+                </div>
+            `;
+        }
+
+        function demonstrateRefactor() {
+            const demoDiv = document.getElementById('refactorDemo');
+            demoDiv.innerHTML = `
+                <div style="background: #c6f6d5; padding: 15px; border-radius: 8px; border: 2px solid #38a169;">
+                    <strong>✅ Refactoring Solution:</strong><br>
+                    1. Extract common functionality<br>
+                    2. Create separate service for shared logic<br>
+                    3. Both services depend on common service<br>
+                    4. No circular dependency exists!
+                </div>
+            `;
+        }
+
+        function demonstrateApplicationContext() {
+            const demoDiv = document.getElementById('applicationContextDemo');
+            demoDiv.innerHTML = `
+                <div style="background: #c6f6d5; padding: 15px; border-radius: 8px; border: 2px solid #38a169;">
+                    <strong>✅ ApplicationContext Solution:</strong><br>
+                    1. One service uses ApplicationContext<br>
+                    2. Dependencies are retrieved dynamically<br>
+                    3. No direct dependency injection<br>
+                    4. Circular dependency is avoided!
+                </div>
+            `;
+        }
+
+        // Quiz functionality
+        function selectAnswer(element, isCorrect) {
+            // Remove previous selections
+            const options = element.parentElement.querySelectorAll('.quiz-option');
+            options.forEach(option => {
+                option.classList.remove('correct', 'incorrect');
+            });
+
+            // Add appropriate class
+            if (isCorrect) {
+                element.classList.add('correct');
+                setTimeout(() => {
+                    alert('🎉 Correct! @Lazy annotation helps break circular dependencies by deferring bean initialization.');
+                }, 200);
+            } else {
+                element.classList.add('incorrect');
+                setTimeout(() => {
+                    alert('❌ Incorrect. Try again! The correct answer is @Lazy.');
+                }, 200);
+            }
+        }
+
+        // Add smooth scrolling to navigation
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Spring Boot Circular Dependency Tutorial Loaded! 🚀');
+        });
+    </script>
+</body>
+</html>
