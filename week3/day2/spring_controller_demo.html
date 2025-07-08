@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring Boot @Controller vs @RestController Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .controller-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .controller-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+        
+        .controller-card h2 {
+            color: #4a5568;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .rest-controller h2 {
+            border-bottom-color: #764ba2;
+        }
+        
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.4;
+            margin: 15px 0;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+        
+        .annotation {
+            color: #68d391;
+            font-weight: bold;
+        }
+        
+        .keyword {
+            color: #f56565;
+            font-weight: bold;
+        }
+        
+        .string {
+            color: #fbb6ce;
+        }
+        
+        .comment {
+            color: #a0aec0;
+            font-style: italic;
+        }
+        
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .feature-list li {
+            margin: 10px 0;
+            padding: 10px;
+            background: #f7fafc;
+            border-left: 4px solid #667eea;
+            border-radius: 5px;
+        }
+        
+        .rest-controller .feature-list li {
+            border-left-color: #764ba2;
+        }
+        
+        .demo-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .demo-section h2 {
+            color: #4a5568;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            text-align: center;
+        }
+        
+        .demo-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .demo-btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .controller-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .rest-controller-btn {
+            background: linear-gradient(45deg, #764ba2, #667eea);
+            color: white;
+        }
+        
+        .demo-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        
+        .response-container {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 2px solid #e2e8f0;
+            min-height: 100px;
+        }
+        
+        .response-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #4a5568;
+        }
+        
+        .response-content {
+            font-family: 'Courier New', monospace;
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .highlight {
+            background: #fef5e7;
+            padding: 15px;
+            border-left: 4px solid #f6ad55;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        
+        .key-differences {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .differences-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .difference-item {
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .difference-item h4 {
+            color: #4a5568;
+            margin-bottom: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .comparison-grid,
+            .differences-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .demo-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Spring Boot @Controller vs @RestController</h1>
+        
+        <div class="comparison-grid">
+            <div class="controller-card">
+                <h2>@Controller</h2>
+                <div class="code-block">
+<span class="annotation">@Controller</span>
+<span class="keyword">public class</span> UserController {
+    
+    <span class="annotation">@GetMapping</span>(<span class="string">"/user"</span>)
+    <span class="keyword">public</span> String getUser(Model model) {
+        model.addAttribute(<span class="string">"user"</span>, <span class="keyword">new</span> User());
+        <span class="keyword">return</span> <span class="string">"user-view"</span>; <span class="comment">// Returns view name</span>
+    }
+    
+    <span class="annotation">@GetMapping</span>(<span class="string">"/api/user"</span>)
+    <span class="annotation">@ResponseBody</span> <span class="comment">// Need this for JSON</span>
+    <span class="keyword">public</span> User getUserJson() {
+        <span class="keyword">return new</span> User(<span class="string">"John"</span>, <span class="string">"Doe"</span>);
+    }
+}
+                </div>
+                
+                <ul class="feature-list">
+                    <li><strong>Purpose:</strong> Handles web requests and returns views</li>
+                    <li><strong>Response:</strong> Returns view names (HTML pages)</li>
+                    <li><strong>JSON Response:</strong> Requires @ResponseBody annotation</li>
+                    <li><strong>Use Case:</strong> Traditional MVC web applications</li>
+                    <li><strong>Content Type:</strong> text/html by default</li>
+                </ul>
+            </div>
+            
+            <div class="controller-card rest-controller">
+                <h2>@RestController</h2>
+                <div class="code-block">
+<span class="annotation">@RestController</span>
+<span class="keyword">public class</span> UserRestController {
+    
+    <span class="annotation">@GetMapping</span>(<span class="string">"/api/users"</span>)
+    <span class="keyword">public</span> List&lt;User&gt; getUsers() {
+        <span class="keyword">return</span> Arrays.asList(
+            <span class="keyword">new</span> User(<span class="string">"John"</span>, <span class="string">"Doe"</span>),
+            <span class="keyword">new</span> User(<span class="string">"Jane"</span>, <span class="string">"Smith"</span>)
+        ); <span class="comment">// Automatic JSON conversion</span>
+    }
+    
+    <span class="annotation">@PostMapping</span>(<span class="string">"/api/users"</span>)
+    <span class="keyword">public</span> ResponseEntity&lt;User&gt; createUser(<span class="annotation">@RequestBody</span> User user) {
+        <span class="keyword">return</span> ResponseEntity.ok(user);
+    }
+}
+                </div>
+                
+                <ul class="feature-list">
+                    <li><strong>Purpose:</strong> Handles REST API requests</li>
+                    <li><strong>Response:</strong> Returns data directly (JSON/XML)</li>
+                    <li><strong>JSON Response:</strong> Automatic without @ResponseBody</li>
+                    <li><strong>Use Case:</strong> REST APIs and web services</li>
+                    <li><strong>Content Type:</strong> application/json by default</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="highlight">
+            <strong>Key Insight:</strong> @RestController = @Controller + @ResponseBody on every method
+        </div>
+        
+        <div class="demo-section">
+            <h2>Interactive Demo</h2>
+            <p style="text-align: center; margin-bottom: 20px;">Click the buttons below to see simulated responses from each controller type:</p>
+            
+            <div class="demo-buttons">
+                <button class="demo-btn controller-btn" onclick="simulateController()">
+                    @Controller Response
+                </button>
+                <button class="demo-btn rest-controller-btn" onclick="simulateRestController()">
+                    @RestController Response
+                </button>
+                <button class="demo-btn controller-btn" onclick="simulateControllerWithResponseBody()">
+                    @Controller + @ResponseBody
+                </button>
+            </div>
+            
+            <div class="response-container">
+                <div class="response-title">Response:</div>
+                <div class="response-content" id="responseContent">
+Click a button above to see the simulated response from different controller types.
+                </div>
+            </div>
+        </div>
+        
+        <div class="key-differences">
+            <h2 style="text-align: center; color: #4a5568; margin-bottom: 20px;">Key Differences Summary</h2>
+            
+            <div class="differences-grid">
+                <div class="difference-item">
+                    <h4>Return Type</h4>
+                    <p><strong>@Controller:</strong> View name (String) or ModelAndView</p>
+                    <p><strong>@RestController:</strong> Data objects (automatically serialized)</p>
+                </div>
+                
+                <div class="difference-item">
+                    <h4>Response Format</h4>
+                    <p><strong>@Controller:</strong> HTML pages</p>
+                    <p><strong>@RestController:</strong> JSON/XML data</p>
+                </div>
+                
+                <div class="difference-item">
+                    <h4>@ResponseBody</h4>
+                    <p><strong>@Controller:</strong> Required for JSON responses</p>
+                    <p><strong>@RestController:</strong> Automatic on all methods</p>
+                </div>
+                
+                <div class="difference-item">
+                    <h4>Use Case</h4>
+                    <p><strong>@Controller:</strong> Traditional web apps with views</p>
+                    <p><strong>@RestController:</strong> REST APIs and microservices</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function simulateController() {
+            const response = `HTTP/1.1 200 OK
+Content-Type: text/html
+Date: ${new Date().toUTCString()}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>User Page</title>
+</head>
+<body>
+    <h1>User Information</h1>
+    <div>
+        <p>Name: John Doe</p>
+        <p>Email: john.doe@example.com</p>
+    </div>
+</body>
+</html>
+
+---
+Note: @Controller returns a view name ("user-view") 
+which gets resolved to an HTML template.`;
+            
+            document.getElementById('responseContent').textContent = response;
+        }
+        
+        function simulateRestController() {
+            const response = `HTTP/1.1 200 OK
+Content-Type: application/json
+Date: ${new Date().toUTCString()}
+
+[
+    {
+        "id": 1,
+        "firstName": "John",
+        "lastName": "Doe",
+        "email": "john.doe@example.com",
+        "createdAt": "2024-01-15T10:30:00Z"
+    },
+    {
+        "id": 2,
+        "firstName": "Jane",
+        "lastName": "Smith",
+        "email": "jane.smith@example.com",
+        "createdAt": "2024-01-16T14:45:00Z"
+    }
+]
+
+---
+Note: @RestController automatically converts the 
+Java objects to JSON format.`;
+            
+            document.getElementById('responseContent').textContent = response;
+        }
+        
+        function simulateControllerWithResponseBody() {
+            const response = `HTTP/1.1 200 OK
+Content-Type: application/json
+Date: ${new Date().toUTCString()}
+
+{
+    "id": 1,
+    "firstName": "John",
+    "lastName": "Doe",
+    "email": "john.doe@example.com",
+    "createdAt": "2024-01-15T10:30:00Z"
+}
+
+---
+Note: @Controller with @ResponseBody annotation
+behaves like @RestController for this method.
+The @ResponseBody tells Spring to serialize the
+return value directly to the response body.`;
+            
+            document.getElementById('responseContent').textContent = response;
+        }
+    </script>
+</body>
+</html>
