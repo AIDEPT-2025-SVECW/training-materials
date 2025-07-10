@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring Boot REST API Tutorial</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .nav-tab {
+            padding: 12px 24px;
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 25px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-tab:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+        }
+
+        .nav-tab.active {
+            background: rgba(255,255,255,0.3);
+            border-color: rgba(255,255,255,0.5);
+        }
+
+        .content-section {
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-title {
+            color: #4a5568;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .concept-card {
+            background: #f7fafc;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 5px solid #667eea;
+            transition: transform 0.3s ease;
+        }
+
+        .concept-card:hover {
+            transform: translateX(5px);
+        }
+
+        .concept-title {
+            color: #2d3748;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+        }
+
+        .code-block {
+            background: #1a202c;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            overflow-x: auto;
+            position: relative;
+        }
+
+        .code-header {
+            background: #2d3748;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 10px 10px 0 0;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .interactive-demo {
+            background: #e2e8f0;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 2px solid #cbd5e0;
+        }
+
+        .demo-title {
+            color: #2d3748;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .demo-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .demo-input {
+            padding: 8px 12px;
+            border: 2px solid #cbd5e0;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .demo-button {
+            padding: 8px 16px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.3s ease;
+        }
+
+        .demo-button:hover {
+            background: #5a67d8;
+        }
+
+        .demo-output {
+            background: #1a202c;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            min-height: 100px;
+            white-space: pre-wrap;
+        }
+
+        .highlight {
+            background: #fef5e7;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #f6ad55;
+            margin: 15px 0;
+        }
+
+        .method-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        .get { background: #48bb78; color: white; }
+        .post { background: #4299e1; color: white; }
+        .put { background: #ed8936; color: white; }
+        .delete { background: #f56565; color: white; }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: rgba(255,255,255,0.8);
+            transition: width 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+            .nav-tabs {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .nav-tab {
+                width: 80%;
+                text-align: center;
+            }
+            
+            .demo-controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Spring Boot REST API Tutorial</h1>
+            <p>Master REST concepts with interactive examples</p>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+
+        <div class="nav-tabs">
+            <div class="nav-tab active" data-section="overview">Overview</div>
+            <div class="nav-tab" data-section="controller">@RestController</div>
+            <div class="nav-tab" data-section="mapping">Request Mapping</div>
+            <div class="nav-tab" data-section="body">Request/Response Body</div>
+            <div class="nav-tab" data-section="parameters">Request Parameters</div>
+            <div class="nav-tab" data-section="methods">HTTP Methods</div>
+            <div class="nav-tab" data-section="advanced">Advanced Topics</div>
+        </div>
+
+        <!-- Overview Section -->
+        <div class="content-section active" id="overview">
+            <h2 class="section-title">Spring Boot REST API Overview</h2>
+            
+            <div class="concept-card">
+                <h3 class="concept-title">What is REST?</h3>
+                <p>REST (Representational State Transfer) is an architectural style for designing networked applications. It uses standard HTTP methods and follows stateless communication principles.</p>
+            </div>
+
+            <div class="concept-card">
+                <h3 class="concept-title">Spring Boot REST Features</h3>
+                <p>Spring Boot provides powerful annotations and tools to create REST APIs quickly:</p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>@RestController - Combines @Controller and @ResponseBody</li>
+                    <li>@RequestMapping - Maps HTTP requests to handler methods</li>
+                    <li>@RequestBody/@ResponseBody - Handle JSON/XML data</li>
+                    <li>@PathVariable/@RequestParam - Extract URL parameters</li>
+                    <li>HTTP method annotations (@GetMapping, @PostMapping, etc.)</li>
+                </ul>
+            </div>
+
+            <div class="highlight">
+                <strong>💡 Key Benefits:</strong> Spring Boot REST APIs are easy to build, test, and maintain. They provide automatic JSON serialization, exception handling, and comprehensive documentation support.
+            </div>
+        </div>
+
+        <!-- Rest Controller Section -->
+        <div class="content-section" id="controller">
+            <h2 class="section-title">@RestController</h2>
+            
+            <div class="concept-card">
+                <h3 class="concept-title">Understanding @RestController</h3>
+                <p>@RestController is a convenience annotation that combines @Controller and @ResponseBody. It indicates that every method in the class returns data directly to the HTTP response body.</p>
+                
+                <div class="code-header">Basic REST Controller</div>
+                <div class="code-block">
+                    <pre><code class="language-java">@RestController
+@RequestMapping("/api/users")
+public class UserController {
+    
+    @GetMapping
+    public List&lt;User&gt; getAllUsers() {
+        // Returns JSON automatically
+        return userService.getAllUsers();
+    }
+    
+    @GetMapping("/{id}")
+    public User getUserById(@PathVariable Long id) {
+        return userService.findById(id);
+    }
+}</code></pre>
+                </div>
+            </div>
+
+            <div class="interactive-demo">
+                <div class="demo-title">🎮 Interactive Demo: REST Controller Response</div>
+                <div class="demo-controls">
+                    <button class="demo-button" onclick="simulateRestController()">Simulate REST Controller</button>
+                    <select class="demo-input" id="responseType">
+                        <option value="json">JSON Response</option>
+                        <option value="xml">XML Response</option>
+                        <option value="text">Plain Text</option>
+                    </select>
+                </div>
+                <div class="demo-output" id="controllerOutput">Click the button to see REST controller response...</div>
+            </div>
+
+            <div class="highlight">
+                <strong>🔍 Key Points:</strong> @RestController automatically converts return values to JSON/XML based on content negotiation. No need for explicit @ResponseBody annotations on methods.
+            </div>
+        </div>
+
+        <!-- Request Mapping Section -->
+        <div class="content-section" id="mapping">
+            <h2 class="section-title">@RequestMapping</h2>
+            
+            <div class="concept-card">
+                <h3 class="concept-title">Request Mapping Basics</h3>
+                <p>@RequestMapping is used to map HTTP requests to handler methods. It can be applied at class level and method level.</p>
+                
+                <div class="code-header">RequestMapping Examples</div>
+                <div class="code-block">
+                    <pre><code class="language-java">@RestController
+@RequestMapping("/api/v1")  // Class-level mapping
+public class ProductController {
+    
+    // Simple path mapping
+    @RequestMapping("/products")
+    public List&lt;Product&gt; getProducts() {
+        return productService.getAllProducts();
+    }
+    
+    // Method-specific mapping
+    @RequestMapping(value = "/products", method = RequestMethod.POST)
+    public Product createProduct(@RequestBody Product product) {
+        return productService.save(product);
+    }
+    
+    // Multiple paths
+    @RequestMapping({"/products", "/items"})
+    public List&lt;Product&gt; getProductsOrItems() {
+        return productService.getAllProducts();
+    }
+    
+    // Path variables
+    @RequestMapping("/products/{id}")
+    public Product getProduct(@PathVariable Long id) {
+        return productService.findById(id);
+    }
+}</code></pre>
+                </div>
+            </div>
+
+            <div class="interactive-demo">
+                <div class="demo-title">🎮 Interactive Demo: Request Mapping</div>
+                <div class="demo-controls">
+                    <input type="text" class="demo-input" id="mappingPath" placeholder="Enter path (e.g., /api/products)" value="/api/products">
+                    <select class="demo-input" id="httpMethod">
+                        <option value="GET">GET</option>
+                        <option value="POST">POST</option>
+                        <option value="PUT">PUT</option>
+                        <option value="DELETE">DELETE</option>
+                    </select>
+                    <button class="demo-button" onclick="simulateMapping()">Test Mapping</button>
+                </div>
+                <div class="demo-output" id="mappingOutput">Enter a path and method to test request mapping...</div>
+            </div>
+        </div>
+
+        <!-- Request/Response Body Section -->
+        <div class="content-section" id="body">
+            <h2 class="section-title">@RequestBody & @ResponseBody</h2>
+            
+            <div class="concept-card">
+                <h3 class="concept-title">Handling Request Bodies</h3>
+                <p>@RequestBody converts HTTP request body (JSON/XML) to Java objects. @ResponseBody converts Java objects to HTTP response body.</p>
+                
+                <div class="code-header">Request/Response Body Example</div>
+                <div class="code-block">
+                    <pre><code class="language-java">@RestController
+@RequestMapping("/api/orders")
+public class OrderController {
+    
+    // @RequestBody - Convert JSON to Java object
+    @PostMapping
+    public ResponseEntity&lt;Order&gt; createOrder(@RequestBody Order order) {
+        Order savedOrder = orderService.save(order);
+        return ResponseEntity.ok(savedOrder);  // Auto @ResponseBody
+    }
+    
+    // Handle complex JSON structures
+    @PostMapping("/batch")
+    public List&lt;Order&gt; createMultipleOrders(@RequestBody List&lt;Order&gt; orders) {
+        return orderService.saveAll(orders);
+    }
+    
+    // Custom response wrapper
+    @GetMapping("/{id}")
+    public ApiResponse&lt;Order&gt; getOrder(@PathVariable Long id) {
+        Order order = orderService.findById(id);
+        return new ApiResponse&lt;&gt;("success", order);
+    }
+}
+
+// Response wrapper class
+public class ApiResponse&lt;T&gt; {
+    private String status;
+    private T data;
+    private String message;
+    
+    // constructors, getters, setters
+}</code></pre>
+                </div>
+            </div>
+
+            <div class="interactive-demo">
+                <div class="demo-title">🎮 Interactive Demo: JSON Request/Response</div>
+                <div class="demo-controls">
+                    <textarea class="demo-input" id="jsonInput" placeholder="Enter JSON request body" style="width: 100%; height: 80px; resize: vertical;">
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "age": 30
+}</textarea>
+                    <button class="demo-button" onclick="simulateRequestBody()">Process Request Body</button>
+                </div>
+                <div class="demo-output" id="bodyOutput">Enter JSON to see request body processing...</div>
+            </div>
+        </div>
+
+        <!-- Request Parameters Section -->
+        <div class="content-section" id="parameters">
+            <h2 class="section-title">Request Parameters</h2>
+            
+            <div class="concept-card">
+                <h3 class="concept-title">@RequestParam</h3>
+                <p>@RequestParam extracts query parameters from the URL. It's used for optional parameters and filtering.</p>
+                
+                <div class="code-header">Request Parameter Examples</div>
+                <div class="code-block">
+                    <pre><code class="language-java">@RestController
+@RequestMapping("/api/search")
+public class SearchController {
+    
+    // Simple query parameter
+    @GetMapping("/users")
+    public List&lt;User&gt; searchUsers(@RequestParam String name) {
+        return userService.findByName(name);
+    }
+    
+    // Optional parameter with default value
+    @GetMapping("/products")
+    public List&lt;Product&gt; searchProducts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String category) {
+        return productService.search(page, size, category);
+    }
+    
+    // Multiple parameters
+    @GetMapping("/orders")
+    public List&lt;Order&gt; searchOrders(
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) 
+            @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
+            @RequestParam(required = false) 
+            @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate) {
+        return orderService.searchOrders(status, startDate, endDate);
+    }
+}</code></pre>
+                </div>
+            </div>
+
+            <div class="concept-card">
+                <h3 class="concept-title">@PathVariable</h3>
+                <p>@PathVariable extracts values from the URL path. It's used for resource identification.</p>
+                
+                <div class="code-header">Path Variable Examples</div>
+                <div class="code-block">
+                    <pre><code class="language-java">@RestController
+@RequestMapping("/api")
+public class ResourceController {
+    
+    // Single path variable
+    @GetMapping("/users/{id}")
+    public User getUser(@PathVariable Long id) {
+        return userService.findById(id);
+    }
+    
+    // Multiple path variables
+    @GetMapping("/users/{userId}/orders/{orderId}")
+    public Order getUserOrder(
+            @PathVariable Long userId, 
+            @PathVariable Long orderId) {
+        return orderService.findByUserAndId(userId, orderId);
+    }
+    
+    // Optional path variable with regex
+    @GetMapping("/products/{category:[a-z]+}")
+    public List&lt;Product&gt; getProductsByCategory(
+            @PathVariable String category) {
+        return productService.findByCategory(category);
+    }
+}</code></pre>
+                </div>
+            </div>
+
+            <div class="interactive-demo">
+                <div class="demo-title">🎮 Interactive Demo: Parameters</div>
+                <div class="demo-controls">
+                    <input type="text" class="demo-input" id="paramUrl" placeholder="URL with parameters" value="/api/users/123?name=John&age=30">
+                    <button class="demo-button" onclick="simulateParameters()">Extract Parameters</button>
+                </div>
+                <div class="demo-output" id="paramOutput">Enter a URL to extract path variables and query parameters...</div>
+            </div>
+        </div>
+
+        <!-- HTTP Methods Section -->
+        <div class="content-section" id="methods">
+            <h2 class="section-title">HTTP Method Mappings</h2>
+            
+            <div class="concept-card">
+                <h3 class="concept-title">Specialized Mapping Annotations</h3>
+                <p>Spring Boot provides specialized annotations for different HTTP methods, making code more readable and concise.</p>
+                
+                <div class="code-header">HTTP Method Annotations</div>
+                <div class="code-block">
+                    <pre><code class="language-java">@RestController
+@RequestMapping("/api/books")
+public class BookController {
+    
+    // GET - Retrieve resources
+    @GetMapping
+    public List&lt;Book&gt; getAllBooks() {
+        return bookService.findAll();
+    }
+    
+    @GetMapping("/{id}")
+    public Book getBookById(@PathVariable Long id) {
+        return bookService.findById(id);
+    }
+    
+    // POST - Create new resources
+    @PostMapping
+    public ResponseEntity&lt;Book&gt; createBook(@RequestBody Book book) {
+        Book savedBook = bookService.save(book);
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedBook);
+    }
+    
+    // PUT - Update entire resource
+    @PutMapping("/{id}")
+    public ResponseEntity&lt;Book&gt; updateBook(
+            @PathVariable Long id, 
+            @RequestBody Book book) {
+        Book updatedBook = bookService.update(id, book);
+        return ResponseEntity.ok(updatedBook);
+    }
+    
+    // PATCH - Partial update
+    @PatchMapping("/{id}")
+    public ResponseEntity&lt;Book&gt; patchBook(
+            @PathVariable Long id, 
+            @RequestBody Map&lt;String, Object&gt; updates) {
+        Book patchedBook = bookService.partialUpdate(id, updates);
+        return ResponseEntity.ok(patchedBook);
+    }
+    
+    // DELETE - Remove resource
+    @DeleteMapping("/{id}")
+    public ResponseEntity&lt;Void&gt; deleteBook(@PathVariable Long id) {
+        bookService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+}</code></pre>
+                </div>
+            </div>
+
+            <div class="interactive-demo">
+                <div class="demo-title">🎮 Interactive Demo: HTTP Methods</div>
+                <div class="demo-controls">
+                    <select class="demo-input" id="methodSelect">
+                        <option value="GET">GET - Retrieve</option>
+                        <option value="POST">POST - Create</option>
+                        <option value="PUT">PUT - Update</option>
+                        <option value="PATCH">PATCH - Partial Update</option>
+                        <option value="DELETE">DELETE - Remove</option>
+                    </select>
+                    <input type="text" class="demo-input" id="resourceId" placeholder="Resource ID" value="123">
+                    <button class="demo-button" onclick="simulateHttpMethod()">Simulate Request</button>
+                </div>
+                <div class="demo-output" id="methodOutput">Select an HTTP method to see the simulated request...</div>
+            </div>
+
+            <div class="highlight">
+                <strong>📋 HTTP Method Guide:</strong><br>
+                <span class="method-badge get">GET</span> - Retrieve data (idempotent)<br>
+                <span class="method-badge post">POST</span> - Create new resources<br>
+                <span class="method-badge put">PUT</span> - Update entire resource (idempotent)<br>
+                <span class="method-badge delete">DELETE</span> - Remove resource (idempotent)
+            </div>
+        </div>
+
+        <!-- Advanced Topics Section -->
+        <div class="content-section" id="advanced">
+            <h2 class="section-title">Advanced REST Topics</h2>
+            
+            <div class="concept-card">
+                <h3 class="concept-title">Response Status & Headers</h3>
+                <p>Control HTTP response status codes and headers for better REST API design.</p>
+                
+                <div class="code-header">Response Status Examples</div>
+                <div class="code-block">
+                    <pre><code class="language-java">@RestController
+@RequestMapping("/api/advanced")
+public class AdvancedController {
+    
+    // Custom status codes
+    @PostMapping("/users")
+    @ResponseStatus(HttpStatus.CREATED)
+    public User createUser(@RequestBody User user) {
+        return userService.save(user);
+    }
+    
+    // ResponseEntity for full control
+    @GetMapping("/users/{id}")
+    public ResponseEntity&lt;User&gt; getUser(@PathVariable Long id) {
+        User user = userService.findById(id);
+        if (user == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok()
+                .header("X-User-Version", "1.0")
+                .body(user);
+    }
+    
+    // Custom headers
+    @GetMapping("/download/{fileId}")
+    public ResponseEntity&lt;Resource&gt; downloadFile(@PathVariable String fileId) {
+        Resource file = fileService.getFile(fileId);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, 
+                        "attachment; filename=\"" + file.getFilename() + "\"")
+                .body(file);
+    }
+}</code></pre>
+                </div>
+            </div>
+
+            <div class="concept-card">
+                <h3 class="concept-title">Exception Handling</h3>
+                <p>Handle exceptions gracefully with @ExceptionHandler and global exception handling.</p>
+                
+                <div class="code-header">Exception Handling</div>
+                <div class="code-block">
+                    <pre><code class="language-java">@RestControllerAdvice
+public class GlobalExceptionHandler {
+    
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity&lt;ErrorResponse&gt; handleResourceNotFound(
+            ResourceNotFoundException ex) {
+        ErrorResponse error = new ErrorResponse("NOT_FOUND", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+    
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity&lt;ErrorResponse&gt; handleValidation(
+            ValidationException ex) {
+        ErrorResponse error = new ErrorResponse("VALIDATION_ERROR", ex.getMessage());
+        return ResponseEntity.badRequest().body(error);
+    }
+    
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity&lt;ErrorResponse&gt; handleGeneral(Exception ex) {
+        ErrorResponse error = new ErrorResponse("INTERNAL_ERROR", "An error occurred");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+    }
+}</code></pre>
+                </div>
+            </div>
+
+            <div class="interactive-demo">
+                <div class="demo-title">🎮 Interactive Demo: Advanced Features</div>
+                <div class="demo-controls">
+                    <select class="demo-input" id="advancedFeature">
+                        <option value="status">Custom Status Codes</option>
+                        <option value="headers">Custom Headers</option>
+                        <option value="exception">Exception Handling</option>
+                        <option value="validation">Validation</option>
+                    </select>
+                    <button class="demo-button" onclick="simulateAdvanced()">Simulate Feature</button>
+                </div>
+                <div class="demo-output" id="advancedOutput">Select an advanced feature to see it in action...</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="spring-boot-rest-script.js"></script>
+</body>
+</html>
