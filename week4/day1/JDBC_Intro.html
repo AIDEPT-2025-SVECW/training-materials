@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JDBC Interactive Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1em;
+        }
+
+        .nav-pills {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .nav-pill {
+            padding: 12px 25px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 25px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            font-weight: 500;
+        }
+
+        .nav-pill:hover, .nav-pill.active {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .content-section {
+            display: none;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .content-section h2 {
+            color: #4a5568;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+            font-size: 1.8em;
+        }
+
+        .info-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .info-card h3 {
+            color: #2d3748;
+            margin-bottom: 10px;
+            font-size: 1.3em;
+        }
+
+        .info-card p {
+            line-height: 1.6;
+            color: #4a5568;
+            margin-bottom: 10px;
+        }
+
+        .driver-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .driver-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+
+        .driver-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .steps-container {
+            display: grid;
+            gap: 20px;
+        }
+
+        .step-card {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .step-card:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.1);
+        }
+
+        .step-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .step-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .step-number {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .code-container {
+            background: #1a202c;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            position: relative;
+            border: 1px solid #2d3748;
+        }
+
+        .code-container::before {
+            content: 'Java';
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+        }
+
+        .code-container pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .crud-operations {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .crud-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .crud-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            border-color: #667eea;
+        }
+
+        .crud-card h4 {
+            color: #2d3748;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .crud-card.create { border-left: 4px solid #48bb78; }
+        .crud-card.read { border-left: 4px solid #4299e1; }
+        .crud-card.update { border-left: 4px solid #ed8936; }
+        .crud-card.delete { border-left: 4px solid #f56565; }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .close {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #999;
+            transition: color 0.3s ease;
+        }
+
+        .close:hover {
+            color: #333;
+        }
+
+        .highlight {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .nav-pills {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .nav-pill {
+                width: 200px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 JDBC Interactive Demo</h1>
+            <p>Master Java Database Connectivity with Interactive Examples</p>
+        </div>
+
+        <div class="nav-pills">
+            <div class="nav-pill active" data-section="what-is-jdbc">What is JDBC?</div>
+            <div class="nav-pill" data-section="jdbc-drivers">JDBC Drivers</div>
+            <div class="nav-pill" data-section="jdbc-steps">JDBC Steps</div>
+            <div class="nav-pill" data-section="crud-operations">CRUD Operations</div>
+        </div>
+
+        <div id="what-is-jdbc" class="content-section active">
+            <h2>🔍 What is JDBC?</h2>
+            <div class="info-card">
+                <h3>Java Database Connectivity (JDBC)</h3>
+                <p>JDBC is a <span class="highlight">Java API</span> that enables Java applications to interact with databases. It provides a standard interface for connecting to and executing queries against various database systems.</p>
+                <p><strong>Key Features:</strong></p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>Database-independent connectivity</li>
+                    <li>Standard SQL support</li>
+                    <li>Transaction management</li>
+                    <li>Result set processing</li>
+                    <li>Exception handling</li>
+                </ul>
+            </div>
+            
+            <div class="info-card">
+                <h3>🏗️ JDBC Architecture</h3>
+                <p>JDBC follows a <strong>two-tier</strong> or <strong>three-tier</strong> architecture:</p>
+                <p><strong>Two-tier:</strong> Application ↔ Database</p>
+                <p><strong>Three-tier:</strong> Application ↔ Middle-tier Server ↔ Database</p>
+            </div>
+
+            <div class="info-card">
+                <h3>📦 Core JDBC Components</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px;">
+                    <div style="background: #667eea; color: white; padding: 15px; border-radius: 8px; text-align: center;">
+                        <strong>DriverManager</strong><br>
+                        Manages database drivers
+                    </div>
+                    <div style="background: #764ba2; color: white; padding: 15px; border-radius: 8px; text-align: center;">
+                        <strong>Connection</strong><br>
+                        Database connection interface
+                    </div>
+                    <div style="background: #48bb78; color: white; padding: 15px; border-radius: 8px; text-align: center;">
+                        <strong>Statement</strong><br>
+                        Execute SQL queries
+                    </div>
+                    <div style="background: #ed8936; color: white; padding: 15px; border-radius: 8px; text-align: center;">
+                        <strong>ResultSet</strong><br>
+                        Handle query results
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="jdbc-drivers" class="content-section">
+            <h2>🚗 JDBC Drivers</h2>
+            <div class="info-card">
+                <h3>What is a JDBC Driver?</h3>
+                <p>A JDBC driver is a software component that enables Java applications to interact with databases. It acts as a <span class="highlight">translator</span> between Java code and database-specific protocols.</p>
+            </div>
+
+            <div class="driver-grid">
+                <div class="driver-card" onclick="showDriverDetails('type1')">
+                    <h3>🌉 Type 1: JDBC-ODBC Bridge</h3>
+                    <p>Translates JDBC calls to ODBC calls</p>
+                    <p><strong>Status:</strong> Deprecated in Java 8+</p>
+                </div>
+                <div class="driver-card" onclick="showDriverDetails('type2')">
+                    <h3>🔧 Type 2: Native-API Driver</h3>
+                    <p>Uses database-specific native libraries</p>
+                    <p><strong>Performance:</strong> Better than Type 1</p>
+                </div>
+                <div class="driver-card" onclick="showDriverDetails('type3')">
+                    <h3>🌐 Type 3: Network Protocol</h3>
+                    <p>Uses middleware server for communication</p>
+                    <p><strong>Advantage:</strong> Database independent</p>
+                </div>
+                <div class="driver-card" onclick="showDriverDetails('type4')">
+                    <h3>⚡ Type 4: Pure Java Driver</h3>
+                    <p>Direct communication with database</p>
+                    <p><strong>Most Popular:</strong> Platform independent</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="jdbc-steps" class="content-section">
+            <h2>📝 Steps to Use JDBC</h2>
+            <div class="steps-container">
+                <div class="step-card" onclick="showStepDetails(1)">
+                    <div class="step-number">1</div>
+                    <h3>Load and Register Driver</h3>
+                    <p>Register the JDBC driver with DriverManager</p>
+                </div>
+                <div class="step-card" onclick="showStepDetails(2)">
+                    <div class="step-number">2</div>
+                    <h3>Establish Connection</h3>
+                    <p>Create a connection to the database</p>
+                </div>
+                <div class="step-card" onclick="showStepDetails(3)">
+                    <div class="step-number">3</div>
+                    <h3>Create Statement</h3>
+                    <p>Create Statement, PreparedStatement, or CallableStatement</p>
+                </div>
+                <div class="step-card" onclick="showStepDetails(4)">
+                    <div class="step-number">4</div>
+                    <h3>Execute Query</h3>
+                    <p>Execute SQL queries using the statement</p>
+                </div>
+                <div class="step-card" onclick="showStepDetails(5)">
+                    <div class="step-number">5</div>
+                    <h3>Process Results</h3>
+                    <p>Handle ResultSet and extract data</p>
+                </div>
+                <div class="step-card" onclick="showStepDetails(6)">
+                    <div class="step-number">6</div>
+                    <h3>Close Resources</h3>
+                    <p>Close Connection, Statement, and ResultSet</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="crud-operations" class="content-section">
+            <h2>🔧 CRUD Operations</h2>
+            <div class="info-card">
+                <h3>CRUD Operations Overview</h3>
+                <p>CRUD stands for <span class="highlight">Create, Read, Update, Delete</span> - the four basic operations for persistent storage.</p>
+            </div>
+
+            <div class="crud-operations">
+                <div class="crud-card create" onclick="showCrudExample('create')">
+                    <h4>✨ CREATE</h4>
+                    <p>Insert new records into the database</p>
+                    <p><strong>SQL:</strong> INSERT INTO</p>
+                    <p><strong>Method:</strong> executeUpdate()</p>
+                </div>
+                <div class="crud-card read" onclick="showCrudExample('read')">
+                    <h4>📖 READ</h4>
+                    <p>Retrieve data from the database</p>
+                    <p><strong>SQL:</strong> SELECT</p>
+                    <p><strong>Method:</strong> executeQuery()</p>
+                </div>
+                <div class="crud-card update" onclick="showCrudExample('update')">
+                    <h4>🔄 UPDATE</h4>
+                    <p>Modify existing records</p>
+                    <p><strong>SQL:</strong> UPDATE</p>
+                    <p><strong>Method:</strong> executeUpdate()</p>
+                </div>
+                <div class="crud-card delete" onclick="showCrudExample('delete')">
+                    <h4>🗑️ DELETE</h4>
+                    <p>Remove records from the database</p>
+                    <p><strong>SQL:</strong> DELETE</p>
+                    <p><strong>Method:</strong> executeUpdate()</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for detailed examples -->
+    <div id="detailModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div id="modalContent"></div>
+        </div>
+    </div>
+
+    <script src="JDBC_Intro.js"></script>
+</body>
+</html>
