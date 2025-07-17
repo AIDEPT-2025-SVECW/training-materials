@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NamedJDBCTemplate Tutorial</title>
+    <link rel="stylesheet" href="namedjdbc_styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 NamedJDBCTemplate Tutorial</h1>
+            <p class="subtitle">Master the power of named parameters in Spring JDBC</p>
+        </header>
+
+        <nav class="tabs">
+            <button class="tab-button active" onclick="showTab('why')">Why NamedJDBC?</button>
+            <button class="tab-button" onclick="showTab('difference')">Key Differences</button>
+            <button class="tab-button" onclick="showTab('when')">When to Use</button>
+            <button class="tab-button" onclick="showTab('examples')">CRUD Examples</button>
+        </nav>
+
+        <!-- Why NamedJDBC Template -->
+        <div id="why" class="tab-content active">
+            <h2>Why NamedJDBCTemplate?</h2>
+            
+            <div class="problem-solution">
+                <div class="problem">
+                    <h3>❌ Problems with JDBCTemplate</h3>
+                    <div class="code-block">
+                        <pre><code>// JDBCTemplate - Position-based parameters
+String sql = "SELECT * FROM users WHERE age > ? AND city = ? AND status = ?";
+List&lt;User&gt; users = jdbcTemplate.query(sql, 
+    new Object[]{25, "New York", "ACTIVE"}, 
+    new UserRowMapper());</code></pre>
+                    </div>
+                    <ul>
+                        <li>🔢 Parameter order matters</li>
+                        <li>🐛 Error-prone when parameters change</li>
+                        <li>📖 Hard to read with many parameters</li>
+                        <li>🔄 Difficult to maintain</li>
+                    </ul>
+                </div>
+
+                <div class="solution">
+                    <h3>✅ NamedJDBCTemplate Solution</h3>
+                    <div class="code-block">
+                        <pre><code>// NamedJDBCTemplate - Named parameters
+String sql = "SELECT * FROM users WHERE age > :minAge AND city = :city AND status = :status";
+Map&lt;String, Object&gt; params = new HashMap&lt;&gt;();
+params.put("minAge", 25);
+params.put("city", "New York");
+params.put("status", "ACTIVE");
+
+List&lt;User&gt; users = namedJdbcTemplate.query(sql, params, new UserRowMapper());</code></pre>
+                    </div>
+                    <ul>
+                        <li>🏷️ Self-documenting parameters</li>
+                        <li>🛡️ Order-independent</li>
+                        <li>📝 More readable and maintainable</li>
+                        <li>🔧 Easier to debug</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="interactive-demo">
+                <h3>Interactive Demo: Parameter Readability</h3>
+                <div class="demo-container">
+                    <div class="demo-section">
+                        <h4>JDBCTemplate Query</h4>
+                        <textarea id="jdbcQuery" readonly>SELECT * FROM products WHERE price > ? AND category = ? AND in_stock = ?</textarea>
+                        <div class="parameter-inputs">
+                            <input type="number" id="param1" placeholder="Price" value="100">
+                            <input type="text" id="param2" placeholder="Category" value="Electronics">
+                            <input type="checkbox" id="param3" checked> In Stock
+                        </div>
+                        <button onclick="updateJdbcDemo()">Update Query</button>
+                    </div>
+                    
+                    <div class="demo-section">
+                        <h4>NamedJDBCTemplate Query</h4>
+                        <textarea id="namedQuery" readonly>SELECT * FROM products WHERE price > :minPrice AND category = :category AND in_stock = :inStock</textarea>
+                        <div class="parameter-map" id="parameterMap"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Key Differences -->
+        <div id="difference" class="tab-content">
+            <h2>Key Differences</h2>
+            
+            <div class="comparison-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Aspect</th>
+                            <th>JDBCTemplate</th>
+                            <th>NamedJDBCTemplate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Parameter Style</td>
+                            <td>Position-based (?)</td>
+                            <td>Named (:paramName)</td>
+                        </tr>
+                        <tr>
+                            <td>Parameter Passing</td>
+                            <td>Object[] or varargs</td>
+                            <td>Map or SqlParameterSource</td>
+                        </tr>
+                        <tr>
+                            <td>Readability</td>
+                            <td>Lower with many params</td>
+                            <td>Higher, self-documenting</td>
+                        </tr>
+                        <tr>
+                            <td>Maintainability</td>
+                            <td>Harder to maintain</td>
+                            <td>Easier to maintain</td>
+                        </tr>
+                        <tr>
+                            <td>Performance</td>
+                            <td>Slightly faster</td>
+                            <td>Minimal overhead</td>
+                        </tr>
+                        <tr>
+                            <td>Error Prone</td>
+                            <td>Higher risk</td>
+                            <td>Lower risk</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="code-comparison">
+                <h3>Side-by-Side Comparison</h3>
+                <div class="comparison-grid">
+                    <div class="comparison-item">
+                        <h4>JDBCTemplate</h4>
+                        <div class="code-block">
+                            <pre><code>// Configuration
+@Autowired
+private JdbcTemplate jdbcTemplate;
+
+// Query with multiple parameters
+String sql = "UPDATE users SET name = ?, email = ?, age = ? WHERE id = ?";
+jdbcTemplate.update(sql, "John Doe", "john@example.com", 30, 1);
+
+// Complex query
+String complexSql = "SELECT * FROM orders o " +
+    "JOIN users u ON o.user_id = u.id " +
+    "WHERE o.status = ? AND u.city = ? AND o.total > ?";
+List&lt;Order&gt; orders = jdbcTemplate.query(complexSql, 
+    new Object[]{"COMPLETED", "NYC", 100.0}, 
+    new OrderRowMapper());</code></pre>
+                        </div>
+                    </div>
+                    
+                    <div class="comparison-item">
+                        <h4>NamedJDBCTemplate</h4>
+                        <div class="code-block">
+                            <pre><code>// Configuration
+@Autowired
+private NamedParameterJdbcTemplate namedJdbcTemplate;
+
+// Query with named parameters
+String sql = "UPDATE users SET name = :name, email = :email, age = :age WHERE id = :id";
+Map&lt;String, Object&gt; params = Map.of(
+    "name", "John Doe",
+    "email", "john@example.com",
+    "age", 30,
+    "id", 1
+);
+namedJdbcTemplate.update(sql, params);
+
+// Complex query
+String complexSql = "SELECT * FROM orders o " +
+    "JOIN users u ON o.user_id = u.id " +
+    "WHERE o.status = :status AND u.city = :city AND o.total > :minTotal";
+Map&lt;String, Object&gt; params = Map.of(
+    "status", "COMPLETED",
+    "city", "NYC",
+    "minTotal", 100.0
+);
+List&lt;Order&gt; orders = namedJdbcTemplate.query(complexSql, params, new OrderRowMapper());</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- When to Use -->
+        <div id="when" class="tab-content">
+            <h2>When to Use Which Template?</h2>
+            
+            <div class="decision-flow">
+                <h3>Decision Flow Chart</h3>
+                <div class="flowchart">
+                    <div class="flow-step start">
+                        <div class="flow-content">Start: Need to execute SQL?</div>
+                    </div>
+                    <div class="flow-arrow">↓</div>
+                    <div class="flow-step decision">
+                        <div class="flow-content">How many parameters?</div>
+                    </div>
+                    <div class="flow-branches">
+                        <div class="flow-branch">
+                            <div class="flow-arrow">← 0-2 params</div>
+                            <div class="flow-step">
+                                <div class="flow-content">Use JDBCTemplate<br>✅ Simple & Fast</div>
+                            </div>
+                        </div>
+                        <div class="flow-branch">
+                            <div class="flow-arrow">3+ params →</div>
+                            <div class="flow-step decision">
+                                <div class="flow-content">Complex query or<br>frequent changes?</div>
+                            </div>
+                            <div class="flow-arrow">↓</div>
+                            <div class="flow-step">
+                                <div class="flow-content">Use NamedJDBCTemplate<br>✅ Maintainable</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="use-cases">
+                <div class="use-case">
+                    <h3>✅ Use JDBCTemplate When:</h3>
+                    <div class="case-grid">
+                        <div class="case-item">
+                            <h4>Simple Queries</h4>
+                            <div class="code-block small">
+                                <pre><code>// Single parameter
+String sql = "SELECT COUNT(*) FROM users WHERE active = ?";
+int count = jdbcTemplate.queryForObject(sql, Integer.class, true);
+
+// No parameters
+String sql = "SELECT * FROM users";
+List&lt;User&gt; users = jdbcTemplate.query(sql, new UserRowMapper());</code></pre>
+                            </div>
+                        </div>
+                        
+                        <div class="case-item">
+                            <h4>Performance Critical</h4>
+                            <div class="code-block small">
+                                <pre><code>// High-frequency operations
+String sql = "UPDATE user_stats SET login_count = login_count + 1 WHERE user_id = ?";
+jdbcTemplate.update(sql, userId);</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="use-case">
+                    <h3>✅ Use NamedJDBCTemplate When:</h3>
+                    <div class="case-grid">
+                        <div class="case-item">
+                            <h4>Complex Queries</h4>
+                            <div class="code-block small">
+                                <pre><code>// Many parameters
+String sql = "SELECT * FROM products WHERE " +
+    "price BETWEEN :minPrice AND :maxPrice AND " +
+    "category = :category AND brand = :brand AND " +
+    "rating >= :minRating AND in_stock = :inStock";
+
+Map&lt;String, Object&gt; params = Map.of(
+    "minPrice", 50.0,
+    "maxPrice", 500.0,
+    "category", "Electronics",
+    "brand", "Apple",
+    "minRating", 4.0,
+    "inStock", true
+);</code></pre>
+                            </div>
+                        </div>
+                        
+                        <div class="case-item">
+                            <h4>Dynamic Queries</h4>
+                            <div class="code-block small">
+                                <pre><code>// Conditional parameters
+StringBuilder sql = new StringBuilder("SELECT * FROM users WHERE 1=1");
+Map&lt;String, Object&gt; params = new HashMap&lt;&gt;();
+
+if (age != null) {
+    sql.append(" AND age = :age");
+    params.put("age", age);
+}
+if (city != null) {
+    sql.append(" AND city = :city");
+    params.put("city", city);
+}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="interactive-selector">
+                <h3>Interactive Scenario Selector</h3>
+                <div class="scenario-selector">
+                    <div class="scenario-options">
+                        <label>
+                            <input type="radio" name="scenario" value="simple" onchange="showRecommendation(this.value)">
+                            Simple login validation (username, password)
+                        </label>
+                        <label>
+                            <input type="radio" name="scenario" value="complex" onchange="showRecommendation(this.value)">
+                            Advanced product search (price range, category, brand, rating, stock)
+                        </label>
+                        <label>
+                            <input type="radio" name="scenario" value="dynamic" onchange="showRecommendation(this.value)">
+                            Dynamic reporting with optional filters
+                        </label>
+                        <label>
+                            <input type="radio" name="scenario" value="batch" onchange="showRecommendation(this.value)">
+                            Batch user registration
+                        </label>
+                    </div>
+                    <div id="recommendation" class="recommendation"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CRUD Examples -->
+        <div id="examples" class="tab-content">
+            <h2>CRUD Operations Examples</h2>
+            
+            <div class="crud-tabs">
+                <button class="crud-tab active" onclick="showCrudTab('create')">Create</button>
+                <button class="crud-tab" onclick="showCrudTab('read')">Read</button>
+                <button class="crud-tab" onclick="showCrudTab('update')">Update</button>
+                <button class="crud-tab" onclick="showCrudTab('delete')">Delete</button>
+                <button class="crud-tab" onclick="showCrudTab('batch')">Batch</button>
+            </div>
+
+            <!-- Create Operations -->
+            <div id="create" class="crud-content active">
+                <h3>Create Operations</h3>
+                
+                <div class="crud-example">
+                    <h4>Single Insert</h4>
+                    <div class="code-block">
+                        <pre><code>@Repository
+public class UserRepository {
+    
+    @Autowired
+    private NamedParameterJdbcTemplate namedJdbcTemplate;
+    
+    public long createUser(User user) {
+        String sql = "INSERT INTO users (name, email, age, city, created_at) " +
+                    "VALUES (:name, :email, :age, :city, :createdAt)";
+        
+        Map&lt;String, Object&gt; params = Map.of(
+            "name", user.getName(),
+            "email", user.getEmail(),
+            "age", user.getAge(),
+            "city", user.getCity(),
+            "createdAt", LocalDateTime.now()
+        );
+        
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        namedJdbcTemplate.update(sql, new MapSqlParameterSource(params), keyHolder);
+        
+        return keyHolder.getKey().longValue();
+    }
+}</code></pre>
+                    </div>
+                </div>
+
+                <div class="crud-example">
+                    <h4>Using SqlParameterSource</h4>
+                    <div class="code-block">
+                        <pre><code>public long createUserWithBean(User user) {
+    String sql = "INSERT INTO users (name, email, age, city, created_at) " +
+                "VALUES (:name, :email, :age, :city, :createdAt)";
+    
+    // Using BeanPropertySqlParameterSource
+    SqlParameterSource paramSource = new BeanPropertySqlParameterSource(user);
+    
+    KeyHolder keyHolder = new GeneratedKeyHolder();
+    namedJdbcTemplate.update(sql, paramSource, keyHolder);
+    
+    return keyHolder.getKey().longValue();
+}</code></pre>
+                    </div>
+                </div>
+
+                <div class="interactive-create">
+                    <h4>Try It: Create User</h4>
+                    <div class="create-form">
+                        <input type="text" id="userName" placeholder="Name" value="John Doe">
+                        <input type="email" id="userEmail" placeholder="Email" value="john@example.com">
+                        <input type="number" id="userAge" placeholder="Age" value="30">
+                        <input type="text" id="userCity" placeholder="City" value="New York">
+                        <button onclick="generateCreateQuery()">Generate Query</button>
+                    </div>
+                    <div id="createQueryResult" class="query-result"></div>
+                </div>
+            </div>
+
+            <!-- Read Operations -->
+            <div id="read" class="crud-content">
+                <h3>Read Operations</h3>
+                
+                <div class="crud-example">
+                    <h4>Find by ID</h4>
+                    <div class="code-block">
+                        <pre><code>public User findById(Long id) {
+    String sql = "SELECT id, name, email, age, city, created_at FROM users WHERE id = :id";
+    
+    Map&lt;String, Object&gt; params = Map.of("id", id);
+    
+    return namedJdbcTemplate.queryForObject(sql, params, new UserRowMapper());
+}</code></pre>
+                    </div>
+                </div>
+
+                <div class="crud-example">
+                    <h4>Find with Multiple Criteria</h4>
+                    <div class="code-block">
+                        <pre><code>public List&lt;User&gt; findUsers(String city, Integer minAge, Integer maxAge) {
+    String sql = "SELECT id, name, email, age, city, created_at FROM users " +
+                "WHERE city = :city AND age BETWEEN :minAge AND :maxAge " +
+                "ORDER BY created_at DESC";
+    
+    Map&lt;String, Object&gt; params = Map.of(
+        "city", city,
+        "minAge", minAge,
+        "maxAge", maxAge
+    );
+    
+    return namedJdbcTemplate.query(sql, params, new UserRowMapper());
+}</code></pre>
+                    </div>
+                </div>
+
+                <div class="crud-example">
+                    <h4>Pagination</h4>
+                    <div class="code-block">
+                        <pre><code>public List&lt;User&gt; findUsersWithPagination(int page, int size) {
+    String sql = "SELECT id, name, email, age, city, created_at FROM users " +
+                "ORDER BY created_at DESC LIMIT :limit OFFSET :offset";
+    
+    Map&lt;String, Object&gt; params = Map.of(
+        "limit", size,
+        "offset", page * size
+    );
+    
+    return namedJdbcTemplate.query(sql, params, new UserRowMapper());
+}</code></pre>
+                    </div>
+                </div>
+
+                <div class="interactive-read">
+                    <h4>Try It: Search Users</h4>
+                    <div class="search-form">
+                        <input type="text" id="searchCity" placeholder="City" value="New York">
+                        <input type="number" id="searchMinAge" placeholder="Min Age" value="25">
+                        <input type="number" id="searchMaxAge" placeholder="Max Age" value="35">
+                        <button onclick="generateSearchQuery()">Generate Query</button>
+                    </div>
+                    <div id="searchQueryResult" class="query-result"></div>
+                </div>
+            </div>
+
+            <!-- Update Operations -->
+            <div id="update" class="crud-content">
+                <h3>Update Operations</h3>
+                
+                <div class="crud-example">
+                    <h4>Update User</h4>
+                    <div class="code-block">
+                        <pre><code>public int updateUser(User user) {
+    String sql = "UPDATE users SET name = :name, email = :email, " +
+                "age = :age, city = :city, updated_at = :updatedAt " +
+                "WHERE id = :id";
+    
+    Map&lt;String, Object&gt; params = Map.of(
+        "id", user.getId(),
+        "name", user.getName(),
+        "email", user.getEmail(),
+        "age", user.getAge(),
+        "city", user.getCity(),
+        "updatedAt", LocalDateTime.now()
+    );
+    
+    return namedJdbcTemplate.update(sql, params);
+}</code></pre>
+                    </div>
+                </div>
+
+                <div class="crud-example">
+                    <h4>Partial Update</h4>
+                    <div class="code-block">
+                        <pre><code>public int updateUserEmail(Long userId, String newEmail) {
+    String sql = "UPDATE users SET email = :email, updated_at = :updatedAt " +
+                "WHERE id = :id";
+    
+    Map&lt;String, Object&gt; params = Map.of(
+        "id", userId,
+        "email", newEmail,
+        "updatedAt", LocalDateTime.now()
+    );
+    
+    return namedJdbcTemplate.update(sql, params);
+}</code></pre>
+                    </div>
+                </div>
+
+                <div class="crud-example">
+                    <h4>Conditional Update</h4>
+                    <div class="code-block">
+                        <pre><code>public int updateUserAge(Long userId, int newAge, int expectedCurrentAge) {
+    String sql = "UPDATE users SET age = :newAge, updated_at = :updatedAt " +
+                "WHERE id = :id AND age = :currentAge";
+    
+    Map&lt;String, Object&gt; params = Map.of(
+        "id", userId,
+        "newAge", newAge,
+        "currentAge", expectedCurrentAge,
+        "updatedAt", LocalDateTime.now()
+    );
+    
+    return namedJdbcTemplate.update(sql, params);
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Delete Operations -->
+            <div id="delete" class="crud-content">
+                <h3>Delete Operations</h3>
+                
+                <div class="crud-example">
+                    <h4>Delete by ID</h4>
+                    <div class="code-block">
+                        <pre><code>public int deleteUser(Long id) {
+    String sql = "DELETE FROM users WHERE id = :id";
+    
+    Map&lt;String, Object&gt; params = Map.of("id", id);
+    
+    return namedJdbcTemplate.update(sql, params);
+}</code></pre>
+                    </div>
+                </div>
+
+                <div class="crud-example">
+                    <h4>Delete with Conditions</h4>
+                    <div class="code-block">
+                        <pre><code>public int deleteInactiveUsers(int daysSinceLastLogin) {
+    String sql = "DELETE FROM users WHERE last_login < :cutoffDate";
+    
+    LocalDateTime cutoffDate = LocalDateTime.now().minusDays(daysSinceLastLogin);
+    Map&lt;String, Object&gt; params = Map.of("cutoffDate", cutoffDate);
+    
+    return namedJdbcTemplate.update(sql, params);
+}</code></pre>
+                    </div>
+                </div>
+
+                <div class="crud-example">
+                    <h4>Soft Delete</h4>
+                    <div class="code-block">
+                        <pre><code>public int softDeleteUser(Long id) {
+    String sql = "UPDATE users SET deleted = true, deleted_at = :deletedAt " +
+                "WHERE id = :id AND deleted = false";
+    
+    Map&lt;String, Object&gt; params = Map.of(
+        "id", id,
+        "deletedAt", LocalDateTime.now()
+    );
+    
+    return namedJdbcTemplate.update(sql, params);
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Batch Operations -->
+            <div id="batch" class="crud-content">
+                <h3>Batch Operations</h3>
+                
+                <div class="crud-example">
+                    <h4>Batch Insert</h4>
+                    <div class="code-block">
+                        <pre><code>public int[] batchInsertUsers(List&lt;User&gt; users) {
+    String sql = "INSERT INTO users (name, email, age, city, created_at) " +
+                "VALUES (:name, :email, :age, :city, :createdAt)";
+    
+    List&lt;Map&lt;String, Object&gt;&gt; batchParams = users.stream()
+        .map(user -> Map.of(
+            "name", user.getName(),
+            "email", user.getEmail(),
+            "age", user.getAge(),
+            "city", user.getCity(),
+            "createdAt", LocalDateTime.now()
+        ))
+        .collect(Collectors.toList());
+    
+    return namedJdbcTemplate.batchUpdate(sql, batchParams.toArray(new Map[0]));
+}</code></pre>
+                    </div>
+                </div>
+
+                <div class="crud-example">
+                    <h4>Batch Update</h4>
+                    <div class="code-block">
+                        <pre><code>public int[] batchUpdateUserAges(List&lt;UserAgeUpdate&gt; updates) {
+    String sql = "UPDATE users SET age = :age, updated_at = :updatedAt WHERE id = :id";
+    
+    List&lt;Map&lt;String, Object&gt;&gt; batchParams = updates.stream()
+        .map(update -> Map.of(
+            "id", update.getUserId(),
+            "age", update.getNewAge(),
+            "updatedAt", LocalDateTime.now()
+        ))
+        .collect(Collectors.toList());
+    
+    return namedJdbcTemplate.batchUpdate(sql, batchParams.toArray(new Map[0]));
+}</code></pre>
+                    </div>
+                </div>
+
+                <div class="crud-example">
+                    <h4>Batch with SqlParameterSource</h4>
+                    <div class="code-block">
+                        <pre><code>public int[] batchInsertUsersWithBean(List&lt;User&gt; users) {
+    String sql = "INSERT INTO users (name, email, age, city, created_at) " +
+                "VALUES (:name, :email, :age, :city, :createdAt)";
+    
+    SqlParameterSource[] batchParams = users.stream()
+        .map(BeanPropertySqlParameterSource::new)
+        .toArray(SqlParameterSource[]::new);
+    
+    return namedJdbcTemplate.batchUpdate(sql, batchParams);
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="named_jdbc_js.js"></script>
+</body>
+</html>

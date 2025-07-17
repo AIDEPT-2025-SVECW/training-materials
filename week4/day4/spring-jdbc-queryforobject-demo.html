@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring JDBC Template - queryForObject Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .demo-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid #4CAF50;
+            transition: transform 0.3s ease;
+        }
+
+        .demo-section:hover {
+            transform: translateY(-5px);
+        }
+
+        .demo-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            position: relative;
+            border: 1px solid #4a5568;
+        }
+
+        .code-block::before {
+            content: "Java";
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            background: #4CAF50;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+        }
+
+        .keyword {
+            color: #f56565;
+            font-weight: bold;
+        }
+
+        .string {
+            color: #68d391;
+        }
+
+        .comment {
+            color: #a0aec0;
+            font-style: italic;
+        }
+
+        .method {
+            color: #63b3ed;
+        }
+
+        .type {
+            color: #fbb6ce;
+        }
+
+        .interactive-demo {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px 0;
+            color: white;
+        }
+
+        .demo-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .control-group {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .control-group h3 {
+            margin-bottom: 15px;
+            color: #fff;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .result-display {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .result-item {
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .result-item:hover {
+            background: rgba(255, 255, 255, 1);
+            transform: scale(1.02);
+        }
+
+        .result-value {
+            background: #4CAF50;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 1.1em;
+        }
+
+        .sample-data {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .data-table th {
+            background: #4CAF50;
+            color: white;
+            font-weight: bold;
+        }
+
+        .data-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .highlight {
+            background: #fff3cd;
+            padding: 15px;
+            border-left: 4px solid #ffc107;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Spring JDBC Template</h1>
+            <p>queryForObject with Scalar Return - Interactive Demo</p>
+        </div>
+
+        <div class="content">
+            <!-- Introduction -->
+            <div class="demo-section">
+                <h2>📚 What is queryForObject?</h2>
+                <p><strong>queryForObject</strong> is a Spring JDBC Template method that executes a query and returns a single result. When used with scalar return types, it's perfect for:</p>
+                <ul style="margin: 15px 0; padding-left: 30px;">
+                    <li>Getting count values (COUNT queries)</li>
+                    <li>Calculating aggregates (SUM, AVG, MAX, MIN)</li>
+                    <li>Retrieving single values from database</li>
+                </ul>
+                
+                <div class="highlight">
+                    <strong>Key Point:</strong> The method returns exactly one result of the specified type, making it ideal for aggregate operations.
+                </div>
+            </div>
+
+            <!-- Sample Data -->
+            <div class="demo-section">
+                <h2>📊 Sample Employee Data</h2>
+                <div class="sample-data">
+                    <p><strong>Let's work with this sample EMPLOYEES table:</strong></p>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>NAME</th>
+                                <th>DEPARTMENT</th>
+                                <th>SALARY</th>
+                                <th>AGE</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>1</td><td>John Doe</td><td>IT</td><td>75000</td><td>28</td></tr>
+                            <tr><td>2</td><td>Jane Smith</td><td>HR</td><td>65000</td><td>32</td></tr>
+                            <tr><td>3</td><td>Bob Johnson</td><td>IT</td><td>80000</td><td>29</td></tr>
+                            <tr><td>4</td><td>Alice Brown</td><td>Finance</td><td>70000</td><td>35</td></tr>
+                            <tr><td>5</td><td>Charlie Wilson</td><td>IT</td><td>85000</td><td>31</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Interactive Demo -->
+            <div class="interactive-demo">
+                <h2>🎯 Interactive Demo - Try Different Queries!</h2>
+                
+                <div class="demo-controls">
+                    <div class="control-group">
+                        <h3>Count Operations</h3>
+                        <button class="btn" onclick="executeQuery('totalEmployees')">Total Employees</button>
+                        <button class="btn" onclick="executeQuery('itEmployees')">IT Department Count</button>
+                        <button class="btn" onclick="executeQuery('highSalaryCount')">High Salary Count (>70k)</button>
+                    </div>
+                    
+                    <div class="control-group">
+                        <h3>Aggregate Operations</h3>
+                        <button class="btn" onclick="executeQuery('avgSalary')">Average Salary</button>
+                        <button class="btn" onclick="executeQuery('maxSalary')">Maximum Salary</button>
+                        <button class="btn" onclick="executeQuery('minAge')">Minimum Age</button>
+                    </div>
+                    
+                    <div class="control-group">
+                        <h3>Department Analysis</h3>
+                        <button class="btn" onclick="executeQuery('totalSalaryIT')">Total IT Salary</button>
+                        <button class="btn" onclick="executeQuery('avgAgeHR')">Average Age in HR</button>
+                        <button class="btn" onclick="executeQuery('financeCount')">Finance Department Count</button>
+                    </div>
+                </div>
+
+                <div class="result-display" id="queryResults">
+                    <h3>📈 Query Results</h3>
+                    <p>Click any button above to see the Java code and simulated result!</p>
+                </div>
+            </div>
+
+            <!-- Code Examples -->
+            <div class="demo-section">
+                <h2>💻 Common queryForObject Patterns</h2>
+                
+                <h3>1. Count Queries</h3>
+                <div class="code-block">
+<span class="comment">// Count total employees</span>
+<span class="keyword">public</span> <span class="type">Integer</span> <span class="method">getTotalEmployeeCount</span>() {
+    <span class="type">String</span> sql = <span class="string">"SELECT COUNT(*) FROM employees"</span>;
+    <span class="keyword">return</span> jdbcTemplate.<span class="method">queryForObject</span>(sql, <span class="type">Integer</span>.<span class="keyword">class</span>);
+}
+
+<span class="comment">// Count employees in specific department</span>
+<span class="keyword">public</span> <span class="type">Integer</span> <span class="method">getEmployeeCountByDepartment</span>(<span class="type">String</span> department) {
+    <span class="type">String</span> sql = <span class="string">"SELECT COUNT(*) FROM employees WHERE department = ?"</span>;
+    <span class="keyword">return</span> jdbcTemplate.<span class="method">queryForObject</span>(sql, <span class="type">Integer</span>.<span class="keyword">class</span>, department);
+}
+                </div>
+
+                <h3>2. Aggregate Queries</h3>
+                <div class="code-block">
+<span class="comment">// Calculate average salary</span>
+<span class="keyword">public</span> <span class="type">Double</span> <span class="method">getAverageSalary</span>() {
+    <span class="type">String</span> sql = <span class="string">"SELECT AVG(salary) FROM employees"</span>;
+    <span class="keyword">return</span> jdbcTemplate.<span class="method">queryForObject</span>(sql, <span class="type">Double</span>.<span class="keyword">class</span>);
+}
+
+<span class="comment">// Get maximum salary</span>
+<span class="keyword">public</span> <span class="type">Integer</span> <span class="method">getMaxSalary</span>() {
+    <span class="type">String</span> sql = <span class="string">"SELECT MAX(salary) FROM employees"</span>;
+    <span class="keyword">return</span> jdbcTemplate.<span class="method">queryForObject</span>(sql, <span class="type">Integer</span>.<span class="keyword">class</span>);
+}
+                </div>
+
+                <h3>3. With Parameters</h3>
+                <div class="code-block">
+<span class="comment">// Sum salary by department</span>
+<span class="keyword">public</span> <span class="type">Long</span> <span class="method">getTotalSalaryByDepartment</span>(<span class="type">String</span> department) {
+    <span class="type">String</span> sql = <span class="string">"SELECT SUM(salary) FROM employees WHERE department = ?"</span>;
+    <span class="keyword">return</span> jdbcTemplate.<span class="method">queryForObject</span>(sql, <span class="type">Long</span>.<span class="keyword">class</span>, department);
+}
+
+<span class="comment">// Average age with condition</span>
+<span class="keyword">public</span> <span class="type">Double</span> <span class="method">getAverageAgeAboveSalary</span>(<span class="type">Integer</span> minSalary) {
+    <span class="type">String</span> sql = <span class="string">"SELECT AVG(age) FROM employees WHERE salary > ?"</span>;
+    <span class="keyword">return</span> jdbcTemplate.<span class="method">queryForObject</span>(sql, <span class="type">Double</span>.<span class="keyword">class</span>, minSalary);
+}
+                </div>
+            </div>
+
+            <!-- Best Practices -->
+            <div class="demo-section">
+                <h2>✅ Best Practices & Tips</h2>
+                
+                <div class="highlight">
+                    <h3>Important Notes:</h3>
+                    <ul style="margin: 10px 0; padding-left: 20px;">
+                        <li><strong>Return Type:</strong> Always specify the correct return type (Integer.class, Double.class, etc.)</li>
+                        <li><strong>Null Handling:</strong> queryForObject expects exactly one result. Use proper null checks</li>
+                        <li><strong>Parameter Binding:</strong> Use ? placeholders for parameters to prevent SQL injection</li>
+                        <li><strong>Exception Handling:</strong> Handle EmptyResultDataAccessException for no results</li>
+                    </ul>
+                </div>
+
+                <h3>Exception Handling Example:</h3>
+                <div class="code-block">
+<span class="keyword">try</span> {
+    <span class="type">Integer</span> count = jdbcTemplate.<span class="method">queryForObject</span>(
+        <span class="string">"SELECT COUNT(*) FROM employees WHERE department = ?"</span>,
+        <span class="type">Integer</span>.<span class="keyword">class</span>,
+        department
+    );
+    <span class="keyword">return</span> count;
+} <span class="keyword">catch</span> (<span class="type">EmptyResultDataAccessException</span> e) {
+    <span class="comment">// Handle case when no results found</span>
+    <span class="keyword">return</span> 0;
+}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample data simulation
+        const employees = [
+            {id: 1, name: 'John Doe', department: 'IT', salary: 75000, age: 28},
+            {id: 2, name: 'Jane Smith', department: 'HR', salary: 65000, age: 32},
+            {id: 3, name: 'Bob Johnson', department: 'IT', salary: 80000, age: 29},
+            {id: 4, name: 'Alice Brown', department: 'Finance', salary: 70000, age: 35},
+            {id: 5, name: 'Charlie Wilson', department: 'IT', salary: 85000, age: 31}
+        ];
+
+        // Query definitions with code and calculations
+        const queries = {
+            totalEmployees: {
+                sql: "SELECT COUNT(*) FROM employees",
+                code: `public Integer getTotalEmployeeCount() {
+    String sql = "SELECT COUNT(*) FROM employees";
+    return jdbcTemplate.queryForObject(sql, Integer.class);
+}`,
+                result: employees.length,
+                description: "Total number of employees"
+            },
+            itEmployees: {
+                sql: "SELECT COUNT(*) FROM employees WHERE department = 'IT'",
+                code: `public Integer getITEmployeeCount() {
+    String sql = "SELECT COUNT(*) FROM employees WHERE department = ?";
+    return jdbcTemplate.queryForObject(sql, Integer.class, "IT");
+}`,
+                result: employees.filter(emp => emp.department === 'IT').length,
+                description: "Number of employees in IT department"
+            },
+            highSalaryCount: {
+                sql: "SELECT COUNT(*) FROM employees WHERE salary > 70000",
+                code: `public Integer getHighSalaryCount() {
+    String sql = "SELECT COUNT(*) FROM employees WHERE salary > ?";
+    return jdbcTemplate.queryForObject(sql, Integer.class, 70000);
+}`,
+                result: employees.filter(emp => emp.salary > 70000).length,
+                description: "Employees with salary > 70,000"
+            },
+            avgSalary: {
+                sql: "SELECT AVG(salary) FROM employees",
+                code: `public Double getAverageSalary() {
+    String sql = "SELECT AVG(salary) FROM employees";
+    return jdbcTemplate.queryForObject(sql, Double.class);
+}`,
+                result: Math.round(employees.reduce((sum, emp) => sum + emp.salary, 0) / employees.length),
+                description: "Average salary of all employees"
+            },
+            maxSalary: {
+                sql: "SELECT MAX(salary) FROM employees",
+                code: `public Integer getMaxSalary() {
+    String sql = "SELECT MAX(salary) FROM employees";
+    return jdbcTemplate.queryForObject(sql, Integer.class);
+}`,
+                result: Math.max(...employees.map(emp => emp.salary)),
+                description: "Maximum salary in the company"
+            },
+            minAge: {
+                sql: "SELECT MIN(age) FROM employees",
+                code: `public Integer getMinAge() {
+    String sql = "SELECT MIN(age) FROM employees";
+    return jdbcTemplate.queryForObject(sql, Integer.class);
+}`,
+                result: Math.min(...employees.map(emp => emp.age)),
+                description: "Minimum age of employees"
+            },
+            totalSalaryIT: {
+                sql: "SELECT SUM(salary) FROM employees WHERE department = 'IT'",
+                code: `public Long getTotalITSalary() {
+    String sql = "SELECT SUM(salary) FROM employees WHERE department = ?";
+    return jdbcTemplate.queryForObject(sql, Long.class, "IT");
+}`,
+                result: employees.filter(emp => emp.department === 'IT').reduce((sum, emp) => sum + emp.salary, 0),
+                description: "Total salary of IT department"
+            },
+            avgAgeHR: {
+                sql: "SELECT AVG(age) FROM employees WHERE department = 'HR'",
+                code: `public Double getAverageAgeHR() {
+    String sql = "SELECT AVG(age) FROM employees WHERE department = ?";
+    return jdbcTemplate.queryForObject(sql, Double.class, "HR");
+}`,
+                result: employees.filter(emp => emp.department === 'HR').reduce((sum, emp) => sum + emp.age, 0) / employees.filter(emp => emp.department === 'HR').length,
+                description: "Average age in HR department"
+            },
+            financeCount: {
+                sql: "SELECT COUNT(*) FROM employees WHERE department = 'Finance'",
+                code: `public Integer getFinanceCount() {
+    String sql = "SELECT COUNT(*) FROM employees WHERE department = ?";
+    return jdbcTemplate.queryForObject(sql, Integer.class, "Finance");
+}`,
+                result: employees.filter(emp => emp.department === 'Finance').length,
+                description: "Number of employees in Finance"
+            }
+        };
+
+        function executeQuery(queryKey) {
+            const query = queries[queryKey];
+            const resultsDiv = document.getElementById('queryResults');
+            
+            resultsDiv.innerHTML = `
+                <h3>🔍 Query Execution Result</h3>
+                <div class="result-item fade-in">
+                    <span><strong>SQL:</strong> ${query.sql}</span>
+                </div>
+                <div class="result-item fade-in">
+                    <span><strong>Description:</strong> ${query.description}</span>
+                    <span class="result-value pulse">${query.result}</span>
+                </div>
+                <div style="margin-top: 20px;">
+                    <h4>📝 Java Code:</h4>
+                    <div class="code-block" style="margin-top: 10px; background: rgba(0,0,0,0.8);">
+                        <pre style="margin: 0; white-space: pre-wrap;">${query.code}</pre>
+                    </div>
+                </div>
+            `;
+            
+            // Add some visual feedback
+            resultsDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Add some initial animation
+        document.addEventListener('DOMContentLoaded', function() {
+            const sections = document.querySelectorAll('.demo-section');
+            sections.forEach((section, index) => {
+                section.style.opacity = '0';
+                section.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    section.style.transition = 'all 0.6s ease';
+                    section.style.opacity = '1';
+                    section.style.transform = 'translateY(0)';
+                }, index * 200);
+            });
+        });
+    </script>
+</body>
+</html>

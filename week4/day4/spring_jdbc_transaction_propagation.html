@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring JDBC Transaction Propagation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .default-highlight {
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.2em;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .propagation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .propagation-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+            cursor: pointer;
+        }
+        
+        .propagation-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+            border-color: #667eea;
+        }
+        
+        .propagation-card.active {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .card-icon {
+            font-size: 2em;
+            margin-right: 15px;
+        }
+        
+        .card-title {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .active .card-title {
+            color: white;
+        }
+        
+        .analogy {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border-left: 4px solid #667eea;
+            font-style: italic;
+        }
+        
+        .active .analogy {
+            background: rgba(255, 255, 255, 0.2);
+            border-left-color: white;
+        }
+        
+        .behavior {
+            margin: 15px 0;
+            padding: 10px;
+            background: #e8f4f8;
+            border-radius: 8px;
+        }
+        
+        .active .behavior {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .demo-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .demo-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+        
+        .demo-button:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+        }
+        
+        .transaction-visual {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px 0;
+            min-height: 100px;
+        }
+        
+        .transaction-box {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 5px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .nested-transaction {
+            background: #764ba2;
+            margin-left: 20px;
+        }
+        
+        .no-transaction {
+            background: #95a5a6;
+        }
+        
+        .new-transaction {
+            background: #e74c3c;
+        }
+        
+        .memory-tips {
+            background: linear-gradient(45deg, #feca57, #ff6b6b);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 30px 0;
+        }
+        
+        .memory-tips h3 {
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+        
+        .tip-item {
+            margin: 10px 0;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .pulsing {
+            animation: pulse 1s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 Spring JDBC Transaction Propagation</h1>
+        
+        <div class="default-highlight">
+            🌟 DEFAULT PROPAGATION: <strong>REQUIRED</strong> - "Join the party or start your own!"
+        </div>
+        
+        <div class="memory-tips">
+            <h3>🧠 Memory Palace Tips</h3>
+            <div class="tip-item">💡 <strong>REQUIRED</strong> = Restaurant table (join existing or get new one)</div>
+            <div class="tip-item">💡 <strong>REQUIRES_NEW</strong> = Private dining room (always separate)</div>
+            <div class="tip-item">💡 <strong>SUPPORTS</strong> = Flexible friend (happy with or without)</div>
+            <div class="tip-item">💡 <strong>NOT_SUPPORTED</strong> = Antisocial person (no transactions ever)</div>
+            <div class="tip-item">💡 <strong>NEVER</strong> = Allergic to transactions (throws exception)</div>
+        </div>
+        
+        <div class="demo-section">
+            <h3>🎭 Interactive Demo</h3>
+            <button class="demo-button" onclick="demonstratePropagation('REQUIRED')">Demo REQUIRED</button>
+            <button class="demo-button" onclick="demonstratePropagation('REQUIRES_NEW')">Demo REQUIRES_NEW</button>
+            <button class="demo-button" onclick="demonstratePropagation('SUPPORTS')">Demo SUPPORTS</button>
+            <button class="demo-button" onclick="demonstratePropagation('NOT_SUPPORTED')">Demo NOT_SUPPORTED</button>
+            <button class="demo-button" onclick="demonstratePropagation('NEVER')">Demo NEVER</button>
+            
+            <div id="demo-visual" class="transaction-visual">
+                <div class="transaction-box">Click a demo button above!</div>
+            </div>
+        </div>
+        
+        <div class="propagation-grid">
+            <div class="propagation-card" onclick="toggleCard(this)">
+                <div class="card-header">
+                    <div class="card-icon">🍽️</div>
+                    <div class="card-title">REQUIRED (Default)</div>
+                </div>
+                <div class="analogy">
+                    <strong>Restaurant Analogy:</strong> You walk into a restaurant. If friends are already at a table, you join them. If not, you get a new table for your group.
+                </div>
+                <div class="behavior">
+                    <strong>Behavior:</strong> Joins existing transaction or creates new one if none exists.
+                </div>
+                <div class="behavior">
+                    <strong>Use Case:</strong> Most common scenario - standard business operations.
+                </div>
+            </div>
+            
+            <div class="propagation-card" onclick="toggleCard(this)">
+                <div class="card-header">
+                    <div class="card-icon">🏠</div>
+                    <div class="card-title">REQUIRES_NEW</div>
+                </div>
+                <div class="analogy">
+                    <strong>Private Dining Room:</strong> You always book a private dining room, even if friends are dining in the main restaurant. Your meal is completely separate.
+                </div>
+                <div class="behavior">
+                    <strong>Behavior:</strong> Always creates a new transaction, suspending any existing one.
+                </div>
+                <div class="behavior">
+                    <strong>Use Case:</strong> Logging, audit trails, or operations that must complete regardless of main transaction.
+                </div>
+            </div>
+            
+            <div class="propagation-card" onclick="toggleCard(this)">
+                <div class="card-header">
+                    <div class="card-icon">🤝</div>
+                    <div class="card-title">SUPPORTS</div>
+                </div>
+                <div class="analogy">
+                    <strong>Flexible Friend:</strong> You're happy to join friends at their table if they're already dining, but you're also fine eating alone without reserving a table.
+                </div>
+                <div class="behavior">
+                    <strong>Behavior:</strong> Joins existing transaction if present, runs without transaction if none exists.
+                </div>
+                <div class="behavior">
+                    <strong>Use Case:</strong> Read-only operations that can benefit from transactions but don't require them.
+                </div>
+            </div>
+            
+            <div class="propagation-card" onclick="toggleCard(this)">
+                <div class="card-header">
+                    <div class="card-icon">🚫</div>
+                    <div class="card-title">NOT_SUPPORTED</div>
+                </div>
+                <div class="analogy">
+                    <strong>Antisocial Diner:</strong> You prefer to eat alone at the counter. If friends invite you to their table, you politely decline and eat separately.
+                </div>
+                <div class="behavior">
+                    <strong>Behavior:</strong> Always runs without transaction, suspending any existing one.
+                </div>
+                <div class="behavior">
+                    <strong>Use Case:</strong> Operations that shouldn't be part of transactions (like calling external services).
+                </div>
+            </div>
+            
+            <div class="propagation-card" onclick="toggleCard(this)">
+                <div class="card-header">
+                    <div class="card-icon">⚠️</div>
+                    <div class="card-title">NEVER</div>
+                </div>
+                <div class="analogy">
+                    <strong>Allergic to Restaurants:</strong> You have a severe allergy to restaurants. If someone tries to drag you to one, you get violently ill (throw an exception).
+                </div>
+                <div class="behavior">
+                    <strong>Behavior:</strong> Throws exception if transaction exists, runs normally if no transaction.
+                </div>
+                <div class="behavior">
+                    <strong>Use Case:</strong> Operations that must never run in a transaction context.
+                </div>
+            </div>
+            
+            <div class="propagation-card" onclick="toggleCard(this)">
+                <div class="card-header">
+                    <div class="card-icon">🎯</div>
+                    <div class="card-title">MANDATORY</div>
+                </div>
+                <div class="analogy">
+                    <strong>VIP Club:</strong> You can only enter if you're already a member (have a transaction). No transaction? You're not getting in!
+                </div>
+                <div class="behavior">
+                    <strong>Behavior:</strong> Requires existing transaction, throws exception if none exists.
+                </div>
+                <div class="behavior">
+                    <strong>Use Case:</strong> Operations that must always run within an existing transaction.
+                </div>
+            </div>
+            
+            <div class="propagation-card" onclick="toggleCard(this)">
+                <div class="card-header">
+                    <div class="card-icon">📄</div>
+                    <div class="card-title">NESTED</div>
+                </div>
+                <div class="analogy">
+                    <strong>Russian Dolls:</strong> You create a smaller transaction inside a bigger one, like a doll within a doll. Each can be committed/rolled back independently.
+                </div>
+                <div class="behavior">
+                    <strong>Behavior:</strong> Creates nested transaction (savepoint) if transaction exists, or new transaction if none.
+                </div>
+                <div class="behavior">
+                    <strong>Use Case:</strong> Partial rollback scenarios (not widely supported).
+                </div>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h3>📚 Code Examples</h3>
+            <div style="background: #2c3e50; color: white; padding: 20px; border-radius: 10px; font-family: monospace;">
+                <div style="margin-bottom: 15px;">
+                    <strong>// Default (REQUIRED)</strong><br>
+                    @Transactional<br>
+                    public void saveUser(User user) { ... }
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <strong>// REQUIRES_NEW</strong><br>
+                    @Transactional(propagation = Propagation.REQUIRES_NEW)<br>
+                    public void auditLog(String action) { ... }
+                </div>
+                <div>
+                    <strong>// SUPPORTS</strong><br>
+                    @Transactional(propagation = Propagation.SUPPORTS)<br>
+                    public List&lt;User&gt; findUsers() { ... }
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function toggleCard(card) {
+            // Remove active class from all cards
+            document.querySelectorAll('.propagation-card').forEach(c => c.classList.remove('active'));
+            // Add active class to clicked card
+            card.classList.add('active');
+            card.classList.add('pulsing');
+            setTimeout(() => card.classList.remove('pulsing'), 1000);
+        }
+        
+        function demonstratePropagation(type) {
+            const demoVisual = document.getElementById('demo-visual');
+            
+            switch(type) {
+                case 'REQUIRED':
+                    demoVisual.innerHTML = `
+                        <div class="transaction-box">Existing Transaction</div>
+                        <div style="margin: 0 10px;">→</div>
+                        <div class="transaction-box">Method joins same transaction</div>
+                    `;
+                    break;
+                case 'REQUIRES_NEW':
+                    demoVisual.innerHTML = `
+                        <div class="transaction-box">Existing Transaction (suspended)</div>
+                        <div style="margin: 0 10px;">→</div>
+                        <div class="transaction-box new-transaction">New Transaction</div>
+                    `;
+                    break;
+                case 'SUPPORTS':
+                    demoVisual.innerHTML = `
+                        <div class="transaction-box">Optional Transaction</div>
+                        <div style="margin: 0 10px;">or</div>
+                        <div class="transaction-box no-transaction">No Transaction</div>
+                    `;
+                    break;
+                case 'NOT_SUPPORTED':
+                    demoVisual.innerHTML = `
+                        <div class="transaction-box" style="opacity: 0.5;">Transaction Suspended</div>
+                        <div style="margin: 0 10px;">→</div>
+                        <div class="transaction-box no-transaction">Runs without transaction</div>
+                    `;
+                    break;
+                case 'NEVER':
+                    demoVisual.innerHTML = `
+                        <div class="transaction-box" style="background: #e74c3c;">Transaction Present</div>
+                        <div style="margin: 0 10px;">→</div>
+                        <div class="transaction-box" style="background: #e74c3c;">💥 EXCEPTION!</div>
+                    `;
+                    break;
+            }
+            
+            // Add pulse animation
+            demoVisual.classList.add('pulsing');
+            setTimeout(() => demoVisual.classList.remove('pulsing'), 1000);
+        }
+        
+        // Initialize with REQUIRED demo
+        demonstratePropagation('REQUIRED');
+    </script>
+</body>
+</html>

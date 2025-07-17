@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring JDBC Transaction Handling Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .demo-section {
+            margin-bottom: 40px;
+            padding: 25px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid #667eea;
+        }
+
+        .demo-section h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(45deg, #56ab2f, #a8e6cf);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(45deg, #feca57, #ff9ff3);
+            color: white;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .output {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 20px;
+            border: 2px solid #34495e;
+        }
+
+        .log-entry {
+            margin-bottom: 8px;
+            padding: 8px;
+            border-radius: 5px;
+            animation: slideIn 0.3s ease;
+        }
+
+        .log-info {
+            background: rgba(52, 152, 219, 0.2);
+            border-left: 4px solid #3498db;
+        }
+
+        .log-success {
+            background: rgba(46, 204, 113, 0.2);
+            border-left: 4px solid #2ecc71;
+        }
+
+        .log-error {
+            background: rgba(231, 76, 60, 0.2);
+            border-left: 4px solid #e74c3c;
+        }
+
+        .log-warning {
+            background: rgba(241, 196, 15, 0.2);
+            border-left: 4px solid #f1c40f;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .database-state {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .table-view {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .table-view h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .isolation-level {
+            margin-top: 20px;
+            padding: 15px;
+            background: #ecf0f1;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+        }
+
+        .isolation-level select {
+            padding: 8px;
+            border: 1px solid #bdc3c7;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .transaction-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .info-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info-card h4 {
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+
+        .info-card p {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Spring JDBC Transaction Handling Demo</h1>
+
+        <div class="demo-section">
+    <h2>🧾 Transaction Overview & Setup</h2>
+    <p>
+        Spring transactions help ensure data consistency during operations like money transfers or batch updates.
+        To enable transaction support, make sure to:
+    </p>
+    <ul style="margin: 15px 0 15px 20px; color: #34495e; line-height: 1.6;">
+        <li>Use <code>@EnableTransactionManagement</code> in your configuration class</li>
+        <li>Define a <code>PlatformTransactionManager</code> bean (like <code>DataSourceTransactionManager</code>)</li>
+        <li>Annotate service methods with <code>@Transactional</code></li>
+    </ul>
+    
+</div>
+
+        
+        <div class="demo-section">
+            <h2>🔄 Transaction Basics</h2>
+            <div class="demo-section">
+    <h2>🧬 Transaction Isolation Levels</h2>
+    <p>
+        Isolation levels define how transaction integrity is maintained when multiple transactions occur concurrently.
+        It prevents issues like dirty reads, non-repeatable reads, and phantom reads.
+    </p>
+    <ul style="margin: 15px 0 15px 20px; color: #34495e; line-height: 1.6;">
+        <li><strong>READ_UNCOMMITTED</strong>: Allows dirty reads. One transaction may read uncommitted changes from another.</li>
+        <li><strong>READ_COMMITTED</strong>: Prevents dirty reads. A transaction sees only committed data from others.</li>
+        <li><strong>REPEATABLE_READ</strong>: Ensures rows read remain consistent. Prevents dirty and non-repeatable reads.</li>
+        <li><strong>SERIALIZABLE</strong>: Fully isolates transactions. Ensures complete consistency but least concurrent.</li>
+    </ul>
+    <p>
+        Choosing the right isolation level depends on the balance between <em>data consistency</em> and <em>performance needs</em>.
+    </p>
+</div>
+
+            <div class="controls">
+                <button class="btn-primary" onclick="startTransaction()">Start Transaction</button>
+                <button class="btn-success" onclick="commitTransaction()">Commit</button>
+                <button class="btn-danger" onclick="rollbackTransaction()">Rollback</button>
+                <button class="btn-warning" onclick="resetDatabase()">Reset Database</button>
+            </div>
+            <div class="isolation-level">
+                <label for="isolationLevel">Isolation Level: </label>
+                <select id="isolationLevel" onchange="setIsolationLevel(this.value)">
+                    <option value="READ_UNCOMMITTED">READ_UNCOMMITTED</option>
+                    <option value="READ_COMMITTED" selected>READ_COMMITTED</option>
+                    <option value="REPEATABLE_READ">REPEATABLE_READ</option>
+                    <option value="SERIALIZABLE">SERIALIZABLE</option>
+                </select>
+            </div>
+            <div class="output" id="basicOutput"></div>
+        </div>
+
+        <div class="demo-section">
+            <h2>💰 Bank Transfer Demo (@Transactional)</h2>
+            <div class="controls">
+                <button class="btn-primary" onclick="transferFunds(100, false)">Transfer $100 (Success)</button>
+                <button class="btn-danger" onclick="transferFunds(100, true)">Transfer $100 (Force Error)</button>
+                <button class="btn-warning" onclick="transferFunds(1500, false)">Transfer $1500 (Insufficient Funds)</button>
+            </div>
+            <div class="output" id="transferOutput"></div>
+        </div>
+
+        <div class="demo-section">
+            <h2>📦 Batch Operations</h2>
+            <div class="controls">
+                <button class="btn-primary" onclick="batchInsert(false)">Batch Insert (Success)</button>
+                <button class="btn-danger" onclick="batchInsert(true)">Batch Insert (With Error)</button>
+                <button class="btn-success" onclick="batchUpdate()">Batch Update</button>
+            </div>
+            <div class="output" id="batchOutput"></div>
+        </div>
+
+        <div class="demo-section">
+            <h2>🔄 Propagation Behavior</h2>
+            <p style="margin-bottom: 10px;">
+        To dive deeper into Spring's <strong>Propagation behaviors</strong> like <code>REQUIRED</code>, 
+        <code>REQUIRES_NEW</code>, <code>NESTED</code>, etc., refer to:
+        <a href="https://docs.spring.io/spring-framework/docs/current/reference/html/data-access.html#tx-propagation" target="_blank" style="color: #667eea; font-weight: bold;">
+            Spring Propagation Types Documentation
+        </a>
+         <a href="spring_jdbc_transaction_propagation.html" target="_blank" style="color: #667eea; font-weight: bold;">
+            Spring Propagation with Analogy
+        </a>
+    </p>
+            <div class="controls">
+                <button class="btn-primary" onclick="demonstratePropagation('REQUIRED')">REQUIRED</button>
+                <button class="btn-primary" onclick="demonstratePropagation('REQUIRES_NEW')">REQUIRES_NEW</button>
+                <button class="btn-primary" onclick="demonstratePropagation('NESTED')">NESTED</button>
+                <button class="btn-primary" onclick="demonstratePropagation('SUPPORTS')">SUPPORTS</button>
+            </div>
+            <div class="output" id="propagationOutput"></div>
+        </div>
+
+        <div class="transaction-info">
+            <div class="info-card">
+                <h4>Current Transaction</h4>
+                <p id="currentTransactionInfo">No active transaction</p>
+            </div>
+            <div class="info-card">
+                <h4>Connection Pool</h4>
+                <p id="connectionPoolInfo">Available: 10/10</p>
+            </div>
+            <div class="info-card">
+                <h4>Transaction Count</h4>
+                <p id="transactionCount">Committed: 0 | Rolled back: 0</p>
+            </div>
+        </div>
+
+        <div class="database-state">
+            <div class="table-view">
+                <h3>👥 Accounts Table</h3>
+                <table id="accountsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Balance</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="accountsTableBody">
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="table-view">
+                <h3>📊 Transactions Table</h3>
+                <table id="transactionsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>From</th>
+                            <th>To</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactionsTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="spring_jdbc_transaction_js.js"></script>
+</body>
+</html>
