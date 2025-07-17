@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Guide to Spring Boot JDBC</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 0 20px;
+            background-color: #f9f9f9;
+        }
+        .container {
+            background: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 8px;
+        }
+        h1 { font-size: 2em; }
+        h2 { font-size: 1.5em; }
+        h3 { font-size: 1.2em; color: #34495e; }
+        pre {
+            background-color: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        code {
+            font-family: "Fira Code", "Courier New", monospace;
+            font-size: 0.95em;
+        }
+        .note {
+            background-color: #fffbe6;
+            border-left: 4px solid #f0ad4e;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #ccc;
+        }
+        .tab-button {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: none;
+            background-color: transparent;
+            font-size: 1em;
+            border-bottom: 3px solid transparent;
+        }
+        .tab-button.active {
+            color: #3498db;
+            border-bottom: 3px solid #3498db;
+        }
+        .tab-content {
+            display: none;
+            padding-top: 15px;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+        }
+        th, td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        th {
+            background-color: #3498db;
+            color: white;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🚀 Advanced Guide to Spring Boot JDBC</h1>
+
+        <div class="note">
+            <strong>Audience Note:</strong> This guide is for students who already understand Spring JDBC, `JdbcTemplate`, and `NamedParameterJdbcTemplate`. We will focus on what Spring Boot adds to this foundation.
+        </div>
+
+        <h2>Why Use Spring Boot for JDBC?</h2>
+        <p>Spring Boot simplifies database access by building on top of the core Spring JDBC module. It introduces:</p>
+        <ul>
+            <li><strong>Auto-Configuration:</strong> Automatically configures your `DataSource`, `JdbcTemplate`, and `NamedParameterJdbcTemplate` beans.</li>
+            <li><strong>Simplified Properties:</strong> Externalizes database connection details into `application.properties` or `application.yml`.</li>
+            <li><strong>Production-Ready Connection Pooling:</strong> Includes and auto-configures a high-performance connection pool (HikariCP) by default.</li>
+            <li><strong>Health Checks & Metrics:</strong> Provides database monitoring out-of-the-box via Spring Boot Actuator.</li>
+        </ul>
+        
+        <h2>Spring JDBC vs. Spring Boot JDBC</h2>
+        <p>Spring Boot doesn't replace Spring JDBC; it dramatically simplifies its setup and adds production-grade features.</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Feature</th>
+                    <th>Traditional Spring JDBC</th>
+                    <th>Spring Boot JDBC</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Configuration</strong></td>
+                    <td>Manual XML or Java-based bean definitions (`@Configuration`).</td>
+                    <td>Automatic, based on properties in `application.properties`.</td>
+                </tr>
+                <tr>
+                    <td><strong>DataSource Bean</strong></td>
+                    <td>Must be manually declared and configured.</td>
+                    <td>Auto-configured if a JDBC driver is on the classpath.</td>
+                </tr>
+                <tr>
+                    <td><strong>Connection Pool</strong></td>
+                    <td>Requires manual library inclusion and configuration (e.g., DBCP2, C3P0).</td>
+                    <td><strong>HikariCP</strong> is included and auto-configured by default for superior performance.</td>
+                </tr>
+                <tr>
+                    <td><strong>JdbcTemplate</strong></td>
+                    <td>Must be manually defined and injected with the `DataSource`.</td>
+                    <td>`JdbcTemplate` and `NamedParameterJdbcTemplate` are auto-configured and ready for injection.</td>
+                </tr>
+                <tr>
+                    <td><strong>Database Initialization</strong></td>
+                    <td>Often requires manual scripts or `EmbeddedDatabaseBuilder`.</td>
+                    <td>Automatically runs `schema.sql` and `data.sql` from `src/main/resources`.</td>
+                </tr>
+                 <tr>
+                    <td><strong>Monitoring</strong></td>
+                    <td>Requires manual setup with JMX or third-party libraries.</td>
+                    <td>Built-in health checks and connection metrics via <strong>Spring Boot Actuator</strong>.</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>How Connection Pooling Works</h2>
+        <p>Establishing a database connection is an expensive operation. A **connection pool** is a cache of database connection objects. Instead of creating a new connection for every request, the application borrows a connection from the pool, uses it, and returns it. This drastically improves performance in high-traffic applications.</p>
+        <p>Spring Boot's `spring-boot-starter-jdbc` automatically includes and configures <strong>HikariCP</strong>, a highly optimized connection pool. You can fine-tune its behavior in `application.properties`.</p>
+        <pre><code># application.properties - HikariCP Tuning
+# The maximum number of connections the pool will manage
+spring.datasource.hikari.maximum-pool-size=20
+
+# The minimum number of idle connections to maintain
+spring.datasource.hikari.minimum-idle=5
+
+# The maximum time (in ms) a connection can be idle before being retired
+spring.datasource.hikari.idle-timeout=300000
+
+# The maximum time (in ms) a connection can live in the pool
+spring.datasource.hikari.max-lifetime=1800000
+
+# The time (in ms) to wait for a connection from the pool
+spring.datasource.hikari.connection-timeout=30000</code></pre>
+
+        <h2>Monitoring with Spring Boot Actuator</h2>
+        <p>Spring Boot Actuator exposes operational information about your running application via HTTP endpoints. For JDBC, it's invaluable for monitoring the health and performance of your database connections. To enable it, add the `spring-boot-starter-actuator` dependency.</p>
+        
+        <h3>Health Endpoint (`/actuator/health`)</h3>
+        <p>This endpoint provides a quick summary of your application's health, including the database connection status. If the application can connect to the database, the status will be "UP".</p>
+        <pre><code>// GET /actuator/health
+{
+  "status": "UP",
+  "components": {
+    "db": {
+      "status": "UP",
+      "details": {
+        "database": "MySQL",
+        "validationQuery": "isValid()"
+      }
+    },
+    "diskSpace": {
+      "status": "UP",
+      "details": { ... }
+    }
+  }
+}</code></pre>
+
+        <h3>Metrics Endpoint (`/actuator/metrics`)</h3>
+        <p>This endpoint provides detailed metrics. For HikariCP, you can query specific metrics to see how your connection pool is performing.</p>
+        <p>For example, to check the number of active connections, you would request `/actuator/metrics/hikaricp.connections.active`.</p>
+        <pre><code>// GET /actuator/metrics/hikaricp.connections.active
+{
+  "name": "hikaricp.connections.active",
+  "description": "Active connections",
+  "baseUnit": "connections",
+  "measurements": [
+    {
+      "statistic": "VALUE",
+      "value": 2
+    }
+  ],
+  "availableTags": [ ... ]
+}</code></pre>
+        <p>Other useful metrics include `hikaricp.connections.idle`, `hikaricp.connections.pending`, and `hikaricp.connections.usage`. These endpoints are essential for diagnosing performance issues and ensuring your database layer is healthy in a production environment.</p>
+
+    </div>
+
+    <script>
+        // No script needed for this version as the tabs were removed for clarity.
+        // If you bring back tabs, you can reuse the previous script.
+    </script>
+
+</body>
+</html>

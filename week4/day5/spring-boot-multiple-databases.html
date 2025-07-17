@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Managing Multiple Data Sources in Spring Boot JDBC</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 0 20px;
+            background-color: #f9f9f9;
+        }
+        .container {
+            background: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 8px;
+        }
+        h1 { font-size: 2em; }
+        h2 { font-size: 1.5em; }
+        h3 { font-size: 1.2em; color: #34495e; }
+        pre {
+            background-color: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        code {
+            font-family: "Fira Code", "Courier New", monospace;
+            font-size: 0.95em;
+        }
+        .note {
+            background-color: #e6f7ff;
+            border-left: 4px solid #1890ff;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .highlight {
+            color: #d63384;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Managing Multiple Data Sources in Spring Boot</h2>
+    <p>Applications often need to connect to more than one database. For example, you might need to separate read and write operations, or connect to different databases for different business domains. Spring Boot makes managing multiple data sources straightforward.</p>
+    <p>This guide demonstrates how to configure two distinct data sources: a primary one for `customers` and a secondary one for `orders`.</p>
+
+    <h3>1. Configure Properties for Each Data Source</h3>
+    <p>In your `application.properties` file, define connection details for each data source using unique prefixes.</p>
+    <pre><code># --- Primary Data Source (for Customers) ---
+spring.datasource.primary.jdbc-url=jdbc:h2:mem:customersdb
+spring.datasource.primary.username=sa
+spring.datasource.primary.password=password
+spring.datasource.primary.driver-class-name=org.h2.Driver
+
+# --- Secondary Data Source (for Orders) ---
+spring.datasource.secondary.jdbc-url=jdbc:h2:mem:ordersdb
+spring.datasource.secondary.username=sa
+spring.datasource.secondary.password=password
+spring.datasource.secondary.driver-class-name=org.h2.Driver</code></pre>
+
+    <h3>2. Create a Java Configuration Class</h3>
+    <p>You must manually configure the beans for each data source. Create a `@Configuration` class to define the `DataSource`, `JdbcTemplate`, and `PlatformTransactionManager` for each one.</p>
+    
+    <div class="note">
+        The <span class="highlight">@Primary</span> annotation is crucial. It tells Spring Boot which `DataSource` and `JdbcTemplate` to use by default when autowiring, which resolves ambiguity.
+    </div>
+
+    <pre><code>import javax.sql.DataSource;
+
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.jdbc.DataSourceBuilder;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.platform.transaction.PlatformTransactionManager;
+
+@Configuration
+public class DataSourceConfig {
+
+    // --- Primary DataSource, JdbcTemplate, and Transaction Manager ---
+
+    @Primary
+    @Bean(name = "primaryDataSource")
+    @ConfigurationProperties(prefix = "spring.datasource.primary")
+    public DataSource primaryDataSource() {
+        return DataSourceBuilder.create().build();
+    }
+
+    @Primary
+    @Bean(name = "primaryJdbcTemplate")
+    public JdbcTemplate primaryJdbcTemplate(DataSource primaryDataSource) {
+        return new JdbcTemplate(primaryDataSource);
+    }
+    
+    @Primary
+    @Bean(name="primaryTransactionManager")
+    public PlatformTransactionManager primaryTransactionManager(DataSource primaryDataSource) {
+        return new DataSourceTransactionManager(primaryDataSource);
+    }
+
+    // --- Secondary DataSource, JdbcTemplate, and Transaction Manager ---
+
+    @Bean(name = "secondaryDataSource")
+    @ConfigurationProperties(prefix = "spring.datasource.secondary")
+    public DataSource secondaryDataSource() {
+        return DataSourceBuilder.create().build();
+    }
+
+    @Bean(name = "secondaryJdbcTemplate")
+    public JdbcTemplate secondaryJdbcTemplate(DataSource secondaryDataSource) {
+        return new JdbcTemplate(secondaryDataSource);
+    }
+    
+    @Bean(name="secondaryTransactionManager")
+    public PlatformTransactionManager secondaryTransactionManager(DataSource secondaryDataSource) {
+        return new DataSourceTransactionManager(secondaryDataSource);
+    }
+}</code></pre>
+
+    <h3>3. Use the Data Sources in Repositories</h3>
+    <p>To use a specific `JdbcTemplate`, you must use the <span class="highlight">@Qualifier</span> annotation to specify which bean to inject. The primary bean can be autowired directly without `@Qualifier`.</p>
+
+    <h4>Customer Repository (Using the Primary Data Source)</h4>
+    <pre><code>import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public class CustomerRepository {
+
+    private final JdbcTemplate jdbcTemplate;
+
+    // The @Primary bean is injected by default
+    @Autowired
+    public CustomerRepository(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
+    public void createCustomer(String name) {
+        jdbcTemplate.update("INSERT INTO customers (name) VALUES (?)", name);
+    }
+}</code></pre>
+
+    <h4>Order Repository (Using the Secondary Data Source)</h4>
+    <p>Here, <span class="highlight">@Qualifier("secondaryJdbcTemplate")</span> is required to inject the non-primary `JdbcTemplate`.</p>
+    <pre><code>import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public class OrderRepository {
+
+    private final JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    public OrderRepository(@Qualifier("secondaryJdbcTemplate") JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
+    public int countOrders() {
+        return jdbcTemplate.queryForObject("SELECT COUNT(*) FROM orders", Integer.class);
+    }
+}</code></pre>
+    
+    <h3>Key Takeaways</h3>
+    <ul>
+        <li><strong>Separate Properties:</strong> Use distinct prefixes in `application.properties` for each data source.</li>
+        <li><strong>Explicit Bean Configuration:</strong> Create a `@Configuration` class to define all data source-related beans.</li>
+        <li><strong>Use `@Primary`:</strong> Designate one data source as the default to avoid injection conflicts.</li>
+        <li><strong>Use `@Qualifier`:</strong> When injecting a non-primary bean, use `@Qualifier` with the bean name to specify your choice.</li>
+        <li><strong>Transactional Integrity:</strong> Define a `PlatformTransactionManager` for each data source to manage transactions correctly. To use a specific transaction manager, you would annotate your method like so: `@Transactional("secondaryTransactionManager")`.</li>
+    </ul>
+
+</div>
+
+</body>
+</html>
