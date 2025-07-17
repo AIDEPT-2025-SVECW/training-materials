@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring JDBC Transaction Isolation Levels</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .default-info {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            color: white;
+            text-align: center;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+
+        .isolation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .isolation-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 3px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .isolation-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .isolation-card.active {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .isolation-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .isolation-level {
+            font-size: 1.4em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .isolation-card.active .isolation-level {
+            color: white;
+        }
+
+        .analogy {
+            background: rgba(102, 126, 234, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border-left: 4px solid #667eea;
+        }
+
+        .isolation-card.active .analogy {
+            background: rgba(255, 255, 255, 0.2);
+            border-left-color: white;
+        }
+
+        .problems {
+            margin-top: 15px;
+        }
+
+        .problem {
+            background: rgba(245, 87, 108, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            margin: 8px 0;
+            border-left: 3px solid #f5576c;
+        }
+
+        .isolation-card.active .problem {
+            background: rgba(255, 255, 255, 0.15);
+            border-left-color: white;
+        }
+
+        .demo-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .demo-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .demo-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .demo-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .demo-output {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 100px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+
+        .memory-tip {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+            text-align: center;
+            font-weight: bold;
+            color: #2d3436;
+        }
+
+        .code-example {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+
+        .highlight {
+            background: rgba(255, 255, 0, 0.3);
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        .read-problems {
+    background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+    border-radius: 15px;
+    padding: 25px;
+    margin: 30px 0;
+    color: #2c3e50;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+.read-problems h2 {
+    font-size: 1.8em;
+    margin-bottom: 15px;
+    color: #2c3e50;
+    text-shadow: 1px 1px rgba(255, 255, 255, 0.2);
+}
+
+.read-problems ul {
+    margin-left: 20px;
+    line-height: 1.6;
+    list-style-type: disc;
+    color: #2d3436;
+}
+
+.read-problems li {
+    margin-bottom: 10px;
+    background: rgba(255, 255, 255, 0.3);
+    padding: 10px 15px;
+    border-radius: 10px;
+    border-left: 4px solid #ff7675;
+}
+
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .isolation-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔒 Spring JDBC Transaction Isolation Levels</h1>
+        
+        <div class="default-info">
+            <h2>🎯 Default Isolation Level</h2>
+            <div class="read-problems">
+    <h2>🔍 Understanding Transaction Read Problems</h2>
+    <p>When multiple transactions access the database simultaneously, concurrency issues can occur. The most common ones are:</p>
+    <ul>
+        <li><strong>Dirty Read:</strong> A transaction reads data written by another transaction that has not yet been committed. If the other transaction rolls back, the read data is invalid.</li>
+        <li><strong>Non-Repeatable Read:</strong> A row is read twice within a transaction and the data is different because another transaction modified it in between.</li>
+        <li><strong>Phantom Read:</strong> A query returns a different number of rows when re-executed within the same transaction because new rows were added by another transaction.</li>
+    </ul>
+</div>
+
+
+            <p><strong>READ_COMMITTED</strong> is the default isolation level in most databases (MySQL, PostgreSQL, SQL Server, Oracle)</p>
+            <p>Think of it as a "Balanced Approach" - Not too strict, not too loose!</p>
+        </div>
+
+        <div class="isolation-grid">
+            <div class="isolation-card" data-level="READ_UNCOMMITTED">
+                <div class="isolation-level">READ_UNCOMMITTED</div>
+                <p><strong>Level:</strong> Lowest isolation (Level 0)</p>
+                
+                <div class="analogy">
+                    <h4>🏠 Analogy: The Messy Kitchen</h4>
+                    <p>Imagine cooking in a kitchen where you can see and use ingredients that others are still preparing (even half-cooked food). You might grab spoiled milk that someone was about to throw away!</p>
+                </div>
+
+                <div class="problems">
+                    <h4>Problems Allowed:</h4>
+                    <div class="problem">✅ Dirty Reads - Reading uncommitted data</div>
+                    <div class="problem">✅ Non-repeatable Reads - Same query, different results</div>
+                    <div class="problem">✅ Phantom Reads - New rows appearing</div>
+                </div>
+
+                <div class="code-example">
+@Transactional(isolation = Isolation.READ_UNCOMMITTED)
+public void readUncommittedExample() {
+    // Can read dirty data!
+}</div>
+            </div>
+
+            <div class="isolation-card" data-level="READ_COMMITTED">
+                <div class="isolation-level">READ_COMMITTED ⭐</div>
+                <p><strong>Level:</strong> Default level (Level 1)</p>
+                
+                <div class="analogy">
+                    <h4>🏪 Analogy: The Grocery Store</h4>
+                    <p>You can only buy items that are properly stocked and priced on shelves. But while you're shopping, prices might change or items might go out of stock!</p>
+                </div>
+
+                <div class="problems">
+                    <h4>Problems Allowed:</h4>
+                    <div class="problem">❌ Dirty Reads - Prevented</div>
+                    <div class="problem">✅ Non-repeatable Reads - Same query, different results</div>
+                    <div class="problem">✅ Phantom Reads - New rows appearing</div>
+                </div>
+
+                <div class="code-example">
+@Transactional(isolation = Isolation.READ_COMMITTED)
+public void readCommittedExample() {
+    // Default behavior - balanced approach
+}</div>
+            </div>
+
+            <div class="isolation-card" data-level="REPEATABLE_READ">
+                <div class="isolation-level">REPEATABLE_READ</div>
+                <p><strong>Level:</strong> Higher isolation (Level 2)</p>
+                
+                <div class="analogy">
+                    <h4>📚 Analogy: The Library Reading Room</h4>
+                    <p>Once you start reading a book, the content won't change even if someone else modifies the original. But new books might appear on the shelf!</p>
+                </div>
+
+                <div class="problems">
+                    <h4>Problems Allowed:</h4>
+                    <div class="problem">❌ Dirty Reads - Prevented</div>
+                    <div class="problem">❌ Non-repeatable Reads - Prevented</div>
+                    <div class="problem">✅ Phantom Reads - New rows appearing</div>
+                </div>
+
+                <div class="code-example">
+@Transactional(isolation = Isolation.REPEATABLE_READ)
+public void repeatableReadExample() {
+    // Same data on repeated reads
+}</div>
+            </div>
+
+            <div class="isolation-card" data-level="SERIALIZABLE">
+                <div class="isolation-level">SERIALIZABLE</div>
+                <p><strong>Level:</strong> Highest isolation (Level 3)</p>
+                
+                <div class="analogy">
+                    <h4>🏛️ Analogy: The Private Museum</h4>
+                    <p>You get the entire museum to yourself! No one else can enter, add exhibits, or modify anything while you're visiting. Complete isolation but slowest experience.</p>
+                </div>
+
+                <div class="problems">
+                    <h4>Problems Allowed:</h4>
+                    <div class="problem">❌ Dirty Reads - Prevented</div>
+                    <div class="problem">❌ Non-repeatable Reads - Prevented</div>
+                    <div class="problem">❌ Phantom Reads - Prevented</div>
+                </div>
+
+                <div class="code-example">
+@Transactional(isolation = Isolation.SERIALIZABLE)
+public void serializableExample() {
+    // Maximum isolation, minimum performance
+}</div>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>🎮 Interactive Demo</h2>
+            <div class="demo-controls">
+                <button class="demo-btn" onclick="showDirtyRead()">Dirty Read Example</button>
+                <button class="demo-btn" onclick="showNonRepeatable()">Non-repeatable Read</button>
+                <button class="demo-btn" onclick="showPhantom()">Phantom Read</button>
+                <button class="demo-btn" onclick="showComparison()">Level Comparison</button>
+            </div>
+            <div class="demo-output" id="demoOutput">
+Click a button above to see examples of different isolation problems!
+            </div>
+        </div>
+
+        <div class="memory-tip">
+            <h3>🧠 Memory Trick: "RURU" (Read-Uncommitted, Read-Committed, Repeatable-Read, Serializable)</h3>
+            <p>Think: "RURU is getting stricter!" - Each level adds more protection but reduces performance</p>
+            <p><strong>Default = READ_COMMITTED</strong> - Remember: "Most databases READ what's COMMITTED by default"</p>
+        </div>
+    </div>
+
+    <script>
+        // Add click handlers for isolation cards
+        document.querySelectorAll('.isolation-card').forEach(card => {
+            card.addEventListener('click', function() {
+                // Remove active class from all cards
+                document.querySelectorAll('.isolation-card').forEach(c => c.classList.remove('active'));
+                // Add active class to clicked card
+                this.classList.add('active');
+                
+                // Show details for selected isolation level
+                const level = this.dataset.level;
+                showIsolationDetails(level);
+            });
+        });
+
+        function showDirtyRead() {
+            const output = document.getElementById('demoOutput');
+            output.innerHTML = `
+🔍 DIRTY READ Example:
+
+Transaction A: BEGIN
+Transaction A: UPDATE accounts SET balance = 1000 WHERE id = 1;
+                (Not committed yet!)
+
+Transaction B: SELECT balance FROM accounts WHERE id = 1;
+                Result: 1000 (DIRTY READ!)
+
+Transaction A: ROLLBACK;
+                (Oops! The 1000 was never real!)
+
+Transaction B: SELECT balance FROM accounts WHERE id = 1;
+                Result: 500 (The original value)
+
+🚨 Problem: Transaction B read data that was never committed!
+💡 Solution: Use READ_COMMITTED or higher isolation level.
+            `;
+        }
+
+        function showNonRepeatable() {
+            const output = document.getElementById('demoOutput');
+            output.innerHTML = `
+🔍 NON-REPEATABLE READ Example:
+
+Transaction A: BEGIN
+Transaction A: SELECT balance FROM accounts WHERE id = 1;
+                Result: 500
+
+Transaction B: UPDATE accounts SET balance = 1000 WHERE id = 1;
+Transaction B: COMMIT;
+
+Transaction A: SELECT balance FROM accounts WHERE id = 1;
+                Result: 1000 (Different from first read!)
+
+🚨 Problem: Same query returned different results within same transaction!
+💡 Solution: Use REPEATABLE_READ or SERIALIZABLE isolation level.
+            `;
+        }
+
+        function showPhantom() {
+            const output = document.getElementById('demoOutput');
+            output.innerHTML = `
+🔍 PHANTOM READ Example:
+
+Transaction A: BEGIN
+Transaction A: SELECT COUNT(*) FROM accounts WHERE balance > 500;
+                Result: 5 rows
+
+Transaction B: INSERT INTO accounts (balance) VALUES (1000);
+Transaction B: COMMIT;
+
+Transaction A: SELECT COUNT(*) FROM accounts WHERE balance > 500;
+                Result: 6 rows (New phantom row appeared!)
+
+🚨 Problem: New rows appeared that match the WHERE condition!
+💡 Solution: Use SERIALIZABLE isolation level.
+            `;
+        }
+
+        function showComparison() {
+            const output = document.getElementById('demoOutput');
+            output.innerHTML = `
+📊 ISOLATION LEVEL COMPARISON:
+
+Level               | Dirty | Non-Rep | Phantom | Performance
+==========================================
+READ_UNCOMMITTED   |  ✅   |   ✅    |   ✅    |   🚀🚀🚀
+READ_COMMITTED     |  ❌   |   ✅    |   ✅    |   🚀🚀
+REPEATABLE_READ    |  ❌   |   ❌    |   ✅    |   🚀
+SERIALIZABLE       |  ❌   |   ❌    |   ❌    |   🐌
+
+✅ = Problem can occur
+❌ = Problem prevented
+🚀 = Faster performance
+🐌 = Slower performance
+
+💡 Default Choice: READ_COMMITTED
+   - Good balance of consistency and performance
+   - Prevents dirty reads (most critical)
+   - Allows some concurrency
+            `;
+        }
+
+        function showIsolationDetails(level) {
+            const details = {
+                'READ_UNCOMMITTED': 'Fastest but allows all concurrency problems. Use only when performance is critical and data consistency is not important.',
+                'READ_COMMITTED': 'Default level. Good balance of performance and consistency. Prevents dirty reads while allowing good concurrency.',
+                'REPEATABLE_READ': 'Ensures consistent reads within a transaction. Good for financial applications where data shouldn\'t change mid-transaction.',
+                'SERIALIZABLE': 'Highest isolation. Transactions execute as if they were serialized. Use for critical operations where absolute consistency is required.'
+            };
+            
+            console.log(`Selected: ${level} - ${details[level]}`);
+        }
+
+        // Set default active card
+        document.querySelector('[data-level="READ_COMMITTED"]').classList.add('active');
+    </script>
+</body>
+</html>
