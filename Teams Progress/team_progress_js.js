@@ -8,13 +8,18 @@
 const TEAM_PROGRESS_CONFIG = {
     aids: {
         fileName: 'AIDS-Teams-withLeaders.xlsx',
-        filePath: './AIDS-Teams-withLeaders.xlsx', // Adjust path as needed
+        filePath: './AIDS-Teams-withLeaders.xlsx', 
         displayName: 'AIDS Team Progress Report'
     },
     aiml: {
         fileName: 'AIML-Teams-withLeaders.xlsx',
-        filePath: './AIML-Teams-withLeaders.xlsx', // Adjust path as needed
+        filePath: './AIML-Teams-withLeaders.xlsx', 
         displayName: 'AI/ML Team Progress Report'
+    },
+    batch1_2025:{
+        fileName: 'batch1-2025-teams.xlsx',
+        filePath: './batch1-2025-teams.xlsx', 
+        displayName: 'Batch1-2025 Team Progress Report'
     }
 };
 
