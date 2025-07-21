@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring Boot JPQL Query Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 30px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 5px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px 20px;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .tab.active {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .tab:hover:not(.active) {
+            background: #e9ecef;
+        }
+
+        .content {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .query-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-left: 5px solid #667eea;
+            transition: all 0.3s ease;
+        }
+
+        .query-section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .query-title {
+            font-size: 1.3rem;
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .query-title::before {
+            content: '🔍';
+            font-size: 1.2rem;
+        }
+
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            overflow-x: auto;
+            margin: 15px 0;
+            position: relative;
+        }
+
+        .code-block::before {
+            content: attr(data-lang);
+            position: absolute;
+            top: -10px;
+            right: 15px;
+            background: #667eea;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .keyword { color: #f7fafc; font-weight: bold; }
+        .string { color: #68d391; }
+        .annotation { color: #fbb6ce; }
+        .parameter { color: #90cdf4; }
+        .comment { color: #a0aec0; font-style: italic; }
+
+        .description {
+            color: #555;
+            line-height: 1.6;
+            margin: 15px 0;
+        }
+
+        .try-button {
+            background: linear-gradient(45deg, #48bb78, #38a169);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin-top: 15px;
+        }
+
+        .try-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(72, 187, 120, 0.4);
+        }
+
+        .result-box {
+            background: #e6fffa;
+            border: 2px solid #38b2ac;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .result-box.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; max-height: 0; }
+            to { opacity: 1; max-height: 200px; }
+        }
+
+        .entity-model {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .entity-title {
+            font-size: 1.4rem;
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .entity-fields {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .field {
+            background: rgba(255, 255, 255, 0.7);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .field-name {
+            font-weight: bold;
+            color: #2d3748;
+        }
+
+        .field-type {
+            color: #667eea;
+            font-size: 0.9rem;
+        }
+
+        .interactive-query {
+            background: #fff;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .query-input {
+            width: 100%;
+            min-height: 100px;
+            padding: 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            resize: vertical;
+        }
+
+        .query-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .execute-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 500;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .execute-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .tips {
+            background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 30px;
+        }
+
+        .tips h3 {
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .tips ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .tips li {
+            margin-bottom: 10px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .tips li::before {
+            content: '💡';
+            position: absolute;
+            left: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Spring Boot JPQL Query Demo</h1>
+            <p>Interactive demonstration of custom JPQL queries with Spring Data JPA</p>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" onclick="showTab('basic')">Basic Queries</div>
+            <div class="tab" onclick="showTab('advanced')">Advanced Queries</div>
+            <div class="tab" onclick="showTab('relationships')">Relationships</div>
+            <div class="tab" onclick="showTab('playground')">Query Playground</div>
+        </div>
+
+        <!-- Entity Model -->
+        <div class="entity-model">
+            <div class="entity-title">📊 Sample Entity Models</div>
+            <div class="entity-fields">
+                <div class="field">
+                    <div class="field-name">User Entity</div>
+                    <div class="field-type">id, username, email, age, active</div>
+                </div>
+                <div class="field">
+                    <div class="field-name">Product Entity</div>
+                    <div class="field-type">id, name, price, category, inStock</div>
+                </div>
+                <div class="field">
+                    <div class="field-name">Order Entity</div>
+                    <div class="field-type">id, user, products, orderDate, total</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Basic Queries Tab -->
+        <div id="basic" class="content active">
+            <div class="query-section">
+                <div class="query-title">Simple SELECT Query</div>
+                <div class="description">Basic JPQL query to select all users from the database.</div>
+                <div class="code-block" data-lang="Repository">@Repository
+public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
+    
+    <span class="annotation">@Query</span>(<span class="string">"SELECT u FROM User u"</span>)
+    List&lt;User&gt; findAllUsers();
+}</div>
+                <button class="try-button" onclick="showResult(this, 'Returns: List of all User entities')">Try Query</button>
+                <div class="result-box">Returns: List of all User entities</div>
+            </div>
+
+            <div class="query-section">
+                <div class="query-title">WHERE Clause with Parameters</div>
+                <div class="description">Query with named parameters for filtering results.</div>
+                <div class="code-block" data-lang="Repository">@Repository
+public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
+    
+    <span class="annotation">@Query</span>(<span class="string">"SELECT u FROM User u WHERE u.age > :minAge AND u.active = :status"</span>)
+    List&lt;User&gt; findActiveUsersByAge(<span class="annotation">@Param</span>(<span class="string">"minAge"</span>) <span class="keyword">int</span> minAge, 
+                                   <span class="annotation">@Param</span>(<span class="string">"status"</span>) <span class="keyword">boolean</span> active);
+}</div>
+                <button class="try-button" onclick="showResult(this, 'Returns: List of active users older than specified age')">Try Query</button>
+                <div class="result-box">Returns: List of active users older than specified age</div>
+            </div>
+
+            <div class="query-section">
+                <div class="query-title">SELECT Specific Fields</div>
+                <div class="description">Project only specific fields instead of the entire entity.</div>
+                <div class="code-block" data-lang="Repository">@Repository
+public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
+    
+    <span class="annotation">@Query</span>(<span class="string">"SELECT u.username, u.email FROM User u WHERE u.active = true"</span>)
+    List&lt;Object[]&gt; findActiveUserInfo();
+    
+    <span class="comment">// Or using constructor expression</span>
+    <span class="annotation">@Query</span>(<span class="string">"SELECT NEW com.example.dto.UserDTO(u.username, u.email) FROM User u"</span>)
+    List&lt;UserDTO&gt; findActiveUserDTOs();
+}</div>
+                <button class="try-button" onclick="showResult(this, 'Returns: Projected fields as Object[] or DTO')">Try Query</button>
+                <div class="result-box">Returns: Projected fields as Object[] or DTO</div>
+            </div>
+
+            <div class="query-section">
+                <div class="query-title">ORDER BY and LIMIT</div>
+                <div class="description">Sorting results and limiting the number of returned records.</div>
+                <div class="code-block" data-lang="Repository">@Repository
+public interface ProductRepository extends JpaRepository&lt;Product, Long&gt; {
+    
+    <span class="annotation">@Query</span>(<span class="string">"SELECT p FROM Product p WHERE p.price > :minPrice ORDER BY p.price DESC"</span>)
+    List&lt;Product&gt; findExpensiveProducts(<span class="annotation">@Param</span>(<span class="string">"minPrice"</span>) BigDecimal minPrice, Pageable pageable);
+    
+    <span class="comment">// Using TOP/FIRST keyword</span>
+    <span class="annotation">@Query</span>(<span class="string">"SELECT p FROM Product p ORDER BY p.price DESC"</span>)
+    List&lt;Product&gt; findTop5ByOrderByPriceDesc(Pageable pageable);
+}</div>
+                <button class="try-button" onclick="showResult(this, 'Returns: Sorted products with pagination support')">Try Query</button>
+                <div class="result-box">Returns: Sorted products with pagination support</div>
+            </div>
+        </div>
+
+        <!-- Advanced Queries Tab -->
+        <div id="advanced" class="content">
+            <div class="query-section">
+                <div class="query-title">Aggregate Functions</div>
+                <div class="description">Using COUNT, SUM, AVG, MIN, MAX functions in JPQL.</div>
+                <div class="code-block" data-lang="Repository">@Repository
+public interface OrderRepository extends JpaRepository&lt;Order, Long&gt; {
+    
+    <span class="annotation">@Query</span>(<span class="string">"SELECT COUNT(o) FROM Order o WHERE o.orderDate > :date"</span>)
+    <span class="keyword">long</span> countOrdersAfterDate(<span class="annotation">@Param</span>(<span class="string">"date"</span>) LocalDate date);
+    
+    <span class="annotation">@Query</span>(<span class="string">"SELECT AVG(o.total), SUM(o.total), MIN(o.total), MAX(o.total) FROM Order o"</span>)
+    Object[] getOrderStatistics();
+    
+    <span class="annotation">@Query</span>(<span class="string">"SELECT u.username, COUNT(o) FROM User u LEFT JOIN u.orders o GROUP BY u.id, u.username"</span>)
+    List&lt;Object[]&gt; getUserOrderCounts();
+}</div>
+                <button class="try-button" onclick="showResult(this, 'Returns: Aggregated statistics and grouped data')">Try Query</button>
+                <div class="result-box">Returns: Aggregated statistics and grouped data</div>
+            </div>
+
+            <div class="query-section">
+                <div class="query-title">LIKE and Pattern Matching</div>
+                <div class="description">String pattern matching with wildcards and case sensitivity.</div>
+                <div class="code-block" data-lang="Repository">@Repository
+public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
+    
+    <span class="annotation">@Query</span>(<span class="string">"SELECT u FROM User u WHERE u.username LIKE %:pattern%"</span>)
+    List&lt;User&gt; findUsersByUsernamePattern(<span class="annotation">@Param</span>(<span class="string">"pattern"</span>) String pattern);
+    
+    <span class="annotation">@Query</span>(<span class="string">"SELECT u FROM User u WHERE LOWER(u.email) LIKE LOWER(CONCAT('%', :domain, '%'))"</span>)
+    List&lt;User&gt; findUsersByEmailDomain(<span class="annotation">@Param</span>(<span class="string">"domain"</span>) String domain);
+    
+    <span class="annotation">@Query</span>(<span class="string">"SELECT u FROM User u WHERE u.username LIKE :prefix% OR u.username LIKE %:suffix"</span>)
+    List&lt;User&gt; findUsersByPrefixOrSuffix(<span class="annotation">@Param</span>(<span class="string">"prefix"</span>) String prefix, 
+                                        <span class="annotation">@Param</span>(<span class="string">"suffix"</span>) String suffix);
+}</div>
+                <button class="try-button" onclick="showResult(this, 'Returns: Users matching string patterns')">Try Query</button>
+                <div class="result-box">Returns: Users matching string patterns</div>
+            </div>
+
+            <div class="query-section">
+                <div class="query-title">IN and BETWEEN Operators</div>
+                <div class="description">Using IN for multiple values and BETWEEN for ranges.</div>
+                <div class="code-block" data-lang="Repository">@Repository
+public interface ProductRepository extends JpaRepository&lt;Product, Long&gt; {
+    
+    <span class="annotation">@Query</span>(<span class="string">"SELECT p FROM Product p WHERE p.category IN :categories"</span>)
+    List&lt;Product&gt; findProductsByCategories(<span class="annotation">@Param</span>(<span class="string">"categories"</span>) List&lt;String&gt; categories);
+    
+    <span class="annotation">@Query</span>(<span class="string">"SELECT p FROM Product p WHERE p.price BETWEEN :minPrice AND :maxPrice"</span>)
+    List&lt;Product&gt; findProductsByPriceRange(<span class="annotation">@Param</span>(<span class="string">"minPrice"</span>) BigDecimal minPrice,
+                                           <span class="annotation">@Param</span>(<span class="string">"maxPrice"</span>) BigDecimal maxPrice);
+    
+    <span class="annotation">@Query</span>(<span class="string">"SELECT p FROM Product p WHERE p.id NOT IN :excludedIds"</span>)
+    List&lt;Product&gt; findProductsExcludingIds(<span class="annotation">@Param</span>(<span class="string">"excludedIds"</span>) List&lt;Long&gt; excludedIds);
+}</div>
+                <button class="try-button" onclick="showResult(this, 'Returns: Products filtered by lists and ranges')">Try Query</button>
+                <div class="result-box">Returns: Products filtered by lists and ranges</div>
+            </div>
+
+            <div class="query-section">
+                <div class="query-title">Subqueries</div>
+                <div class="description">Using subqueries for complex filtering conditions.</div>
+                <div class="code-block" data-lang="Repository">@Repository
+public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
+    
+    <span class="annotation">@Query</span>(<span class="string">"SELECT u FROM User u WHERE u.id IN (SELECT o.user.id FROM Order o WHERE o.total > :amount)"</span>)
+    List&lt;User&gt; findUsersWithHighValueOrders(<span class="annotation">@Param</span>(<span class="string">"amount"</span>) BigDecimal amount);
+    
+    <span class="annotation">@Query</span>(<span class="string">"SELECT u FROM User u WHERE u.age > (SELECT AVG(u2.age) FROM User u2)"</span>)
+    List&lt;User&gt; findUsersOlderThanAverage();
+    
+    <span class="annotation">@Query</span>(<span class="string">"SELECT u FROM User u WHERE NOT EXISTS (SELECT o FROM Order o WHERE o.user = u)"</span>)
+    List&lt;User&gt; findUsersWithoutOrders();
+}</div>
+                <button class="try-button" onclick="showResult(this, 'Returns: Users based on subquery conditions')">Try Query</button>
+                <div class="result-box">Returns: Users based on subquery conditions</div>
+            </div>
+        </div>
+
+        <!-- Relationships Tab -->
+        <div id="relationships" class="content">
+            <div class="query-section">
+                <div class="query-title">JOIN Operations</div>
+                <div class="description">Different types of JOIN operations in JPQL.</div>
+                <div class="code-block" data-lang="Repository">@Repository
+public interface OrderRepository extends JpaRepository&lt;Order, Long&gt; {
+    
+    <span class="comment">// INNER JOIN</span>
+    <span class="annotation">@Query</span>(<span class="string">"SELECT o FROM Order o JOIN o.user u WHERE u.active = true"</span>)
+    List&lt;Order&gt; findOrdersForActiveUsers();
+    
+    <span class="comment">// LEFT JOIN</span>
+    <span class="annotation">@Query</span>(<span class="string">"SELECT u, COUNT(o) FROM User u LEFT JOIN u.orders o GROUP BY u"</span>)
+    List&lt;Object[]&gt; findUsersWithOrderCount();
+    
+    <span class="comment">// JOIN FETCH (Eager Loading)</span>
+    <span class="annotation">@Query</span>(<span class="string">"SELECT o FROM Order o JOIN FETCH o.user WHERE o.orderDate > :date"</span>)
+    List&lt;Order&gt; findOrdersWithUserDetails(<span class="annotation">@Param</span>(<span class="string">"date"</span>) LocalDate date);
+}</div>
+                <button class="try-button" onclick="showResult(this, 'Returns: Related entities with various JOIN strategies')">Try Query</button>
+                <div class="result-box">Returns: Related entities with various JOIN strategies</div>
+            </div>
+
+            <div class="query-section">
+                <div class="query-title">Collection Operations</div>
+                <div class="description">Working with collection properties in entities.</div>
+                <div class="code-block" data-lang="Repository">@Repository
+public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
+    
+    <span class="comment">// SIZE function for collection size</span>
+    <span class="annotation">@Query</span>(<span class="string">"SELECT u FROM User u WHERE SIZE(u.orders) > :minOrders"</span>)
+    List&lt;User&gt; findUsersWithMinimumOrders(<span class="annotation">@Param</span>(<span class="string">"minOrders"</span>) <span class="keyword">int</span> minOrders);
+    
+    <span class="comment">// MEMBER OF for collection membership</span>
+    <span class="annotation">@Query</span>(<span class="string">"SELECT o FROM Order o WHERE :product MEMBER OF o.products"</span>)
+    List&lt;Order&gt; findOrdersContainingProduct(<span class="annotation">@Param</span>(<span class="string">"product"</span>) Product product);
+    
+    <span class="comment">// IS EMPTY for empty collections</span>
+    <span class="annotation">@Query</span>(<span class="string">"SELECT u FROM User u WHERE u.orders IS EMPTY"</span>)
+    List&lt;User&gt; findUsersWithNoOrders();
+}</div>
+                <button class="try-button" onclick="showResult(this, 'Returns: Entities based on collection properties')">Try Query</button>
+                <div class="result-box">Returns: Entities based on collection properties</div>
+            </div>
+
+            <div class="query-section">
+                <div class="query-title">Complex Relationships</div>
+                <div class="description">Navigate through multiple entity relationships.</div>
+                <div class="code-block" data-lang="Repository">@Repository
+public interface ProductRepository extends JpaRepository&lt;Product, Long&gt; {
+    
+    <span class="comment">// Navigation through multiple relationships</span>
+    <span class="annotation">@Query</span>(<span class="string">"SELECT p FROM Product p JOIN p.orders o JOIN o.user u WHERE u.age BETWEEN :minAge AND :maxAge"</span>)
+    List&lt;Product&gt; findProductsOrderedByAgeGroup(<span class="annotation">@Param</span>(<span class="string">"minAge"</span>) <span class="keyword">int</span> minAge,
+                                                <span class="annotation">@Param</span>(<span class="string">"maxAge"</span>) <span class="keyword">int</span> maxAge);
+    
+    <span class="comment">// Complex filtering with relationships</span>
+    <span class="annotation">@Query</span>(<span class="string">"SELECT DISTINCT p FROM Product p JOIN p.orders o WHERE o.orderDate > :date AND o.total > :amount"</span>)
+    List&lt;Product&gt; findProductsInRecentHighValueOrders(<span class="annotation">@Param</span>(<span class="string">"date"</span>) LocalDate date,
+                                                      <span class="annotation">@Param</span>(<span class="string">"amount"</span>) BigDecimal amount);
+}</div>
+                <button class="try-button" onclick="showResult(this, 'Returns: Products based on complex relationship conditions')">Try Query</button>
+                <div class="result-box">Returns: Products based on complex relationship conditions</div>
+            </div>
+        </div>
+
+        <!-- Query Playground Tab -->
+        <div id="playground" class="content">
+            <div class="interactive-query">
+                <h3>🎮 Try Your Own JPQL Query</h3>
+                <p>Write and test your JPQL queries in the editor below:</p>
+                
+                <textarea class="query-input" id="queryInput" placeholder="Example: SELECT u FROM User u WHERE u.age > :age">SELECT u FROM User u WHERE u.active = true ORDER BY u.username</textarea>
+                
+                <button class="execute-btn" onclick="executeQuery()">Execute Query</button>
+                
+                <div id="queryResult" class="result-box">
+                    Your query results will appear here...
+                </div>
+            </div>
+
+            <div class="tips">
+                <h3>💡 JPQL Query Tips</h3>
+                <ul>
+                    <li>Always use entity names (not table names) in FROM clauses</li>
+                    <li>Use named parameters (:paramName) instead of positional parameters (?1)</li>
+                    <li>Remember to use @Param annotation for named parameters</li>
+                    <li>Use JOIN FETCH for eager loading to avoid N+1 problems</li>
+                    <li>Consider using Pageable for large result sets</li>
+                    <li>Use constructor expressions for DTOs: NEW com.example.dto.UserDTO(...)</li>
+                    <li>JPQL is case-insensitive for keywords but case-sensitive for entity and property names</li>
+                    <li>Use DISTINCT to avoid duplicate results in JOIN queries</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Store query results for demonstration
+        let queryResults = {
+            'basic': [
+                'SELECT u FROM User u → Returns: List<User> with all user entities',
+                'WHERE clause with parameters → Returns: Filtered List<User> based on age and status',
+                'SELECT specific fields → Returns: Object[] or DTO with projected data',
+                'ORDER BY and pagination → Returns: Sorted and paginated results'
+            ],
+            'advanced': [
+                'Aggregate functions → Returns: Statistical data (count, average, sum, etc.)',
+                'LIKE pattern matching → Returns: Users matching string patterns',
+                'IN and BETWEEN → Returns: Filtered results based on lists and ranges',
+                'Subqueries → Returns: Complex filtered results using nested queries'
+            ],
+            'relationships': [
+                'JOIN operations → Returns: Related entities with various join strategies',
+                'Collection operations → Returns: Entities based on collection properties',
+                'Complex relationships → Returns: Data from multi-level entity relationships'
+            ]
+        };
+
+        function showTab(tabName) {
+            // Hide all content
+            document.querySelectorAll('.content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected content and activate tab
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function showResult(button, resultText) {
+            const resultBox = button.nextElementSibling;
+            const isVisible = resultBox.classList.contains('show');
+            
+            if (isVisible) {
+                resultBox.classList.remove('show');
+                button.textContent = 'Try Query';
+            } else {
+                resultBox.textContent = resultText;
+                resultBox.classList.add('show');
+                button.textContent = 'Hide Result';
+            }
+        }
+
+        function executeQuery() {
+            const queryInput = document.getElementById('queryInput');
+            const queryResult = document.getElementById('queryResult');
+            const query = queryInput.value.trim();
+            
+            if (!query) {
+                queryResult.textContent = 'Please enter a JPQL query first!';
+                queryResult.classList.add('show');
+                return;
+            }
+
+            // Simulate query execution
+            setTimeout(() => {
+                let result = '';
+                
+                if (query.toUpperCase().includes('SELECT')) {
+                    if (query.toUpperCase().includes('COUNT')) {
+                        result = '✅ Query executed successfully!\n\nResult: Long value (e.g., 42)\n\nExplanation: COUNT queries return a single numeric value representing the number of matching records.';
+                    } else if (query.toUpperCase().includes('AVG') || query.toUpperCase().includes('SUM') || query.toUpperCase().includes('MIN') || query.toUpperCase().includes('MAX')) {
+                        result = '✅ Query executed successfully!\n\nResult: Numeric value or Object[] with aggregated data\n\nExplanation: Aggregate functions return statistical calculations from your data.';
+                    } else if (query.toUpperCase().includes('GROUP BY')) {
+                        result = '✅ Query executed successfully!\n\nResult: List<Object[]> with grouped data\n\nExplanation: GROUP BY queries return grouped results, typically as Object arrays.';
+                    } else if (query.toUpperCase().includes('JOIN')) {
+                        result = '✅ Query executed successfully!\n\nResult: List<Entity> with related data loaded\n\nExplanation: JOIN queries efficiently fetch related entities in a single database call.';
+                    } else if (query.toUpperCase().includes('NEW ')) {
+                        result = '✅ Query executed successfully!\n\nResult: List<DTO> with constructor projection\n\nExplanation: Constructor expressions create DTO objects directly in the query.';
+                    } else {
+                        result = '✅ Query executed successfully!\n\nResult: List<Entity> matching your criteria\n\nExplanation: Standard SELECT queries return a list of entity objects.';
+                    }
+                } else if (query.toUpperCase().includes('UPDATE')) {
+                    result = '✅ Update query executed!\n\nResult: Integer (number of updated records)\n\nNote: Remember to use @Modifying annotation for UPDATE queries.';
+                } else if (query.toUpperCase().includes('DELETE')) {
+                    result = '✅ Delete query executed!\n\nResult: Integer (number of deleted records)\n\nNote: Remember to use @Modifying annotation for DELETE queries.';
+                } else {
+                    result = '❌ Invalid query syntax!\n\nPlease check your JPQL syntax. Make sure to:\n- Use entity names (not table names)\n- Include proper SELECT, UPDATE, or DELETE clauses\n- Use correct JPQL syntax';
+                }
+                
+                queryResult.innerHTML = result.replace(/\n/g, '<br>');
+                queryResult.classList.add('show');
+            }, 500);
+        }
+
+        // Add some interactive examples to the playground
+        function loadExample(exampleType) {
+            const queryInput = document.getElementById('queryInput');
+            const examples = {
+                'basic': 'SELECT u FROM User u WHERE u.active = true ORDER BY u.username',
+                'join': 'SELECT o FROM Order o JOIN FETCH o.user WHERE o.total > 100',
+                'aggregate': 'SELECT u.username, COUNT(o) FROM User u LEFT JOIN u.orders o GROUP BY u.id, u.username',
+                'subquery': 'SELECT u FROM User u WHERE u.id IN (SELECT o.user.id FROM Order o WHERE o.total > 500)'
+            };
+            
+            queryInput.value = examples[exampleType] || examples.basic;
+        }
+
+        // Add keyboard shortcut for query execution
+        document.getElementById('queryInput').addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                executeQuery();
+            }
+        });
+
+        // Add syntax highlighting simulation
+        document.getElementById('queryInput').addEventListener('input', function(e) {
+            // This is a simple demonstration - in a real app, you'd use a proper syntax highlighter
+            const value = e.target.value;
+            const keywords = ['SELECT', 'FROM', 'WHERE', 'JOIN', 'LEFT', 'RIGHT', 'INNER', 'OUTER', 'ON', 'GROUP', 'BY', 'ORDER', 'HAVING', 'DISTINCT', 'COUNT', 'SUM', 'AVG', 'MIN', 'MAX'];
+            // In a real implementation, you would highlight these keywords
+        });
+    </script>
+</body>
+</html>
