@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring JPA @GeneratedValue Strategies</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .intro {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .strategy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .strategy-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid transparent;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .strategy-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .strategy-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .strategy-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            border-color: #667eea;
+        }
+
+        .strategy-card.active {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #f8f9ff 0%, #e8f0ff 100%);
+        }
+
+        .strategy-card.active::before {
+            transform: scaleX(1);
+        }
+
+        .strategy-title {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .strategy-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .identity .strategy-icon { background: #e74c3c; }
+        .sequence .strategy-icon { background: #3498db; }
+        .table .strategy-icon { background: #f39c12; }
+        .uuid .strategy-icon { background: #9b59b6; }
+        .auto .strategy-icon { background: #27ae60; }
+
+        .strategy-description {
+            color: #7f8c8d;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        .code-block {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            margin: 15px 0;
+            position: relative;
+            overflow-x: auto;
+        }
+
+        .code-block::before {
+            content: 'Java';
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        .keyword { color: #f39c12; }
+        .annotation { color: #e74c3c; }
+        .class-name { color: #3498db; }
+        .comment { color: #95a5a6; }
+
+        .pros-cons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .pros, .cons {
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .pros {
+            background: linear-gradient(135deg, #a8e6cf 0%, #dcedc8 100%);
+            border-left: 4px solid #27ae60;
+        }
+
+        .cons {
+            background: linear-gradient(135deg, #ffcdd2 0%, #f8bbd9 100%);
+            border-left: 4px solid #e74c3c;
+        }
+
+        .pros h4, .cons h4 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        .pros ul, .cons ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .pros li, .cons li {
+            padding: 5px 0;
+            position: relative;
+            padding-left: 20px;
+        }
+
+        .pros li::before {
+            content: '✓';
+            color: #27ae60;
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+        }
+
+        .cons li::before {
+            content: '✗';
+            color: #e74c3c;
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+        }
+
+        .database-support {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+
+        .database-support h4 {
+            margin-bottom: 10px;
+        }
+
+        .db-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .db-tag {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .comparison-table {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .comparison-table h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: bold;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .performance-indicator {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .high { background: #27ae60; }
+        .medium { background: #f39c12; }
+        .low { background: #e74c3c; }
+
+        @media (max-width: 768px) {
+            .strategy-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .pros-cons {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .container {
+                padding: 20px;
+            }
+        }
+
+        .highlight {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Spring JPA @GeneratedValue Strategies</h1>
+        
+        <div class="intro">
+            <h2>Understanding Primary Key Generation in Spring JPA</h2>
+            <p>Explore different strategies for automatically generating primary key values in your JPA entities. Click on each strategy to learn more!</p>
+        </div>
+
+        <div class="strategy-grid">
+            <!-- IDENTITY Strategy -->
+            <div class="strategy-card identity" onclick="toggleCard(this)">
+                <div class="strategy-title">
+                    <div class="strategy-icon">1</div>
+                    GenerationType.IDENTITY
+                </div>
+                <div class="strategy-description">
+                    Uses database auto-increment/identity columns for primary key generation.
+                </div>
+                <div class="code-block">
+<span class="annotation">@Entity</span>
+<span class="keyword">public class</span> <span class="class-name">User</span> {
+    <span class="annotation">@Id</span>
+    <span class="annotation">@GeneratedValue</span>(strategy = <span class="class-name">GenerationType</span>.IDENTITY)
+    <span class="keyword">private</span> <span class="class-name">Long</span> id;
+    
+    <span class="keyword">private</span> <span class="class-name">String</span> username;
+    
+    <span class="comment">// getters and setters...</span>
+}
+                </div>
+                <div class="pros-cons">
+                    <div class="pros">
+                        <h4>Pros</h4>
+                        <ul>
+                            <li>Simple to implement</li>
+                            <li>Database handles uniqueness</li>
+                            <li>Good performance for single inserts</li>
+                            <li>No additional tables needed</li>
+                        </ul>
+                    </div>
+                    <div class="cons">
+                        <h4>Cons</h4>
+                        <ul>
+                            <li>Poor batch insert performance</li>
+                            <li>Database-dependent</li>
+                            <li>Cannot get ID before insert</li>
+                            <li>Limited to numeric types</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="database-support">
+                    <h4>Database Support</h4>
+                    <div class="db-tags">
+                        <span class="db-tag">MySQL</span>
+                        <span class="db-tag">PostgreSQL</span>
+                        <span class="db-tag">SQL Server</span>
+                        <span class="db-tag">SQLite</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEQUENCE Strategy -->
+            <div class="strategy-card sequence" onclick="toggleCard(this)">
+                <div class="strategy-title">
+                    <div class="strategy-icon">2</div>
+                    GenerationType.SEQUENCE
+                </div>
+                <div class="strategy-description">
+                    Uses database sequences to generate unique primary key values.
+                </div>
+                <div class="code-block">
+<span class="annotation">@Entity</span>
+<span class="annotation">@SequenceGenerator</span>(
+    name = <span class="string">"user_seq_gen"</span>,
+    sequenceName = <span class="string">"user_sequence"</span>,
+    allocationSize = 50
+)
+<span class="keyword">public class</span> <span class="class-name">User</span> {
+    <span class="annotation">@Id</span>
+    <span class="annotation">@GeneratedValue</span>(
+        strategy = <span class="class-name">GenerationType</span>.SEQUENCE,
+        generator = <span class="string">"user_seq_gen"</span>
+    )
+    <span class="keyword">private</span> <span class="class-name">Long</span> id;
+    
+    <span class="comment">// other fields...</span>
+}
+                </div>
+                <div class="pros-cons">
+                    <div class="pros">
+                        <h4>Pros</h4>
+                        <ul>
+                            <li>Excellent batch performance</li>
+                            <li>Can pre-allocate IDs</li>
+                            <li>Database independent (for supported DBs)</li>
+                            <li>Configurable increment size</li>
+                        </ul>
+                    </div>
+                    <div class="cons">
+                        <h4>Cons</h4>
+                        <ul>
+                            <li>Not all databases support sequences</li>
+                            <li>May have gaps in sequence</li>
+                            <li>Requires sequence creation</li>
+                            <li>Additional database object</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="database-support">
+                    <h4>Database Support</h4>
+                    <div class="db-tags">
+                        <span class="db-tag">PostgreSQL</span>
+                        <span class="db-tag">Oracle</span>
+                        <span class="db-tag">H2</span>
+                        <span class="db-tag">DB2</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TABLE Strategy -->
+            <div class="strategy-card table" onclick="toggleCard(this)">
+                <div class="strategy-title">
+                    <div class="strategy-icon">3</div>
+                    GenerationType.TABLE
+                </div>
+                <div class="strategy-description">
+                    Uses a separate database table to store and manage primary key generation.
+                </div>
+                <div class="code-block">
+<span class="annotation">@Entity</span>
+<span class="annotation">@TableGenerator</span>(
+    name = <span class="string">"user_table_gen"</span>,
+    table = <span class="string">"id_generator"</span>,
+    pkColumnName = <span class="string">"gen_name"</span>,
+    valueColumnName = <span class="string">"gen_value"</span>,
+    pkColumnValue = <span class="string">"user_id"</span>,
+    allocationSize = 50
+)
+<span class="keyword">public class</span> <span class="class-name">User</span> {
+    <span class="annotation">@Id</span>
+    <span class="annotation">@GeneratedValue</span>(
+        strategy = <span class="class-name">GenerationType</span>.TABLE,
+        generator = <span class="string">"user_table_gen"</span>
+    )
+    <span class="keyword">private</span> <span class="class-name">Long</span> id;
+    
+    <span class="comment">// other fields...</span>
+}
+                </div>
+                <div class="pros-cons">
+                    <div class="pros">
+                        <h4>Pros</h4>
+                        <ul>
+                            <li>Works with any database</li>
+                            <li>Highly configurable</li>
+                            <li>Can share across entities</li>
+                            <li>Portable solution</li>
+                        </ul>
+                    </div>
+                    <div class="cons">
+                        <h4>Cons</h4>
+                        <ul>
+                            <li>Poor performance</li>
+                            <li>Additional table overhead</li>
+                            <li>Potential bottleneck</li>
+                            <li>Complex configuration</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="database-support">
+                    <h4>Database Support</h4>
+                    <div class="db-tags">
+                        <span class="db-tag">All Databases</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- UUID Strategy -->
+            <div class="strategy-card uuid" onclick="toggleCard(this)">
+                <div class="strategy-title">
+                    <div class="strategy-icon">4</div>
+                    UUID Generation
+                </div>
+                <div class="strategy-description">
+                    Uses Universally Unique Identifiers (UUIDs) for primary keys.
+                </div>
+                <div class="code-block">
+<span class="annotation">@Entity</span>
+<span class="keyword">public class</span> <span class="class-name">User</span> {
+    <span class="annotation">@Id</span>
+    <span class="annotation">@GeneratedValue</span>(strategy = <span class="class-name">GenerationType</span>.AUTO)
+    <span class="annotation">@GenericGenerator</span>(name = <span class="string">"uuid2"</span>, strategy = <span class="string">"uuid2"</span>)
+    <span class="keyword">private</span> <span class="class-name">String</span> id;
+    
+    <span class="comment">// Alternative using UUID type</span>
+    <span class="annotation">@Id</span>
+    <span class="annotation">@GeneratedValue</span>
+    <span class="keyword">private</span> <span class="class-name">UUID</span> id;
+    
+    <span class="comment">// other fields...</span>
+}
+                </div>
+                <div class="pros-cons">
+                    <div class="pros">
+                        <h4>Pros</h4>
+                        <ul>
+                            <li>Globally unique</li>
+                            <li>Can generate before insert</li>
+                            <li>No database dependency</li>
+                            <li>Excellent for distributed systems</li>
+                        </ul>
+                    </div>
+                    <div class="cons">
+                        <h4>Cons</h4>
+                        <ul>
+                            <li>Larger storage requirement</li>
+                            <li>Not human-readable</li>
+                            <li>May impact index performance</li>
+                            <li>No natural ordering</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="database-support">
+                    <h4>Database Support</h4>
+                    <div class="db-tags">
+                        <span class="db-tag">All Databases</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AUTO Strategy -->
+            <div class="strategy-card auto" onclick="toggleCard(this)">
+                <div class="strategy-title">
+                    <div class="strategy-icon">5</div>
+                    GenerationType.AUTO
+                </div>
+                <div class="strategy-description">
+                    Lets the JPA provider choose the most appropriate generation strategy.
+                </div>
+                <div class="code-block">
+<span class="annotation">@Entity</span>
+<span class="keyword">public class</span> <span class="class-name">User</span> {
+    <span class="annotation">@Id</span>
+    <span class="annotation">@GeneratedValue</span>(strategy = <span class="class-name">GenerationType</span>.AUTO)
+    <span class="keyword">private</span> <span class="class-name">Long</span> id;
+    
+    <span class="comment">// Simplified version (AUTO is default)</span>
+    <span class="annotation">@Id</span>
+    <span class="annotation">@GeneratedValue</span>
+    <span class="keyword">private</span> <span class="class-name">Long</span> id;
+    
+    <span class="comment">// other fields...</span>
+}
+                </div>
+                <div class="pros-cons">
+                    <div class="pros">
+                        <h4>Pros</h4>
+                        <ul>
+                            <li>Database-agnostic code</li>
+                            <li>Simplest configuration</li>
+                            <li>Provider optimizes choice</li>
+                            <li>Default behavior</li>
+                        </ul>
+                    </div>
+                    <div class="cons">
+                        <h4>Cons</h4>
+                        <ul>
+                            <li>Less control over strategy</li>
+                            <li>May not be optimal</li>
+                            <li>Unpredictable behavior</li>
+                            <li>Hard to optimize</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="database-support">
+                    <h4>Database Support</h4>
+                    <div class="db-tags">
+                        <span class="db-tag">Provider Dependent</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="comparison-table">
+            <h3>Strategy Comparison Matrix</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Strategy</th>
+                        <th>Performance</th>
+                        <th>Portability</th>
+                        <th>Batch Support</th>
+                        <th>Pre-allocation</th>
+                        <th>Best Use Case</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>IDENTITY</strong></td>
+                        <td><span class="performance-indicator medium">M</span> Medium</td>
+                        <td><span class="performance-indicator medium">M</span> Medium</td>
+                        <td><span class="performance-indicator low">L</span> Poor</td>
+                        <td>❌ No</td>
+                        <td>Single entity inserts</td>
+                    </tr>
+                    <tr>
+                        <td><strong>SEQUENCE</strong></td>
+                        <td><span class="performance-indicator high">H</span> High</td>
+                        <td><span class="performance-indicator medium">M</span> Medium</td>
+                        <td><span class="performance-indicator high">H</span> Excellent</td>
+                        <td>✅ Yes</td>
+                        <td>High-volume applications</td>
+                    </tr>
+                    <tr>
+                        <td><strong>TABLE</strong></td>
+                        <td><span class="performance-indicator low">L</span> Low</td>
+                        <td><span class="performance-indicator high">H</span> High</td>
+                        <td><span class="performance-indicator medium">M</span> Fair</td>
+                        <td>✅ Yes</td>
+                        <td>Legacy systems</td>
+                    </tr>
+                    <tr>
+                        <td><strong>UUID</strong></td>
+                        <td><span class="performance-indicator high">H</span> High</td>
+                        <td><span class="performance-indicator high">H</span> High</td>
+                        <td><span class="performance-indicator high">H</span> Excellent</td>
+                        <td>✅ Yes</td>
+                        <td>Distributed systems</td>
+                    </tr>
+                    <tr>
+                        <td><strong>AUTO</strong></td>
+                        <td><span class="performance-indicator medium">M</span> Variable</td>
+                        <td><span class="performance-indicator high">H</span> High</td>
+                        <td><span class="performance-indicator medium">M</span> Variable</td>
+                        <td>🔄 Depends</td>
+                        <td>Rapid prototyping</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function toggleCard(card) {
+            // Remove active class from all cards
+            const allCards = document.querySelectorAll('.strategy-card');
+            allCards.forEach(c => {
+                if (c !== card) {
+                    c.classList.remove('active');
+                }
+            });
+            
+            // Toggle active class on clicked card
+            card.classList.toggle('active');
+            
+            // Add highlight animation
+            card.classList.add('highlight');
+            setTimeout(() => {
+                card.classList.remove('highlight');
+            }, 2000);
+        }
+
+        // Add some interactive animations on page load
+        window.addEventListener('load', function() {
+            const cards = document.querySelectorAll('.strategy-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(50px)';
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 200);
+            });
+
+            // Auto-activate the first card for demonstration
+            setTimeout(() => {
+                cards[0].classList.add('active');
+            }, 1000);
+        });
+
+        // Add keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            const cards = document.querySelectorAll('.strategy-card');
+            const activeCard = document.querySelector('.strategy-card.active');
+            let currentIndex = Array.from(cards).indexOf(activeCard);
+            
+            if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+                e.preventDefault();
+                currentIndex = (currentIndex + 1) % cards.length;
+                toggleCard(cards[currentIndex]);
+            } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                e.preventDefault();
+                currentIndex = currentIndex <= 0 ? cards.length - 1 : currentIndex - 1;
+                toggleCard(cards[currentIndex]);
+            }
+        });
+    </script>
+</body>
+</html>
