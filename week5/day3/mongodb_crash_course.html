@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MongoDB Interactive Crash Course</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+        
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 4px;
+            margin: 30px 0;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: #4CAF50;
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 4px;
+        }
+        
+        .topic-nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        
+        .nav-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            backdrop-filter: blur(10px);
+        }
+        
+        .nav-btn:hover, .nav-btn.active {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .content-section {
+            display: none;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .content-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .content-section h2 {
+            color: #2c3e50;
+            margin-bottom: 25px;
+            font-size: 2.5rem;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .content-section h3 {
+            color: #34495e;
+            margin: 25px 0 15px 0;
+            font-size: 1.5rem;
+        }
+        
+        .step-list {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 10px 10px 0;
+        }
+        
+        .step-list ol {
+            margin-left: 20px;
+        }
+        
+        .step-list li {
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            position: relative;
+            overflow-x: auto;
+        }
+        
+        .code-block::before {
+            content: "MongoDB Shell";
+            position: absolute;
+            top: -10px;
+            left: 20px;
+            background: #667eea;
+            color: white;
+            padding: 2px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .interactive-demo {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            border: 1px solid #ddd;
+        }
+        
+        .demo-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            margin-bottom: 15px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .demo-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .demo-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+        }
+        
+        .demo-btn:hover {
+            background: #5a6fd8;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        
+        .demo-output {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            margin-top: 15px;
+            min-height: 100px;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+        
+        .highlight {
+            background: #fff3cd;
+            padding: 15px;
+            border-left: 4px solid #ffc107;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .comparison-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border: 1px solid #e0e0e0;
+            transition: transform 0.3s ease;
+        }
+        
+        .comparison-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+        }
+        
+        .comparison-card h4 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+        
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        
+        .nav-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-button:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .nav-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        @media (max-width: 768px) {
+            .container { padding: 10px; }
+            .header h1 { font-size: 2rem; }
+            .content-section { padding: 20px; }
+            .topic-nav { flex-direction: column; align-items: center; }
+            .comparison-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍃 MongoDB Crash Course</h1>
+            <p>Master MongoDB from Installation to Advanced Queries</p>
+        </div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        
+        <div class="topic-nav">
+            <button class="nav-btn active" onclick="showSection('installation', 0)">Installation</button>
+            <button class="nav-btn" onclick="showSection('tools', 1)">Tools Overview</button>
+            <button class="nav-btn" onclick="showSection('concepts', 2)">Core Concepts</button>
+            <button class="nav-btn" onclick="showSection('queries', 3)">Queries</button>
+            <button class="nav-btn" onclick="showSection('nested', 4)">Nested Documents</button>
+        </div>
+        
+        <!-- Installation Section -->
+        <div class="content-section active" id="installation">
+            <h2>🚀 Installation & Setup</h2>
+            
+            <h3>Installing MongoDB on Windows</h3>
+            <div class="step-list">
+                <ol>
+                    <li>Download MongoDB Community Server from <strong>mongodb.com/download-center</strong></li>
+                    <li>Run the installer and choose "Complete" installation</li>
+                    <li>Install MongoDB as a Windows service</li>
+                    <li>Add MongoDB to your system PATH</li>
+                    <li>Create data directory: <code>C:\data\db</code></li>
+                </ol>
+            </div>
+            
+            <div class="code-block">
+# Verify installation
+mongod --version
+mongo --version
+            </div>
+            
+            <h3>Starting MongoDB Service</h3>
+            <div class="code-block">
+# Start MongoDB service
+net start MongoDB
+
+# Or run manually
+mongod --dbpath C:\data\db
+            </div>
+            
+            <div class="highlight">
+                <strong>💡 Pro Tip:</strong> Always ensure MongoDB service is running before connecting with clients!
+            </div>
+        </div>
+        
+        <!-- Tools Overview Section -->
+        <div class="content-section" id="tools">
+            <h2>🛠️ MongoDB Tools Overview</h2>
+            
+            <div class="comparison-grid">
+                <div class="comparison-card">
+                    <h4>🖥️ MongoDB Compass</h4>
+                    <p><strong>Visual GUI Tool</strong></p>
+                    <ul>
+                        <li>Graphical interface for MongoDB</li>
+                        <li>Visual query builder</li>
+                        <li>Real-time performance monitoring</li>
+                        <li>Schema analysis and visualization</li>
+                        <li>Index management</li>
+                    </ul>
+                </div>
+                
+                <div class="comparison-card">
+                    <h4>☁️ MongoDB Atlas</h4>
+                    <p><strong>Cloud Database Service</strong></p>
+                    <ul>
+                        <li>Fully managed cloud database</li>
+                        <li>Automatic scaling and backups</li>
+                        <li>Built-in security features</li>
+                        <li>Global clusters</li>
+                        <li>Free tier available</li>
+                    </ul>
+                </div>
+                
+                <div class="comparison-card">
+                    <h4>⚡ MongoDB Shell (mongosh)</h4>
+                    <p><strong>Command Line Interface</strong></p>
+                    <ul>
+                        <li>JavaScript-based shell</li>
+                        <li>Direct database operations</li>
+                        <li>Scripting capabilities</li>
+                        <li>Administrative tasks</li>
+                        <li>Perfect for automation</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <h3>Connecting with Different Tools</h3>
+            <div class="code-block">
+# MongoDB Shell connection
+mongosh mongodb://localhost:27017
+
+# Atlas connection string example
+mongosh "mongodb+srv://username:password@cluster.mongodb.net/database"
+            </div>
+        </div>
+        
+        <!-- Core Concepts Section -->
+        <div class="content-section" id="concepts">
+            <h2>🧠 Core Concepts</h2>
+            
+            <h3>Database Structure Hierarchy</h3>
+            <div class="comparison-grid">
+                <div class="comparison-card">
+                    <h4>🗃️ Database</h4>
+                    <p>Top-level container that holds collections. Similar to a schema in relational databases.</p>
+                    <div class="code-block">
+// Create/Switch to database
+use mystore
+                    </div>
+                </div>
+                
+                <div class="comparison-card">
+                    <h4>📁 Collection</h4>
+                    <p>Group of documents. Equivalent to a table in relational databases.</p>
+                    <div class="code-block">
+// Create collection
+db.createCollection("products")
+                    </div>
+                </div>
+                
+                <div class="comparison-card">
+                    <h4>📄 Document</h4>
+                    <p>Individual record stored in BSON format. Similar to a row in relational databases.</p>
+                    <div class="code-block">
+{
+  "_id": ObjectId("..."),
+  "name": "Laptop",
+  "price": 999.99
+}
+                    </div>
+                </div>
+            </div>
+            
+            <h3>Interactive Demo: Creating Your First Database</h3>
+            <div class="interactive-demo">
+                <h4>Try Database Operations</h4>
+                <input type="text" class="demo-input" id="dbName" placeholder="Enter database name (e.g., 'ecommerce')">
+                <button class="demo-btn" onclick="createDatabase()">Create Database</button>
+                <button class="demo-btn" onclick="showDatabases()">Show Databases</button>
+                <button class="demo-btn" onclick="clearOutput()">Clear Output</button>
+                <div class="demo-output" id="dbOutput">Ready to create your first database...</div>
+            </div>
+        </div>
+        
+        <!-- Queries Section -->
+        <div class="content-section" id="queries">
+            <h2>🔍 Queries & Operations</h2>
+            
+            <h3>Basic CRUD Operations</h3>
+            
+            <h4>Find Operations</h4>
+            <div class="code-block">
+// Find all documents
+db.products.find()
+
+// Find with filter
+db.products.find({ category: "electronics" })
+
+// Find one document
+db.products.findOne({ name: "iPhone" })
+            </div>
+            
+            <h4>Sort, Limit, and Advanced Filtering</h4>
+            <div class="code-block">
+// Sort by price (ascending)
+db.products.find().sort({ price: 1 })
+
+// Sort by price (descending) and limit results
+db.products.find().sort({ price: -1 }).limit(5)
+
+// Multiple conditions
+db.products.find({ 
+    price: { $gte: 100, $lte: 500 },
+    category: "electronics" 
+})
+
+// Using operators
+db.products.find({ 
+    name: { $regex: /iphone/i },  // Case-insensitive search
+    price: { $in: [299, 399, 499] }  // Price in array
+})
+            </div>
+            
+            <h3>Interactive Query Builder</h3>
+            <div class="interactive-demo">
+                <h4>Build and Test MongoDB Queries</h4>
+                <input type="text" class="demo-input" id="queryInput" placeholder="Enter MongoDB query (e.g., db.users.find({age: {$gte: 18}}))">
+                <button class="demo-btn" onclick="executeQuery()">Execute Query</button>
+                <button class="demo-btn" onclick="loadSampleData()">Load Sample Data</button>
+                <button class="demo-btn" onclick="showQueryExamples()">Show Examples</button>
+                <div class="demo-output" id="queryOutput">Enter a MongoDB query to see results...</div>
+            </div>
+            
+            <h3>Common Query Patterns</h3>
+            <div class="comparison-grid">
+                <div class="comparison-card">
+                    <h4>Comparison Operators</h4>
+                    <div class="code-block">
+$eq   // Equal
+$ne   // Not equal
+$gt   // Greater than
+$gte  // Greater than or equal
+$lt   // Less than
+$lte  // Less than or equal
+$in   // In array
+$nin  // Not in array
+                    </div>
+                </div>
+                
+                <div class="comparison-card">
+                    <h4>Logical Operators</h4>
+                    <div class="code-block">
+$and  // Logical AND
+$or   // Logical OR
+$not  // Logical NOT
+$nor  // Logical NOR
+
+// Example
+{ $and: [
+    { price: { $gte: 100 } },
+    { category: "books" }
+]}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Nested Documents Section -->
+        <div class="content-section" id="nested">
+            <h2>🎯 Nested Documents</h2>
+            
+            <h3>Understanding Document Structure</h3>
+            <div class="code-block">
+// Complex document with nested objects and arrays
+{
+  "_id": ObjectId("..."),
+  "name": "John Doe",
+  "contact": {
+    "email": "john@example.com",
+    "phone": {
+      "home": "555-1234",
+      "mobile": "555-5678"
+    }
+  },
+  "addresses": [
+    {
+      "type": "home",
+      "street": "123 Main St",
+      "city": "New York",
+      "zipcode": "10001"
+    },
+    {
+      "type": "work",
+      "street": "456 Oak Ave",
+      "city": "Boston",
+      "zipcode": "02101"
+    }
+  ],
+  "orders": [
+    {
+      "orderId": "ORD001",
+      "date": ISODate("2024-01-15"),
+      "items": [
+        { "product": "Laptop", "quantity": 1, "price": 999.99 },
+        { "product": "Mouse", "quantity": 2, "price": 25.00 }
+      ],
+      "total": 1049.99
+    }
+  ]
+}
+            </div>
+            
+            <h3>Querying Nested Documents</h3>
+            <div class="code-block">
+// Query nested object field
+db.users.find({ "contact.email": "john@example.com" })
+
+// Query nested array elements
+db.users.find({ "addresses.type": "home" })
+
+// Query array of objects with specific condition
+db.users.find({ "orders.items.product": "Laptop" })
+
+// Query with dot notation for deeply nested fields
+db.users.find({ "contact.phone.mobile": "555-5678" })
+
+// Using $elemMatch for complex array queries
+db.users.find({
+  "orders": {
+    $elemMatch: {
+      "total": { $gte: 1000 },
+      "date": { $gte: ISODate("2024-01-01") }
+    }
+  }
+})
+            </div>
+            
+            <h3>Array Query Operators</h3>
+            <div class="comparison-grid">
+                <div class="comparison-card">
+                    <h4>$elemMatch</h4>
+                    <p>Matches documents with array elements that satisfy all conditions</p>
+                    <div class="code-block">
+db.users.find({
+  "orders": {
+    $elemMatch: {
+      "total": { $gt: 500 },
+      "status": "completed"
+    }
+  }
+})
+                    </div>
+                </div>
+                
+                <div class="comparison-card">
+                    <h4>$size</h4>
+                    <p>Matches arrays with specific number of elements</p>
+                    <div class="code-block">
+// Find users with exactly 2 addresses
+db.users.find({
+  "addresses": { $size: 2 }
+})
+                    </div>
+                </div>
+                
+                <div class="comparison-card">
+                    <h4>$all</h4>
+                    <p>Matches arrays containing all specified elements</p>
+                    <div class="code-block">
+// Find products with all specified tags
+db.products.find({
+  "tags": { 
+    $all: ["electronics", "mobile"] 
+  }
+})
+                    </div>
+                </div>
+            </div>
+            
+            <h3>Interactive Nested Document Demo</h3>
+            <div class="interactive-demo">
+                <h4>Practice Nested Document Queries</h4>
+                <input type="text" class="demo-input" id="nestedQuery" placeholder="Enter nested query (e.g., {'contact.email': 'user@example.com'})">
+                <button class="demo-btn" onclick="executeNestedQuery()">Execute Query</button>
+                <button class="demo-btn" onclick="loadNestedData()">Load Sample Nested Data</button>
+                <button class="demo-btn" onclick="showNestedExamples()">Show Examples</button>
+                <div class="demo-output" id="nestedOutput">Load sample data to practice nested queries...</div>
+            </div>
+            
+            <div class="highlight">
+                <strong>🎓 Key Takeaways:</strong>
+                <ul>
+                    <li>Use dot notation to access nested fields: "parent.child"</li>
+                    <li>$elemMatch is essential for complex array queries</li>
+                    <li>Array queries can match any element unless $elemMatch is used</li>
+                    <li>Nested documents provide flexible schema design</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="navigation-buttons">
+            <button class="nav-button" id="prevBtn" onclick="previousSection()" disabled>← Previous</button>
+            <button class="nav-button" id="nextBtn" onclick="nextSection()">Next →</button>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentSection = 0;
+        const sections = ['installation', 'tools', 'concepts', 'queries', 'nested'];
+        let sampleData = [];
+        let nestedSampleData = [];
+        
+        // Initialize the course
+        function init() {
+            updateProgress();
+            updateNavigationButtons();
+        }
+        
+        // Show specific section
+        function showSection(sectionId, index) {
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Remove active class from all nav buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected section
+            document.getElementById(sectionId).classList.add('active');
+            
+            // Add active class to clicked button
+            event.target.classList.add('active');
+            
+            // Update current section
+            currentSection = index;
+            updateProgress();
+            updateNavigationButtons();
+        }
+        
+        // Update progress bar
+        function updateProgress() {
+            const progress = ((currentSection + 1) / sections.length) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+        
+        // Update navigation buttons
+        function updateNavigationButtons() {
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            
+            prevBtn.disabled = currentSection === 0;
+            nextBtn.disabled = currentSection === sections.length - 1;
+            
+            if (currentSection === sections.length - 1) {
+                nextBtn.textContent = 'Course Complete! 🎉';
+            } else {
+                nextBtn.textContent = 'Next →';
+            }
+        }
+        
+        // Navigation functions
+        function previousSection() {
+            if (currentSection > 0) {
+                currentSection--;
+                const sectionId = sections[currentSection];
+                showSectionById(sectionId);
+            }
+        }
+        
+        function nextSection() {
+            if (currentSection < sections.length - 1) {
+                currentSection++;
+                const sectionId = sections[currentSection];
+                showSectionById(sectionId);
+            }
+        }
+        
+        function showSectionById(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Remove active class from all nav buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected section
+            document.getElementById(sectionId).classList.add('active');
+            
+            // Add active class to corresponding nav button
+            const navButtons = document.querySelectorAll('.nav-btn');
+            navButtons[currentSection].classList.add('active');
+            
+            updateProgress();
+            updateNavigationButtons();
+        }
+        
+        // Database operations demo
+        function createDatabase() {
+            const dbName = document.getElementById('dbName').value;
+            const output = document.getElementById('dbOutput');
+            
+            if (!dbName) {
+                output.textContent = 'Please enter a database name!';
+                return;
+            }
+            
+            output.textContent = `MongoDB Shell Commands:
+            
+> use ${dbName}
+switched to db ${dbName}
+
+> db.getName()
+${dbName}
+
+> show dbs
+admin   0.000GB
+config  0.000GB
+local   0.000GB
+${dbName}  0.000GB
+
+Database '${dbName}' created successfully! 
+Note: MongoDB creates databases lazily - they appear in 'show dbs' only after adding data.`;
+        }
+        
+        function showDatabases() {
+            const output = document.getElementById('dbOutput');
+            output.textContent = `MongoDB Shell Commands:
+            
+> show dbs
+admin      0.000GB
+config     0.000GB
+local      0.000GB
+ecommerce  0.002GB
+blog       0.001GB
+inventory  0.003GB
+
+> db
+ecommerce
+
+> db.stats()
+{
+    "db": "ecommerce",
+    "collections": 3,
+    "objects": 1250,
+    "avgObjSize": 512,
+    "dataSize": 640000,
+    "storageSize": 1048576
+}`;
+        }
+        
+        function clearOutput() {
+            document.getElementById('dbOutput').textContent = 'Ready to create your first database...';
+        }
+        
+        // Query operations demo
+        function loadSampleData() {
+            sampleData = [
+                { _id: 1, name: "iPhone 13", price: 699, category: "electronics", brand: "Apple" },
+                { _id: 2, name: "Samsung Galaxy", price: 599, category: "electronics", brand: "Samsung" },
+                { _id: 3, name: "JavaScript Book", price: 29, category: "books", author: "John Doe" },
+                { _id: 4, name: "Wireless Headphones", price: 199, category: "electronics", brand: "Sony" },
+                { _id: 5, name: "Python Guide", price: 39, category: "books", author: "Jane Smith" }
+            ];
+            
+            document.getElementById('queryOutput').textContent = `Sample data loaded! Collections available:
+            
+db.products.find()
+${JSON.stringify(sampleData, null, 2)}
+
+Try some queries:
+- db.products.find({category: "electronics"})
+- db.products.find({price: {$gte: 100}})
+- db.products.find().sort({price: -1}).limit(3)`;
+        }
+        
+        function executeQuery() {
+            const query = document.getElementById('queryInput').value;
+            const output = document.getElementById('queryOutput');
+            
+            if (!query) {
+                output.textContent = 'Please enter a MongoDB query!';
+                return;
+            }
+            
+            // Simulate query execution
+            let result = simulateQuery(query);
+            output.textContent = `> ${query}\n\n${result}`;
+        }
+        
+        function simulateQuery(query) {
+            // Simple query simulation
+            if (query.includes('find()')) {
+                return JSON.stringify(sampleData, null, 2);
+            } else if (query.includes('electronics')) {
+                return JSON.stringify(sampleData.filter(item => item.category === 'electronics'), null, 2);
+            } else if (query.includes('$gte')) {
+                return JSON.stringify(sampleData.filter(item => item.price >= 100), null, 2);
+            } else if (query.includes('sort') && query.includes('-1')) {
+                return JSON.stringify([...sampleData].sort((a, b) => b.price - a.price), null, 2);
+            } else {
+                return `Query executed successfully!
+                
+Note: This is a simulation. In real MongoDB:
+1. Connect to your database
+2. Use the actual MongoDB shell or driver
+3. Execute queries against live data
+
+Your query: ${query}
+Would return matching documents based on your collection data.`;
+            }
+        }
+        
+        function showQueryExamples() {
+            document.getElementById('queryOutput').textContent = `Common MongoDB Query Examples:
+
+// Basic Find
+db.products.find()
+db.products.find({category: "electronics"})
+
+// Comparison Operators
+db.products.find({price: {$gte: 100}})
+db.products.find({price: {$lt: 500}})
+db.products.find({category: {$in: ["electronics", "books"]}})
+
+// Sorting and Limiting
+db.products.find().sort({price: 1})     // Ascending
+db.products.find().sort({price: -1})    // Descending
+db.products.find().limit(5)
+db.products.find().sort({price: -1}).limit(3)
+
+// Text Search
+db.products.find({name: {$regex: /iphone/i}})
+
+// Logical Operators
+db.products.find({
+    $and: [
+        {price: {$gte: 100}},
+        {category: "electronics"}
+    ]
+})
+
+db.products.find({
+    $or: [
+        {category: "electronics"},
+        {category: "books"}
+    ]
+})`;
+        }
+        
+        // Nested document operations
+        function loadNestedData() {
+            nestedSampleData = [
+                {
+                    _id: 1,
+                    name: "John Doe",
+                    age: 28,
+                    contact: {
+                        email: "john@example.com",
+                        phone: {
+                            home: "555-1234",
+                            mobile: "555-5678"
+                        }
+                    },
+                    addresses: [
+                        {
+                            type: "home",
+                            street: "123 Main St",
+                            city: "New York",
+                            zipcode: "10001"
+                        },
+                        {
+                            type: "work",
+                            street: "456 Oak Ave",
+                            city: "Boston",
+                            zipcode: "02101"
+                        }
+                    ],
+                    orders: [
+                        {
+                            orderId: "ORD001",
+                            date: "2024-01-15",
+                            items: [
+                                { product: "Laptop", quantity: 1, price: 999.99 },
+                                { product: "Mouse", quantity: 2, price: 25.00 }
+                            ],
+                            total: 1049.99,
+                            status: "completed"
+                        }
+                    ]
+                },
+                {
+                    _id: 2,
+                    name: "Jane Smith",
+                    age: 32,
+                    contact: {
+                        email: "jane@example.com",
+                        phone: {
+                            home: "555-9876",
+                            mobile: "555-4321"
+                        }
+                    },
+                    addresses: [
+                        {
+                            type: "home",
+                            street: "789 Pine St",
+                            city: "Los Angeles",
+                            zipcode: "90210"
+                        }
+                    ],
+                    orders: [
+                        {
+                            orderId: "ORD002",
+                            date: "2024-01-20",
+                            items: [
+                                { product: "Smartphone", quantity: 1, price: 699.99 }
+                            ],
+                            total: 699.99,
+                            status: "pending"
+                        },
+                        {
+                            orderId: "ORD003",
+                            date: "2024-02-01",
+                            items: [
+                                { product: "Tablet", quantity: 1, price: 399.99 },
+                                { product: "Case", quantity: 1, price: 29.99 }
+                            ],
+                            total: 429.98,
+                            status: "completed"
+                        }
+                    ]
+                }
+            ];
+            
+            document.getElementById('nestedOutput').textContent = `Nested sample data loaded! 
+
+db.users.find()
+${JSON.stringify(nestedSampleData, null, 2)}
+
+Try nested queries:
+- db.users.find({"contact.email": "john@example.com"})
+- db.users.find({"addresses.type": "home"})
+- db.users.find({"orders.items.product": "Laptop"})`;
+        }
+        
+        function executeNestedQuery() {
+            const query = document.getElementById('nestedQuery').value;
+            const output = document.getElementById('nestedOutput');
+            
+            if (!query) {
+                output.textContent = 'Please enter a nested document query!';
+                return;
+            }
+            
+            // Simulate nested query execution
+            let result = simulateNestedQuery(query);
+            output.textContent = `> db.users.find(${query})\n\n${result}`;
+        }
+        
+        function simulateNestedQuery(query) {
+            try {
+                // Parse the query string to simulate execution
+                if (query.includes('contact.email')) {
+                    if (query.includes('john@example.com')) {
+                        return JSON.stringify([nestedSampleData[0]], null, 2);
+                    }
+                } else if (query.includes('addresses.type')) {
+                    if (query.includes('home')) {
+                        return JSON.stringify(nestedSampleData, null, 2);
+                    }
+                } else if (query.includes('orders.items.product')) {
+                    if (query.includes('Laptop')) {
+                        return JSON.stringify([nestedSampleData[0]], null, 2);
+                    }
+                } else if (query.includes('orders.status')) {
+                    if (query.includes('completed')) {
+                        return JSON.stringify(nestedSampleData, null, 2);
+                    }
+                }
+                
+                return `Query executed successfully!
+                
+Your query: ${query}
+                
+In a real MongoDB environment, this would search through the nested document structure and return matching documents.
+
+Tips for nested queries:
+1. Use dot notation for nested fields
+2. Array elements are matched individually unless using $elemMatch
+3. Remember to use proper JSON syntax in queries`;
+                
+            } catch (e) {
+                return `Query syntax might need adjustment. 
+
+Common patterns:
+- {"contact.email": "value"}
+- {"addresses.type": "home"}
+- {"orders": {$elemMatch: {"status": "completed"}}}
+- {"orders.items.product": "Laptop"}`;
+            }
+        }
+        
+        function showNestedExamples() {
+            document.getElementById('nestedOutput').textContent = `Nested Document Query Examples:
+
+// Query nested object fields
+db.users.find({"contact.email": "john@example.com"})
+db.users.find({"contact.phone.mobile": "555-5678"})
+
+// Query array elements
+db.users.find({"addresses.type": "home"})
+db.users.find({"addresses.city": "New York"})
+
+// Query nested arrays
+db.users.find({"orders.items.product": "Laptop"})
+db.users.find({"orders.status": "completed"})
+
+// Using $elemMatch for complex array queries
+db.users.find({
+    "orders": {
+        $elemMatch: {
+            "total": {$gte: 1000},
+            "status": "completed"
+        }
+    }
+})
+
+// Multiple conditions on same array element
+db.users.find({
+    "orders": {
+        $elemMatch: {
+            "items.product": "Laptop",
+            "status": "completed"
+        }
+    }
+})
+
+// Array size queries
+db.users.find({"addresses": {$size: 2}})
+
+// Exists operator for nested fields
+db.users.find({"contact.phone.mobile": {$exists: true}})
+
+// Projection with nested fields
+db.users.find(
+    {"contact.email": "john@example.com"}, 
+    {"name": 1, "contact.email": 1}
+)`;
+        }
+        
+        // Initialize the course when page loads
+        init();
+    </script>
+</body>
+</html>
