@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Initialize the guide with default settings
 function initializeGuide() {
-    showSection('introduction');
+    showSection('artifact');
     setupKeyboardNavigation();
     setupProgressTracking();
 }
