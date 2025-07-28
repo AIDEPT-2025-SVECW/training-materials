@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOLID Principles - Interactive Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .principles-nav {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid transparent;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .nav-btn:hover {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .nav-btn.active {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .principle-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            display: none;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .principle-card.active {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .principle-title {
+            font-size: 2.5rem;
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .principle-subtitle {
+            font-size: 1.2rem;
+            color: #666;
+            text-align: center;
+            margin-bottom: 30px;
+            font-style: italic;
+        }
+
+        .content-section {
+            margin-bottom: 30px;
+        }
+
+        .content-section h3 {
+            color: #667eea;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 5px;
+        }
+
+        .example-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            position: relative;
+        }
+
+        .code-block::before {
+            content: attr(data-title);
+            position: absolute;
+            top: -10px;
+            left: 15px;
+            background: #667eea;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .demo-button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin: 10px 5px;
+        }
+
+        .demo-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .output {
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            min-height: 50px;
+            font-family: monospace;
+        }
+
+        .good { border-left: 5px solid #48bb78; }
+        .bad { border-left: 5px solid #f56565; }
+
+        .explanation {
+            background: linear-gradient(135deg, #ebf8ff 0%, #e6fffa 100%);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            border-left: 4px solid #667eea;
+        }
+
+        @media (max-width: 768px) {
+            .example-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .nav-btn {
+                font-size: 12px;
+                padding: 8px 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>SOLID Principles</h1>
+            <p>Learn Object-Oriented Programming principles through interactive examples</p>
+        </div>
+
+        <div class="principles-nav">
+            <button class="nav-btn active" onclick="showPrinciple('srp')">S - Single Responsibility</button>
+            <button class="nav-btn" onclick="showPrinciple('ocp')">O - Open/Closed</button>
+            <button class="nav-btn" onclick="showPrinciple('lsp')">L - Liskov Substitution</button>
+            <button class="nav-btn" onclick="showPrinciple('isp')">I - Interface Segregation</button>
+            <button class="nav-btn" onclick="showPrinciple('dip')">D - Dependency Inversion</button>
+        </div>
+
+        <!-- Single Responsibility Principle -->
+        <div id="srp" class="principle-card active">
+            <h2 class="principle-title">Single Responsibility Principle (SRP)</h2>
+            <p class="principle-subtitle">"A class should have only one reason to change"</p>
+            
+            <div class="content-section">
+                <h3>What does it mean?</h3>
+                <div class="explanation">
+                    Each class should have only one job or responsibility. If a class has multiple responsibilities, changes to one responsibility might affect the other.
+                </div>
+            </div>
+
+            <div class="example-container">
+                <pre class="code-block bad" data-title="❌ Bad Example">
+class User {
+    constructor(name, email) {
+        this.name = name;
+        this.email = email;
+    }
+    
+    // Responsibility 1: User data
+    getName() { return this.name; }
+    getEmail() { return this.email; }
+    
+    // Responsibility 2: Email sending
+    sendEmail(message) {
+        console.log(`Sending email to ${this.email}: ${message}`);
+    }
+    
+    // Responsibility 3: Database operations
+    saveToDatabase() {
+        console.log(`Saving user ${this.name} to database`);
+    }
+}
+                </pre>
+                
+                <pre class="code-block good" data-title="✅ Good Example">
+class User {
+    constructor(name, email) {
+        this.name = name;
+        this.email = email;
+    }
+    
+    getName() { return this.name; }
+    getEmail() { return this.email; }
+}
+
+class EmailService {
+    sendEmail(user, message) {
+        console.log(`Sending email to ${user.getEmail()}: ${message}`);
+    }
+}
+
+class UserRepository {
+    save(user) {
+        console.log(`Saving user ${user.getName()} to database`);
+    }
+}
+                </pre>
+            </div>
+
+            <button class="demo-button" onclick="demonstrateSRP()">Run Demo</button>
+            <div id="srp-output" class="output"></div>
+        </div>
+
+        <!-- Open/Closed Principle -->
+        <div id="ocp" class="principle-card">
+            <h2 class="principle-title">Open/Closed Principle (OCP)</h2>
+            <p class="principle-subtitle">"Software entities should be open for extension, but closed for modification"</p>
+            
+            <div class="content-section">
+                <h3>What does it mean?</h3>
+                <div class="explanation">
+                    You should be able to add new functionality without changing existing code. Use inheritance or composition to extend behavior.
+                </div>
+            </div>
+
+            <div class="example-container">
+                <pre class="code-block bad" data-title="❌ Bad Example">
+class AreaCalculator {
+    calculate(shapes) {
+        let area = 0;
+        shapes.forEach(shape => {
+            if (shape.type === 'rectangle') {
+                area += shape.width * shape.height;
+            } else if (shape.type === 'circle') {
+                area += Math.PI * shape.radius * shape.radius;
+            }
+            // Need to modify this class for new shapes!
+        });
+        return area;
+    }
+}
+                </pre>
+                
+                <pre class="code-block good" data-title="✅ Good Example">
+class Shape {
+    calculateArea() {
+        throw new Error("Must implement calculateArea");
+    }
+}
+
+class Rectangle extends Shape {
+    constructor(width, height) {
+        super();
+        this.width = width;
+        this.height = height;
+    }
+    calculateArea() { return this.width * this.height; }
+}
+
+class Circle extends Shape {
+    constructor(radius) {
+        super();
+        this.radius = radius;
+    }
+    calculateArea() { return Math.PI * this.radius * this.radius; }
+}
+
+class AreaCalculator {
+    calculate(shapes) {
+        return shapes.reduce((total, shape) => total + shape.calculateArea(), 0);
+    }
+}
+                </pre>
+            </div>
+            <div class="content-section">
+    <h3>Clarifying Misconceptions</h3>
+    <div class="explanation">
+        <ul>
+            <li>✅ <strong>You can add new methods</strong> to a class — as long as you don’t break existing behavior.</li>
+            <li>❌ <strong>Don't modify existing methods</strong> just to handle new behavior. That violates OCP.</li>
+            <li>✅ Prefer <strong>extending via interfaces or subclasses</strong> rather than editing core logic.</li>
+            <li>⚠️ Avoid adding more <code>if-else</code> blocks for every new case — this tightly couples logic.</li>
+        </ul>
+        <p><strong>In short:</strong> "Don't change existing code to add new functionality. Instead, extend it smartly."</p>
+    </div>
+</div>
+
+
+            <button class="demo-button" onclick="demonstrateOCP()">Run Demo</button>
+            <div id="ocp-output" class="output"></div>
+        </div>
+
+        <!-- Liskov Substitution Principle -->
+        <div id="lsp" class="principle-card">
+            <h2 class="principle-title">Liskov Substitution Principle (LSP)</h2>
+            <p class="principle-subtitle">"Objects of a superclass should be replaceable with objects of its subclasses"</p>
+            
+            <div class="content-section">
+                <h3>What does it mean?</h3>
+                <div class="explanation">
+                    If you have a parent class, you should be able to use any of its child classes in its place without breaking the program.
+                </div>
+            </div>
+
+            <div class="example-container">
+                <pre class="code-block bad" data-title="❌ Bad Example">
+class Bird {
+    fly() { console.log("Flying high!"); }
+}
+
+class Penguin extends Bird {
+    fly() { 
+        throw new Error("Penguins can't fly!"); 
+        // This breaks LSP - can't substitute Bird with Penguin
+    }
+}
+                </pre>
+                
+                <pre class="code-block good" data-title="✅ Good Example">
+class Bird {
+    makeSound() { console.log("Bird sound"); }
+}
+
+class FlyingBird extends Bird {
+    fly() { console.log("Flying high!"); }
+}
+
+class Eagle extends FlyingBird {
+    makeSound() { console.log("Eagle screech!"); }
+}
+
+class Penguin extends Bird {
+    makeSound() { console.log("Penguin chirp!"); }
+    swim() { console.log("Swimming gracefully!"); }
+}
+                </pre>
+            </div>
+            <div class="note-box" style="margin-top: 20px;">
+  <strong>🧠 Note on Liskov:</strong><br>
+  The term <strong>"Liskov"</strong> comes from <em>Barbara Liskov</em>, a pioneering computer scientist. She introduced the substitution principle which states:
+  <blockquote style="margin: 10px 0; font-style: italic; border-left: 4px solid #667eea; padding-left: 10px;">
+    "Objects of a superclass should be replaceable with objects of its subclasses without breaking the application."
+  </blockquote>
+  This means subclasses should honor the behavior expected by the parent class and not surprise the code that uses them.
+</div>
+
+
+            <button class="demo-button" onclick="demonstrateLSP()">Run Demo</button>
+            <div id="lsp-output" class="output"></div>
+        </div>
+
+        <!-- Interface Segregation Principle -->
+        <div id="isp" class="principle-card">
+            <h2 class="principle-title">Interface Segregation Principle (ISP)</h2>
+            <p class="principle-subtitle">"Clients should not be forced to depend on interfaces they don't use"</p>
+            
+            <div class="content-section">
+                <h3>What does it mean?</h3>
+                <div class="explanation">
+                    Instead of one large interface, create smaller, specific interfaces. Classes should only implement what they actually need.
+                </div>
+            </div>
+
+            <div class="example-container">
+                <pre class="code-block bad" data-title="❌ Bad Example (Violates ISP)">
+interface Machine {
+    void print();
+    void scan();
+    void fax();
+}
+
+class OldPrinter implements Machine {
+    public void print() {
+        System.out.println("Printing document...");
+    }
+
+    public void scan() {
+        throw new UnsupportedOperationException("Scan not supported");
+    }
+
+    public void fax() {
+        throw new UnsupportedOperationException("Fax not supported");
+    }
+}
+</pre>
+
+                
+                <pre class="code-block good" data-title="✅ Good Example (Follows ISP)">
+interface Printer {
+    void print();
+}
+
+interface Scanner {
+    void scan();
+}
+
+interface Fax {
+    void fax();
+}
+
+class BasicPrinter implements Printer {
+    public void print() {
+        System.out.println("Printing document...");
+    }
+}
+
+class MultiFunctionPrinter implements Printer, Scanner, Fax {
+    public void print() {
+        System.out.println("Printing document...");
+    }
+
+    public void scan() {
+        System.out.println("Scanning document...");
+    }
+
+    public void fax() {
+        System.out.println("Faxing document...");
+    }
+}
+</pre>
+
+            </div>
+            <div class="note-box" style="margin-top: 30px;">
+  <strong>💡 Why ISP Matters:</strong><br>
+  Forcing a class to implement methods it doesn't need leads to fragile code. ISP helps avoid this by breaking large interfaces into smaller, more specific ones. That way, classes only implement what they truly use.
+</div>
+
+
+            <button class="demo-button" onclick="demonstrateISP()">Run Demo</button>
+            <div id="isp-output" class="output"></div>
+        </div>
+
+        <!-- Dependency Inversion Principle -->
+        <!-- Dependency Inversion Principle -->
+<div id="dip" class="principle-card">
+    <h2 class="principle-title">Dependency Inversion Principle (DIP)</h2>
+    <p class="principle-subtitle">"High-level modules should not depend on low-level modules. Both should depend on abstractions."</p>
+
+    <div class="content-section">
+        <h3>What does it mean?</h3>
+        <div class="explanation">
+            Instead of hardcoding dependencies between classes, we should rely on interfaces (abstractions) that define behavior. This makes the system flexible and easy to maintain or test.
+        </div>
+    </div>
+
+    <div class="example-container">
+        <pre class="code-block bad" data-title="❌ Bad Example (Violates DIP)">
+class EmailService {
+    sendEmail(message) {
+        console.log("Sending email:", message);
+    }
+}
+
+class NotificationManager {
+    constructor() {
+        this.emailService = new EmailService(); // tightly coupled to EmailService
+    }
+
+    notifyUser() {
+        this.emailService.sendEmail("Welcome!");
+    }
+}
+        </pre>
+
+        <pre class="code-block good" data-title="✅ Good Example (Follows DIP)">
+interface NotificationService {
+    send(message);
+}
+
+class EmailService implements NotificationService {
+    send(message) {
+        console.log("Sending email:", message);
+    }
+}
+
+class SMSService implements NotificationService {
+    send(message) {
+        console.log("Sending SMS:", message);
+    }
+}
+
+class NotificationManager {
+    constructor(service) {
+        this.service = service; // depends on abstraction
+    }
+
+    notifyUser() {
+        this.service.send("Welcome!");
+    }
+}
+        </pre>
+    </div>
+
+    <div class="note-box" style="margin-top: 25px;">
+        <strong>💡 Why DIP Matters:</strong><br>
+        <ul>
+            <li><strong>Without DIP:</strong> High-level logic is tightly coupled to specific classes. Changing logic or switching services (e.g., Email → SMS) requires code changes.</li>
+            <li><strong>With DIP:</strong> You rely on an abstraction/interface. You can swap implementations without modifying core business logic.</li>
+        </ul>
+        <p><strong>Conclusion:</strong> Always program to interfaces, not implementations. This improves flexibility, testability, and decouples your system.</p>
+    </div>
+
+    <button class="demo-button" onclick="demonstrateDIP()">Run Demo</button>
+    <div id="dip-output" class="output"></div>
+</div>
+
+    </div>
+
+    <script>
+        function showPrinciple(principle) {
+            // Hide all cards
+            document.querySelectorAll('.principle-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            
+            // Remove active class from all nav buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected card
+            document.getElementById(principle).classList.add('active');
+            
+            // Add active class to clicked button
+            event.target.classList.add('active');
+        }
+
+        function demonstrateSRP() {
+            const output = document.getElementById('srp-output');
+            output.innerHTML = '';
+            
+            // Good example implementation
+            class User {
+                constructor(name, email) {
+                    this.name = name;
+                    this.email = email;
+                }
+                getName() { return this.name; }
+                getEmail() { return this.email; }
+            }
+
+            class EmailService {
+                sendEmail(user, message) {
+                    return `Sending email to ${user.getEmail()}: ${message}`;
+                }
+            }
+
+            class UserRepository {
+                save(user) {
+                    return `Saving user ${user.getName()} to database`;
+                }
+            }
+
+            const user = new User("John Doe", "john@example.com");
+            const emailService = new EmailService();
+            const userRepo = new UserRepository();
+
+            output.innerHTML = `
+                <strong>✅ Good Implementation Results:</strong><br>
+                User: ${user.getName()}<br>
+                ${emailService.sendEmail(user, "Welcome!")}<br>
+                ${userRepo.save(user)}<br><br>
+                <em>Each class has a single responsibility!</em>
+            `;
+        }
+
+        function demonstrateOCP() {
+            const output = document.getElementById('ocp-output');
+            
+            class Shape {
+                calculateArea() {
+                    throw new Error("Must implement calculateArea");
+                }
+            }
+
+            class Rectangle extends Shape {
+                constructor(width, height) {
+                    super();
+                    this.width = width;
+                    this.height = height;
+                }
+                calculateArea() { return this.width * this.height; }
+            }
+
+            class Circle extends Shape {
+                constructor(radius) {
+                    super();
+                    this.radius = radius;
+                }
+                calculateArea() { return Math.PI * this.radius * this.radius; }
+            }
+
+            // New shape added without modifying existing code!
+            class Triangle extends Shape {
+                constructor(base, height) {
+                    super();
+                    this.base = base;
+                    this.height = height;
+                }
+                calculateArea() { return 0.5 * this.base * this.height; }
+            }
+
+            class AreaCalculator {
+                calculate(shapes) {
+                    return shapes.reduce((total, shape) => total + shape.calculateArea(), 0);
+                }
+            }
+
+            const shapes = [
+                new Rectangle(5, 4),
+                new Circle(3),
+                new Triangle(6, 8)
+            ];
+            
+            const calculator = new AreaCalculator();
+            const totalArea = calculator.calculate(shapes);
+
+            output.innerHTML = `
+                <strong>✅ Extension without modification:</strong><br>
+                Rectangle (5x4): ${shapes[0].calculateArea()}<br>
+                Circle (radius 3): ${shapes[1].calculateArea().toFixed(2)}<br>
+                Triangle (6x8): ${shapes[2].calculateArea()}<br>
+                <strong>Total Area: ${totalArea.toFixed(2)}</strong><br><br>
+                <em>Added Triangle without changing existing code!</em>
+            `;
+        }
+
+        function demonstrateLSP() {
+            const output = document.getElementById('lsp-output');
+            
+            class Bird {
+                makeSound() { return "Bird sound"; }
+            }
+
+            class FlyingBird extends Bird {
+                fly() { return "Flying high!"; }
+            }
+
+            class Eagle extends FlyingBird {
+                makeSound() { return "Eagle screech!"; }
+            }
+
+            class Penguin extends Bird {
+                makeSound() { return "Penguin chirp!"; }
+                swim() { return "Swimming gracefully!"; }
+            }
+
+            function handleBird(bird) {
+                let result = bird.makeSound();
+                if (bird instanceof FlyingBird) {
+                    result += " - " + bird.fly();
+                }
+                if (bird instanceof Penguin) {
+                    result += " - " + bird.swim();
+                }
+                return result;
+            }
+
+            const birds = [new Eagle(), new Penguin()];
+            let results = birds.map(bird => handleBird(bird));
+
+            output.innerHTML = `
+                <strong>✅ Proper substitution:</strong><br>
+                Eagle: ${results[0]}<br>
+                Penguin: ${results[1]}<br><br>
+                <em>Both birds can be used as Bird objects without breaking the code!</em>
+            `;
+        }
+
+        function demonstrateISP() {
+            const output = document.getElementById('isp-output');
+            
+            class Workable {
+                work() { throw new Error("Must implement"); }
+            }
+
+            class Eatable {
+                eat() { throw new Error("Must implement"); }
+            }
+
+            class Human extends Workable {
+                work() { return "Human working"; }
+                eat() { return "Human eating"; }
+                sleep() { return "Human sleeping"; }
+            }
+
+            class Robot extends Workable {
+                work() { return "Robot working efficiently"; }
+                charge() { return "Robot charging battery"; }
+            }
+
+            const human = new Human();
+            const robot = new Robot();
+
+            output.innerHTML = `
+                <strong>✅ Segregated interfaces:</strong><br>
+                Human: ${human.work()}, ${human.eat()}, ${human.sleep()}<br>
+                Robot: ${robot.work()}, ${robot.charge()}<br><br>
+                <em>Each class only implements what it needs!</em>
+            `;
+        }
+
+        function demonstrateDIP() {
+            const output = document.getElementById('dip-output');
+            
+            class Database {
+                save(data) { throw new Error("Must implement"); }
+            }
+
+            class MySQLDatabase extends Database {
+                save(data) { return `Saving to MySQL: ${data}`; }
+            }
+
+            class PostgreSQLDatabase extends Database {
+                save(data) { return `Saving to PostgreSQL: ${data}`; }
+            }
+
+            class UserService {
+                constructor(database) {
+                    this.database = database;
+                }
+                
+                saveUser(user) {
+                    return this.database.save(user);
+                }
+            }
+
+            // Can easily switch databases
+            const mysqlDB = new MySQLDatabase();
+            const postgresDB = new PostgreSQLDatabase();
+            
+            const userService1 = new UserService(mysqlDB);
+            const userService2 = new UserService(postgresDB);
+
+            output.innerHTML = `
+                <strong>✅ Dependency injection in action:</strong><br>
+                Service with MySQL: ${userService1.saveUser("John Doe")}<br>
+                Service with PostgreSQL: ${userService2.saveUser("Jane Smith")}<br><br>
+                <em>Same service, different databases - no code changes needed!</em>
+            `;
+        }
+
+        // Initialize with first principle
+        showPrinciple('srp');
+    </script>
+</body>
+</html>

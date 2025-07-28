@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTTP Basics Interactive Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            text-align: center;
+            color: #4a5568;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #e2e8f0;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .tab {
+            padding: 15px 25px;
+            background: #f7fafc;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            color: #4a5568;
+            border-radius: 10px 10px 0 0;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tab::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.5s;
+        }
+
+        .tab:hover::before {
+            left: 100%;
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .demo-section {
+            background: #f8fafc;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-left: 5px solid #667eea;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .demo-section h3 {
+            color: #2d3748;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-1px);
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .output {
+            background: #1a202c;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-top: 20px;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 2px solid #4a5568;
+        }
+
+        .status-code {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 5px;
+        }
+
+        .status-2xx { background: #48bb78; color: white; }
+        .status-3xx { background: #ed8936; color: white; }
+        .status-4xx { background: #f56565; color: white; }
+        .status-5xx { background: #9f7aea; color: white; }
+
+        .cookie-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .highlight {
+            background: #fef5e7;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #ed8936;
+            margin: 15px 0;
+        }
+
+        .filter-demo {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .method-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .method-get { background: #48bb78; }
+        .method-post { background: #ed8936; }
+        .method-put { background: #4299e1; }
+        .method-delete { background: #f56565; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌐 HTTP Basics Interactive Demo</h1>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('requests')">📤 HTTP Requests</button>
+            <button class="tab" onclick="showTab('responses')">📥 HTTP Responses</button>
+            <button class="tab" onclick="showTab('headers')">📋 Headers</button>
+            <button class="tab" onclick="showTab('cookies')">🍪 Cookies</button>
+            <button class="tab" onclick="showTab('filters')">🔍 Filters</button>
+            <button class="tab" onclick="showTab('status-codes')">🚦 Status Codes</button>
+        </div>
+
+        <!-- HTTP Requests Tab -->
+        <div id="requests" class="tab-content active">
+            <div class="demo-section">
+                <h3>🚀 HTTP Request Builder</h3>
+                <div class="grid">
+                    <div>
+                        <div class="input-group">
+                            <label>HTTP Method:</label>
+                            <select id="requestMethod">
+                                <option value="GET">GET</option>
+                                <option value="POST">POST</option>
+                                <option value="PUT">PUT</option>
+                                <option value="DELETE">DELETE</option>
+                                <option value="PATCH">PATCH</option>
+                            </select>
+                        </div>
+                        
+                        <div class="input-group">
+                            <label>URL:</label>
+                            <input type="text" id="requestUrl" value="https://httpbin.org/get" placeholder="Enter URL">
+                        </div>
+                        
+                        <div class="input-group">
+                            <label>Request Headers (JSON format):</label>
+                            <textarea id="requestHeaders" rows="4" placeholder='{"Content-Type": "application/json", "Authorization": "Bearer token123"}'></textarea>
+                        </div>
+                        
+                        <div class="input-group">
+                            <label>Request Body (for POST/PUT):</label>
+                            <textarea id="requestBody" rows="4" placeholder='{"name": "John", "email": "john@example.com"}'></textarea>
+                        </div>
+                        
+                        <button onclick="sendRequest()">🚀 Send Request</button>
+                    </div>
+                    
+                    <div>
+                        <div class="highlight">
+                            <strong>💡 What you'll learn:</strong><br>
+                            • HTTP methods (GET, POST, PUT, DELETE)<br>
+                            • Request headers and their purposes<br>
+                            • Request body structure<br>
+                            • URL structure and parameters
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="output" id="requestOutput">Click "Send Request" to see the HTTP request details...</div>
+            </div>
+        </div>
+
+        <!-- HTTP Responses Tab -->
+        <div id="responses" class="tab-content">
+            <div class="demo-section">
+                <h3>📨 HTTP Response Analyzer</h3>
+                <div class="grid">
+                    <div>
+                        <div class="input-group">
+                            <label>Test Different Response Types:</label>
+                            <select id="responseType" onchange="updateResponseDemo()">
+                                <option value="success">✅ Successful Response (200)</option>
+                                <option value="created">🆕 Created Response (201)</option>
+                                <option value="redirect">🔄 Redirect Response (301)</option>
+                                <option value="not-found">❌ Not Found (404)</option>
+                                <option value="server-error">💥 Server Error (500)</option>
+                            </select>
+                        </div>
+                        
+                        <button onclick="simulateResponse()">🎭 Simulate Response</button>
+                    </div>
+                    
+                    <div>
+                        <div class="highlight">
+                            <strong>📖 Response Components:</strong><br>
+                            • Status Line (HTTP version, status code, reason phrase)<br>
+                            • Response Headers (metadata about the response)<br>
+                            • Response Body (actual content)<br>
+                            • Content-Type, Content-Length, etc.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="output" id="responseOutput">Select a response type and click "Simulate Response"...</div>
+            </div>
+        </div>
+
+        <!-- Headers Tab -->
+        <div id="headers" class="tab-content">
+            <div class="demo-section">
+                <h3>📋 HTTP Headers Explorer</h3>
+                <div class="grid">
+                    <div>
+                        <div class="input-group">
+                            <label>Header Category:</label>
+                            <select id="headerCategory" onchange="showHeaderExamples()">
+                                <option value="request">📤 Request Headers</option>
+                                <option value="response">📥 Response Headers</option>
+                                <option value="security">🔒 Security Headers</option>
+                                <option value="caching">💾 Caching Headers</option>
+                            </select>
+                        </div>
+                        
+                        <div class="input-group">
+                            <label>Add Custom Header:</label>
+                            <input type="text" id="customHeaderName" placeholder="Header Name (e.g., X-Custom-Header)">
+                            <input type="text" id="customHeaderValue" placeholder="Header Value" style="margin-top: 10px;">
+                            <button onclick="addCustomHeader()" style="margin-top: 10px;">➕ Add Header</button>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div class="highlight">
+                            <strong>🎯 Common Headers:</strong><br>
+                            • <strong>Authorization:</strong> Authentication credentials<br>
+                            • <strong>Content-Type:</strong> Type of data being sent<br>
+                            • <strong>User-Agent:</strong> Client application info<br>
+                            • <strong>Accept:</strong> Preferred response formats
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="output" id="headersOutput">Select a header category to see examples...</div>
+            </div>
+        </div>
+
+        <!-- Cookies Tab -->
+        <div id="cookies" class="tab-content">
+            <div class="demo-section">
+                <h3>🍪 Cookie Manager</h3>
+                <div class="grid">
+                    <div>
+                        <div class="input-group">
+                            <label>Cookie Name:</label>
+                            <input type="text" id="cookieName" placeholder="session_id">
+                        </div>
+                        
+                        <div class="input-group">
+                            <label>Cookie Value:</label>
+                            <input type="text" id="cookieValue" placeholder="abc123xyz">
+                        </div>
+                        
+                        <div class="input-group">
+                            <label>Expires (days from now):</label>
+                            <input type="number" id="cookieExpires" value="7" min="1">
+                        </div>
+                        
+                        <div class="input-group">
+                            <label>Cookie Attributes:</label>
+                            <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                                <label><input type="checkbox" id="httpOnly"> HttpOnly</label>
+                                <label><input type="checkbox" id="secure"> Secure</label>
+                                <label><input type="checkbox" id="sameSite"> SameSite</label>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button onclick="setCookie()">🍪 Set Cookie</button>
+                            <button onclick="getCookies()">📖 Read Cookies</button>
+                            <button onclick="deleteCookie()">🗑️ Delete Cookie</button>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div class="highlight">
+                            <strong>🔍 Cookie Attributes:</strong><br>
+                            • <strong>HttpOnly:</strong> Not accessible via JavaScript<br>
+                            • <strong>Secure:</strong> Only sent over HTTPS<br>
+                            • <strong>SameSite:</strong> CSRF protection<br>
+                            • <strong>Expires/Max-Age:</strong> When cookie expires
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="cookiesList"></div>
+                <div class="output" id="cookiesOutput">Cookie operations will appear here...</div>
+            </div>
+        </div>
+
+        <!-- Filters Tab -->
+        <div id="filters" class="tab-content">
+            <div class="demo-section">
+                <h3>🔍 HTTP Request/Response Filters</h3>
+                <div class="filter-demo">
+                    <div>
+                        <label>Filter by Method:</label>
+                        <select id="methodFilter" onchange="applyFilters()">
+                            <option value="">All Methods</option>
+                            <option value="GET">GET</option>
+                            <option value="POST">POST</option>
+                            <option value="PUT">PUT</option>
+                            <option value="DELETE">DELETE</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label>Filter by Status:</label>
+                        <select id="statusFilter" onchange="applyFilters()">
+                            <option value="">All Status</option>
+                            <option value="2xx">2xx Success</option>
+                            <option value="3xx">3xx Redirect</option>
+                            <option value="4xx">4xx Client Error</option>
+                            <option value="5xx">5xx Server Error</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label>Search Headers:</label>
+                        <input type="text" id="headerSearch" placeholder="Content-Type" onkeyup="applyFilters()">
+                    </div>
+                    
+                    <button onclick="generateSampleRequests()">📝 Generate Sample Data</button>
+                </div>
+                
+                <div class="highlight">
+                    <strong>🎯 Filtering Features:</strong><br>
+                    • Filter requests by HTTP method<br>
+                    • Filter responses by status code range<br>
+                    • Search through headers and content<br>
+                    • Real-time filtering capabilities
+                </div>
+                
+                <div class="output" id="filtersOutput">Generate sample data to see filtering in action...</div>
+            </div>
+        </div>
+
+        <!-- Status Codes Tab -->
+        <div id="status-codes" class="tab-content">
+            <div class="demo-section">
+                <h3>🚦 HTTP Status Codes Reference</h3>
+                <div class="grid">
+                    <div>
+                        <div class="input-group">
+                            <label>Test Status Code:</label>
+                            <select id="statusCode" onchange="showStatusInfo()">
+                                <option value="200">200 - OK</option>
+                                <option value="201">201 - Created</option>
+                                <option value="204">204 - No Content</option>
+                                <option value="301">301 - Moved Permanently</option>
+                                <option value="302">302 - Found</option>
+                                <option value="304">304 - Not Modified</option>
+                                <option value="400">400 - Bad Request</option>
+                                <option value="401">401 - Unauthorized</option>
+                                <option value="403">403 - Forbidden</option>
+                                <option value="404">404 - Not Found</option>
+                                <option value="429">429 - Too Many Requests</option>
+                                <option value="500">500 - Internal Server Error</option>
+                                <option value="502">502 - Bad Gateway</option>
+                                <option value="503">503 - Service Unavailable</option>
+                            </select>
+                        </div>
+                        
+                        <button onclick="simulateStatusCode()">🎭 Simulate Status</button>
+                    </div>
+                    
+                    <div>
+                        <div class="highlight">
+                            <strong>📊 Status Code Categories:</strong><br>
+                            • <span class="status-code status-2xx">2xx</span> Success<br>
+                            • <span class="status-code status-3xx">3xx</span> Redirection<br>
+                            • <span class="status-code status-4xx">4xx</span> Client Error<br>
+                            • <span class="status-code status-5xx">5xx</span> Server Error
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="output" id="statusOutput">Select a status code to see detailed information...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample data for demonstrations
+        let sampleRequests = [];
+        
+        // Tab switching functionality
+        function showTab(tabName) {
+            // Hide all tab contents
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => content.classList.remove('active'));
+            
+            // Remove active class from all tabs
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Show selected tab content and mark tab as active
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // HTTP Request functionality
+        async function sendRequest() {
+            const method = document.getElementById('requestMethod').value;
+            const url = document.getElementById('requestUrl').value;
+            const headersText = document.getElementById('requestHeaders').value;
+            const body = document.getElementById('requestBody').value;
+            
+            let headers = {};
+            try {
+                if (headersText.trim()) {
+                    headers = JSON.parse(headersText);
+                }
+            } catch (e) {
+                headers = { 'Content-Type': 'application/json' };
+            }
+            
+            const output = document.getElementById('requestOutput');
+            output.textContent = `🚀 Sending ${method} request to: ${url}\n\n`;
+            
+            // Show request details
+            output.textContent += `📋 REQUEST DETAILS:\n`;
+            output.textContent += `Method: ${method}\n`;
+            output.textContent += `URL: ${url}\n\n`;
+            
+            output.textContent += `📤 REQUEST HEADERS:\n`;
+            Object.keys(headers).forEach(key => {
+                output.textContent += `${key}: ${headers[key]}\n`;
+            });
+            
+            if (body && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
+                output.textContent += `\n📝 REQUEST BODY:\n${body}\n`;
+            }
+            
+            output.textContent += `\n⏳ Simulating request...\n`;
+            
+            // Simulate response
+            setTimeout(() => {
+                output.textContent += `\n✅ REQUEST COMPLETED\n`;
+                output.textContent += `📥 Response Status: 200 OK\n`;
+                output.textContent += `📋 Response Headers:\n`;
+                output.textContent += `Content-Type: application/json\n`;
+                output.textContent += `Content-Length: 145\n`;
+                output.textContent += `Server: nginx/1.18.0\n`;
+                output.textContent += `Date: ${new Date().toUTCString()}\n`;
+            }, 1000);
+        }
+
+        // HTTP Response functionality
+        function updateResponseDemo() {
+            const type = document.getElementById('responseType').value;
+            // Response demo updated when user changes selection
+        }
+
+        function simulateResponse() {
+            const type = document.getElementById('responseType').value;
+            const output = document.getElementById('responseOutput');
+            
+            const responses = {
+                'success': {
+                    status: '200 OK',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Content-Length': '156',
+                        'Cache-Control': 'no-cache',
+                        'Server': 'Apache/2.4.41'
+                    },
+                    body: '{"status": "success", "data": {"id": 123, "name": "John Doe", "email": "john@example.com"}}'
+                },
+                'created': {
+                    status: '201 Created',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Location': '/api/users/124',
+                        'Content-Length': '89'
+                    },
+                    body: '{"status": "created", "data": {"id": 124, "message": "User created successfully"}}'
+                },
+                'redirect': {
+                    status: '301 Moved Permanently',
+                    headers: {
+                        'Location': 'https://example.com/new-location',
+                        'Content-Length': '0',
+                        'Cache-Control': 'max-age=3600'
+                    },
+                    body: ''
+                },
+                'not-found': {
+                    status: '404 Not Found',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Content-Length': '67'
+                    },
+                    body: '{"error": "Not Found", "message": "The requested resource was not found"}'
+                },
+                'server-error': {
+                    status: '500 Internal Server Error',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Content-Length': '78'
+                    },
+                    body: '{"error": "Internal Server Error", "message": "Something went wrong on our end"}'
+                }
+            };
+            
+            const response = responses[type];
+            
+            output.textContent = `📨 HTTP RESPONSE SIMULATION\n\n`;
+            output.textContent += `📊 STATUS LINE:\n`;
+            output.textContent += `HTTP/1.1 ${response.status}\n\n`;
+            
+            output.textContent += `📋 RESPONSE HEADERS:\n`;
+            Object.keys(response.headers).forEach(key => {
+                output.textContent += `${key}: ${response.headers[key]}\n`;
+            });
+            output.textContent += `Date: ${new Date().toUTCString()}\n`;
+            
+            if (response.body) {
+                output.textContent += `\n📄 RESPONSE BODY:\n`;
+                output.textContent += response.body;
+            }
+            
+            output.textContent += `\n\n💡 Response Analysis:\n`;
+            const statusCode = response.status.split(' ')[0];
+            if (statusCode.startsWith('2')) {
+                output.textContent += `✅ Success: Request completed successfully\n`;
+            } else if (statusCode.startsWith('3')) {
+                output.textContent += `🔄 Redirect: Client should follow redirect\n`;
+            } else if (statusCode.startsWith('4')) {
+                output.textContent += `❌ Client Error: Problem with the request\n`;
+            } else if (statusCode.startsWith('5')) {
+                output.textContent += `💥 Server Error: Problem on server side\n`;
+            }
+        }
+
+        // Headers functionality
+        function showHeaderExamples() {
+            const category = document.getElementById('headerCategory').value;
+            const output = document.getElementById('headersOutput');
+            
+            const headerExamples = {
+                'request': {
+                    'Accept': 'application/json, text/plain, */*',
+                    'Accept-Language': 'en-US,en;q=0.9',
+                    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+                    'Content-Type': 'application/json',
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                    'Referer': 'https://example.com/page',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                'response': {
+                    'Content-Type': 'application/json; charset=utf-8',
+                    'Content-Length': '1234',
+                    'Server': 'nginx/1.18.0 (Ubuntu)',
+                    'Date': new Date().toUTCString(),
+                    'Last-Modified': new Date(Date.now() - 86400000).toUTCString(),
+                    'ETag': '"33a64df551425fcc55e4d42a148795d9f25f89d4"',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                'security': {
+                    'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+                    'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline'",
+                    'X-Frame-Options': 'DENY',
+                    'X-Content-Type-Options': 'nosniff',
+                    'X-XSS-Protection': '1; mode=block',
+                    'Referrer-Policy': 'strict-origin-when-cross-origin'
+                },
+                'caching': {
+                    'Cache-Control': 'public, max-age=3600, must-revalidate',
+                    'Expires': new Date(Date.now() + 3600000).toUTCString(),
+                    'ETag': '"33a64df551425fcc55e4d42a148795d9f25f89d4"',
+                    'Last-Modified': new Date(Date.now() - 86400000).toUTCString(),
+                    'Vary': 'Accept-Encoding, User-Agent'
+                }
+            };
+            
+            const headers = headerExamples[category];
+            
+            output.textContent = `📋 ${category.toUpperCase()} HEADERS EXAMPLES:\n\n`;
+            
+            Object.keys(headers).forEach(key => {
+                output.textContent += `${key}: ${headers[key]}\n`;
+            });
+            
+            output.textContent += `\n💡 EXPLANATIONS:\n`;
+            
+            if (category === 'request') {
+                output.textContent += `• Accept: What content types the client can handle\n`;
+                output.textContent += `• Authorization: Authentication credentials\n`;
+                output.textContent += `• User-Agent: Information about the client software\n`;
+                output.textContent += `• Content-Type: Type of data being sent in request body\n`;
+            } else if (category === 'response') {
+                output.textContent += `• Content-Type: Type of data in response body\n`;
+                output.textContent += `• Content-Length: Size of response body in bytes\n`;
+                output.textContent += `• Server: Information about server software\n`;
+                output.textContent += `• ETag: Unique identifier for this version of the resource\n`;
+            } else if (category === 'security') {
+                output.textContent += `• Strict-Transport-Security: Forces HTTPS connections\n`;
+                output.textContent += `• Content-Security-Policy: Prevents XSS attacks\n`;
+                output.textContent += `• X-Frame-Options: Prevents clickjacking attacks\n`;
+                output.textContent += `• X-Content-Type-Options: Prevents MIME type sniffing\n`;
+            } else if (category === 'caching') {
+                output.textContent += `• Cache-Control: How and for how long to cache the response\n`;
+                output.textContent += `• Expires: Absolute expiration date for cached content\n`;
+                output.textContent += `• ETag: Used for conditional requests and cache validation\n`;
+                output.textContent += `• Vary: Which request headers affect caching\n`;
+            }
+        }
+
+        function addCustomHeader() {
+            const name = document.getElementById('customHeaderName').value;
+            const value = document.getElementById('customHeaderValue').value;
+            const output = document.getElementById('headersOutput');
+            
+            if (name && value) {
+                output.textContent += `\n🆕 CUSTOM HEADER ADDED:\n`;
+                output.textContent += `${name}: ${value}\n`;
+                output.textContent += `\n💡 Custom headers often start with 'X-' prefix for non-standard headers.\n`;
+                
+                // Clear inputs
+                document.getElementById('customHeaderName').value = '';
+                document.getElementById('customHeaderValue').value = '';
+            } else {
+                output.textContent += `\n❌ Please enter both header name and value.\n`;
+            }
+        }
+
+        // Cookie functionality
+        function setCookie() {
+            const name = document.getElementById('cookieName').value;
+            const value = document.getElementById('cookieValue').value;
+            const expires = document.getElementById('cookieExpires').value;
+            const httpOnly = document.getElementById('httpOnly').checked;
+            const secure = document.getElementById('secure').checked;
+            const sameSite = document.getElementById('sameSite').checked;
+            
+            if (!name || !value) {
+                document.getElementById('cookiesOutput').textContent = '❌ Please enter both cookie name and value.';
+                return;
+            }
+            
+            // Create expiration date
+            const expirationDate = new Date();
+            expirationDate.setDate(expirationDate.getDate() + parseInt(expires));
+            
+            // Build cookie string (Note: HttpOnly cannot be set via JavaScript)
+            let cookieString = `${name}=${value}; expires=${expirationDate.toUTCString()}; path=/`;
+            
+            if (secure) cookieString += '; Secure';
+            if (sameSite) cookieString += '; SameSite=Strict';
+            
+            // Set the cookie
+            document.cookie = cookieString;
+            
+            const output = document.getElementById('cookiesOutput');
+            output.textContent = `🍪 COOKIE SET SUCCESSFULLY!\n\n`;
+            output.textContent += `📋 Cookie Details:\n`;
+            output.textContent += `Name: ${name}\n`;
+            output.textContent += `Value: ${value}\n`;
+            output.textContent += `Expires: ${expirationDate.toUTCString()}\n`;
+            output.textContent += `Path: /\n`;
+            if (httpOnly) output.textContent += `HttpOnly: true (Note: Cannot be set via JavaScript)\n`;
+            if (secure) output.textContent += `Secure: true\n`;
+            if (sameSite) output.textContent += `SameSite: Strict\n`;
+            
+            output.textContent += `\n📤 Set-Cookie Header (what server would send):\n`;
+            output.textContent += `Set-Cookie: ${cookieString}`;
+            if (httpOnly) output.textContent += `; HttpOnly`;
+            
+            updateCookiesList();
+        }
+
+        function getCookies() {
+            const output = document.getElementById('cookiesOutput');
+            const cookies = document.cookie;
+            
+            output.textContent = `🍪 CURRENT COOKIES:\n\n`;
+            
+            if (cookies) {
+                const cookieArray = cookies.split(';');
+                cookieArray.forEach((cookie, index) => {
+                    const [name, value] = cookie.trim().split('=');
+                    output.textContent += `${index + 1}. ${name} = ${value}\n`;
+                });
+                
+                output.textContent += `\n📤 Cookie Header (what browser sends):\n`;
+                output.textContent += `Cookie: ${cookies}`;
+            } else {
+                output.textContent += `No cookies found.\n`;
+                output.textContent += `\n💡 Cookies may have been cleared or none have been set.`;
+            }
+            
+            updateCookiesList();
+        }
+
+        function deleteCookie() {
+            const name = document.getElementById('cookieName').value;
+            
+            if (!name) {
+                document.getElementById('cookiesOutput').textContent = '❌ Please enter cookie name to delete.';
+                return;
+            }
+            
+            // Delete cookie by setting expiration to past date
+            document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/`;
+            
+            const output = document.getElementById('cookiesOutput');
+            output.textContent = `🗑️ COOKIE DELETED!\n\n`;
+            output.textContent += `Cookie "${name}" has been removed.\n\n`;
+            output.textContent += `📤 Delete Cookie Header:\n`;
+            output.textContent += `Set-Cookie: ${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/`;
+            
+            updateCookiesList();
+        }
+
+        function updateCookiesList() {
+            const cookiesList = document.getElementById('cookiesList');
+            const cookies = document.cookie;
+            
+            cookiesList.innerHTML = '<h4>🍪 Current Cookies:</h4>';
+            
+            if (cookies) {
+                const cookieArray = cookies.split(';');
+                cookieArray.forEach(cookie => {
+                    const [name, value] = cookie.trim().split('=');
+                    const cookieDiv = document.createElement('div');
+                    cookieDiv.className = 'cookie-item';
+                    cookieDiv.innerHTML = `
+                        <strong>${name}</strong> = ${value}
+                        <br><small>🕒 Set: ${new Date().toLocaleString()}</small>
+                    `;
+                    cookiesList.appendChild(cookieDiv);
+                });
+            } else {
+                cookiesList.innerHTML += '<p>No cookies currently set.</p>';
+            }
+        }
+
+        // Filters functionality
+        function generateSampleRequests() {
+            sampleRequests = [
+                { method: 'GET', url: '/api/users', status: 200, headers: { 'Content-Type': 'application/json' }, time: new Date() },
+                { method: 'POST', url: '/api/users', status: 201, headers: { 'Content-Type': 'application/json' }, time: new Date() },
+                { method: 'GET', url: '/api/users/123', status: 404, headers: { 'Content-Type': 'application/json' }, time: new Date() },
+                { method: 'PUT', url: '/api/users/456', status: 200, headers: { 'Content-Type': 'application/json' }, time: new Date() },
+                { method: 'DELETE', url: '/api/users/789', status: 204, headers: { 'Content-Type': 'text/plain' }, time: new Date() },
+                { method: 'GET', url: '/api/products', status: 500, headers: { 'Content-Type': 'application/json' }, time: new Date() },
+                { method: 'POST', url: '/api/login', status: 302, headers: { 'Location': '/dashboard', 'Content-Type': 'text/html' }, time: new Date() },
+                { method: 'GET', url: '/static/style.css', status: 304, headers: { 'Content-Type': 'text/css' }, time: new Date() }
+            ];
+            
+            applyFilters();
+        }
+
+        function applyFilters() {
+            const methodFilter = document.getElementById('methodFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+            const headerSearch = document.getElementById('headerSearch').value.toLowerCase();
+            const output = document.getElementById('filtersOutput');
+            
+            let filteredRequests = sampleRequests.filter(req => {
+                let matchesMethod = !methodFilter || req.method === methodFilter;
+                let matchesStatus = !statusFilter || req.status.toString().startsWith(statusFilter.charAt(0));
+                let matchesHeader = !headerSearch || 
+                    Object.keys(req.headers).some(key => 
+                        key.toLowerCase().includes(headerSearch) || 
+                        req.headers[key].toLowerCase().includes(headerSearch)
+                    );
+                
+                return matchesMethod && matchesStatus && matchesHeader;
+            });
+            
+            output.textContent = `🔍 FILTERED RESULTS (${filteredRequests.length}/${sampleRequests.length}):\n\n`;
+            
+            filteredRequests.forEach((req, index) => {
+                const statusClass = req.status < 300 ? '2xx' : 
+                                  req.status < 400 ? '3xx' : 
+                                  req.status < 500 ? '4xx' : '5xx';
+                
+                output.textContent += `${index + 1}. `;
+                output.textContent += `[${req.method}] ${req.url} → ${req.status}\n`;
+                output.textContent += `   Headers: ${Object.keys(req.headers).join(', ')}\n`;
+                output.textContent += `   Time: ${req.time.toLocaleTimeString()}\n\n`;
+            });
+            
+            if (filteredRequests.length === 0) {
+                output.textContent += `No requests match the current filters.\n\n`;
+            }
+            
+            output.textContent += `📊 FILTER SUMMARY:\n`;
+            if (methodFilter) output.textContent += `• Method: ${methodFilter}\n`;
+            if (statusFilter) output.textContent += `• Status: ${statusFilter}\n`;
+            if (headerSearch) output.textContent += `• Header Search: "${headerSearch}"\n`;
+        }
+
+        // Status codes functionality
+        function showStatusInfo() {
+            const statusCode = document.getElementById('statusCode').value;
+            simulateStatusCode();
+        }
+
+        function simulateStatusCode() {
+            const statusCode = document.getElementById('statusCode').value;
+            const output = document.getElementById('statusOutput');
+            
+            const statusInfo = {
+                '200': {
+                    name: 'OK',
+                    description: 'The request was successful and the server returned the requested data.',
+                    usage: 'Most common success response for GET, POST, PUT requests.',
+                    example: 'Successfully retrieved user profile data.'
+                },
+                '201': {
+                    name: 'Created',
+                    description: 'The request was successful and a new resource was created.',
+                    usage: 'Typically used for successful POST requests that create new resources.',
+                    example: 'New user account created successfully.'
+                },
+                '204': {
+                    name: 'No Content',
+                    description: 'The request was successful but there is no content to return.',
+                    usage: 'Often used for successful DELETE operations.',
+                    example: 'User account deleted successfully.'
+                },
+                '301': {
+                    name: 'Moved Permanently',
+                    description: 'The resource has been permanently moved to a new URL.',
+                    usage: 'Used for permanent redirects, search engines update their indexes.',
+                    example: 'Website moved from HTTP to HTTPS permanently.'
+                },
+                '302': {
+                    name: 'Found',
+                    description: 'The resource is temporarily available at a different URL.',
+                    usage: 'Temporary redirects, original URL should still be used.',
+                    example: 'Temporary redirect to maintenance page.'
+                },
+                '304': {
+                    name: 'Not Modified',
+                    description: 'The client\'s cached version is still valid.',
+                    usage: 'Used with conditional requests (If-Modified-Since, ETag).',
+                    example: 'Browser cache is up-to-date, no need to download again.'
+                },
+                '400': {
+                    name: 'Bad Request',
+                    description: 'The server cannot process the request due to client error.',
+                    usage: 'Invalid syntax, missing required fields, malformed JSON.',
+                    example: 'Missing required email field in registration form.'
+                },
+                '401': {
+                    name: 'Unauthorized',
+                    description: 'Authentication is required and has failed or not been provided.',
+                    usage: 'User needs to log in or provide valid credentials.',
+                    example: 'API key is missing or invalid.'
+                },
+                '403': {
+                    name: 'Forbidden',
+                    description: 'The server understood the request but refuses to authorize it.',
+                    usage: 'User is authenticated but doesn\'t have permission for this resource.',
+                    example: 'Regular user trying to access admin panel.'
+                },
+                '404': {
+                    name: 'Not Found',
+                    description: 'The requested resource could not be found on the server.',
+                    usage: 'URL doesn\'t exist, resource was deleted, or path is incorrect.',
+                    example: 'Trying to access a user profile that doesn\'t exist.'
+                },
+                '429': {
+                    name: 'Too Many Requests',
+                    description: 'The client has sent too many requests in a given time period.',
+                    usage: 'Rate limiting is in effect to prevent abuse.',
+                    example: 'API rate limit exceeded, try again later.'
+                },
+                '500': {
+                    name: 'Internal Server Error',
+                    description: 'The server encountered an unexpected condition.',
+                    usage: 'Generic server error when something went wrong server-side.',
+                    example: 'Database connection failed or unhandled exception occurred.'
+                },
+                '502': {
+                    name: 'Bad Gateway',
+                    description: 'The server received an invalid response from an upstream server.',
+                    usage: 'Proxy or gateway received invalid response from backend server.',
+                    example: 'Load balancer can\'t reach any backend servers.'
+                },
+                '503': {
+                    name: 'Service Unavailable',
+                    description: 'The server is currently unable to handle the request.',
+                    usage: 'Server is temporarily overloaded or under maintenance.',
+                    example: 'Server is undergoing scheduled maintenance.'
+                }
+            };
+            
+            const info = statusInfo[statusCode];
+            const statusClass = statusCode < '300' ? 'status-2xx' : 
+                              statusCode < '400' ? 'status-3xx' : 
+                              statusCode < '500' ? 'status-4xx' : 'status-5xx';
+            
+            output.innerHTML = `
+                <div style="color: #e2e8f0;">
+                    🚦 <span class="status-code ${statusClass}">${statusCode} ${info.name}</span>
+                    
+                    📝 DESCRIPTION:
+                    ${info.description}
+                    
+                    💡 TYPICAL USAGE:
+                    ${info.usage}
+                    
+                    🌟 EXAMPLE SCENARIO:
+                    ${info.example}
+                    
+                    📤 SAMPLE HTTP RESPONSE:
+                    HTTP/1.1 ${statusCode} ${info.name}
+                    Date: ${new Date().toUTCString()}
+                    Server: Apache/2.4.41 (Ubuntu)
+                    Content-Type: application/json
+                    Content-Length: 156
+                    
+                    ${statusCode.startsWith('2') ? 
+                        '{"status": "success", "message": "Request completed successfully"}' :
+                        statusCode.startsWith('3') ?
+                        '' :
+                        '{"error": "' + info.name + '", "message": "' + info.description + '"}'
+                    }
+                </div>
+            `;
+        }
+
+        // Initialize the demo
+        document.addEventListener('DOMContentLoaded', function() {
+            // Show initial header examples
+            showHeaderExamples();
+            
+            // Show initial status code info
+            showStatusInfo();
+            
+            // Update cookie list
+            updateCookiesList();
+            
+            // Add some demo animations
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach((tab, index) => {
+                tab.style.animationDelay = `${index * 0.1}s`;
+            });
+        });
+
+        // Add smooth scrolling for better UX
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelector('.container').scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'start' 
+                });
+            });
+        });
+    </script>
+</body>
+</html>

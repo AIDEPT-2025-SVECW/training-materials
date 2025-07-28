@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Visual Presentation: HTTP Statelessness & Session/Cookie State</title>
+  <style>
+    body {
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(to right, #e0f7fa, #fff3e0);
+  color: #333;
+  margin: 0;
+}
+
+.container {
+  max-width: 730px;
+  margin: 40px auto;
+  background: #ffffffee;
+  border-radius: 14px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.slide {
+  display: none;
+  padding: 40px 30px 30px 30px;
+  min-height: 420px;
+  animation: fadein 0.6s;
+}
+
+.active {
+  display: block;
+}
+
+@keyframes fadein {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.title {
+  font-size: 2em;
+  margin-bottom: 18px;
+  color: #00695c;
+  font-weight: 600;
+  border-left: 6px solid #26c6da;
+  padding-left: 12px;
+}
+
+.subtitle {
+  font-size: 1.15em;
+  color: #444;
+  margin-top: 10px;
+}
+
+.diagram {
+  margin: 20px 0;
+  text-align: center;
+}
+
+.diagram svg {
+  width: 92%;
+  max-width: 430px;
+  height: 150px;
+}
+
+.controls {
+  text-align: center;
+  margin: 25px 0 20px 0;
+}
+
+.btn {
+  background: linear-gradient(to right, #26c6da, #00acc1);
+  border: none;
+  color: #fff;
+  padding: 10px 22px;
+  border-radius: 24px;
+  font-size: 1em;
+  margin: 0 10px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  transition: transform 0.2s, background 0.3s;
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  background: linear-gradient(to right, #00acc1, #00838f);
+}
+
+.btn:disabled {
+  background: #b2ebf2;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+ul {
+  margin: 14px 0 0 24px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+th, td {
+  border: 1px solid #d0e3ef;
+  padding: 10px 9px;
+  text-align: left;
+}
+
+th {
+  background: #b2dfdb;
+  color: #004d40;
+  font-weight: 600;
+}
+
+td {
+  background: #e0f2f1;
+}
+
+code {
+  background: #ffe082;
+  padding: 3px 7px;
+  border-radius: 4px;
+  font-size: 1em;
+  color: #6d4c41;
+  font-family: Consolas, monospace;
+}
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="slide active" id="slide1">
+      <div class="title">HTTP is Stateless</div>
+      <div class="subtitle">
+        - Each HTTP request is independent. <br>
+        - The server doesn't remember anything about previous requests.
+        <ul>
+          <li>No built-in memory of users, logins, or preferences between requests.</li>
+        </ul>
+      </div>
+      <div class="diagram">
+        <svg>
+          <g>
+            <rect fill="#b2ebf2" x="12" y="32" width="85" height="82" rx="16"/>
+            <text x="31" y="82" font-size="17" fill="#036">Browser</text>
+            <rect fill="#90caf9" x="340" y="32" width="85" height="82" rx="16"/>
+            <text x="355" y="82" font-size="17" fill="#036">Server</text>
+            <g id="arrows1">
+              <line x1="100" y1="75" x2="340" y2="75" stroke="#0097A7" stroke-width="3" marker-end="url(#arrow1)"/>
+              <text x="165" y="63" font-size="15" fill="#0097A7">Request 1</text>
+            </g>
+            <g>
+              <line x1="340" y1="92" x2="100" y2="92" stroke="#26a69a" stroke-width="3" marker-end="url(#arrow2)"/>
+              <text x="180" y="117" font-size="15" fill="#26a69a">Response 1</text>
+            </g>
+            <g>
+              <line x1="100" y1="44" x2="340" y2="44" stroke="#0097A7" stroke-width="3" marker-end="url(#arrow1)"/>
+              <text x="165" y="38" font-size="15" fill="#0097A7">Request 2</text>
+            </g>
+            <g>
+              <line x1="340" y1="122" x2="100" y2="122" stroke="#26a69a" stroke-width="3" marker-end="url(#arrow2)"/>
+              <text x="180" y="145" font-size="15" fill="#26a69a">Response 2</text>
+            </g>
+            <text x="160" y="23" font-size="15" fill="#C62828">No memory between requests!</text>
+          </g>
+          <defs>
+            <marker id="arrow1" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="strokeWidth">
+              <polygon points="0,0 10,4 0,8" fill="#0097A7"/>
+            </marker>
+            <marker id="arrow2" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="strokeWidth">
+              <polygon points="0,0 10,4 0,8" fill="#26a69a"/>
+            </marker>
+          </defs>
+        </svg>
+      </div>
+    </div>
+    <div class="slide" id="slide2">
+      <div class="title">Why Maintain State?</div>
+      <ul>
+        <li>Remember users after login (Authentication)</li>
+        <li>Persist shopping carts or selections</li>
+        <li>Store user preferences</li>
+      </ul>
+      <br>
+      <div class="subtitle">
+        <b>Without state</b>, every click, page, and action would be "anonymous" to the server!
+      </div>
+    </div>
+    <div class="slide" id="slide3">
+      <div class="title">Cookies: Client-Side State</div>
+      <div class="subtitle">
+        - A <b>cookie</b> is a small data piece sent from the server and stored in the browser.<br>
+        - On further requests, the browser sends cookies back to the server.
+        <ul>
+          <li>Commonly used to store <code>session ids</code>!</li>
+        </ul>
+      </div>
+      <div class="diagram">
+        <svg>
+          <g>
+            <rect fill="#b2ebf2" x="12" y="32" width="85" height="82" rx="16"/>
+            <text x="31" y="82" font-size="17" fill="#036">Browser</text>
+            <rect fill="#90caf9" x="340" y="32" width="85" height="82" rx="16"/>
+            <text x="355" y="82" font-size="17" fill="#036">Server</text>
+            <g>
+              <line x1="100" y1="85" x2="340" y2="80" stroke="#0097A7" stroke-width="3" marker-end="url(#arrow3)"/>
+              <text x="154" y="78" font-size="15" fill="#0097A7">Login Request</text>
+            </g>
+            <g>
+              <line x1="340" y1="64" x2="160" y2="40" stroke="#FFB300" stroke-width="3" marker-end="url(#arrow4)"/>
+              <text x="180" y="35" font-size="13" fill="#FF6F00">Set-Cookie: ID=123</text>
+            </g>
+            <ellipse id="cookie" cx="60" cy="54" rx="24" ry="12" fill="#ffe0b2" stroke="#cc984f" stroke-width="2"/>
+            <text id="cookieLabel" x="41" y="58" font-size="11" fill="#a63">ID=123</text>
+          </g>
+          <defs>
+            <marker id="arrow3" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="strokeWidth">
+              <polygon points="0,0 10,4 0,8" fill="#0097A7"/>
+            </marker>
+            <marker id="arrow4" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="strokeWidth">
+              <polygon points="0,0 10,4 0,8" fill="#FFB300"/>
+            </marker>
+          </defs>
+        </svg>
+      </div>
+      <div style="text-align:center;color:#bf360c;">Cookie stored in browser after login!</div>
+    </div>
+    <div class="slide" id="slide4">
+      <div class="title">Sessions: Server-Side State</div>
+      <div class="subtitle">
+        - Session data (like user info) is stored on the <b>server</b> for each user.<br>
+        - Each session has an ID, usually sent as a cookie!
+        <ul>
+          <li>Next time, browser sends the <b>Session ID</b>, and server fetches stored info.</li>
+        </ul>
+      </div>
+      <div class="diagram">
+        <svg>
+          <g>
+            <rect fill="#b2ebf2" x="12" y="32" width="85" height="82" rx="16"/>
+            <text x="31" y="82" font-size="17" fill="#036">Browser</text>
+            <ellipse cx="53" cy="61" rx="16" ry="8" fill="#ffe0b2" stroke="#cc984f" stroke-width="2"/>
+            <text x="41" y="64" font-size="10" fill="#a63">ID=abc7</text>
+            <rect fill="#90caf9" x="340" y="32" width="85" height="82" rx="16"/>
+            <text x="355" y="82" font-size="17" fill="#036">Server</text>
+            <rect x="372" y="46" width="63" height="40" rx="8" fill="#fffde7" stroke="#0097A7" stroke-width="2"/>
+            <text x="375" y="66" font-size="13" fill="#0097A7">Session</text>
+            <text x="375" y="83" font-size="12" fill="#c62828">[name=Ann]</text>
+            <g>
+              <line x1="100" y1="75" x2="340" y2="80" stroke="#0097A7" stroke-width="3" marker-end="url(#arrow3b)"/>
+              <text x="177" y="74" font-size="15" fill="#0097A7">Request (+cookie)</text>
+            </g>
+          </g>
+          <defs>
+            <marker id="arrow3b" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="strokeWidth">
+              <polygon points="0,0 10,4 0,8" fill="#0097A7"/>
+            </marker>
+          </defs>
+        </svg>
+      </div>
+      <div style="text-align:center;color:#00897B;">Server uses Session ID to retrieve user data!</div>
+    </div>
+    <div class="slide" id="slide5">
+      <div class="title">Cookies vs. Sessions: Quick Comparison</div>
+      <table>
+        <tr><th>Aspect</th><th>Cookies</th><th>Sessions</th></tr>
+        <tr><td>Where stored?</td><td>Browser (client)</td><td>Server</td></tr>
+        <tr><td>Typical use?</td><td>ID, small prefs</td><td>User data, cart, login</td></tr>
+        <tr><td>Accessed by?</td><td>Browser, Server</td><td>Only Server</td></tr>
+        <tr><td>Security</td><td>Less secure</td><td>More secure</td></tr>
+      </table>
+      <br>
+      <div class="subtitle" style="color:#33691e;">
+        <b style="color:#00838f;">Cookies</b> provide the "link" (usually via Session ID), and <b style="color:#43a047;">Sessions</b> store the real data.
+        <br><br>
+        <span style="color:#c62828;">This is how web applications maintain state despite HTTP being stateless!</span>
+      </div>
+    </div>
+    <div class="slide" id="slide6">
+      <div class="title">Summary: The Statefulness Recipe</div>
+      <ul>
+        <li><b>HTTP is stateless.</b> Every request is independent.</li>
+        <li><b>Cookies</b> let the browser "identify" itself to the server by sending the same tiny token on each request.</li>
+        <li><b>Sessions</b> on the server side use that token to recognize users and restore user-specific data.</li>
+      </ul>
+      <div style="margin-top:27px; text-align:center; color:#007c91; font-size: 1.3em;">
+        <b>Together, cookies and sessions enable logins, carts, and personalized experiences!</b>
+      </div>
+    </div>
+    <div class="controls">
+      <button class="btn" id="prevBtn" onclick="chgSlide(-1)" disabled>◀ Prev</button>
+      <button class="btn" id="nextBtn" onclick="chgSlide(1)">Next ▶</button>
+    </div>
+  </div>
+  <script>
+    let slideIdx = 0;
+    const slides = document.getElementsByClassName('slide');
+    const nextBtn = document.getElementById('nextBtn');
+    const prevBtn = document.getElementById('prevBtn');
+    function showSlide(n) {
+      slides[slideIdx].classList.remove('active');
+      slideIdx = slideIdx + n;
+      slides[slideIdx].classList.add('active');
+      prevBtn.disabled = slideIdx === 0;
+      nextBtn.disabled = slideIdx === slides.length - 1;
+    }
+    function chgSlide(n) { showSlide(n); }
+  </script>
+</body>
+</html>

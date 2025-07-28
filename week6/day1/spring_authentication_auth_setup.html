@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring Boot Security - Authentication & Authorization Set up</title>
+    <link rel="stylesheet" href="spring_authentication_auth_setup.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>🔐 Spring Boot Security</h1>
+            <p>Interactive Learning for Engineering Students</p>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="nav-tabs">
+            <button class="tab-btn active" data-tab="overview">Overview</button>
+            <button class="tab-btn" data-tab="starter">Security Starter</button>
+            <button class="tab-btn" data-tab="filters">Filters & Chain</button>
+            <button class="tab-btn" data-tab="authentication">Authentication</button>
+            <button class="tab-btn" data-tab="authorization">Authorization</button>
+            <button class="tab-btn" data-tab="demo">Live Demo</button>
+        </nav>
+
+        <!-- Overview Tab -->
+        <div class="tab-content active" id="overview">
+            <h2>What is Spring Boot Security? 🤔</h2>
+            <div class="concept-box">
+                <h3>Request -> Response Flow without Spring Security</h3>
+                <div class="insecure-app">
+                    <div class="request">👤 User Request</div>
+                    <div class="arrow">→</div>
+                    <div class="controller">📦 DispatcherServlet</div>
+                    <div class="arrow">→</div>
+                    <div class="controller">🎯 Controller</div>
+                    <div class="arrow">→</div>
+                    <div class="response">📄 Response</div>
+                </div>
+                <p class="danger">⚠️ Anyone can access any endpoint!</p>
+            </div>
+
+            <div class="concept-box">
+                <h3>Request -> Response Flow with Spring Security</h3>
+                <div class="secure-app">
+                    <div class="request">👤 User Request</div>
+                    <div class="arrow">→</div>
+                    <div class="security-layer">🛡️ Security Filters</div>
+                    <div class="arrow">→</div>
+                    <div class="controller">📦 DispatcherServlet</div>
+                    <div class="arrow">→</div>
+                    <div class="controller">🎯 Controller</div>
+                    <div class="arrow">→</div>
+                    <div class="response">📄 Response</div>
+                </div>
+                <p class="success">✅ Protected endpoints with authentication & authorization!</p>
+            </div>
+        </div>
+
+        <!-- Security Starter Tab -->
+        <div class="tab-content" id="starter">
+            <h2>Adding Spring Boot Security 📦</h2>
+            
+            <div class="step-container">
+                <div class="step">
+                    <h3>Step 1: Add Dependency</h3>
+                    <div class="code-block">
+                        <pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-security&lt;/artifactId&gt;
+&lt;/dependency&gt;</code></pre>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <h3>Step 2: What Happens Automatically? ✨</h3>
+                    <div class="feature-grid">
+                        <div class="feature-card">
+                            <h4>🔑 Login Page</h4>
+                            <p>Auto-generated at <code>/login</code></p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>🚪 Logout</h4>
+                            <p>Available at <code>/logout</code></p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>👤 Default User</h4>
+                            <p>Username: <code>user</code></p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>🔐 Random Password</h4>
+                            <p>Generated in console logs</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <h3>Step 3: Try It Out!</h3>
+                    <button class="demo-btn" onclick="showDefaultLogin()">See Default Login Page</button>
+                    <div id="default-login" class="hidden">
+                        <div class="mock-login">
+                            <h4>Spring Security Login</h4>
+                            <form>
+                                <input type="text" placeholder="Username" value="user" readonly>
+                                <input type="password" placeholder="Password" value="generated-password-123">
+                                <button type="button">Sign In</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters Tab -->
+        <div class="tab-content" id="filters">
+            <h2>Security Filters & Filter Chain 🔗</h2>
+            
+            <div class="filter-explanation">
+                <h3>How Spring Security Works Internally</h3>
+                <p>Spring Security uses a chain of filters to process each request. Each filter has a specific responsibility.</p>
+            </div>
+            <div class="filter-explanation">
+    <h3>🧩 Core of Spring Security: DelegatingFilterProxy</h3>
+    <p><strong>DelegatingFilterProxy</strong> is the entry point of Spring Security's filter chain. It is a servlet filter that delegates all request filtering responsibilities to a Spring bean named <code>springSecurityFilterChain</code>.</p>
+    
+   
+
+    <h4>🔧 Configuring Spring Security Manually (Non-Boot Projects)</h4>
+    <p>If you're <strong>not using Spring Boot</strong>, you need to register <code>DelegatingFilterProxy</code> in your <code>web.xml</code> manually:</p>
+
+    <div class="code-block">
+        <pre><code>&lt;filter&gt;
+    &lt;filter-name&gt;springSecurityFilterChain&lt;/filter-name&gt;
+    &lt;filter-class&gt;org.springframework.web.filter.DelegatingFilterProxy&lt;/filter-class&gt;
+&lt;/filter&gt;
+
+&lt;filter-mapping&gt;
+    &lt;filter-name&gt;springSecurityFilterChain&lt;/filter-name&gt;
+    &lt;url-pattern&gt;/*&lt;/url-pattern&gt;
+&lt;/filter-mapping&gt;</code></pre>
+    </div>
+
+    <p>This filter looks for a Spring bean with the same name <code>springSecurityFilterChain</code> and delegates all request handling to it. This bean is usually created automatically by Spring Security configuration classes.</p>
+
+    <p style="font-style: italic; color: #555;">
+        ✅ In Spring Boot, this setup is handled automatically by Spring Boot's auto-configuration.
+    </p>
+</div>
+
+
+            <div class="filter-chain-demo">
+                <h3>Filter Chain Visualization</h3>
+                <div class="chain-container">
+                    <div class="request-start">HTTP Request</div>
+                    <div class="filter-chain">
+    <!-- DelegatingFilterProxy wrapper -->
+    <div style="border: 2px dashed #6c5ce7; padding: 10px; border-radius: 10px; background-color: #f5f5ff;">
+        <div style="text-align: center; font-weight: bold; color: #6c5ce7; margin-bottom: 10px;">
+            🧩 DelegatingFilterProxy
+            <div style="font-size: 0.85em; font-weight: normal;">Delegates to Spring Security Filter Chain</div>
+        </div>
+
+        <!-- Existing Filters inside -->
+        <div class="filter" data-filter="security-context">
+            <span class="filter-name">SecurityContextPersistenceFilter</span>
+            <span class="filter-desc">Manages security context</span>
+        </div>
+        <div class="filter" data-filter="logout">
+            <span class="filter-name">LogoutFilter</span>
+            <span class="filter-desc">Handles logout requests</span>
+        </div>
+        <div class="filter" data-filter="username-password">
+            <span class="filter-name">UsernamePasswordAuthenticationFilter</span>
+            <span class="filter-desc">Processes login forms</span>
+        </div>
+        <div class="filter" data-filter="basic-auth">
+            <span class="filter-name">BasicAuthenticationFilter</span>
+            <span class="filter-desc">Handles HTTP Basic auth</span>
+        </div>
+        <div class="filter" data-filter="authorization">
+            <span class="filter-name">FilterSecurityInterceptor</span>
+            <span class="filter-desc">Authorizes requests</span>
+        </div>
+    </div>
+</div>
+
+                    <div class="dispatcher-servlet">📦 DispatcherServlet</div>
+                    <div class="controller-end">Your Controller</div>
+                </div>
+                
+                <button class="demo-btn" onclick="animateFilterChain()">Animate Request Flow</button>
+            </div>
+
+            <div class="filter-details">
+                <h3>Filter Details</h3>
+                <div class="filter-info" id="filter-info">
+                    <p>Click on a filter above to see its details!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Authentication Tab -->
+        <div class="tab-content" id="authentication">
+            <h2>Authentication Configuration 🔐</h2>
+            
+            <div class="auth-section">
+                <h3>1. Custom Username & Password</h3>
+                <div class="config-example">
+                    <h4>application.properties</h4>
+                    <div class="code-block">
+                        <pre><code>spring.security.user.name=admin
+spring.security.user.password=secret123</code></pre>
+                    </div>
+                    
+                    <div class="interactive-config">
+                        <h4>Try Different Configurations:</h4>
+                        <label>Username: <input type="text" id="config-username" value="admin"></label>
+                        <label>Password: <input type="text" id="config-password" value="secret123"></label>
+                        <button onclick="updateConfig()">Update Configuration</button>
+                        <div class="config-result" id="config-result"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="auth-section">
+                <h3>2. In-Memory Authentication</h3>
+                <div class="code-block">
+                    <pre><code>@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+    
+    @Bean
+    public UserDetailsService userDetailsService() {
+        UserDetails user1 = User.withDefaultPasswordEncoder()
+            .username("student")
+            .password("password")
+            .roles("USER")
+            .build();
+            
+        UserDetails admin = User.withDefaultPasswordEncoder()
+            .username("admin")
+            .password("admin123")
+            .roles("ADMIN")
+            .build();
+            
+        return new InMemoryUserDetailsManager(user1, admin);
+    }
+}</code></pre>
+                </div>
+
+                <div class="user-management">
+                    <h4>Manage In-Memory Users</h4>
+                    <div class="user-list" id="user-list">
+                        <div class="user-item">
+                            <span>👤 student (USER)</span>
+                            <span>🔑 password</span>
+                        </div>
+                        <div class="user-item">
+                            <span>👨‍💼 admin (ADMIN)</span>
+                            <span>🔑 admin123</span>
+                        </div>
+                    </div>
+                    
+                    <div class="add-user">
+                        <input type="text" id="new-username" placeholder="Username">
+                        <input type="password" id="new-password" placeholder="Password">
+                        <select id="new-role">
+                            <option value="USER">USER</option>
+                            <option value="ADMIN">ADMIN</option>
+                        </select>
+                        <button onclick="addUser()">Add User</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Authorization Tab -->
+        <div class="tab-content" id="authorization">
+            <h2>Authorization Configuration 🛡️</h2>
+            
+            <div class="auth-config">
+                <h3>URL-based Authorization</h3>
+                <div class="code-block">
+                    <pre><code>@Bean
+public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    http
+        .authorizeHttpRequests(auth -> auth
+            .requestMatchers("/public/**").permitAll()
+            .requestMatchers("/admin/**").hasRole("ADMIN")
+            .requestMatchers("/user/**").hasAnyRole("USER", "ADMIN")
+            .anyRequest().authenticated()
+        )
+        .formLogin(form -> form
+            .loginPage("/login")
+            .permitAll()
+        )
+        .logout(logout -> logout.permitAll());
+    
+    return http.build();
+}</code></pre>
+                </div>
+
+                <div class="authorization-demo">
+                    <h3>Test Authorization Rules</h3>
+                    <div class="endpoint-tester">
+                        <div class="user-selector">
+                            <label>Login as:</label>
+                            <select id="test-user">
+                                <option value="anonymous">Anonymous</option>
+                                <option value="student">student (USER)</option>
+                                <option value="admin">admin (ADMIN)</option>
+                            </select>
+                        </div>
+
+                        <div class="endpoints">
+                            <div class="endpoint" data-path="/public/info">
+                                <span class="method">GET</span>
+                                <span class="path">/public/info</span>
+                                <button onclick="testEndpoint('/public/info')">Test</button>
+                                <span class="result" id="result-public"></span>
+                            </div>
+                            <div class="endpoint" data-path="/user/profile">
+                                <span class="method">GET</span>
+                                <span class="path">/user/profile</span>
+                                <button onclick="testEndpoint('/user/profile')">Test</button>
+                                <span class="result" id="result-user"></span>
+                            </div>
+                            <div class="endpoint" data-path="/admin/dashboard">
+                                <span class="method">GET</span>
+                                <span class="path">/admin/dashboard</span>
+                                <button onclick="testEndpoint('/admin/dashboard')">Test</button>
+                                <span class="result" id="result-admin"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Live Demo Tab -->
+        <div class="tab-content" id="demo">
+            <h2>Interactive Security Demo 🚀</h2>
+            
+            <div class="demo-app">
+                <div class="demo-header">
+                    <h3>Simulated Spring Boot Application</h3>
+                    <div class="auth-status">
+                        <span id="auth-status">Not Authenticated</span>
+                        <button id="logout-btn" class="hidden" onclick="logout()">Logout</button>
+                    </div>
+                </div>
+
+                <div class="demo-login" id="demo-login">
+                    <h4>Login Required</h4>
+                    <form onsubmit="return attemptLogin(event)">
+                        <input type="text" id="login-username" placeholder="Username" required>
+                        <input type="password" id="login-password" placeholder="Password" required>
+                        <button type="submit">Login</button>
+                    </form>
+                    <div class="login-help">
+                        <p>Try these credentials:</p>
+                        <ul>
+                            <li>student / password (USER role)</li>
+                            <li>admin / admin123 (ADMIN role)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="demo-content hidden" id="demo-content">
+                    <div class="welcome-message" id="welcome-message"></div>
+                    
+                    <div class="demo-endpoints">
+                        <h4>Available Endpoints:</h4>
+                        <div class="endpoint-buttons">
+                            <button onclick="accessEndpoint('/public')" class="public-btn">📖 Public Content</button>
+                            <button onclick="accessEndpoint('/user')" class="user-btn">👤 User Content</button>
+                            <button onclick="accessEndpoint('/admin')" class="admin-btn">👨‍💼 Admin Content</button>
+                        </div>
+                        
+                        <div class="endpoint-response" id="endpoint-response"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="spring_authentication_auth_setup.js"></script>
+</body>
+</html>
