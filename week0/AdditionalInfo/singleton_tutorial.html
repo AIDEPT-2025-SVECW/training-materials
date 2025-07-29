@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Singleton Design Pattern Evolution</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .navigation {
+            display: flex;
+            background: #34495e;
+            overflow-x: auto;
+        }
+
+        .nav-btn {
+            flex: 1;
+            padding: 15px 20px;
+            background: transparent;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            white-space: nowrap;
+            min-width: 150px;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .nav-btn.active {
+            background: #3498db;
+            box-shadow: inset 0 -3px 0 #2980b9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .step {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .step.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .step h2 {
+            color: #2c3e50;
+            font-size: 2em;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        .explanation {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            border-left: 5px solid #3498db;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .explanation p {
+            line-height: 1.6;
+            margin-bottom: 15px;
+            color: #555;
+        }
+
+        .pros-cons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .pros, .cons {
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .pros {
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            border-left: 5px solid #28a745;
+        }
+
+        .cons {
+            background: linear-gradient(135deg, #f8d7da, #f1b0b7);
+            border-left: 5px solid #dc3545;
+        }
+
+        .pros h4, .cons h4 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .pros ul, .cons ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .pros li, .cons li {
+            margin-bottom: 8px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .pros li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .cons li::before {
+            content: "✗";
+            position: absolute;
+            left: 0;
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .code-section {
+            background: #1e1e1e;
+            border-radius: 10px;
+            padding: 25px;
+            margin: 25px 0;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .code-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 30px;
+            background: linear-gradient(90deg, #ff5f56, #ffbd2e, #27ca3f);
+            border-radius: 10px 10px 0 0;
+        }
+
+        .code-section h3 {
+            color: #61dafb;
+            margin-bottom: 20px;
+            padding-top: 20px;
+            font-size: 1.2em;
+        }
+
+        pre {
+            background: transparent !important;
+            color: #f8f8f2;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .keyword { color: #ff79c6; }
+        .string { color: #f1fa8c; }
+        .comment { color: #6272a4; }
+        .function { color: #50fa7b; }
+        .class { color: #8be9fd; }
+        .number { color: #bd93f9; }
+
+        .demo-section {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            padding: 25px;
+            border-radius: 10px;
+            margin: 25px 0;
+            border: 2px solid #2196f3;
+        }
+
+        .demo-section h3 {
+            color: #1976d2;
+            margin-bottom: 20px;
+        }
+
+        .demo-button {
+            background: linear-gradient(135deg, #2196f3, #1976d2);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 10px 10px 0;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+        }
+
+        .demo-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
+        }
+
+        .demo-output {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border: 1px solid #ddd;
+            min-height: 60px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            color: #333;
+        }
+
+        .progress-bar {
+            background: #ecf0f1;
+            height: 6px;
+            border-radius: 3px;
+            margin: 20px 40px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #3498db, #2980b9);
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+            .navigation {
+                flex-direction: column;
+            }
+            
+            .pros-cons {
+                grid-template-columns: 1fr;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏗️ Singleton Design Pattern Evolution</h1>
+            <p>Learn how the Singleton pattern evolves from basic to production-ready</p>
+        </div>
+
+        <div class="navigation">
+            <button class="nav-btn active" onclick="showStep(0)">Eager Initialization</button>
+            <button class="nav-btn" onclick="showStep(1)">Lazy Initialization</button>
+            <button class="nav-btn" onclick="showStep(2)">Thread Safety</button>
+            <button class="nav-btn" onclick="showStep(3)">Double-Check Locking</button>
+            <button class="nav-btn" onclick="showStep(4)">Serialization Safe</button>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width: 20%"></div>
+        </div>
+
+        <div class="content">
+            <!-- Step 1: Eager Initialization -->
+            <div class="step active" id="step0">
+                <h2>1. Eager Initialization</h2>
+                
+                <div class="explanation">
+                    <p>The simplest form of Singleton pattern where the instance is created at class loading time. The instance is created whether it's needed or not.</p>
+                    <p>This approach is thread-safe by default because the JVM handles the class loading and static variable initialization in a thread-safe manner.</p>
+                </div>
+
+                <div class="code-section">
+                    <h3>Java Implementation</h3>
+                    <pre><span class="keyword">public class</span> <span class="class">EagerSingleton</span> {
+    <span class="comment">// Instance created at class loading time</span>
+    <span class="keyword">private static final</span> <span class="class">EagerSingleton</span> <span class="function">INSTANCE</span> = <span class="keyword">new</span> <span class="class">EagerSingleton</span>();
+    
+    <span class="comment">// Private constructor prevents instantiation</span>
+    <span class="keyword">private</span> <span class="function">EagerSingleton</span>() {
+        <span class="comment">// Prevent reflection attacks</span>
+        <span class="keyword">if</span> (<span class="function">INSTANCE</span> != <span class="keyword">null</span>) {
+            <span class="keyword">throw new</span> <span class="class">RuntimeException</span>(<span class="string">"Use getInstance() method"</span>);
+        }
+    }
+    
+    <span class="comment">// Global access point</span>
+    <span class="keyword">public static</span> <span class="class">EagerSingleton</span> <span class="function">getInstance</span>() {
+        <span class="keyword">return</span> <span class="function">INSTANCE</span>;
+    }
+    
+    <span class="keyword">public void</span> <span class="function">doSomething</span>() {
+        <span class="class">System</span>.<span class="function">out</span>.<span class="function">println</span>(<span class="string">"Eager Singleton is working!"</span>);
+    }
+}</pre>
+                </div>
+
+                <div class="pros-cons">
+                    <div class="pros">
+                        <h4>✅ Advantages</h4>
+                        <ul>
+                            <li>Simple and straightforward implementation</li>
+                            <li>Thread-safe by default</li>
+                            <li>No synchronization overhead at runtime</li>
+                            <li>JVM guarantees thread safety during class loading</li>
+                        </ul>
+                    </div>
+                    <div class="cons">
+                        <h4>❌ Disadvantages</h4>
+                        <ul>
+                            <li>Instance created even if never used</li>
+                            <li>May increase application startup time</li>
+                            <li>Cannot handle exceptions during construction</li>
+                            <li>Wastes memory if instance is not needed</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="demo-section">
+                    <h3>🚀 Try It Out</h3>
+                    <button class="demo-button" onclick="demoEager()">Create Eager Instances</button>
+                    <button class="demo-button" onclick="clearOutput()">Clear Output</button>
+                    <div class="demo-output" id="demoOutput"></div>
+                </div>
+            </div>
+
+            <!-- Step 2: Lazy Initialization -->
+            <div class="step" id="step1">
+                <h2>2. Lazy Initialization</h2>
+                
+                <div class="explanation">
+                    <p>The instance is created only when it's first requested. This saves memory and improves startup time, but introduces thread safety concerns.</p>
+                    <p>This basic lazy approach is <strong>NOT thread-safe</strong> and can create multiple instances in multi-threaded environments.</p>
+                </div>
+
+                <div class="code-section">
+                    <h3>Java Implementation</h3>
+                    <pre><span class="keyword">public class</span> <span class="class">LazySingleton</span> {
+    <span class="comment">// Instance created only when needed</span>
+    <span class="keyword">private static</span> <span class="class">LazySingleton</span> <span class="function">instance</span>;
+    
+    <span class="keyword">private</span> <span class="function">LazySingleton</span>() {
+        <span class="comment">// Simulate some initialization work</span>
+        <span class="keyword">try</span> {
+            <span class="class">Thread</span>.<span class="function">sleep</span>(<span class="number">100</span>);
+        } <span class="keyword">catch</span> (<span class="class">InterruptedException</span> e) {
+            <span class="class">Thread</span>.<span class="function">currentThread</span>().<span class="function">interrupt</span>();
+        }
+    }
+    
+    <span class="comment">// NOT thread-safe!</span>
+    <span class="keyword">public static</span> <span class="class">LazySingleton</span> <span class="function">getInstance</span>() {
+        <span class="keyword">if</span> (<span class="function">instance</span> == <span class="keyword">null</span>) {
+            <span class="function">instance</span> = <span class="keyword">new</span> <span class="class">LazySingleton</span>();
+        }
+        <span class="keyword">return</span> <span class="function">instance</span>;
+    }
+    
+    <span class="keyword">public void</span> <span class="function">doSomething</span>() {
+        <span class="class">System</span>.<span class="function">out</span>.<span class="function">println</span>(<span class="string">"Lazy Singleton is working!"</span>);
+    }
+}</pre>
+                </div>
+
+                <div class="pros-cons">
+                    <div class="pros">
+                        <h4>✅ Advantages</h4>
+                        <ul>
+                            <li>Instance created only when needed</li>
+                            <li>Faster application startup</li>
+                            <li>Memory efficient</li>
+                            <li>Can handle exceptions during construction</li>
+                        </ul>
+                    </div>
+                    <div class="cons">
+                        <h4>❌ Disadvantages</h4>
+                        <ul>
+                            <li>NOT thread-safe</li>
+                            <li>Multiple instances possible in multi-threaded environment</li>
+                            <li>Race condition during instance creation</li>
+                            <li>Unpredictable behavior in concurrent scenarios</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="demo-section">
+                    <h3>🚀 Demonstrate Thread Safety Issue</h3>
+                    <button class="demo-button" onclick="demoLazyThreadIssue()">Simulate Concurrent Access</button>
+                    <button class="demo-button" onclick="clearOutput()">Clear Output</button>
+                    <div class="demo-output" id="demoOutput"></div>
+                </div>
+            </div>
+
+            <!-- Step 3: Thread Safety -->
+            <div class="step" id="step2">
+                <h2>3. Thread-Safe Singleton</h2>
+                
+                <div class="explanation">
+                    <p>We synchronize the getInstance() method to ensure thread safety. Only one thread can access the method at a time.</p>
+                    <p>This approach is thread-safe but has performance implications due to synchronization overhead on every method call.</p>
+                </div>
+
+                <div class="code-section">
+                    <h3>Java Implementation</h3>
+                    <pre><span class="keyword">public class</span> <span class="class">ThreadSafeSingleton</span> {
+    <span class="keyword">private static</span> <span class="class">ThreadSafeSingleton</span> <span class="function">instance</span>;
+    
+    <span class="keyword">private</span> <span class="function">ThreadSafeSingleton</span>() {
+        <span class="comment">// Simulate some initialization work</span>
+        <span class="keyword">try</span> {
+            <span class="class">Thread</span>.<span class="function">sleep</span>(<span class="number">100</span>);
+        } <span class="keyword">catch</span> (<span class="class">InterruptedException</span> e) {
+            <span class="class">Thread</span>.<span class="function">currentThread</span>().<span class="function">interrupt</span>();
+        }
+    }
+    
+    <span class="comment">// Synchronized method - thread safe but slow</span>
+    <span class="keyword">public static synchronized</span> <span class="class">ThreadSafeSingleton</span> <span class="function">getInstance</span>() {
+        <span class="keyword">if</span> (<span class="function">instance</span> == <span class="keyword">null</span>) {
+            <span class="function">instance</span> = <span class="keyword">new</span> <span class="class">ThreadSafeSingleton</span>();
+        }
+        <span class="keyword">return</span> <span class="function">instance</span>;
+    }
+    
+    <span class="keyword">public void</span> <span class="function">doSomething</span>() {
+        <span class="class">System</span>.<span class="function">out</span>.<span class="function">println</span>(<span class="string">"Thread-safe Singleton is working!"</span>);
+    }
+}</pre>
+                </div>
+
+                <div class="pros-cons">
+                    <div class="pros">
+                        <h4>✅ Advantages</h4>
+                        <ul>
+                            <li>Completely thread-safe</li>
+                            <li>Lazy initialization preserved</li>
+                            <li>Guarantees single instance</li>
+                            <li>Simple synchronization approach</li>
+                        </ul>
+                    </div>
+                    <div class="cons">
+                        <h4>❌ Disadvantages</h4>
+                        <ul>
+                            <li>Performance overhead on every call</li>
+                            <li>Synchronization needed even after initialization</li>
+                            <li>Can become bottleneck in high-concurrency scenarios</li>
+                            <li>Unnecessarily slow for subsequent calls</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="demo-section">
+                    <h3>🚀 Performance Comparison</h3>
+                    <button class="demo-button" onclick="demoThreadSafePerformance()">Compare Performance</button>
+                    <button class="demo-button" onclick="clearOutput()">Clear Output</button>
+                    <div class="demo-output" id="demoOutput"></div>
+                </div>
+            </div>
+
+            <!-- Step 4: Double-Check Locking -->
+            <div class="step" id="step3">
+                <h2>4. Double-Check Locking</h2>
+                
+                <div class="explanation">
+                    <p>Optimizes the thread-safe approach by only synchronizing during instance creation. Uses double-checking to minimize synchronization overhead.</p>
+                    <p>The <code>volatile</code> keyword ensures that changes to the instance variable are visible to all threads immediately.</p>
+                </div>
+
+                <div class="code-section">
+                    <h3>Java Implementation</h3>
+                    <pre><span class="keyword">public class</span> <span class="class">DoubleCheckSingleton</span> {
+    <span class="comment">// volatile ensures changes are visible to all threads</span>
+    <span class="keyword">private static volatile</span> <span class="class">DoubleCheckSingleton</span> <span class="function">instance</span>;
+    
+    <span class="keyword">private</span> <span class="function">DoubleCheckSingleton</span>() {
+        <span class="comment">// Prevent reflection attacks</span>
+        <span class="keyword">if</span> (<span class="function">instance</span> != <span class="keyword">null</span>) {
+            <span class="keyword">throw new</span> <span class="class">RuntimeException</span>(<span class="string">"Use getInstance() method"</span>);
+        }
+    }
+    
+    <span class="keyword">public static</span> <span class="class">DoubleCheckSingleton</span> <span class="function">getInstance</span>() {
+        <span class="comment">// First check without synchronization</span>
+        <span class="keyword">if</span> (<span class="function">instance</span> == <span class="keyword">null</span>) {
+            <span class="comment">// Synchronize only when needed</span>
+            <span class="keyword">synchronized</span> (<span class="class">DoubleCheckSingleton</span>.<span class="keyword">class</span>) {
+                <span class="comment">// Double-check inside synchronized block</span>
+                <span class="keyword">if</span> (<span class="function">instance</span> == <span class="keyword">null</span>) {
+                    <span class="function">instance</span> = <span class="keyword">new</span> <span class="class">DoubleCheckSingleton</span>();
+                }
+            }
+        }
+        <span class="keyword">return</span> <span class="function">instance</span>;
+    }
+    
+    <span class="keyword">public void</span> <span class="function">doSomething</span>() {
+        <span class="class">System</span>.<span class="function">out</span>.<span class="function">println</span>(<span class="string">"Double-check Singleton is working!"</span>);
+    }
+}</pre>
+                </div>
+
+                <div class="pros-cons">
+                    <div class="pros">
+                        <h4>✅ Advantages</h4>
+                        <ul>
+                            <li>Thread-safe and high performance</li>
+                            <li>Lazy initialization maintained</li>
+                            <li>Minimal synchronization overhead</li>
+                            <li>Scales well in high-concurrency scenarios</li>
+                        </ul>
+                    </div>
+                    <div class="cons">
+                        <h4>❌ Disadvantages</h4>
+                        <ul>
+                            <li>Complex implementation</li>
+                            <li>Requires volatile keyword (Java 5+)</li>
+                            <li>Can be tricky to implement correctly</li>
+                            <li>Still vulnerable to reflection attacks</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="demo-section">
+                    <h3>🚀 Concurrency Test</h3>
+                    <button class="demo-button" onclick="demoDoubleCheck()">Test Concurrent Access</button>
+                    <button class="demo-button" onclick="clearOutput()">Clear Output</button>
+                    <div class="demo-output" id="demoOutput"></div>
+                </div>
+            </div>
+
+            <!-- Step 5: Serialization Safe -->
+            <div class="step" id="step4">
+                <h2>5. Serialization-Safe Singleton</h2>
+                
+                <div class="explanation">
+                    <p>Handles serialization and deserialization correctly to maintain singleton property. Without proper handling, deserialization creates new instances.</p>
+                    <p>The <code>readResolve()</code> method ensures that deserialization returns the same instance, and we also protect against cloning.</p>
+                </div>
+
+                <div class="code-section">
+                    <h3>Java Implementation</h3>
+                    <pre><span class="keyword">import</span> java.io.Serializable;
+<span class="keyword">import</span> java.io.ObjectStreamException;
+
+<span class="keyword">public class</span> <span class="class">SerializationSafeSingleton</span> <span class="keyword">implements</span> <span class="class">Serializable</span>, <span class="class">Cloneable</span> {
+    <span class="keyword">private static final long</span> <span class="function">serialVersionUID</span> = <span class="number">1L</span>;
+    
+    <span class="keyword">private static volatile</span> <span class="class">SerializationSafeSingleton</span> <span class="function">instance</span>;
+    
+    <span class="keyword">private</span> <span class="function">SerializationSafeSingleton</span>() {
+        <span class="comment">// Prevent reflection attacks</span>
+        <span class="keyword">if</span> (<span class="function">instance</span> != <span class="keyword">null</span>) {
+            <span class="keyword">throw new</span> <span class="class">RuntimeException</span>(<span class="string">"Use getInstance() method"</span>);
+        }
+    }
+    
+    <span class="keyword">public static</span> <span class="class">SerializationSafeSingleton</span> <span class="function">getInstance</span>() {
+        <span class="keyword">if</span> (<span class="function">instance</span> == <span class="keyword">null</span>) {
+            <span class="keyword">synchronized</span> (<span class="class">SerializationSafeSingleton</span>.<span class="keyword">class</span>) {
+                <span class="keyword">if</span> (<span class="function">instance</span> == <span class="keyword">null</span>) {
+                    <span class="function">instance</span> = <span class="keyword">new</span> <span class="class">SerializationSafeSingleton</span>();
+                }
+            }
+        }
+        <span class="keyword">return</span> <span class="function">instance</span>;
+    }
+    
+    <span class="comment">// Prevent creating new instance during deserialization</span>
+    <span class="keyword">protected</span> <span class="class">Object</span> <span class="function">readResolve</span>() <span class="keyword">throws</span> <span class="class">ObjectStreamException</span> {
+        <span class="keyword">return</span> <span class="function">getInstance</span>();
+    }
+    
+    <span class="comment">// Prevent cloning</span>
+    <span class="keyword">@Override</span>
+    <span class="keyword">protected</span> <span class="class">Object</span> <span class="function">clone</span>() <span class="keyword">throws</span> <span class="class">CloneNotSupportedException</span> {
+        <span class="keyword">throw new</span> <span class="class">CloneNotSupportedException</span>(<span class="string">"Cloning is not allowed"</span>);
+    }
+    
+    <span class="keyword">public void</span> <span class="function">doSomething</span>() {
+        <span class="class">System</span>.<span class="function">out</span>.<span class="function">println</span>(<span class="string">"Serialization-safe Singleton is working!"</span>);
+    }
+}</pre>
+                </div>
+
+                <div class="code-section">
+                    <h3>Enum Singleton (Recommended Approach)</h3>
+                    <pre><span class="comment">// The best way to implement Singleton in Java</span>
+<span class="keyword">public enum</span> <span class="class">EnumSingleton</span> {
+    <span class="function">INSTANCE</span>;
+    
+    <span class="keyword">public void</span> <span class="function">doSomething</span>() {
+        <span class="class">System</span>.<span class="function">out</span>.<span class="function">println</span>(<span class="string">"Enum Singleton is working!"</span>);
+    }
+    
+    <span class="comment">// Add other methods as needed</span>
+    <span class="keyword">public</span> <span class="class">String</span> <span class="function">getValue</span>() {
+        <span class="keyword">return</span> <span class="string">"Singleton Value"</span>;
+    }
+}</pre>
+                </div>
+
+                <div class="pros-cons">
+                    <div class="pros">
+                        <h4>✅ Advantages</h4>
+                        <ul>
+                            <li>Handles serialization correctly</li>
+                            <li>Prevents cloning attacks</li>
+                            <li>Thread-safe and performant</li>
+                            <li>Enum approach is the most robust</li>
+                        </ul>
+                    </div>
+                    <div class="cons">
+                        <h4>❌ Disadvantages</h4>
+                        <ul>
+                            <li>More complex implementation</li>
+                            <li>Requires understanding of serialization</li>
+                            <li>Enum cannot extend other classes</li>
+                            <li>May be overkill for simple use cases</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="demo-section">
+                    <h3>🚀 Serialization Test</h3>
+                    <button class="demo-button" onclick="demoSerialization()">Test Serialization Safety</button>
+                    <button class="demo-button" onclick="demoEnum()">Test Enum Singleton</button>
+                    <button class="demo-button" onclick="clearOutput()">Clear Output</button>
+                    <div class="demo-output" id="demoOutput"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 0;
+        const totalSteps = 5;
+
+        // Singleton implementations for demonstration
+        class EagerSingleton {
+            static instance = new EagerSingleton();
+            
+            constructor() {
+                if (EagerSingleton.instance) {
+                    throw new Error('Use getInstance() method');
+                }
+                this.createdAt = new Date().toISOString();
+            }
+            
+            static getInstance() {
+                return EagerSingleton.instance;
+            }
+            
+            doSomething() {
+                return `Eager Singleton created at: ${this.createdAt}`;
+            }
+        }
+
+        class LazySingleton {
+            static instance = null;
+            
+            constructor() {
+                this.createdAt = new Date().toISOString();
+                this.id = Math.random().toString(36).substr(2, 9);
+            }
+            
+            static getInstance() {
+                if (!LazySingleton.instance) {
+                    // Simulate some delay to show race condition
+                    LazySingleton.instance = new LazySingleton();
+                }
+                return LazySingleton.instance;
+            }
+            
+            doSomething() {
+                return `Lazy Singleton (ID: ${this.id}) created at: ${this.createdAt}`;
+            }
+        }
+
+        class ThreadSafeSingleton {
+            static instance = null;
+            static isCreating = false;
+            
+            constructor() {
+                this.createdAt = new Date().toISOString();
+                this.id = Math.random().toString(36).substr(2, 9);
+            }
+            
+            static getInstance() {
+                if (!ThreadSafeSingleton.instance && !ThreadSafeSingleton.isCreating) {
+                    ThreadSafeSingleton.isCreating = true;
+                    // Simulate synchronized access
+                    setTimeout(() => {
+                        if (!ThreadSafeSingleton.instance) {
+                            ThreadSafeSingleton.instance = new ThreadSafeSingleton();
+                        }
+                        ThreadSafeSingleton.isCreating = false;
+                    }, 10);
+                }
+                return ThreadSafeSingleton.instance;
+            }
+            
+            doSomething() {
+                return `Thread-safe Singleton (ID: ${this.id}) created at: ${this.createdAt}`;
+            }
+        }
+
+        class DoubleCheckSingleton {
+            static instance = null;
+            
+            constructor() {
+                this.createdAt = new Date().toISOString();
+                this.id = Math.random().toString(36).substr(2, 9);
+            }
+            
+            static getInstance() {
+                if (!DoubleCheckSingleton.instance) {
+                    // First check
+                    if (!DoubleCheckSingleton.instance) {
+                        // Simulate synchronized block with double-check
+                        DoubleCheckSingleton.instance = new DoubleCheckSingleton();
+                    }
+                }
+                return DoubleCheckSingleton.instance;
+            }
+            
+            doSomething() {
+                return `Double-check Singleton (ID: ${this.id}) created at: ${this.createdAt}`;
+            }
+        }
+
+        // Enum-like singleton simulation
+        const EnumSingleton = {
+            INSTANCE: {
+                createdAt: new Date().toISOString(),
+                id: 'ENUM_SINGLETON',
+                doSomething() {
+                    return `Enum Singleton (ID: ${this.id}) created at: ${this.createdAt}`;
+                },
+                getValue() {
+                    return 'Singleton Value from Enum';
+                }
+            }
+        };
+
+        function showStep(stepIndex) {
+            // Hide all steps
+            for (let i = 0; i < totalSteps; i++) {
+                document.getElementById(`step${i}`).classList.remove('active');
+                document.querySelectorAll('.nav-btn')[i].classList.remove('active');
+            }
+            
+            // Show selected step
+            document.getElementById(`step${stepIndex}`).classList.add('active');
+            document.querySelectorAll('.nav-btn')[stepIndex].classList.add('active');
+            
+            // Update progress bar
+            const progress = ((stepIndex + 1) / totalSteps) * 100;
+            document.getElementById('progressFill').style.width = `${progress}%`;
+            
+            currentStep = stepIndex;
+            clearOutput();
+        }
+
+        function clearOutput() {
+            document.getElementById('demoOutput').textContent = '';
+        }
+
+        function addOutput(text) {
+            const output = document.getElementById('demoOutput');
+            output.textContent += text + '\n';
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function demoEager() {
+            addOutput('=== Eager Singleton Demo ===');
+            addOutput('Creating multiple instances...\n');
+            
+            try {
+                const instance1 = EagerSingleton.getInstance();
+                const instance2 = EagerSingleton.getInstance();
+                
+                addOutput(`Instance 1: ${instance1.doSomething()}`);
+                addOutput(`Instance 2: ${instance2.doSomething()}`);
+                addOutput(`Same instance? ${instance1 === instance2}`);
+                addOutput(`Memory reference: ${instance1 === instance2 ? 'SAME' : 'DIFFERENT'}`);
+                
+            } catch (error) {
+                addOutput(`Error: ${error.message}`);
+            }
+        }
+
+        function demoLazyThreadIssue() {
+            addOutput('=== Lazy Singleton Thread Safety Issue Demo ===');
+            addOutput('Simulating concurrent access...\n');
+            
+            // Reset the lazy singleton
+            LazySingleton.instance = null;
+            
+            // Simulate multiple threads accessing getInstance
+            const instances = [];
+            
+            for (let i = 0; i < 5; i++) {
+                setTimeout(() => {
+                    const instance = LazySingleton.getInstance();
+                    instances.push(instance);
+                    addOutput(`Thread ${i + 1}: ${instance.doSomething()}`);
+                    
+                    if (instances.length === 5) {
+                        setTimeout(() => {
+                            const uniqueInstances = new Set(instances.map(inst => inst.id));
+                            addOutput(`\nUnique instances created: ${uniqueInstances.size}`);
+                            addOutput(`Expected: 1, Actual: ${uniqueInstances.size}`);
+                            addOutput(uniqueInstances.size > 1 ? 'THREAD SAFETY ISSUE DETECTED!' : 'Thread safe (lucky this time)');
+                        }, 100);
+                    }
+                }, i * 10);
+            }
+        }
+
+        function demoThreadSafePerformance() {
+            addOutput('=== Thread-Safe Performance Comparison ===');
+            addOutput('Measuring access times...\n');
+            
+            // Reset singletons
+            ThreadSafeSingleton.instance = null;
+            LazySingleton.instance = null;
+            
+            const iterations = 1000;
+            
+            // Test lazy singleton performance
+            const lazyStart = performance.now();
+            for (let i = 0; i < iterations; i++) {
+                LazySingleton.getInstance();
+            }
+            const lazyTime = performance.now() - lazyStart;
+            
+            // Test thread-safe singleton performance
+            const threadSafeStart = performance.now();
+            for (let i = 0; i < iterations; i++) {
+                ThreadSafeSingleton.getInstance();
+            }
+            const threadSafeTime = performance.now() - threadSafeStart;
+            
+            addOutput(`Lazy Singleton (${iterations} calls): ${lazyTime.toFixed(2)}ms`);
+            addOutput(`Thread-Safe Singleton (${iterations} calls): ${threadSafeTime.toFixed(2)}ms`);
+            addOutput(`Performance overhead: ${((threadSafeTime - lazyTime) / lazyTime * 100).toFixed(1)}%`);
+            addOutput('\nNote: Thread-safe version has synchronization overhead');
+        }
+
+        function demoDoubleCheck() {
+            addOutput('=== Double-Check Locking Concurrency Test ===');
+            addOutput('Testing concurrent access with double-check locking...\n');
+            
+            // Reset the singleton
+            DoubleCheckSingleton.instance = null;
+            
+            const instances = [];
+            const promises = [];
+            
+            // Simulate 10 concurrent requests
+            for (let i = 0; i < 10; i++) {
+                const promise = new Promise(resolve => {
+                    setTimeout(() => {
+                        const instance = DoubleCheckSingleton.getInstance();
+                        instances.push(instance);
+                        addOutput(`Thread ${i + 1}: Got instance ${instance.id}`);
+                        resolve();
+                    }, Math.random() * 50);
+                });
+                promises.push(promise);
+            }
+            
+            Promise.all(promises).then(() => {
+                setTimeout(() => {
+                    const uniqueInstances = new Set(instances.map(inst => inst.id));
+                    addOutput(`\n=== Results ===`);
+                    addOutput(`Total requests: 10`);
+                    addOutput(`Unique instances: ${uniqueInstances.size}`);
+                    addOutput(`Success: ${uniqueInstances.size === 1 ? 'YES' : 'NO'}`);
+                    addOutput('Double-check locking ensures only one instance!');
+                }, 100);
+            });
+        }
+
+        function demoSerialization() {
+            addOutput('=== Serialization Safety Demo ===');
+            addOutput('Simulating serialization and deserialization...\n');
+            
+            try {
+                // Simulate getting singleton instance
+                const original = DoubleCheckSingleton.getInstance();
+                addOutput(`Original instance: ${original.doSomething()}`);
+                
+                // Simulate serialization process
+                const serialized = JSON.stringify({
+                    id: original.id,
+                    createdAt: original.createdAt,
+                    className: 'DoubleCheckSingleton'
+                });
+                addOutput(`Serialized data: ${serialized}`);
+                
+                // Simulate deserialization WITHOUT readResolve (problematic)
+                const deserializedData = JSON.parse(serialized);
+                const problematicInstance = new DoubleCheckSingleton();
+                addOutput(`\nProblematic deserialization:`);
+                addOutput(`New instance created: ${problematicInstance.doSomething()}`);
+                addOutput(`Same as original? ${original === problematicInstance}`);
+                
+                // Simulate proper deserialization WITH readResolve
+                addOutput(`\nWith readResolve() method:`);
+                addOutput(`Deserialization returns: ${original.doSomething()}`);
+                addOutput(`Same as original? true (readResolve ensures this)`);
+                
+            } catch (error) {
+                addOutput(`Error: ${error.message}`);
+            }
+        }
+
+        function demoEnum() {
+            addOutput('=== Enum Singleton Demo ===');
+            addOutput('Testing the recommended enum approach...\n');
+            
+            const instance1 = EnumSingleton.INSTANCE;
+            const instance2 = EnumSingleton.INSTANCE;
+            
+            addOutput(`Instance 1: ${instance1.doSomething()}`);
+            addOutput(`Instance 2: ${instance2.doSomething()}`);
+            addOutput(`Same instance? ${instance1 === instance2}`);
+            addOutput(`Value: ${instance1.getValue()}`);
+            
+            addOutput('\n=== Enum Advantages ===');
+            addOutput('✓ Thread-safe by default');
+            addOutput('✓ Serialization safe automatically');
+            addOutput('✓ Prevents reflection attacks');
+            addOutput('✓ Simple and concise');
+            addOutput('✓ No performance overhead');
+            
+            addOutput('\nEnum Singleton is the BEST approach in Java!');
+        }
+
+        // Initialize the tutorial
+        document.addEventListener('DOMContentLoaded', function() {
+            showStep(0);
+        });
+    </script>
+</body>
+</html>

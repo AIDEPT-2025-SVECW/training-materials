@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Builder Pattern Evolution</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .phase-navigation {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .phase-btn {
+            padding: 12px 25px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            backdrop-filter: blur(5px);
+        }
+
+        .phase-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.6);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .phase-btn.active {
+            background: rgba(255, 255, 255, 0.9);
+            color: #667eea;
+            border-color: white;
+            transform: scale(1.05);
+        }
+
+        .phase-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            display: none;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .phase-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .phase-title {
+            color: #667eea;
+            font-size: 2.2em;
+            margin-bottom: 15px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .problem-solution {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .problem, .solution {
+            padding: 20px;
+            border-radius: 10px;
+            position: relative;
+        }
+
+        .problem {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+            color: white;
+        }
+
+        .solution {
+            background: linear-gradient(135deg, #51cf66, #40c057);
+            color: white;
+        }
+
+        .problem h3, .solution h3 {
+            font-size: 1.4em;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .problem h3::before {
+            content: "⚠️";
+            font-size: 1.2em;
+        }
+
+        .solution h3::before {
+            content: "✨";
+            font-size: 1.2em;
+        }
+
+        pre {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            border-left: 4px solid #667eea;
+            position: relative;
+        }
+
+        pre::before {
+            content: "Java";
+            position: absolute;
+            top: -10px;
+            right: 15px;
+            background: #667eea;
+            color: white;
+            padding: 2px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .code-highlight {
+            background: rgba(102, 126, 234, 0.2);
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        .benefits {
+            background: linear-gradient(135deg, #ffd93d, #ff6b6b);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .benefits h3 {
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .benefits ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .benefits li {
+            padding: 5px 0;
+            position: relative;
+            padding-left: 25px;
+        }
+
+        .benefits li::before {
+            content: "🚀";
+            position: absolute;
+            left: 0;
+        }
+
+        .comparison {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .comparison-item {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .progress-bar {
+            background: rgba(255, 255, 255, 0.2);
+            height: 8px;
+            border-radius: 4px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #51cf66, #40c057);
+            height: 100%;
+            border-radius: 4px;
+            transition: width 1s ease-in-out;
+        }
+
+        @media (max-width: 768px) {
+            .problem-solution {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .phase-btn {
+                padding: 8px 15px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Builder Pattern Evolution</h1>
+            <p>Journey through the evolution of the Builder Pattern in Java</p>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+
+        <div class="phase-navigation">
+            <button class="phase-btn active" onclick="showPhase(0)">Phase 1: Basic Problem</button>
+            <button class="phase-btn" onclick="showPhase(1)">Phase 2: Constructor Hell</button>
+            <button class="phase-btn" onclick="showPhase(2)">Phase 3: Basic Builder</button>
+            <button class="phase-btn" onclick="showPhase(3)">Phase 4: Fluent Interface</button>
+            <button class="phase-btn" onclick="showPhase(4)">Phase 5: Perfect Builder</button>
+        </div>
+
+        <!-- Phase 1: Basic Problem -->
+        <div class="phase-content active" id="phase0">
+            <h2 class="phase-title">Phase 1: The Basic Problem</h2>
+            
+            <div class="problem-solution">
+                <div class="problem">
+                    <h3>The Problem</h3>
+                    <p>We need to create a complex object (like a Computer) with many optional parameters. Traditional approaches lead to messy, hard-to-read code.</p>
+                </div>
+                <div class="solution">
+                    <h3>Why Builder Pattern?</h3>
+                    <p>The Builder pattern provides a flexible solution for constructing complex objects step by step, making code more readable and maintainable.</p>
+                </div>
+            </div>
+
+            <h3>Initial Naive Approach</h3>
+            <pre>public class Computer {
+    private String cpu;
+    private String ram;
+    private String storage;
+    private String gpu;
+    private boolean wifi;
+    private boolean bluetooth;
+    
+    public Computer(String cpu, String ram, String storage, 
+                   String gpu, boolean wifi, boolean bluetooth) {
+        this.cpu = cpu;
+        this.ram = ram;
+        this.storage = storage;
+        this.gpu = gpu;
+        this.wifi = wifi;
+        this.bluetooth = bluetooth;
+    }
+    
+    // Getters
+    public String getCpu() { return cpu; }
+    public String getRam() { return ram; }
+    public String getStorage() { return storage; }
+    public String getGpu() { return gpu; }
+    public boolean hasWifi() { return wifi; }
+    public boolean hasBluetooth() { return bluetooth; }
+}</pre>
+
+            <h3>Usage Problems</h3>
+            <pre>// Hard to read and maintain
+Computer computer = new Computer("Intel i7", "16GB", "1TB SSD", 
+                                "RTX 3080", true, false);
+
+// What does true/false mean?
+// What if we want to make some parameters optional?</pre>
+
+            <div class="benefits">
+                <h3>Problems with this approach:</h3>
+                <ul>
+                    <li>Hard to remember parameter order</li>
+                    <li>Boolean parameters are confusing</li>
+                    <li>No way to make parameters optional</li>
+                    <li>Code is not self-documenting</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Phase 2: Constructor Hell -->
+        <div class="phase-content" id="phase1">
+            <h2 class="phase-title">Phase 2: Constructor Hell</h2>
+            
+            <div class="problem-solution">
+                <div class="problem">
+                    <h3>The Problem</h3>
+                    <p>Trying to solve optional parameters with multiple constructors leads to constructor hell and exponential complexity.</p>
+                </div>
+                <div class="solution">
+                    <h3>The Realization</h3>
+                    <p>We need a better way to handle optional parameters without creating dozens of constructors.</p>
+                </div>
+            </div>
+
+            <h3>Multiple Constructors Approach</h3>
+            <pre>public class Computer {
+    private String cpu;
+    private String ram;
+    private String storage;
+    private String gpu;
+    private boolean wifi;
+    private boolean bluetooth;
+    
+    // Constructor with all parameters
+    public Computer(String cpu, String ram, String storage, 
+                   String gpu, boolean wifi, boolean bluetooth) {
+        this.cpu = cpu;
+        this.ram = ram;
+        this.storage = storage;
+        this.gpu = gpu;
+        this.wifi = wifi;
+        this.bluetooth = bluetooth;
+    }
+    
+    // Constructor without GPU
+    public Computer(String cpu, String ram, String storage, 
+                   boolean wifi, boolean bluetooth) {
+        this(cpu, ram, storage, null, wifi, bluetooth);
+    }
+    
+    // Constructor with only essentials
+    public Computer(String cpu, String ram, String storage) {
+        this(cpu, ram, storage, null, false, false);
+    }
+    
+    // Constructor with wifi but no bluetooth
+    public Computer(String cpu, String ram, String storage, boolean wifi) {
+        this(cpu, ram, storage, null, wifi, false);
+    }
+    
+    // ... and many more combinations!
+}</pre>
+
+            <div class="benefits">
+                <h3>Problems with Multiple Constructors:</h3>
+                <ul>
+                    <li>Exponential growth of constructors</li>
+                    <li>Code duplication and maintenance nightmare</li>
+                    <li>Still confusing parameter order</li>
+                    <li>Compilation errors with similar parameter types</li>
+                    <li>Not scalable for complex objects</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Phase 3: Basic Builder -->
+        <div class="phase-content" id="phase2">
+            <h2 class="phase-title">Phase 3: Basic Builder Implementation</h2>
+            
+            <div class="problem-solution">
+                <div class="problem">
+                    <h3>The Challenge</h3>
+                    <p>We need a way to construct objects step by step with optional parameters, while keeping the code readable.</p>
+                </div>
+                <div class="solution">
+                    <h3>Basic Builder Solution</h3>
+                    <p>Introduce a separate Builder class that handles object construction with individual setter methods.</p>
+                </div>
+            </div>
+
+            <h3>Basic Builder Implementation</h3>
+            <pre>public class Computer {
+    private String cpu;
+    private String ram;
+    private String storage;
+    private String gpu;
+    private boolean wifi;
+    private boolean bluetooth;
+    
+    // Private constructor
+    private Computer(ComputerBuilder builder) {
+        this.cpu = builder.cpu;
+        this.ram = builder.ram;
+        this.storage = builder.storage;
+        this.gpu = builder.gpu;
+        this.wifi = builder.wifi;
+        this.bluetooth = builder.bluetooth;
+    }
+    
+    // Getters
+    public String getCpu() { return cpu; }
+    public String getRam() { return ram; }
+    public String getStorage() { return storage; }
+    public String getGpu() { return gpu; }
+    public boolean hasWifi() { return wifi; }
+    public boolean hasBluetooth() { return bluetooth; }
+    
+    // Builder class
+    public static class ComputerBuilder {
+        private String cpu;
+        private String ram;
+        private String storage;
+        private String gpu;
+        private boolean wifi;
+        private boolean bluetooth;
+        
+        public void setCpu(String cpu) {
+            this.cpu = cpu;
+        }
+        
+        public void setRam(String ram) {
+            this.ram = ram;
+        }
+        
+        public void setStorage(String storage) {
+            this.storage = storage;
+        }
+        
+        public void setGpu(String gpu) {
+            this.gpu = gpu;
+        }
+        
+        public void setWifi(boolean wifi) {
+            this.wifi = wifi;
+        }
+        
+        public void setBluetooth(boolean bluetooth) {
+            this.bluetooth = bluetooth;
+        }
+        
+        public Computer build() {
+            return new Computer(this);
+        }
+    }
+}</pre>
+
+            <h3>Usage</h3>
+            <pre>// Much clearer usage
+Computer.ComputerBuilder builder = new Computer.ComputerBuilder();
+builder.setCpu("Intel i7");
+builder.setRam("16GB");
+builder.setStorage("1TB SSD");
+builder.setWifi(true);
+
+Computer computer = builder.build();</pre>
+
+            <div class="benefits">
+                <h3>Improvements:</h3>
+                <ul>
+                    <li>Clear and readable parameter setting</li>
+                    <li>Optional parameters handled easily</li>
+                    <li>No constructor hell</li>
+                    <li>Self-documenting code</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Phase 4: Fluent Interface -->
+        <div class="phase-content" id="phase3">
+            <h2 class="phase-title">Phase 4: Fluent Interface Builder</h2>
+            
+            <div class="problem-solution">
+                <div class="problem">
+                    <h3>Room for Improvement</h3>
+                    <p>The basic builder works but requires multiple lines and temporary variables. We can make it more elegant.</p>
+                </div>
+                <div class="solution">
+                    <h3>Fluent Interface</h3>
+                    <p>Return 'this' from each setter method to enable method chaining, creating a fluent API.</p>
+                </div>
+            </div>
+
+            <h3>Fluent Builder Implementation</h3>
+            <pre>public class Computer {
+    private String cpu;
+    private String ram;
+    private String storage;
+    private String gpu;
+    private boolean wifi;
+    private boolean bluetooth;
+    
+    private Computer(ComputerBuilder builder) {
+        this.cpu = builder.cpu;
+        this.ram = builder.ram;
+        this.storage = builder.storage;
+        this.gpu = builder.gpu;
+        this.wifi = builder.wifi;
+        this.bluetooth = builder.bluetooth;
+    }
+    
+    // Getters
+    public String getCpu() { return cpu; }
+    public String getRam() { return ram; }
+    public String getStorage() { return storage; }
+    public String getGpu() { return gpu; }
+    public boolean hasWifi() { return wifi; }
+    public boolean hasBluetooth() { return bluetooth; }
+    
+    @Override
+    public String toString() {
+        return "Computer{" +
+                "cpu='" + cpu + '\'' +
+                ", ram='" + ram + '\'' +
+                ", storage='" + storage + '\'' +
+                ", gpu='" + gpu + '\'' +
+                ", wifi=" + wifi +
+                ", bluetooth=" + bluetooth +
+                '}';
+    }
+    
+    public static class ComputerBuilder {
+        private String cpu;
+        private String ram;
+        private String storage;
+        private String gpu;
+        private boolean wifi;
+        private boolean bluetooth;
+        
+        public ComputerBuilder setCpu(String cpu) {
+            this.cpu = cpu;
+            return this;
+        }
+        
+        public ComputerBuilder setRam(String ram) {
+            this.ram = ram;
+            return this;
+        }
+        
+        public ComputerBuilder setStorage(String storage) {
+            this.storage = storage;
+            return this;
+        }
+        
+        public ComputerBuilder setGpu(String gpu) {
+            this.gpu = gpu;
+            return this;
+        }
+        
+        public ComputerBuilder setWifi(boolean wifi) {
+            this.wifi = wifi;
+            return this;
+        }
+        
+        public ComputerBuilder setBluetooth(boolean bluetooth) {
+            this.bluetooth = bluetooth;
+            return this;
+        }
+        
+        public Computer build() {
+            return new Computer(this);
+        }
+    }
+}</pre>
+
+            <h3>Fluent Usage</h3>
+            <pre>// Beautiful fluent interface
+Computer computer = new Computer.ComputerBuilder()
+    .setCpu("Intel i7")
+    .setRam("16GB")
+    .setStorage("1TB SSD")
+    .setGpu("RTX 3080")
+    .setWifi(true)
+    .setBluetooth(false)
+    .build();
+
+// Or build different configurations easily
+Computer basicComputer = new Computer.ComputerBuilder()
+    .setCpu("Intel i5")
+    .setRam("8GB")
+    .setStorage("512GB SSD")
+    .build();</pre>
+
+            <div class="benefits">
+                <h3>Fluent Interface Benefits:</h3>
+                <ul>
+                    <li>Method chaining creates readable code</li>
+                    <li>No temporary variables needed</li>
+                    <li>Looks like natural language</li>
+                    <li>Easy to create different configurations</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Phase 5: Perfect Builder -->
+        <div class="phase-content" id="phase4">
+            <h2 class="phase-title">Phase 5: Perfect Builder Pattern</h2>
+            
+            <div class="problem-solution">
+                <div class="problem">
+                    <h3>Final Enhancements</h3>
+                    <p>Add validation, immutability, required parameters, and defensive programming practices.</p>
+                </div>
+                <div class="solution">
+                    <h3>Production-Ready Builder</h3>
+                    <p>A robust, validated, and immutable builder pattern suitable for production applications.</p>
+                </div>
+            </div>
+
+            <h3>Perfect Builder Implementation</h3>
+            <pre>public final class Computer {
+    private final String cpu;
+    private final String ram;
+    private final String storage;
+    private final String gpu;
+    private final boolean wifi;
+    private final boolean bluetooth;
+    
+    private Computer(ComputerBuilder builder) {
+        // Validation of required fields
+        if (builder.cpu == null || builder.cpu.trim().isEmpty()) {
+            throw new IllegalArgumentException("CPU is required");
+        }
+        if (builder.ram == null || builder.ram.trim().isEmpty()) {
+            throw new IllegalArgumentException("RAM is required");
+        }
+        if (builder.storage == null || builder.storage.trim().isEmpty()) {
+            throw new IllegalArgumentException("Storage is required");
+        }
+        
+        this.cpu = builder.cpu;
+        this.ram = builder.ram;
+        this.storage = builder.storage;
+        this.gpu = builder.gpu; // Optional
+        this.wifi = builder.wifi;
+        this.bluetooth = builder.bluetooth;
+    }
+    
+    // Only getters - object is immutable
+    public String getCpu() { return cpu; }
+    public String getRam() { return ram; }
+    public String getStorage() { return storage; }
+    public String getGpu() { return gpu; }
+    public boolean hasWifi() { return wifi; }
+    public boolean hasBluetooth() { return bluetooth; }
+    
+    @Override
+    public String toString() {
+        return "Computer{" +
+                "cpu='" + cpu + '\'' +
+                ", ram='" + ram + '\'' +
+                ", storage='" + storage + '\'' +
+                ", gpu='" + (gpu != null ? gpu : "Integrated") + '\'' +
+                ", wifi=" + wifi +
+                ", bluetooth=" + bluetooth +
+                '}';
+    }
+    
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        Computer computer = (Computer) obj;
+        return wifi == computer.wifi &&
+               bluetooth == computer.bluetooth &&
+               Objects.equals(cpu, computer.cpu) &&
+               Objects.equals(ram, computer.ram) &&
+               Objects.equals(storage, computer.storage) &&
+               Objects.equals(gpu, computer.gpu);
+    }
+    
+    @Override
+    public int hashCode() {
+        return Objects.hash(cpu, ram, storage, gpu, wifi, bluetooth);
+    }
+    
+    public static class ComputerBuilder {
+        private String cpu;
+        private String ram;
+        private String storage;
+        private String gpu;
+        private boolean wifi = false; // Default values
+        private boolean bluetooth = false;
+        
+        // Required parameters constructor
+        public ComputerBuilder(String cpu, String ram, String storage) {
+            this.cpu = cpu;
+            this.ram = ram;
+            this.storage = storage;
+        }
+        
+        public ComputerBuilder setGpu(String gpu) {
+            this.gpu = gpu;
+            return this;
+        }
+        
+        public ComputerBuilder setWifi(boolean wifi) {
+            this.wifi = wifi;
+            return this;
+        }
+        
+        public ComputerBuilder setBluetooth(boolean bluetooth) {
+            this.bluetooth = bluetooth;
+            return this;
+        }
+        
+        // Convenience methods
+        public ComputerBuilder enableWifi() {
+            this.wifi = true;
+            return this;
+        }
+        
+        public ComputerBuilder enableBluetooth() {
+            this.bluetooth = true;
+            return this;
+        }
+        
+        public ComputerBuilder enableWireless() {
+            this.wifi = true;
+            this.bluetooth = true;
+            return this;
+        }
+        
+        public Computer build() {
+            return new Computer(this);
+        }
+    }
+    
+    // Factory method for common configurations
+    public static Computer gamingComputer() {
+        return new ComputerBuilder("Intel i9", "32GB", "2TB SSD")
+                .setGpu("RTX 4090")
+                .enableWireless()
+                .build();
+    }
+    
+    public static Computer officeComputer() {
+        return new ComputerBuilder("Intel i5", "16GB", "1TB SSD")
+                .enableWifi()
+                .build();
+    }
+}</pre>
+
+            <h3>Perfect Usage Examples</h3>
+            <pre>// Required parameters in constructor
+Computer computer = new Computer.ComputerBuilder("Intel i7", "16GB", "1TB SSD")
+    .setGpu("RTX 3080")
+    .enableWireless()
+    .build();
+
+// Using factory methods
+Computer gaming = Computer.gamingComputer();
+Computer office = Computer.officeComputer();
+
+// Custom configuration
+Computer server = new Computer.ComputerBuilder("AMD EPYC", "128GB", "4TB SSD")
+    .enableWifi()
+    .build();
+
+System.out.println(gaming);
+System.out.println(office);</pre>
+
+            <div class="comparison">
+                <div class="comparison-item">
+                    <h4>🔒 Immutability</h4>
+                    <p>Objects cannot be modified after creation, ensuring thread safety and preventing accidental changes.</p>
+                </div>
+                <div class="comparison-item">
+                    <h4>✅ Validation</h4>
+                    <p>Required parameters are enforced, and invalid states are prevented through validation.</p>
+                </div>
+                <div class="comparison-item">
+                    <h4>🏭 Factory Methods</h4>
+                    <p>Common configurations are provided through convenient factory methods.</p>
+                </div>
+                <div class="comparison-item">
+                    <h4>🛡️ Defensive Programming</h4>
+                    <p>Proper equals, hashCode, and toString implementations for robust behavior.</p>
+                </div>
+            </div>
+
+            <div class="benefits">
+                <h3>Perfect Builder Benefits:</h3>
+                <ul>
+                    <li>Immutable objects ensure thread safety</li>
+                    <li>Required parameters enforced at compile time</li>
+                    <li>Validation prevents invalid object states</li>
+                    <li>Factory methods for common configurations</li>
+                    <li>Defensive programming with proper equals/hashCode</li>
+                    <li>Convenience methods for better API</li>
+                    <li>Production-ready and maintainable</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPhase = 0;
+        const totalPhases = 5;
+
+        function showPhase(phaseIndex) {
+            // Hide all phases
+            const phases = document.querySelectorAll('.phase-content');
+            const buttons = document.querySelectorAll('.phase-btn');
+            
+            phases.forEach(phase => phase.classList.remove('active'));
+            buttons.forEach(btn => btn.classList.remove('active'));
+            
+            // Show selected phase
+            document.getElementById(`phase${phaseIndex}`).classList.add('active');
+            buttons[phaseIndex].classList.add('active');
+            
+            currentPhase = phaseIndex;
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const progressFill = document.getElementById('progressFill');
+            const percentage = ((currentPhase + 1) / totalPhases) * 100;
+            progressFill.style.width = percentage + '%';
+        }
+
+        // Initialize progress
+        updateProgress();
+
+        // Add keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowRight' && currentPhase < totalPhases - 1) {
+                showPhase(currentPhase + 1);
+            } else if (e.key === 'ArrowLeft' && currentPhase > 0) {
+                showPhase(currentPhase - 1);
+            }
+        });
+
+        // Add smooth scrolling for better UX
+        document.querySelectorAll('.phase-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelector('.phase-content.active').scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            });
+        });
+    </script>
+</body>
+</html>
