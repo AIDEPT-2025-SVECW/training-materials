@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DAO Authentication Provider Setup Guide</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(255, 255, 255, 0.05) 10px,
+                rgba(255, 255, 255, 0.05) 20px
+            );
+            animation: shimmer 20s linear infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .progress-container {
+            background: #f8f9fa;
+            padding: 20px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #e9ecef;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+            width: 0%;
+            transition: width 0.5s ease;
+            border-radius: 5px;
+        }
+
+        .step-counter {
+            text-align: center;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .step {
+            display: none;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .step.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .step-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            border-left: 5px solid #007bff;
+        }
+
+        .step-number {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-right: 20px;
+            box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+        }
+
+        .step-title {
+            font-size: 1.8rem;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .step-description {
+            color: #6c757d;
+            font-size: 1.1rem;
+        }
+
+        .code-container {
+            position: relative;
+            margin: 20px 0;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .code-header {
+            background: #2d3748;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            font-size: 0.9rem;
+        }
+
+        .file-name {
+            font-weight: 600;
+            color: #68d391;
+        }
+
+        .copy-btn {
+            background: #4a5568;
+            border: none;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-left: auto;
+        }
+
+        .copy-btn:hover {
+            background: #2d3748;
+            transform: translateY(-2px);
+        }
+
+        .copy-btn.copied {
+            background: #38a169;
+        }
+
+        pre {
+            margin: 0 !important;
+            border-radius: 0 !important;
+        }
+
+        .explanation {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 5px solid #f39c12;
+        }
+
+        .explanation h4 {
+            color: #d68910;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .explanation h4 i {
+            margin-right: 10px;
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #545b62);
+            color: white;
+            box-shadow: 0 5px 15px rgba(108, 117, 125, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .feature-list {
+            list-style: none;
+            margin: 20px 0;
+        }
+
+        .feature-list li {
+            padding: 10px 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .feature-list li i {
+            color: #28a745;
+            margin-right: 15px;
+            font-size: 1.2rem;
+        }
+
+        .warning {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 5px solid #dc3545;
+        }
+
+        .warning i {
+            margin-right: 10px;
+        }
+
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 5px solid #28a745;
+        }
+
+        .success i {
+            margin-right: 10px;
+        }
+
+        .step-menu {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .step-menu h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .step-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .step-link {
+            padding: 8px 16px;
+            background: #e9ecef;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .step-link.active {
+            background: #007bff;
+            color: white;
+        }
+
+        .step-link:hover {
+            background: #007bff;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+            
+            .header {
+                padding: 30px 20px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .step-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .step-number {
+                margin-right: 0;
+                margin-bottom: 15px;
+            }
+            
+            .navigation {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .step-links {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-shield-alt"></i> DAO Authentication Provider</h1>
+            <p>Complete Guide for Spring Boot Security Setup</p>
+        </div>
+
+        <div class="progress-container">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="step-counter">
+                Step <span id="currentStep">1</span> of <span id="totalSteps">8</span>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="step-menu">
+                <h3><i class="fas fa-list"></i> Quick Navigation</h3>
+                <div class="step-links" id="stepLinks">
+                    <!-- Step links will be generated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Step 1: Introduction -->
+            <div class="step active" data-step="1">
+                <div class="step-header">
+                    <div class="step-number">1</div>
+                    <div>
+                        <div class="step-title">Introduction to DAO Authentication</div>
+                        <div class="step-description">Understanding the fundamentals</div>
+                    </div>
+                </div>
+
+                <div class="explanation">
+                    <h4><i class="fas fa-info-circle"></i> What is DAO Authentication?</h4>
+                    <p>DAO (Data Access Object) Authentication Provider is a Spring Security component that authenticates users against a database. It uses a UserDetailsService to load user information and a PasswordEncoder to verify passwords.</p>
+                </div>
+
+                <ul class="feature-list">
+                    <li><i class="fas fa-check"></i> Database-driven user authentication</li>
+                    <li><i class="fas fa-check"></i> Flexible password encoding strategies</li>
+                    <li><i class="fas fa-check"></i> Custom user details implementation</li>
+                    <li><i class="fas fa-check"></i> Role-based access control</li>
+                    <li><i class="fas fa-check"></i> Integration with Spring Data JPA</li>
+                </ul>
+
+                <div class="success">
+                    <i class="fas fa-lightbulb"></i>
+                    <strong>Pro Tip:</strong> DAO Authentication is perfect when you need to store user credentials in a database and want full control over the authentication process.
+                </div>
+            </div>
+
+            <!-- Step 2: Dependencies -->
+            <div class="step" data-step="2">
+                <div class="step-header">
+                    <div class="step-number">2</div>
+                    <div>
+                        <div class="step-title">Add Required Dependencies</div>
+                        <div class="step-description">Configure your Maven/Gradle dependencies</div>
+                    </div>
+                </div>
+
+                <div class="code-container">
+                    <div class="code-header">
+                        <span class="file-name">pom.xml</span>
+                        <button class="copy-btn" onclick="copyCode(this)">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                    </div>
+                    <pre><code class="language-xml">&lt;dependencies&gt;
+    &lt;!-- Spring Boot Starter Security --&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-security&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+    
+    &lt;!-- Spring Boot Starter Web --&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+    
+    &lt;!-- Spring Boot Starter Data JPA --&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-data-jpa&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+    
+    &lt;!-- Database Driver (H2 for demo) --&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;com.h2database&lt;/groupId&gt;
+        &lt;artifactId&gt;h2&lt;/artifactId&gt;
+        &lt;scope&gt;runtime&lt;/scope&gt;
+    &lt;/dependency&gt;
+&lt;/dependencies&gt;</code></pre>
+                </div>
+
+                <div class="explanation">
+                    <h4><i class="fas fa-puzzle-piece"></i> Dependency Breakdown</h4>
+                    <p><strong>spring-boot-starter-security:</strong> Core security framework<br>
+                    <strong>spring-boot-starter-data-jpa:</strong> Database access layer<br>
+                    <strong>H2:</strong> In-memory database for demonstration (replace with your preferred database)</p>
+                </div>
+            </div>
+
+            <!-- Step 3: User Entity -->
+            <div class="step" data-step="3">
+                <div class="step-header">
+                    <div class="step-number">3</div>
+                    <div>
+                        <div class="step-title">Create User Entity</div>
+                        <div class="step-description">Define the user data model</div>
+                    </div>
+                </div>
+
+                <div class="code-container">
+                    <div class="code-header">
+                        <span class="file-name">User.java</span>
+                        <button class="copy-btn" onclick="copyCode(this)">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                    </div>
+                    <pre><code class="language-java">package com.example.entity;
+
+import jakarta.persistence.*;
+import java.util.Set;
+
+@Entity
+@Table(name = "users")
+public class User {
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
+    @Column(unique = true, nullable = false)
+    private String username;
+    
+    @Column(nullable = false)
+    private String password;
+    
+    @Column(nullable = false)
+    private boolean enabled = true;
+    
+    @ElementCollection(fetch = FetchType.EAGER)
+    @Enumerated(EnumType.STRING)
+    @CollectionTable(name = "user_roles", 
+                    joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "role")
+    private Set&lt;Role&gt; roles;
+    
+    // Constructors
+    public User() {}
+    
+    public User(String username, String password, Set&lt;Role&gt; roles) {
+        this.username = username;
+        this.password = password;
+        this.roles = roles;
+    }
+    
+    // Getters and Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    
+    public String getUsername() { return username; }
+    public void setUsername(String username) { this.username = username; }
+    
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
+    
+    public boolean isEnabled() { return enabled; }
+    public void setEnabled(boolean enabled) { this.enabled = enabled; }
+    
+    public Set&lt;Role&gt; getRoles() { return roles; }
+    public void setRoles(Set&lt;Role&gt; roles) { this.roles = roles; }
+}</code></pre>
+                </div>
+
+                <div class="code-container">
+                    <div class="code-header">
+                        <span class="file-name">Role.java</span>
+                        <button class="copy-btn" onclick="copyCode(this)">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                    </div>
+                    <pre><code class="language-java">package com.example.entity;
+
+public enum Role {
+    USER,
+    ADMIN,
+    MODERATOR
+}</code></pre>
+                </div>
+
+                <div class="explanation">
+                    <h4><i class="fas fa-database"></i> Entity Design</h4>
+                    <p>The User entity represents our user table in the database. We use JPA annotations to define the mapping and relationships. The roles are stored as an enum collection for simplicity.</p>
+                </div>
+            </div>
+
+            <!-- Step 4: User Repository -->
+            <div class="step" data-step="4">
+                <div class="step-header">
+                    <div class="step-number">4</div>
+                    <div>
+                        <div class="step-title">Create User Repository</div>
+                        <div class="step-description">Data access layer for user operations</div>
+                    </div>
+                </div>
+
+                <div class="code-container">
+                    <div class="code-header">
+                        <span class="file-name">UserRepository.java</span>
+                        <button class="copy-btn" onclick="copyCode(this)">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                    </div>
+                    <pre><code class="language-java">package com.example.repository;
+
+import com.example.entity.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+import java.util.Optional;
+
+@Repository
+public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
+    
+    /**
+     * Find user by username
+     * @param username the username to search for
+     * @return Optional containing the user if found
+     */
+    Optional&lt;User&gt; findByUsername(String username);
+    
+    /**
+     * Check if username exists
+     * @param username the username to check
+     * @return true if username exists, false otherwise
+     */
+    boolean existsByUsername(String username);
+    
+    /**
+     * Find enabled users by username
+     * @param username the username to search for
+     * @return Optional containing the enabled user if found
+     */
+    @Query("SELECT u FROM User u WHERE u.username = :username AND u.enabled = true")
+    Optional&lt;User&gt; findEnabledUserByUsername(@Param("username") String username);
+}</code></pre>
+                </div>
+
+                <div class="explanation">
+                    <h4><i class="fas fa-layer-group"></i> Repository Pattern</h4>
+                    <p>The UserRepository extends JpaRepository to provide CRUD operations. We add custom methods for finding users by username and checking if they're enabled, which are essential for authentication.</p>
+                </div>
+            </div>
+
+            <!-- Step 5: Custom UserDetails -->
+            <div class="step" data-step="5">
+                <div class="step-header">
+                    <div class="step-number">5</div>
+                    <div>
+                        <div class="step-title">Implement UserDetails</div>
+                        <div class="step-description">Create custom user details implementation</div>
+                    </div>
+                </div>
+
+                <div class="code-container">
+                    <div class="code-header">
+                        <span class="file-name">CustomUserDetails.java</span>
+                        <button class="copy-btn" onclick="copyCode(this)">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                    </div>
+                    <pre><code class="language-java">package com.example.security;
+
+import com.example.entity.Role;
+import com.example.entity.User;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import java.util.Collection;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+public class CustomUserDetails implements UserDetails {
+    
+    private final User user;
+    
+    public CustomUserDetails(User user) {
+        this.user = user;
+    }
+    
+    @Override
+    public Collection&lt;? extends GrantedAuthority&gt; getAuthorities() {
+        Set&lt;Role&gt; roles = user.getRoles();
+        return roles.stream()
+                .map(role -&gt; new SimpleGrantedAuthority("ROLE_" + role.name()))
+                .collect(Collectors.toList());
+    }
+    
+    @Override
+    public String getPassword() {
+        return user.getPassword();
+    }
+    
+    @Override
+    public String getUsername() {
+        return user.getUsername();
+    }
+    
+    @Override
+    public boolean isAccountNonExpired() {
+        return true; // You can implement account expiration logic here
+    }
+    
+    @Override
+    public boolean isAccountNonLocked() {
+        return true; // You can implement account locking logic here
+    }
+    
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true; // You can implement credential expiration logic here
+    }
+    
+    @Override
+    public boolean isEnabled() {
+        return user.isEnabled();
+    }
+    
+    // Getter for the underlying User entity
+    public User getUser() {
+        return user;
+    }
+}</code></pre>
+                </div>
+
+                <div class="explanation">
+                    <h4><i class="fas fa-user-shield"></i> UserDetails Implementation</h4>
+                    <p>CustomUserDetails adapts our User entity to Spring Security's UserDetails interface. It converts our Role enum to GrantedAuthority objects with the "ROLE_" prefix, which is Spring Security's convention.</p>
+                </div>
+
+                <div class="warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Important:</strong> The "ROLE_" prefix is automatically added by Spring Security for role-based authorization. Don't add it manually in your Role enum.
+                </div>
+            </div>
+
+            <!-- Step 6: UserDetailsService -->
+            <div class="step" data-step="6">
+                <div class="step-header">
+                    <div class="step-number">6</div>
+                    <div>
+                        <div class="step-title">Create UserDetailsService</div>
+                        <div class="step-description">Implement user loading service</div>
+                    </div>
+                </div>
+
+                <div class="code-container">
+                    <div class="code-header">
+                        <span class="file-name">CustomUserDetailsService.java</span>
+                        <button class="copy-btn" onclick="copyCode(this)">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                    </div>
+                    <pre><code class="language-java">package com.example.service;
+
+import com.example.entity.User;
+import com.example.repository.UserRepository;
+import com.example.security.CustomUserDetails;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@Transactional(readOnly = true)
+public class CustomUserDetailsService implements UserDetailsService {
+    
+    private static final Logger logger = LoggerFactory.getLogger(CustomUserDetailsService.class);
+    
+    private final UserRepository userRepository;
+    
+    @Autowired
+    public CustomUserDetailsService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+    
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        logger.debug("Attempting to load user: {}", username);
+        
+        User user = userRepository.findEnabledUserByUsername(username)
+                .orElseThrow(() -&gt; {
+                    logger.warn("User not found or not enabled: {}", username);
+                    return new UsernameNotFoundException("User not found: " + username);
+                });
+        
+        logger.debug("Successfully loaded user: {} with roles: {}", username, user.getRoles());
+        
+        return new CustomUserDetails(user);
+    }
+    
+    /**
+     * Additional method to load user by username including disabled users
+     * Useful for administrative purposes
+     */
+    public UserDetails loadUserByUsernameIncludingDisabled(String username) throws UsernameNotFoundException {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -&gt; new UsernameNotFoundException("User not found: " + username));
+        
+        return new CustomUserDetails(user);
+    }
+}</code></pre>
+                </div>
+
+                <div class="explanation">
+                    <h4><i class="fas fa-cogs"></i> Service Layer</h4>
+                    <p>The CustomUserDetailsService is responsible for loading user details from the database. It implements Spring Security's UserDetailsService interface and uses our UserRepository to fetch user data.</p>
+                </div>
+
+                <div class="success">
+                    <i class="fas fa-check-circle"></i>
+                    <strong>Best Practice:</strong> We use @Transactional(readOnly = true) for performance optimization and add logging for debugging authentication issues.
+                </div>
+            </div>
+
+            <!-- Step 7: Security Configuration -->
+            <div class="step" data-step="7">
+                <div class="step-header">
+                    <div class="step-number">7</div>
+                    <div>
+                        <div class="step-title">Configure Spring Security</div>
+                        <div class="step-description">Set up the security configuration</div>
+                    </div>
+                </div>
+
+                <div class="code-container">
+                    <div class="code-header">
+                        <span class="file-name">SecurityConfig.java</span>
+                        <button class="copy-btn" onclick="copyCode(this)">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                    </div>
+                    <pre><code class="language-java">package com.example.config;
+
+import com.example.service.CustomUserDetailsService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+
+@Configuration
+@EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true)
+public class SecurityConfig {
+    
+    private final CustomUserDetailsService userDetailsService;
+    
+    @Autowired
+    public SecurityConfig(CustomUserDetailsService userDetailsService) {
+        this.userDetailsService = userDetailsService;
+    }
+    
+    /**
+     * Password encoder bean
+     */
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder(12); // Strength of 12 for good security
+    }
+    
+    /**
+     * DAO Authentication Provider configuration
+     */
+    @Bean
+    public DaoAuthenticationProvider daoAuthenticationProvider() {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(userDetailsService);
+        provider.setPasswordEncoder(passwordEncoder());
+        provider.setHideUserNotFoundExceptions(false); // For better debugging
+        return provider;
+    }
+    
+    /**
+     * Authentication Manager bean
+     */
+    @Bean
+    public AuthenticationManager authenticationManager(
+            AuthenticationConfiguration authConfig) throws Exception {
+        return authConfig.getAuthenticationManager();
+    }
+    
+    /**
+     * Security filter chain configuration
+     */
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+            .authenticationProvider(daoAuthenticationProvider())
+            .authorizeHttpRequests(authz -> authz
+                .requestMatchers("/public/**", "/register", "/h2-console/**").permitAll()
+                .requestMatchers("/admin/**").hasRole("ADMIN")
+                .requestMatchers("/user/**").hasAnyRole("USER", "ADMIN")
+                .anyRequest().authenticated()
+            )
+            .formLogin(form -> form
+                .loginPage("/login")
+                .defaultSuccessUrl("/dashboard", true)
+                .failureUrl("/login?error=true")
+                .permitAll()
+            )
+            .logout(logout -> logout
+                .logoutUrl("/logout")
+                .logoutSuccessUrl("/login?logout=true")
+                .invalidateHttpSession(true)
+                .deleteCookies("JSESSIONID")
+                .permitAll()
+            )
+            .sessionManagement(session -> session
+                .maximumSessions(1)
+                .maxSessionsPreventsLogin(false)
+            )
+            .csrf(csrf -> csrf
+                .ignoringRequestMatchers("/h2-console/**") // For H2 console
+            )
+            .headers(headers -> headers
+                .frameOptions().sameOrigin() // For H2 console
+            );
+        
+        return http.build();
+    }
+}</code></pre>
+                </div>
+
+                <div class="explanation">
+                    <h4><i class="fas fa-shield-alt"></i> Security Configuration Breakdown</h4>
+                    <p><strong>DaoAuthenticationProvider:</strong> Configures the DAO authentication with our UserDetailsService and password encoder.<br>
+                    <strong>Authorization Rules:</strong> Defines URL-based access controls.<br>
+                    <strong>Form Login:</strong> Configures custom login page and success/failure URLs.<br>
+                    <strong>Session Management:</strong> Limits concurrent sessions per user.</p>
+                </div>
+
+                <div class="warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Note:</strong> The H2 console configurations (CSRF ignore, frame options) should be removed in production when using a real database.
+                </div>
+            </div>
+
+            <!-- Step 8: Testing and Usage -->
+            <div class="step" data-step="8">
+                <div class="step-header">
+                    <div class="step-number">8</div>
+                    <div>
+                        <div class="step-title">Testing & Usage Examples</div>
+                        <div class="step-description">Complete implementation with test data</div>
+                    </div>
+                </div>
+
+                <div class="code-container">
+                    <div class="code-header">
+                        <span class="file-name">DataInitializer.java</span>
+                        <button class="copy-btn" onclick="copyCode(this)">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                    </div>
+                    <pre><code class="language-java">package com.example.config;
+
+import com.example.entity.Role;
+import com.example.entity.User;
+import com.example.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Component;
+
+import java.util.Set;
+
+@Component
+public class DataInitializer implements CommandLineRunner {
+    
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    
+    @Autowired
+    public DataInitializer(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
+    
+    @Override
+    public void run(String... args) throws Exception {
+        // Create admin user
+        if (!userRepository.existsByUsername("admin")) {
+            User admin = new User();
+            admin.setUsername("admin");
+            admin.setPassword(passwordEncoder.encode("admin123"));
+            admin.setRoles(Set.of(Role.ADMIN));
+            admin.setEnabled(true);
+            userRepository.save(admin);
+        }
+        
+        // Create regular user
+        if (!userRepository.existsByUsername("user")) {
+            User user = new User();
+            user.setUsername("user");
+            user.setPassword(passwordEncoder.encode("user123"));
+            user.setRoles(Set.of(Role.USER));
+            user.setEnabled(true);
+            userRepository.save(user);
+        }
+        
+        System.out.println("Test users created:");
+        System.out.println("Admin - username: admin, password: admin123");
+        System.out.println("User - username: user, password: user123");
+    }
+}</code></pre>
+                </div>
+
+                <div class="code-container">
+                    <div class="code-header">
+                        <span class="file-name">TestController.java</span>
+                        <button class="copy-btn" onclick="copyCode(this)">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                    </div>
+                    <pre><code class="language-java">package com.example.controller;
+
+import com.example.security.CustomUserDetails;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class TestController {
+    
+    @GetMapping("/public/hello")
+    public String publicEndpoint() {
+        return "Hello from public endpoint!";
+    }
+    
+    @GetMapping("/dashboard")
+    public String dashboard(Authentication authentication) {
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        return String.format("Welcome to dashboard, %s! Your roles: %s", 
+                userDetails.getUsername(), 
+                userDetails.getAuthorities());
+    }
+    
+    @GetMapping("/user/profile")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    public String userProfile(Authentication authentication) {
+        return "User profile for: " + authentication.getName();
+    }
+    
+    @GetMapping("/admin/panel")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String adminPanel() {
+        return "Admin panel - restricted access!";
+    }
+}</code></pre>
+                </div>
+
+                <div class="code-container">
+                    <div class="code-header">
+                        <span class="file-name">application.yml</span>
+                        <button class="copy-btn" onclick="copyCode(this)">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                    </div>
+                    <pre><code class="language-yaml">spring:
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+  
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  
+  security:
+    user:
+      name: admin
+      password: admin123
+      roles: ADMIN
+
+logging:
+  level:
+    com.example: DEBUG
+    org.springframework.security: DEBUG</code></pre>
+                </div>
+
+                <div class="success">
+                    <i class="fas fa-rocket"></i>
+                    <strong>You're All Set!</strong> Your DAO Authentication Provider is now configured. You can test with the following credentials:
+                    <br><strong>Admin:</strong> admin/admin123
+                    <br><strong>User:</strong> user/user123
+                </div>
+
+                <div class="explanation">
+                    <h4><i class="fas fa-test-tube"></i> Testing Your Implementation</h4>
+                    <p><strong>1.</strong> Start your application and visit the endpoints<br>
+                    <strong>2.</strong> Try accessing protected resources without authentication<br>
+                    <strong>3.</strong> Login with different user roles and test authorization<br>
+                    <strong>4.</strong> Check the H2 console at /h2-console to see your users</p>
+                </div>
+            </div>
+
+            <div class="navigation">
+                <button class="btn btn-secondary" id="prevBtn" onclick="changeStep(-1)" disabled>
+                    <i class="fas fa-arrow-left"></i> Previous
+                </button>
+                <button class="btn btn-primary" id="nextBtn" onclick="changeStep(1)">
+                    Next <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="dao_auth_guide_js.js"></script>
+</body>
+</html>
