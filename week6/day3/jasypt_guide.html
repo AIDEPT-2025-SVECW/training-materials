@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JASYPT Interactive Guide</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            animation: fadeInDown 1s ease-out;
+        }
+        
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+            animation: fadeInUp 0.8s ease-out;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+        
+        .step {
+            margin-bottom: 40px;
+            border-left: 4px solid #667eea;
+            padding-left: 20px;
+        }
+        
+        .step-number {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            overflow-x: auto;
+            position: relative;
+            border: 1px solid #4a5568;
+        }
+        
+        .code-block::before {
+            content: attr(data-lang);
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+        
+        .interactive-section {
+            background: linear-gradient(45deg, #f7fafc, #edf2f7);
+            border: 2px dashed #667eea;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .input-group {
+            margin: 15px 0;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #2d3748;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin: 10px 5px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .result {
+            background: #f0fff4;
+            border: 2px solid #68d391;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        
+        .warning {
+            background: #fff5f5;
+            border: 2px solid #fc8181;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            color: #742a2a;
+        }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #e2e8f0;
+            margin-bottom: 20px;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .tab:hover {
+            background: #f7fafc;
+        }
+        
+        .tab.active {
+            border-bottom-color: #667eea;
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .highlight {
+            background: #fef5e7;
+            padding: 2px 4px;
+            border-radius: 4px;
+            color: #744210;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 JASYPT Interactive Guide</h1>
+            <p>Learn to encrypt passwords in Spring Boot applications</p>
+        </div>
+
+        <div class="card">
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('overview')">Overview</div>
+                <div class="tab" onclick="switchTab('setup')">Setup</div>
+                <div class="tab" onclick="switchTab('encrypt')">Encrypt</div>
+                <div class="tab" onclick="switchTab('integrate')">Integration</div>
+                <div class="tab" onclick="switchTab('advanced')">Advanced</div>
+            </div>
+
+            <div id="overview" class="tab-content active">
+                <h2>What is JASYPT?</h2>
+                <p><strong>JASYPT</strong> (Java Simplified Encryption) is a Java library that allows developers to add basic encryption capabilities to projects with minimum effort. It's particularly useful for encrypting sensitive configuration properties like database passwords.</p>
+                
+                <div class="warning">
+                    <h3>⚠️ Security Problem</h3>
+                    <p>Hard-coded passwords in <code>application.properties</code> are a major security risk. Anyone with access to your code can see sensitive credentials!</p>
+                </div>
+
+                <h3>Benefits of JASYPT:</h3>
+                <ul style="margin: 15px 0; padding-left: 20px;">
+                    <li>🔒 Encrypts sensitive properties</li>
+                    <li>🔑 Uses master password for decryption</li>
+                    <li>🌍 Environment variable support</li>
+                    <li>⚡ Easy Spring Boot integration</li>
+                    <li>🔄 Multiple encryption algorithms</li>
+                </ul>
+            </div>
+
+            <div id="setup" class="tab-content">
+                <h2>Step 1: Add JASYPT Dependency</h2>
+                
+                <h3>Maven (pom.xml)</h3>
+                <div class="code-block" data-lang="XML">
+&lt;dependency&gt;
+    &lt;groupId&gt;com.github.ulisesbocchio&lt;/groupId&gt;
+    &lt;artifactId&gt;jasypt-spring-boot-starter&lt;/artifactId&gt;
+    &lt;version&gt;3.0.5&lt;/version&gt;
+&lt;/dependency&gt;</div>
+
+                <h3>Gradle (build.gradle)</h3>
+                <div class="code-block" data-lang="Gradle">
+implementation 'com.github.ulisesbocchio:jasypt-spring-boot-starter:3.0.5'</div>
+
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3>Current Problem - Exposed Passwords</h3>
+                    <div class="code-block" data-lang="Properties">
+# application.properties - INSECURE!
+spring.datasource.url=jdbc:mysql://localhost:3306/mydb
+spring.datasource.username=admin
+spring.datasource.password=mySecretPassword123
+spring.mail.password=emailPassword456</div>
+                </div>
+            </div>
+
+            <div id="encrypt" class="tab-content">
+                <h2>Step 2: Interactive Password Encryption</h2>
+                
+                <div class="interactive-section">
+                    <h3>🔐 Encrypt Your Passwords</h3>
+                    <p>Enter your sensitive data and master password to see how JASYPT encryption works:</p>
+                    
+                    <div class="input-group">
+                        <label>Master Password (Encryption Key):</label>
+                        <input type="password" id="masterPassword" placeholder="Enter a strong master password" value="myMasterKey123">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Text to Encrypt:</label>
+                        <input type="text" id="plainText" placeholder="Enter password or sensitive data" value="mySecretPassword123">
+                    </div>
+                    
+                    <button class="btn" onclick="encryptText()">🔒 Encrypt Text</button>
+                    <button class="btn" onclick="decryptText()">🔓 Decrypt Text</button>
+                    
+                    <div id="encryptionResult"></div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3>Command Line Encryption</h3>
+                    <p>You can also encrypt using JASYPT CLI:</p>
+                    <div class="code-block" data-lang="Bash">
+# Download JASYPT CLI
+wget https://github.com/jasypt/jasypt/releases/download/jasypt-1.9.3/jasypt-1.9.3-dist.zip
+
+# Encrypt a password
+java -cp jasypt-1.9.3.jar org.jasypt.intf.cli.JasyptPBEStringEncryptionCLI \
+     input="mySecretPassword123" password="myMasterKey123" algorithm="PBEWithMD5AndDES"</div>
+                </div>
+            </div>
+
+            <div id="integrate" class="tab-content">
+                <h2>Step 3: Spring Boot Integration</h2>
+                
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3>Update application.properties</h3>
+                    <p>Replace plain passwords with encrypted values using <span class="highlight">ENC(...)</span> syntax:</p>
+                    <div class="code-block" data-lang="Properties">
+# application.properties - SECURE!
+spring.datasource.url=jdbc:mysql://localhost:3306/mydb
+spring.datasource.username=admin
+spring.datasource.password=ENC(your_encrypted_password_here)
+spring.mail.password=ENC(your_encrypted_email_password_here)
+
+# JASYPT Configuration
+jasypt.encryptor.password=${JASYPT_ENCRYPTOR_PASSWORD}
+jasypt.encryptor.algorithm=PBEWithMD5AndDES</div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <h3>Set Environment Variable</h3>
+                    <div class="code-block" data-lang="Bash">
+# Linux/Mac
+export JASYPT_ENCRYPTOR_PASSWORD=myMasterKey123
+
+# Windows
+set JASYPT_ENCRYPTOR_PASSWORD=myMasterKey123
+
+# Or pass as JVM argument
+java -Djasypt.encryptor.password=myMasterKey123 -jar myapp.jar</div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">5</div>
+                    <h3>Configuration Class (Optional)</h3>
+                    <div class="code-block" data-lang="Java">
+@Configuration
+@EnableEncryptableProperties
+public class JasyptConfig {
+
+    @Bean("jasyptStringEncryptor")
+    public StringEncryptor stringEncryptor() {
+        PooledPBEStringEncryptor encryptor = new PooledPBEStringEncryptor();
+        SimpleStringPBEConfig config = new SimpleStringPBEConfig();
+        config.setPassword(System.getenv("JASYPT_ENCRYPTOR_PASSWORD"));
+        config.setAlgorithm("PBEWithMD5AndDES");
+        config.setKeyObtentionIterations("1000");
+        config.setPoolSize("1");
+        config.setProviderName("SunJCE");
+        config.setSaltGeneratorClassName("org.jasypt.salt.RandomSaltGenerator");
+        config.setStringOutputType("base64");
+        encryptor.setConfig(config);
+        return encryptor;
+    }
+}</div>
+                </div>
+            </div>
+
+            <div id="advanced" class="tab-content">
+                <h2>Advanced Configuration & Best Practices</h2>
+                
+                <div class="step">
+                    <div class="step-number">6</div>
+                    <h3>Strong Encryption Algorithm</h3>
+                    <div class="code-block" data-lang="Properties">
+# Use stronger algorithms for production
+jasypt.encryptor.algorithm=PBEWITHHMACSHA512ANDAES_256
+jasypt.encryptor.key-obtention-iterations=100000
+jasypt.encryptor.pool-size=1
+jasypt.encryptor.salt-generator-classname=org.jasypt.salt.RandomSaltGenerator
+jasypt.encryptor.string-output-type=base64</div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">7</div>
+                    <h3>Multiple Environments</h3>
+                    <div class="code-block" data-lang="Properties">
+# application-dev.properties
+spring.datasource.password=ENC(dev_encrypted_password)
+
+# application-prod.properties  
+spring.datasource.password=ENC(prod_encrypted_password)
+
+# Different master passwords per environment
+jasypt.encryptor.password=${JASYPT_ENCRYPTOR_PASSWORD:defaultDevPassword}</div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">8</div>
+                    <h3>Testing Your Configuration</h3>
+                    <div class="interactive-section">
+                        <h4>🧪 Test Decryption</h4>
+                        <p>Verify your encrypted properties can be decrypted:</p>
+                        
+                        <div class="input-group">
+                            <label>Encrypted Text (from your properties):</label>
+                            <input type="text" id="encryptedText" placeholder="Enter ENC(...) value without ENC()">
+                        </div>
+                        
+                        <div class="input-group">
+                            <label>Master Password:</label>
+                            <input type="password" id="testMasterPassword" placeholder="Enter your master password">
+                        </div>
+                        
+                        <button class="btn" onclick="testDecryption()">🔍 Test Decryption</button>
+                        <div id="testResult"></div>
+                    </div>
+                </div>
+
+                <div class="warning">
+                    <h3>🚨 Security Best Practices</h3>
+                    <ul style="margin: 10px 0; padding-left: 20px;">
+                        <li>Never commit master passwords to version control</li>
+                        <li>Use different master passwords for different environments</li>
+                        <li>Store master passwords in secure key management systems</li>
+                        <li>Use strong encryption algorithms in production</li>
+                        <li>Regularly rotate your master passwords</li>
+                        <li>Consider using cloud-native secret management services</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simple encryption simulation (for demo purposes only)
+        function simpleEncrypt(text, key) {
+            let result = '';
+            for (let i = 0; i < text.length; i++) {
+                const charCode = text.charCodeAt(i) ^ key.charCodeAt(i % key.length);
+                result += String.fromCharCode(charCode);
+            }
+            return btoa(result); // Base64 encode
+        }
+
+        function simpleDecrypt(encryptedText, key) {
+            try {
+                const decoded = atob(encryptedText); // Base64 decode
+                let result = '';
+                for (let i = 0; i < decoded.length; i++) {
+                    const charCode = decoded.charCodeAt(i) ^ key.charCodeAt(i % key.length);
+                    result += String.fromCharCode(charCode);
+                }
+                return result;
+            } catch (e) {
+                return 'Invalid encrypted text';
+            }
+        }
+
+        function encryptText() {
+            const plainText = document.getElementById('plainText').value;
+            const masterPassword = document.getElementById('masterPassword').value;
+            
+            if (!plainText || !masterPassword) {
+                alert('Please enter both text and master password');
+                return;
+            }
+
+            const encrypted = simpleEncrypt(plainText, masterPassword);
+            
+            document.getElementById('encryptionResult').innerHTML = `
+                <div class="result">
+                    <strong>Original Text:</strong> ${plainText}
+                    <strong>Encrypted:</strong> ${encrypted}
+                    <strong>For application.properties:</strong> ENC(${encrypted})
+                    
+                    <strong>⚠️ Note:</strong> This is a simplified demo. Real JASYPT uses more secure algorithms!
+                </div>
+            `;
+        }
+
+        function decryptText() {
+            const plainText = document.getElementById('plainText').value;
+            const masterPassword = document.getElementById('masterPassword').value;
+            
+            if (!plainText || !masterPassword) {
+                alert('Please enter both text and master password');
+                return;
+            }
+
+            // First encrypt, then decrypt to show the process
+            const encrypted = simpleEncrypt(plainText, masterPassword);
+            const decrypted = simpleDecrypt(encrypted, masterPassword);
+            
+            document.getElementById('encryptionResult').innerHTML = `
+                <div class="result">
+                    <strong>Encryption Process:</strong>
+                    1. Original: ${plainText}
+                    2. Encrypted: ${encrypted}
+                    3. Decrypted: ${decrypted}
+                    
+                    <strong>✅ Success:</strong> ${plainText === decrypted ? 'Encryption/Decryption works!' : 'Error in process'}
+                </div>
+            `;
+        }
+
+        function testDecryption() {
+            const encryptedText = document.getElementById('encryptedText').value;
+            const masterPassword = document.getElementById('testMasterPassword').value;
+            
+            if (!encryptedText || !masterPassword) {
+                alert('Please enter both encrypted text and master password');
+                return;
+            }
+
+            const decrypted = simpleDecrypt(encryptedText, masterPassword);
+            
+            document.getElementById('testResult').innerHTML = `
+                <div class="result">
+                    <strong>Encrypted Input:</strong> ${encryptedText}
+                    <strong>Decrypted Output:</strong> ${decrypted}
+                    
+                    <strong>💡 Tip:</strong> If this matches your original password, your configuration is correct!
+                </div>
+            `;
+        }
+
+        function switchTab(tabName) {
+            // Hide all tab contents
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => content.classList.remove('active'));
+            
+            // Remove active class from all tabs
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+
+        // Add some interactive animations
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.card');
+            cards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.1}s`;
+            });
+        });
+    </script>
+</body>
+</html>

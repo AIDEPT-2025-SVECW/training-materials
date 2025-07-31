@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring Security FilterChain Demo</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            font-size: 2.5rem;
+        }
+
+        .demo-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .config-panel, .explanation-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .config-selector {
+            margin-bottom: 20px;
+        }
+
+        .config-selector h3 {
+            color: #4a5568;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .config-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .config-button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .config-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(79, 172, 254, 0.3);
+        }
+
+        .config-button.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .code-container {
+            position: relative;
+            margin: 20px 0;
+        }
+
+        .code-container pre {
+            border-radius: 10px;
+            max-height: 500px;
+            overflow-y: auto;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .filter-chain-visual {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .filter-chain-visual h4 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .filter-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .filter-item {
+            background: white;
+            padding: 10px 15px;
+            border-radius: 6px;
+            border-left: 4px solid #4299e1;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .filter-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .filter-item.custom {
+            border-left-color: #f56565;
+            background: #fed7d7;
+        }
+
+        .filter-item.disabled {
+            opacity: 0.5;
+            text-decoration: line-through;
+        }
+
+        .explanation-content {
+            line-height: 1.6;
+        }
+
+        .explanation-content h4 {
+            color: #2d3748;
+            margin: 20px 0 10px 0;
+            font-size: 1.2rem;
+        }
+
+        .explanation-content p {
+            margin-bottom: 15px;
+            color: #4a5568;
+        }
+
+        .builder-pattern-box {
+            background: #e6fffa;
+            border: 2px solid #81e6d9;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .builder-pattern-box h5 {
+            color: #234e52;
+            margin-bottom: 10px;
+        }
+
+        .impact-box {
+            background: #fff5f5;
+            border: 2px solid #feb2b2;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .impact-box h5 {
+            color: #742a2a;
+            margin-bottom: 10px;
+        }
+
+        .copy-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #4299e1;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .copy-button:hover {
+            background: #3182ce;
+        }
+
+        @media (max-width: 768px) {
+            .demo-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .config-buttons {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Spring Security FilterChain Interactive Demo</h1>
+        <div class="explanation-panel" style="margin-top: 20px; margin-bottom: 30px;">
+    <div class="explanation-content">
+        <h3>🧩 What is <code>SecurityFilterChain</code> and <code>HttpSecurity</code>?</h3>
+        <p>
+            In Spring Security, <strong><code>SecurityFilterChain</code></strong> defines the sequence of filters that apply security rules to incoming HTTP requests.
+            Each filter checks and applies different rules—like who can access what, whether to show login page, or how to handle logout.
+        </p>
+
+        <p>
+            The <strong><code>HttpSecurity</code></strong> object is like a configuration builder. It allows you to define what security features you want:
+            <code>.formLogin()</code> to enable login, <code>.authorizeHttpRequests()</code> to restrict routes, and more.
+        </p>
+
+        <div class="builder-pattern-box">
+            <h5>🔧 Analogy: Security Checkpoint Builder</h5>
+            <p>
+                Imagine you're designing a secure building. <code>HttpSecurity</code> lets you decide:
+                - where guards should stand,
+                - how people check in (ID cards or fingerprint),
+                - and which rooms they’re allowed to access.<br>
+                Once you're done designing, <code>.build()</code> locks in the layout and creates the <code>SecurityFilterChain</code>.
+            </p>
+        </div>
+
+        <div class="impact-box">
+            <h5>📌 Why it Matters</h5>
+            <p>
+                Understanding these two helps you control authentication, authorization, session handling, and much more.
+                Most misconfigurations in Spring Security come from misunderstanding this flow.
+            </p>
+        </div>
+    </div>
+</div>
+
+        <div class="demo-grid">
+            <div class="config-panel">
+                <div class="config-selector">
+                    <h3>Select Configuration Example</h3>
+                    <div class="config-buttons">
+                        <button class="config-button active" data-config="basic">Basic Configuration</button>
+                        <button class="config-button" data-config="formLogin">Form Login + Sessions</button>
+                        <button class="config-button" data-config="jwt">JWT + Stateless</button>
+                        <button class="config-button" data-config="oauth2">OAuth2 + Sessions</button>
+                        <button class="config-button" data-config="method">Method Security</button>
+                        <button class="config-button" data-config="custom">Custom Filters</button>
+                    </div>
+                </div>
+                
+                <div class="code-container">
+                    <button class="copy-button" onclick="copyCode()">📋 Copy</button>
+                    <pre><code id="config-code" class="language-java"></code></pre>
+                </div>
+                
+                <div class="filter-chain-visual">
+                    <h4>🔗 Active Filter Chain</h4>
+                    <div style="margin-bottom: 15px; background: #fff3cd; border-left: 5px solid #ffc107; padding: 10px 15px; border-radius: 8px; font-size: 0.9rem; color: #856404;">
+    ⚠️ <strong style="color: red;">Disclaimer:</strong> This filter chain is <strong>AI-generated</strong> based on typical Spring Security behavior. It is intended for educational purposes only and may not represent the exact filters added at runtime. Always verify your actual chain using application logs or debugging tools.
+</div>
+
+                    <div id="filter-list" class="filter-list"></div>
+                </div>
+            </div>
+            
+            <div class="explanation-panel">
+                <div id="explanation-content" class="explanation-content"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script>
+        // Configuration data with code examples and explanations
+        const configurations = {
+            basic: {
+                code: `@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        return http
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/public/**").permitAll()
+                .anyRequest().authenticated()
+            )
+            .httpBasic(Customizer.withDefaults())
+            .build(); // Builder pattern finalizes the configuration
+    }
+}`,
+                filters: [
+                    'DisableEncodeUrlFilter',
+                    'WebAsyncManagerIntegrationFilter',
+                    'SecurityContextPersistenceFilter',
+                    'HeaderWriterFilter',
+                    'LogoutFilter',
+                    'BasicAuthenticationFilter',
+                    'RequestCacheAwareFilter',
+                    'SecurityContextHolderAwareRequestFilter',
+                    'AnonymousAuthenticationFilter',
+                    'SessionManagementFilter',
+                    'ExceptionTranslationFilter',
+                    'FilterSecurityInterceptor'
+                ],
+                explanation: {
+                    title: 'Basic HTTP Basic Authentication',
+                    description: 'This is the simplest Spring Security configuration using HTTP Basic authentication.',
+                    builderPattern: 'The HttpSecurity object uses the Builder pattern extensively. Each method call (authorizeHttpRequests, httpBasic) returns the HttpSecurity instance, allowing method chaining. The final .build() call constructs the SecurityFilterChain.',
+                    impact: 'This configuration enables HTTP Basic authentication and creates a stateful session. The default filter chain includes session management and CSRF protection.',
+                    sessionBehavior: 'Sessions are created and maintained by default. SecurityContextPersistenceFilter stores the authentication in the session.',
+                    keyPoints: [
+                        'HTTP Basic authentication is enabled',
+                        'Sessions are stateful (default behavior)',
+                        'CSRF protection is enabled by default',
+                        'All requests except /public/** require authentication'
+                    ]
+                }
+            },
+            formLogin: {
+                code: `@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        return http
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/login", "/register", "/css/**").permitAll()
+                .anyRequest().authenticated()
+            )
+            .formLogin(form -> form
+                .loginPage("/login")
+                .defaultSuccessUrl("/dashboard")
+                .failureUrl("/login?error")
+                .permitAll()
+            )
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                .maximumSessions(1)
+                .maxSessionsPreventsLogin(false)
+            )
+            .logout(logout -> logout
+                .logoutUrl("/logout")
+                .logoutSuccessUrl("/login?logout")
+                .invalidateHttpSession(true)
+                .deleteCookies("JSESSIONID")
+            )
+            .build();
+    }
+}`,
+                filters: [
+                    'DisableEncodeUrlFilter',
+                    'WebAsyncManagerIntegrationFilter',
+                    'SecurityContextPersistenceFilter',
+                    'HeaderWriterFilter',
+                    'CsrfFilter',
+                    'LogoutFilter',
+                    'UsernamePasswordAuthenticationFilter',
+                    'DefaultLoginPageGeneratingFilter',
+                    'DefaultLogoutPageGeneratingFilter',
+                    'RequestCacheAwareFilter',
+                    'SecurityContextHolderAwareRequestFilter',
+                    'AnonymousAuthenticationFilter',
+                    'SessionManagementFilter',
+                    'ExceptionTranslationFilter',
+                    'FilterSecurityInterceptor'
+                ],
+                explanation: {
+                    title: 'Form Login with Session Management',
+                    description: 'This configuration provides form-based login with comprehensive session management.',
+                    builderPattern: 'Notice how each configuration block (formLogin, sessionManagement, logout) uses lambda expressions with builder patterns. Each builder allows fluent configuration of specific aspects.',
+                    impact: 'Adds form login filters and enhanced session management. CSRF protection is enabled by default for form-based authentication.',
+                    sessionBehavior: 'Sessions are actively managed with maximum session limits. Session fixation protection is enabled by default.',
+                    keyPoints: [
+                        'Custom login page with form authentication',
+                        'Session management with concurrent session control',
+                        'CSRF protection for form submissions',
+                        'Proper logout handling with session invalidation',
+                        'Cookie-based session tracking'
+                    ]
+                }
+            },
+            jwt: {
+                code: `@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        return http
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/public/**").permitAll()
+                .anyRequest().authenticated()
+            )
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
+            .csrf(csrf -> csrf.disable())
+            .oauth2ResourceServer(oauth2 -> oauth2
+                .jwt(jwt -> jwt
+                    .decoder(jwtDecoder())
+                    .jwtAuthenticationConverter(jwtAuthConverter())
+                )
+            )
+            .build();
+    }
+
+    @Bean
+    public JwtDecoder jwtDecoder() {
+        return NimbusJwtDecoder.withJwkSetUri("https://issuer/.well-known/jwks.json").build();
+    }
+}`,
+                filters: [
+                    'DisableEncodeUrlFilter',
+                    'WebAsyncManagerIntegrationFilter',
+                    'SecurityContextPersistenceFilter',
+                    'HeaderWriterFilter',
+                    'LogoutFilter',
+                    'BearerTokenAuthenticationFilter',
+                    'RequestCacheAwareFilter',
+                    'SecurityContextHolderAwareRequestFilter',
+                    'AnonymousAuthenticationFilter',
+                    { name: 'SessionManagementFilter', disabled: true },
+                    'ExceptionTranslationFilter',
+                    'FilterSecurityInterceptor'
+                ],
+                explanation: {
+                    title: 'JWT Stateless Authentication',
+                    description: 'This configuration implements JWT-based authentication with stateless sessions.',
+                    builderPattern: 'The oauth2ResourceServer() method uses nested builders. The jwt() builder configures JWT-specific settings, demonstrating how Spring Security uses hierarchical builder patterns.',
+                    impact: 'CSRF is disabled as it\'s not needed for stateless APIs. Session management is disabled, and JWT validation filters are added to the chain.',
+                    sessionBehavior: 'Completely stateless - no sessions are created or used. Authentication state is maintained through JWT tokens.',
+                    keyPoints: [
+                        'Stateless authentication using JWT tokens',
+                        'CSRF protection disabled (not needed for APIs)',
+                        'No session creation or management',
+                        'Bearer token authentication via Authorization header',
+                        'JWT validation and claims extraction'
+                    ]
+                }
+            },
+            oauth2: {
+                code: `@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        return http
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/", "/login", "/error").permitAll()
+                .anyRequest().authenticated()
+            )
+            .oauth2Login(oauth2 -> oauth2
+                .loginPage("/login")
+                .defaultSuccessUrl("/dashboard")
+                .userInfoEndpoint(userInfo -> userInfo
+                    .userService(oauth2UserService())
+                )
+            )
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                .sessionFixation().changeSessionId()
+                .maximumSessions(2)
+            )
+            .logout(logout -> logout
+                .logoutSuccessUrl("/")
+                .invalidateHttpSession(true)
+            )
+            .build();
+    }
+
+    @Bean
+    public OAuth2UserService<OAuth2UserRequest, OAuth2User> oauth2UserService() {
+        return new DefaultOAuth2UserService();
+    }
+}`,
+                filters: [
+                    'DisableEncodeUrlFilter',
+                    'WebAsyncManagerIntegrationFilter',
+                    'SecurityContextPersistenceFilter',
+                    'HeaderWriterFilter',
+                    'CsrfFilter',
+                    'LogoutFilter',
+                    'OAuth2AuthorizationRequestRedirectFilter',
+                    'OAuth2LoginAuthenticationFilter',
+                    'DefaultLoginPageGeneratingFilter',
+                    'RequestCacheAwareFilter',
+                    'SecurityContextHolderAwareRequestFilter',
+                    'AnonymousAuthenticationFilter',
+                    'SessionManagementFilter',
+                    'ExceptionTranslationFilter',
+                    'FilterSecurityInterceptor'
+                ],
+                explanation: {
+                    title: 'OAuth2 Login with Session Management',
+                    description: 'This configuration enables OAuth2/OpenID Connect login with providers like Google, GitHub, etc.',
+                    builderPattern: 'The oauth2Login() builder demonstrates nested configuration. The userInfoEndpoint() method returns another builder for configuring user information retrieval.',
+                    impact: 'Adds OAuth2 authentication filters for handling authorization codes and token exchange. Sessions store OAuth2 authentication details.',
+                    sessionBehavior: 'Sessions are used to store OAuth2 authentication tokens and user information. Session fixation protection prevents session hijacking.',
+                    keyPoints: [
+                        'OAuth2/OpenID Connect authentication',
+                        'Session-based token storage',
+                        'Session fixation protection',
+                        'Multiple concurrent sessions allowed',
+                        'CSRF protection enabled for security',
+                        'Custom user info endpoint configuration'
+                    ]
+                }
+            },
+            method: {
+                code: `@Configuration
+@EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true, securedEnabled = true)
+public class SecurityConfig {
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        return http
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/admin/**").hasRole("ADMIN")
+                .requestMatchers("/user/**").hasAnyRole("USER", "ADMIN")
+                .requestMatchers("/public/**").permitAll()
+                .anyRequest().authenticated()
+            )
+            .formLogin(form -> form
+                .defaultSuccessUrl("/dashboard")
+            )
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+            )
+            .build();
+    }
+
+    @Bean
+    public MethodSecurityExpressionHandler methodSecurityExpressionHandler() {
+        DefaultMethodSecurityExpressionHandler handler = new DefaultMethodSecurityExpressionHandler();
+        handler.setPermissionEvaluator(new CustomPermissionEvaluator());
+        return handler;
+    }
+}
+
+// Example of method-level security
+@RestController
+public class UserController {
+    
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/admin/users")
+    public List<User> getAllUsers() { ... }
+    
+    @PreAuthorize("hasRole('USER') and #id == authentication.principal.id")
+    @GetMapping("/user/{id}")
+    public User getUser(@PathVariable Long id) { ... }
+}`,
+                filters: [
+                    'DisableEncodeUrlFilter',
+                    'WebAsyncManagerIntegrationFilter',
+                    'SecurityContextPersistenceFilter',
+                    'HeaderWriterFilter',
+                    'CsrfFilter',
+                    'LogoutFilter',
+                    'UsernamePasswordAuthenticationFilter',
+                    'DefaultLoginPageGeneratingFilter',
+                    'DefaultLogoutPageGeneratingFilter',
+                    'RequestCacheAwareFilter',
+                    'SecurityContextHolderAwareRequestFilter',
+                    'AnonymousAuthenticationFilter',
+                    'SessionManagationFilter',
+                    'ExceptionTranslationFilter',
+                    { name: 'MethodSecurityInterceptor (AOP)', custom: true },
+                    'FilterSecurityInterceptor'
+                ],
+                explanation: {
+                    title: 'Method-Level Security with Role-Based Access',
+                    description: 'This configuration combines URL-based and method-level security using annotations.',
+                    builderPattern: 'While the main HttpSecurity follows the builder pattern, method security uses AOP (Aspect-Oriented Programming) with annotations like @PreAuthorize that are processed by Spring\'s proxy mechanism.',
+                    impact: 'Adds method-level security interceptors that work alongside the filter chain. Security decisions can be made at both the request and method level.',
+                    sessionBehavior: 'Standard session management with authentication context preserved across method calls.',
+                    keyPoints: [
+                        'Dual-layer security: URL patterns and method annotations',
+                        'Role-based access control (RBAC)',
+                        'SpEL expressions for complex authorization logic',
+                        'AOP-based method interception',
+                        'Custom permission evaluators supported'
+                    ]
+                }
+            },
+            custom: {
+                code: `@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        return http
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/**").authenticated()
+                .anyRequest().permitAll()
+            )
+            .addFilterBefore(new JwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
+            .addFilterAfter(new RequestLoggingFilter(), BasicAuthenticationFilter.class)
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
+            .csrf(csrf -> csrf.disable())
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint(new CustomAuthenticationEntryPoint())
+                .accessDeniedHandler(new CustomAccessDeniedHandler())
+            )
+            .build();
+    }
+
+    // Custom filters
+    public class JwtAuthenticationFilter extends OncePerRequestFilter {
+        
+        @Override
+        protected void doFilterInternal(HttpServletRequest request, 
+                HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+            
+            String token = extractToken(request);
+            if (token != null && validateToken(token)) {
+                Authentication auth = createAuthentication(token);
+                SecurityContextHolder.getContext().setAuthentication(auth);
+            }
+            filterChain.doFilter(request, response);
+        }
+    }
+}`,
+                filters: [
+                    'DisableEncodeUrlFilter',
+                    'WebAsyncManagerIntegrationFilter',
+                    'SecurityContextPersistenceFilter',
+                    'HeaderWriterFilter',
+                    'LogoutFilter',
+                    { name: 'JwtAuthenticationFilter', custom: true },
+                    'UsernamePasswordAuthenticationFilter',
+                    { name: 'RequestLoggingFilter', custom: true },
+                    'RequestCacheAwareFilter',
+                    'SecurityContextHolderAwareRequestFilter',
+                    'AnonymousAuthenticationFilter',
+                    { name: 'SessionManagementFilter', disabled: true },
+                    'ExceptionTranslationFilter',
+                    'FilterSecurityInterceptor'
+                ],
+                explanation: {
+                    title: 'Custom Filters in Security Chain',
+                    description: 'This configuration demonstrates how to add custom filters to the security filter chain.',
+                    builderPattern: 'The addFilterBefore() and addFilterAfter() methods follow the builder pattern, allowing precise placement of custom filters in the chain relative to existing filters.',
+                    impact: 'Custom filters are inserted at specific positions in the filter chain. The order matters as each filter can modify the request/response or security context.',
+                    sessionBehavior: 'Stateless configuration with custom JWT handling. No sessions are created.',
+                    keyPoints: [
+                        'Custom filter insertion at specific positions',
+                        'OncePerRequestFilter ensures single execution per request',
+                        'Custom exception handling for authentication/authorization failures',
+                        'Filter chain execution order is critical',
+                        'Integration with existing Spring Security infrastructure'
+                    ]
+                }
+            }
+        };
+
+        let currentConfig = 'basic';
+
+        function showConfiguration(configKey) {
+            const config = configurations[configKey];
+            if (!config) return;
+
+            currentConfig = configKey;
+
+            // Update active button
+            document.querySelectorAll('.config-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-config="${configKey}"]`).classList.add('active');
+
+            // Update code
+            document.getElementById('config-code').textContent = config.code;
+            Prism.highlightElement(document.getElementById('config-code'));
+
+            // Update filter chain
+            updateFilterChain(config.filters);
+
+            // Update explanation
+            updateExplanation(config.explanation);
+        }
+
+        function updateFilterChain(filters) {
+            const filterList = document.getElementById('filter-list');
+            filterList.innerHTML = '';
+
+            filters.forEach((filter, index) => {
+                const filterDiv = document.createElement('div');
+                filterDiv.className = 'filter-item';
+                
+                if (typeof filter === 'object') {
+                    filterDiv.textContent = `${index + 1}. ${filter.name}`;
+                    if (filter.custom) {
+                        filterDiv.classList.add('custom');
+                        filterDiv.title = 'Custom Filter';
+                    }
+                    if (filter.disabled) {
+                        filterDiv.classList.add('disabled');
+                        filterDiv.title = 'Disabled in this configuration';
+                    }
+                } else {
+                    filterDiv.textContent = `${index + 1}. ${filter}`;
+                }
+                
+                filterList.appendChild(filterDiv);
+            });
+        }
+
+        function updateExplanation(explanation) {
+            const content = document.getElementById('explanation-content');
+            content.innerHTML = `
+                <h3>${explanation.title}</h3>
+                <p>${explanation.description}</p>
+                
+                <div class="builder-pattern-box">
+                    <h5>🔨 Builder Pattern Usage:</h5>
+                    <p>${explanation.builderPattern}</p>
+                </div>
+                
+                <div class="impact-box">
+                    <h5>🎯 Impact on Filter Chain:</h5>
+                    <p>${explanation.impact}</p>
+                </div>
+                
+                <h4>Session Behavior</h4>
+                <p>${explanation.sessionBehavior}</p>
+                
+                <h4>Key Points</h4>
+                <ul>
+                    ${explanation.keyPoints.map(point => `<li>${point}</li>`).join('')}
+                </ul>
+            `;
+        }
+
+        function copyCode() {
+            const code = document.getElementById('config-code').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                const btn = document.querySelector('.copy-button');
+                const originalText = btn.textContent;
+                btn.textContent = '✅ Copied!';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 2000);
+            });
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            // Add click handlers to config buttons
+            document.querySelectorAll('.config-button').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const config = e.target.getAttribute('data-config');
+                    showConfiguration(config);
+                });
+            });
+
+            // Initialize with basic configuration
+            showConfiguration('basic');
+        });
+    </script>
+</body>
+</html>

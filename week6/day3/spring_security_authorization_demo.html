@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring Security Authorization Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .prerequisites {
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            transform: translateY(-10px);
+            box-shadow: 0 10px 30px rgba(116, 185, 255, 0.3);
+        }
+
+        .prerequisites h2 {
+            margin-bottom: 15px;
+            font-size: 1.4em;
+        }
+
+        .prerequisites ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .prerequisites li {
+            margin: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .prerequisites li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #00b894;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .demo-section {
+            margin: 30px 0;
+            padding: 25px;
+            border-radius: 15px;
+            background: white;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            border-left: 5px solid #6c5ce7;
+        }
+
+        .demo-section h3 {
+            color: #2d3436;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+            display: flex;
+            align-items: center;
+        }
+
+        .demo-section h3::before {
+            content: "🔐";
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+
+        .user-simulator {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .user-card {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 12px;
+            padding: 20px;
+            border: 2px solid #dee2e6;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .user-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, #6c5ce7, #a29bfe);
+        }
+
+        .user-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(108, 92, 231, 0.2);
+            border-color: #6c5ce7;
+        }
+
+        .user-card.active {
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(108, 92, 231, 0.3);
+        }
+
+        .user-info {
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .user-roles {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .user-card.active .user-roles {
+            opacity: 1;
+        }
+
+        .resources-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 25px 0;
+        }
+
+        .resource {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .resource::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, #00b894, #00cec9);
+        }
+
+        .resource.accessible {
+            border-color: #00b894;
+            background: linear-gradient(135deg, #d1f2eb, #a8e6cf);
+            transform: scale(1.02);
+        }
+
+        .resource.forbidden {
+            border-color: #e17055;
+            background: linear-gradient(135deg, #ffeaa7, #fab1a0);
+            transform: scale(0.98);
+            opacity: 0.7;
+        }
+
+        .resource h4 {
+            margin-bottom: 10px;
+            color: #2d3436;
+            display: flex;
+            align-items: center;
+        }
+
+        .resource h4::before {
+            content: "📄";
+            margin-right: 8px;
+        }
+
+        .access-status {
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+            display: inline-block;
+            margin-top: 10px;
+            animation: pulse 2s infinite;
+        }
+
+        .access-granted {
+            background: #00b894;
+            color: white;
+        }
+
+        .access-denied {
+            background: #e17055;
+            color: white;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .code-section {
+            background: #2d3436;
+            color: #ddd;
+            padding: 25px;
+            border-radius: 12px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            position: relative;
+        }
+
+        .code-section::before {
+            content: "💻 Configuration Code";
+            position: absolute;
+            top: -12px;
+            left: 20px;
+            background: #6c5ce7;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .code-section pre {
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        .highlight {
+            background: rgba(108, 92, 231, 0.3);
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        .explanation {
+            background: linear-gradient(135deg, #fdcb6e, #e17055);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .explanation::before {
+            content: "💡";
+            font-size: 1.5em;
+            margin-right: 10px;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-radius: 12px 12px 0 0;
+            overflow: hidden;
+            margin-top: 30px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px 20px;
+            background: #dee2e6;
+            cursor: pointer;
+            text-align: center;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            border: none;
+            font-size: 1em;
+        }
+
+        .tab.active {
+            background: #6c5ce7;
+            color: white;
+        }
+
+        .tab-content {
+            background: white;
+            padding: 25px;
+            border-radius: 0 0 12px 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .annotation-flow {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .annotation-card {
+            background: white;
+            border: 2px solid #a29bfe;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            position: relative;
+        }
+
+        .annotation-card::before {
+            content: "@";
+            position: absolute;
+            top: -12px;
+            left: 15px;
+            background: #a29bfe;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .reset-btn {
+            background: linear-gradient(135deg, #fd79a8, #e84393);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            margin: 20px 0;
+        }
+
+        .reset-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(253, 121, 168, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .user-simulator {
+                grid-template-columns: 1fr;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 Spring Security Authorization Demo</h1>
+            <p>Interactive demonstration of role-based and method-level authorization</p>
+        </div>
+
+        <div class="content">
+            <div class="prerequisites">
+                <h2>📋 Prerequisites (Already Implemented)</h2>
+                <ul>
+                    <li>DaoAuthenticationProvider configured and working</li>
+                    <li>UserDetailsService implementation in place</li>
+                    <li>Authentication mechanism (login/logout) functional</li>
+                    <li>Security Context established post-authentication</li>
+                </ul>
+            </div>
+
+            <div class="demo-section">
+                <h3>User Role Simulation</h3>
+                <p>Click on a user to simulate their authenticated session and see authorization in action:</p>
+                
+                <div class="user-simulator">
+                    <div class="user-card" data-user="admin">
+                        <div class="user-info">👤 Admin User</div>
+                        <div class="user-roles">Roles: ADMIN, USER<br>Authorities: READ, WRITE, DELETE</div>
+                    </div>
+                    <div class="user-card" data-user="manager">
+                        <div class="user-info">👔 Manager User</div>
+                        <div class="user-roles">Roles: MANAGER, USER<br>Authorities: READ, WRITE</div>
+                    </div>
+                    <div class="user-card" data-user="user">
+                        <div class="user-info">👨‍💼 Regular User</div>
+                        <div class="user-roles">Roles: USER<br>Authorities: READ</div>
+                    </div>
+                    <div class="user-card" data-user="guest">
+                        <div class="user-info">👤 Guest User</div>
+                        <div class="user-roles">Roles: GUEST<br>Authorities: LIMITED_READ</div>
+                    </div>
+                </div>
+
+                <button class="reset-btn" onclick="resetSimulation()">🔄 Reset Simulation</button>
+            </div>
+
+            <div class="demo-section">
+                <h3>Protected Resources</h3>
+                <p id="current-user-info">Select a user above to see their access permissions</p>
+                
+                <div class="resources-grid" id="resources-grid">
+                    <div class="resource" data-required-role="USER">
+                        <h4>/api/profile</h4>
+                        <p>User profile information</p>
+                        <div class="required-auth">Requires: ROLE_USER</div>
+                        <div class="access-status">Checking access...</div>
+                    </div>
+                    
+                    <div class="resource" data-required-role="MANAGER">
+                        <h4>/api/reports</h4>
+                        <p>Business reports and analytics</p>
+                        <div class="required-auth">Requires: ROLE_MANAGER</div>
+                        <div class="access-status">Checking access...</div>
+                    </div>
+                    
+                    <div class="resource" data-required-role="ADMIN">
+                        <h4>/api/admin/users</h4>
+                        <p>User management interface</p>
+                        <div class="required-auth">Requires: ROLE_ADMIN</div>
+                        <div class="access-status">Checking access...</div>
+                    </div>
+                    
+                    <div class="resource" data-required-authority="WRITE">
+                        <h4>/api/documents/create</h4>
+                        <p>Create new documents</p>
+                        <div class="required-auth">Requires: WRITE authority</div>
+                        <div class="access-status">Checking access...</div>
+                    </div>
+                    
+                    <div class="resource" data-required-authority="DELETE">
+                        <h4>/api/documents/delete</h4>
+                        <p>Delete documents</p>
+                        <div class="required-auth">Requires: DELETE authority</div>
+                        <div class="access-status">Checking access...</div>
+                    </div>
+                    
+                    <div class="resource" data-public="true">
+                        <h4>/api/public/info</h4>
+                        <p>Public information endpoint</p>
+                        <div class="required-auth">Public access</div>
+                        <div class="access-status">Checking access...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('config')">Security Configuration</button>
+                <button class="tab" onclick="showTab('annotations')">Method Annotations</button>
+                <button class="tab" onclick="showTab('expressions')">SpEL Expressions</button>
+            </div>
+
+            <div class="tab-content active" id="config-content">
+                <div class="code-section">
+                    <pre>
+<span class="highlight">@Configuration</span>
+<span class="highlight">@EnableWebSecurity</span>
+<span class="highlight">@EnableGlobalMethodSecurity(prePostEnabled = true)</span>
+public class SecurityConfig {
+
+    <span class="highlight">@Autowired</span>
+    private DaoAuthenticationProvider authProvider; // Already configured
+
+    <span class="highlight">@Override</span>
+    protected void configure(HttpSecurity http) throws Exception {
+        http
+            .authorizeRequests()
+                .antMatchers("/api/public/**").permitAll()
+                .antMatchers("/api/admin/**").hasRole("ADMIN")
+                .antMatchers("/api/reports/**").hasRole("MANAGER")
+                .antMatchers("/api/profile/**").hasRole("USER")
+                .antMatchers(HttpMethod.POST, "/api/documents/**")
+                    .hasAuthority("WRITE")
+                .antMatchers(HttpMethod.DELETE, "/api/documents/**")
+                    .hasAuthority("DELETE")
+                .anyRequest().authenticated()
+            .and()
+                .authenticationProvider(authProvider) // Use existing provider
+            .and()
+                .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+    }
+}
+                    </pre>
+                </div>
+                
+                <div class="explanation">
+                    <strong>Key Configuration Points:</strong><br>
+                    • <strong>@EnableGlobalMethodSecurity</strong>: Enables method-level security annotations<br>
+                    • <strong>authorizeRequests()</strong>: Defines URL-based authorization rules<br>
+                    • <strong>hasRole() vs hasAuthority()</strong>: Role checks add "ROLE_" prefix automatically<br>
+                    • <strong>antMatchers()</strong>: Pattern matching for URL authorization<br>
+                    • Uses your existing DaoAuthenticationProvider for authentication
+                </div>
+            </div>
+
+            <div class="tab-content" id="annotations-content">
+                <div class="annotation-flow">
+                    <div class="annotation-card">
+                        <h4>@PreAuthorize</h4>
+                        <p>Check authorization before method execution</p>
+                    </div>
+                    <div class="annotation-card">
+                        <h4>@PostAuthorize</h4>
+                        <p>Check authorization after method execution</p>
+                    </div>
+                    <div class="annotation-card">
+                        <h4>@Secured</h4>
+                        <p>Simple role-based method security</p>
+                    </div>
+                    <div class="annotation-card">
+                        <h4>@RolesAllowed</h4>
+                        <p>JSR-250 standard annotation</p>
+                    </div>
+                </div>
+
+                <div class="code-section">
+                    <pre>
+<span class="highlight">@RestController</span>
+public class DocumentController {
+
+    <span class="highlight">@PreAuthorize("hasRole('USER')")</span>
+    @GetMapping("/api/documents")
+    public List&lt;Document&gt; getDocuments() {
+        return documentService.findAll();
+    }
+
+    <span class="highlight">@PreAuthorize("hasAuthority('WRITE')")</span>
+    @PostMapping("/api/documents")
+    public Document createDocument(@RequestBody Document doc) {
+        return documentService.save(doc);
+    }
+
+    <span class="highlight">@PreAuthorize("hasRole('ADMIN') or @documentService.isOwner(#id, authentication.name)")</span>
+    @DeleteMapping("/api/documents/{id}")
+    public void deleteDocument(@PathVariable Long id) {
+        documentService.delete(id);
+    }
+
+    <span class="highlight">@PostAuthorize("returnObject.owner == authentication.name or hasRole('ADMIN')")</span>
+    @GetMapping("/api/documents/{id}")
+    public Document getDocument(@PathVariable Long id) {
+        return documentService.findById(id);
+    }
+
+    <span class="highlight">@Secured({"ROLE_ADMIN", "ROLE_MANAGER"})</span>
+    @GetMapping("/api/reports/sensitive")
+    public Report getSensitiveReport() {
+        return reportService.getSensitiveData();
+    }
+}
+                    </pre>
+                </div>
+
+                <div class="explanation">
+                    <strong>Method-Level Security Benefits:</strong><br>
+                    • Fine-grained control over individual methods<br>
+                    • Support for complex authorization logic using SpEL<br>
+                    • Can combine with URL-based security for defense in depth<br>
+                    • Access to method parameters and return values in expressions
+                </div>
+            </div>
+
+            <div class="tab-content" id="expressions-content">
+                <div class="code-section">
+                    <pre>
+// Common SpEL expressions for authorization
+
+// Role-based checks
+<span class="highlight">hasRole('ADMIN')</span>                    // User has ADMIN role
+<span class="highlight">hasAnyRole('ADMIN', 'MANAGER')</span>      // User has any of these roles
+
+// Authority-based checks  
+<span class="highlight">hasAuthority('WRITE')</span>               // User has WRITE authority
+<span class="highlight">hasAnyAuthority('READ', 'WRITE')</span>    // User has any of these authorities
+
+// Authentication object access
+<span class="highlight">authentication.name</span>                 // Current username
+<span class="highlight">authentication.principal</span>            // UserDetails object
+<span class="highlight">authentication.authorities</span>          // Collection of authorities
+
+// Complex expressions
+<span class="highlight">hasRole('ADMIN') or @userService.isOwner(#userId, authentication.name)</span>
+<span class="highlight">hasAuthority('WRITE') and #document.status == 'DRAFT'</span>
+<span class="highlight">authentication.name == #targetUsername or hasRole('ADMIN')</span>
+
+// Method parameter access
+<span class="highlight">@PreAuthorize("#document.owner == authentication.name")</span>
+public void updateDocument(Document document) { ... }
+
+// Return value filtering
+<span class="highlight">@PostAuthorize("returnObject.owner == authentication.name")</span>
+public Document getDocument(Long id) { ... }
+
+// Collection filtering
+<span class="highlight">@PostFilter("filterObject.owner == authentication.name or hasRole('ADMIN')")</span>
+public List&lt;Document&gt; getDocuments() { ... }
+                    </pre>
+                </div>
+
+                <div class="explanation">
+                    <strong>SpEL Expression Power:</strong><br>
+                    • Access method parameters using #paramName<br>
+                    • Reference Spring beans using @beanName<br>
+                    • Combine multiple conditions with logical operators<br>
+                    • Filter collections with @PostFilter and @PreFilter<br>
+                    • Access return values in @PostAuthorize expressions
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const users = {
+            admin: {
+                roles: ['ADMIN', 'USER'],
+                authorities: ['READ', 'WRITE', 'DELETE']
+            },
+            manager: {
+                roles: ['MANAGER', 'USER'], 
+                authorities: ['READ', 'WRITE']
+            },
+            user: {
+                roles: ['USER'],
+                authorities: ['READ']
+            },
+            guest: {
+                roles: ['GUEST'],
+                authorities: ['LIMITED_READ']
+            }
+        };
+
+        let currentUser = null;
+
+        function showTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabName + '-content').classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+
+        function selectUser(username) {
+            currentUser = username;
+            
+            // Update user card visuals
+            document.querySelectorAll('.user-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            document.querySelector(`[data-user="${username}"]`).classList.add('active');
+            
+            // Update current user info
+            const user = users[username];
+            document.getElementById('current-user-info').innerHTML = 
+                `<strong>Current User:</strong> ${username.charAt(0).toUpperCase() + username.slice(1)} | 
+                 <strong>Roles:</strong> ${user.roles.join(', ')} | 
+                 <strong>Authorities:</strong> ${user.authorities.join(', ')}`;
+            
+            // Check resource access
+            checkResourceAccess(user);
+        }
+
+        function checkResourceAccess(user) {
+            document.querySelectorAll('.resource').forEach(resource => {
+                const requiredRole = resource.dataset.requiredRole;
+                const requiredAuthority = resource.dataset.requiredAuthority;
+                const isPublic = resource.dataset.public === 'true';
+                
+                let hasAccess = false;
+                let reason = '';
+                
+                if (isPublic) {
+                    hasAccess = true;
+                    reason = 'Public access';
+                } else if (requiredRole) {
+                    hasAccess = user.roles.includes(requiredRole);
+                    reason = hasAccess ? `Has required role: ${requiredRole}` : `Missing role: ${requiredRole}`;
+                } else if (requiredAuthority) {
+                    hasAccess = user.authorities.includes(requiredAuthority);
+                    reason = hasAccess ? `Has required authority: ${requiredAuthority}` : `Missing authority: ${requiredAuthority}`;
+                }
+                
+                // Update resource appearance
+                resource.classList.remove('accessible', 'forbidden');
+                resource.classList.add(hasAccess ? 'accessible' : 'forbidden');
+                
+                // Update access status
+                const statusElement = resource.querySelector('.access-status');
+                statusElement.textContent = hasAccess ? '✅ Access Granted' : '❌ Access Denied';
+                statusElement.className = `access-status ${hasAccess ? 'access-granted' : 'access-denied'}`;
+            });
+        }
+
+        function resetSimulation() {
+            currentUser = null;
+            
+            // Reset user cards
+            document.querySelectorAll('.user-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            
+            // Reset user info
+            document.getElementById('current-user-info').textContent = 
+                'Select a user above to see their access permissions';
+            
+            // Reset resources
+            document.querySelectorAll('.resource').forEach(resource => {
+                resource.classList.remove('accessible', 'forbidden');
+                const statusElement = resource.querySelector('.access-status');
+                statusElement.textContent = 'Checking access...';
+                statusElement.className = 'access-status';
+            });
+        }
+
+        // Add click handlers to user cards
+        document.querySelectorAll('.user-card').forEach(card => {
+            card.addEventListener('click', () => {
+                selectUser(card.dataset.user);
+            });
+        });
+
+        // Add hover effects and animations
+        document.querySelectorAll('.user-card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                if (!card.classList.contains('active')) {
+                    card.style.transform = 'translateY(-5px) scale(1.02)';
+                }
+            });
+            
+            card.addEventListener('mouseleave', () => {
+                if (!card.classList.contains('active')) {
+                    card.style.transform = '';
+                }
+            });
+        });
+
+        // Initialize with default state
+        resetSimulation();
+    </script>
+</body>
+</html>

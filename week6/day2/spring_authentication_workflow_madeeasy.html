@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring Security: Corporate Building Access Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 30px;
+        }
+
+        .concept-tabs {
+            display: flex;
+            margin-bottom: 30px;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 15px 20px;
+            background: #ecf0f1;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .tab-btn.active {
+            background: #3498db;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .tab-btn:hover:not(.active) {
+            background: #d5dbdb;
+            transform: translateY(-1px);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .building-container {
+            display: flex;
+            gap: 30px;
+            margin-top: 30px;
+            align-items: flex-start;
+        }
+
+        .building {
+            flex: 1;
+            background: linear-gradient(to bottom, #34495e, #2c3e50);
+            border-radius: 15px;
+            padding: 20px;
+            color: white;
+            position: relative;
+            min-height: 400px;
+        }
+
+        .building-title {
+            text-align: center;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            color: #ecf0f1;
+        }
+
+        .floor {
+            background: rgba(255, 255, 255, 0.1);
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .floor:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(5px);
+        }
+
+        .floor h3 {
+            color: #3498db;
+            margin-bottom: 8px;
+        }
+
+        .floor p {
+            font-size: 0.9em;
+            line-height: 1.4;
+        }
+
+        .security-desk {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            text-align: center;
+            color: white;
+        }
+
+        .security-desk h3 {
+            margin-bottom: 10px;
+        }
+
+        .demo-section {
+            flex: 1;
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+        }
+
+        .demo-title {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+
+        .user-form {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ecf0f1;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .btn {
+            background: #3498db;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .btn.danger {
+            background: #e74c3c;
+        }
+
+        .btn.danger:hover {
+            background: #c0392b;
+        }
+
+        .result-box {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .result-success {
+            background: #d5f4e6;
+            color: #27ae60;
+            border-left: 4px solid #27ae60;
+        }
+
+        .result-error {
+            background: #fdeaea;
+            color: #e74c3c;
+            border-left: 4px solid #e74c3c;
+        }
+
+        .process-flow {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+            padding: 10px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .step-number {
+            background: #3498db;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+        }
+
+        .step.active {
+            background: #e8f4fd;
+            transform: scale(1.02);
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .comparison-table th {
+            background: #3498db;
+            color: white;
+            padding: 15px;
+            text-align: left;
+        }
+
+        .comparison-table td {
+            padding: 15px;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .comparison-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .highlight {
+            background: #fff3cd;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏢 Spring Security Framework</h1>
+            <p>Understanding Authentication & Authorization through Corporate Building Access</p>
+        </div>
+
+        <div class="main-content">
+            <div class="concept-tabs">
+                <button class="tab-btn active" data-tab="overview">Overview</button>
+                <button class="tab-btn" data-tab="authentication">Authentication</button>
+                <button class="tab-btn" data-tab="authorization">Authorization</button>
+                <button class="tab-btn" data-tab="interfaces">Key Interfaces</button>
+                <button class="tab-btn" data-tab="demo">Interactive Demo</button>
+            </div>
+
+            <!-- Overview Tab -->
+            <div class="tab-content active" id="overview">
+                <h2>🏢 Corporate Building Security System Analogy</h2>
+                
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Real World (Corporate Building)</th>
+                            <th>Spring Security Framework</th>
+                            <th>Purpose</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Security Guard at Main Gate</strong><br>Checks your ID card and verifies you are who you claim to be</td>
+                            <td><strong>Authentication</strong><br>Verifies user credentials (username/password)</td>
+                            <td>Confirms identity - "WHO are you?"</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Access Card Permissions</strong><br>Your card allows access to specific floors/rooms based on your role</td>
+                            <td><strong>Authorization</strong><br>Determines what resources user can access</td>
+                            <td>Controls access - "WHAT can you do?"</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Security Manager</strong><br>Oversees all security operations and decisions</td>
+                            <td><strong>AuthenticationManager</strong><br>Central component managing authentication process</td>
+                            <td>Coordinates the entire security process</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Different Security Checkpoints</strong><br>ID verification, biometric scan, visitor management</td>
+                            <td><strong>AuthenticationProvider</strong><br>Different ways to authenticate (DB, LDAP, OAuth)</td>
+                            <td>Multiple authentication methods</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Employee Database/HR System</strong><br>Contains employee information and access levels</td>
+                            <td><strong>UserDetailsService</strong><br>Loads user information from data source</td>
+                            <td>Retrieves user data for verification</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Authentication Tab -->
+            <div class="tab-content" id="authentication">
+                <h2>🔐 Authentication: "WHO are you?"</h2>
+                
+                <div class="building-container">
+                    <div class="building">
+                        <div class="building-title">🏢 Corporate Building Entrance</div>
+                        
+                        <div class="security-desk">
+                            <h3>🛡️ Security Guard Station</h3>
+                            <p>First checkpoint - Identity verification required</p>
+                        </div>
+
+                        <div class="floor">
+                            <h3>Step 1: Present Credentials</h3>
+                            <p>Employee shows ID card and states their name</p>
+                        </div>
+
+                        <div class="floor">
+                            <h3>Step 2: Verification</h3>
+                            <p>Guard checks photo, name, and employee number against database</p>
+                        </div>
+
+                        <div class="floor">
+                            <h3>Step 3: Authentication Result</h3>
+                            <p>✅ Verified: Employee can enter building<br>❌ Failed: Access denied</p>
+                        </div>
+                    </div>
+
+                    <div class="demo-section">
+                        <h3 class="demo-title">Spring Security Authentication Process</h3>
+                        
+                        <div class="process-flow">
+                            <div class="step">
+                                <div class="step-number">1</div>
+                                <div>
+                                    <strong>User submits credentials</strong><br>
+                                    <span class="highlight">Authentication</span> object created with username/password
+                                </div>
+                            </div>
+                            
+                            <div class="step">
+                                <div class="step-number">2</div>
+                                <div>
+                                    <strong>AuthenticationManager processes request</strong><br>
+                                    Delegates to appropriate <span class="highlight">AuthenticationProvider</span>
+                                </div>
+                            </div>
+                            
+                            <div class="step">
+                                <div class="step-number">3</div>
+                                <div>
+                                    <strong>UserDetailsService loads user data</strong><br>
+                                    Retrieves user information from database/LDAP/etc.
+                                </div>
+                            </div>
+                            
+                            <div class="step">
+                                <div class="step-number">4</div>
+                                <div>
+                                    <strong>Credentials validated</strong><br>
+                                    Password checked, user status verified
+                                </div>
+                            </div>
+                            
+                            <div class="step">
+                                <div class="step-number">5</div>
+                                <div>
+                                    <strong>Authentication result</strong><br>
+                                    Success: <span class="highlight">Authentication</span> object with authorities returned<br>
+                                    Failure: Exception thrown
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Authorization Tab -->
+            <div class="tab-content" id="authorization">
+                <h2>🔑 Authorization: "WHAT can you access?"</h2>
+                
+                <div class="building-container">
+                    <div class="building">
+                        <div class="building-title">🏢 Building Floor Access</div>
+                        
+                        <div class="floor" style="border-left-color: #e74c3c;">
+                            <h3>🔴 Executive Floor (Level 20)</h3>
+                            <p><strong>Role:</strong> ADMIN, CEO<br>
+                            <strong>Access:</strong> All company data, strategic planning</p>
+                        </div>
+
+                        <div class="floor" style="border-left-color: #f39c12;">
+                            <h3>🟡 Management Floor (Level 15)</h3>
+                            <p><strong>Role:</strong> MANAGER<br>
+                            <strong>Access:</strong> Team data, department reports</p>
+                        </div>
+
+                        <div class="floor" style="border-left-color: #27ae60;">
+                            <h3>🟢 Employee Floor (Level 10)</h3>
+                            <p><strong>Role:</strong> USER<br>
+                            <strong>Access:</strong> Personal workspace, basic resources</p>
+                        </div>
+
+                        <div class="floor" style="border-left-color: #95a5a6;">
+                            <h3>⚪ Lobby (Ground Floor)</h3>
+                            <p><strong>Role:</strong> GUEST<br>
+                            <strong>Access:</strong> Reception, public areas only</p>
+                        </div>
+                    </div>
+
+                    <div class="demo-section">
+                        <h3 class="demo-title">Spring Security Authorization</h3>
+                        
+                        <div class="process-flow">
+                            <div class="step">
+                                <div class="step-number">1</div>
+                                <div>
+                                    <strong>User tries to access resource</strong><br>
+                                    e.g., GET /admin/users endpoint
+                                </div>
+                            </div>
+                            
+                            <div class="step">
+                                <div class="step-number">2</div>
+                                <div>
+                                    <strong>Security checks authentication</strong><br>
+                                    Is user logged in? Valid session?
+                                </div>
+                            </div>
+                            
+                            <div class="step">
+                                <div class="step-number">3</div>
+                                <div>
+                                    <strong>Authorization check</strong><br>
+                                    Does user have required <span class="highlight">role/authority</span>?
+                                </div>
+                            </div>
+                            
+                            <div class="step">
+                                <div class="step-number">4</div>
+                                <div>
+                                    <strong>Access decision</strong><br>
+                                    ✅ Authorized: Resource accessed<br>
+                                    ❌ Denied: 403 Forbidden error
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="background: #e8f4fd; padding: 15px; border-radius: 8px; margin-top: 20px;">
+                            <strong>🔍 Key Point:</strong> Authorization happens AFTER authentication. 
+                            You must prove WHO you are before we check WHAT you can do!
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interfaces Tab -->
+            <div class="tab-content" id="interfaces">
+                <h2>🔧 Key Spring Security Interfaces</h2>
+                
+                <div class="building-container">
+                    <div class="building">
+                        <div class="building-title">🏢 Security Department Structure</div>
+                        
+                        <div class="floor" style="border-left-color: #9b59b6;">
+                            <h3>👔 Security Manager Office</h3>
+                            <p><strong>AuthenticationManager</strong><br>
+                            Central authority that coordinates all authentication requests. 
+                            Like the head of security who oversees all verification processes.</p>
+                        </div>
+
+                        <div class="floor" style="border-left-color: #3498db;">
+                            <h3>🛡️ Security Checkpoint Officers</h3>
+                            <p><strong>AuthenticationProvider</strong><br>
+                            Different officers specializing in various verification methods:
+                            ID cards, biometrics, visitor passes, etc.</p>
+                        </div>
+
+                        <div class="floor" style="border-left-color: #e67e22;">
+                            <h3>📋 Employee Records Department</h3>
+                            <p><strong>UserDetailsService</strong><br>
+                            HR database that contains all employee information:
+                            names, photos, access levels, employment status.</p>
+                        </div>
+
+                        <div class="floor" style="border-left-color: #27ae60;">
+                            <h3>🎫 Security Credentials</h3>
+                            <p><strong>Authentication Object</strong><br>
+                            The employee's verified identity card that contains:
+                            name, role, permissions, and proof of verification.</p>
+                        </div>
+                    </div>
+
+                    <div class="demo-section">
+                        <h3 class="demo-title">Interface Relationships</h3>
+                        
+                        <div class="process-flow">
+                            <div class="step">
+                                <div class="step-number">🎫</div>
+                                <div>
+                                    <strong>Authentication</strong><br>
+                                    Contains credentials (username/password) and authorities.
+                                    Like an employee ID card with access permissions.
+                                </div>
+                            </div>
+                            
+                            <div class="step">
+                                <div class="step-number">👔</div>
+                                <div>
+                                    <strong>AuthenticationManager</strong><br>
+                                    Main interface with authenticate() method.
+                                    <span class="highlight">ProviderManager</span> is the default implementation.
+                                </div>
+                            </div>
+                            
+                            <div class="step">
+                                <div class="step-number">🛡️</div>
+                                <div>
+                                    <strong>AuthenticationProvider</strong><br>
+                                    Supports specific authentication types:
+                                    <span class="highlight">DaoAuthenticationProvider</span>, OAuth2, LDAP, etc.
+                                </div>
+                            </div>
+                            
+                            <div class="step">
+                                <div class="step-number">📋</div>
+                                <div>
+                                    <strong>UserDetailsService</strong><br>
+                                    Loads user-specific data via loadUserByUsername() method.
+                                    Returns <span class="highlight">UserDetails</span> object.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 20px; border-left: 4px solid #3498db;">
+                            <strong>🔄 Flow Summary:</strong><br>
+                            1. <span class="highlight">AuthenticationManager</span> receives login request<br>
+                            2. Delegates to appropriate <span class="highlight">AuthenticationProvider</span><br>
+                            3. Provider uses <span class="highlight">UserDetailsService</span> to load user data<br>
+                            4. Validates credentials and returns <span class="highlight">Authentication</span> object
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Demo Tab -->
+            <div class="tab-content" id="demo">
+                <h2>🎮 Interactive Security Demo</h2>
+                
+                <div class="building-container">
+                    <div class="demo-section" style="flex: 2;">
+                        <h3 class="demo-title">🏢 Try Building Access</h3>
+                        
+                        <div class="user-form">
+                            <div class="form-group">
+                                <label for="username">👤 Employee Name (Username):</label>
+                                <input type="text" id="username" placeholder="Enter your name">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="password">🔐 Security Code (Password):</label>
+                                <input type="password" id="password" placeholder="Enter your security code">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="resource">🎯 Where do you want to go?</label>
+                                <select id="resource">
+                                    <option value="lobby">🏛️ Lobby (Public)</option>
+                                    <option value="workspace">💼 Personal Workspace (USER)</option>
+                                    <option value="management">📊 Management Floor (MANAGER)</option>
+                                    <option value="executive">👑 Executive Suite (ADMIN)</option>
+                                </select>
+                            </div>
+                            
+                            <button class="btn" onclick="attemptAccess()">🚪 Request Access</button>
+                            <button class="btn danger" onclick="logout()">🚪 Leave Building</button>
+                        </div>
+
+                        <div id="result" class="result-box" style="display: none;"></div>
+                        
+                        <div class="process-flow">
+                            <h4>📋 Pre-registered Employees:</h4>
+                            <div style="background: #e8f4fd; padding: 10px; border-radius: 5px; margin-top: 10px;">
+                                <strong>🧑‍💼 john/password123</strong> - Role: USER<br>
+                                <strong>👩‍💼 sarah/manager456</strong> - Role: MANAGER<br>
+                                <strong>👨‍💼 admin/admin789</strong> - Role: ADMIN<br>
+                                <strong>👤 guest/guest</strong> - Role: GUEST
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="demo-section">
+                        <h3 class="demo-title">🔍 Security Process Log</h3>
+                        <div id="securityLog" class="process-flow" style="max-height: 400px; overflow-y: auto;">
+                            <div class="step">
+                                <div class="step-number">📋</div>
+                                <div><strong>System Ready</strong><br>Waiting for access request...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // User database simulation
+        const users = {
+            'john': { password: 'password123', role: 'USER', name: 'John Doe' },
+            'sarah': { password: 'manager456', role: 'MANAGER', name: 'Sarah Smith' },
+            'admin': { password: 'admin789', role: 'ADMIN', name: 'Admin User' },
+            'guest': { password: 'guest', role: 'GUEST', name: 'Guest User' }
+        };
+
+        const resourcePermissions = {
+            'lobby': ['USER', 'MANAGER', 'ADMIN', 'GUEST'],
+            'workspace': ['USER', 'MANAGER', 'ADMIN'],
+            'management': ['MANAGER', 'ADMIN'],
+            'executive': ['ADMIN']
+        };
+
+        let currentUser = null;
+        let logCounter = 1;
+
+        // Tab switching functionality
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabId = btn.getAttribute('data-tab');
+                
+                // Update active tab button
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                // Update active tab content
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+
+        function addLogEntry(icon, title, message, type = 'info') {
+            const logContainer = document.getElementById('securityLog');
+            const logEntry = document.createElement('div');
+            logEntry.className = `step ${type === 'success' ? 'active' : ''}`;
+            logEntry.innerHTML = `
+                <div class="step-number">${icon}</div>
+                <div>
+                    <strong>${title}</strong><br>
+                    ${message}
+                </div>
+            `;
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+            logCounter++;
+        }
+
+        function authenticate(username, password) {
+            addLogEntry('🔍', 'Authentication Started', `Checking credentials for user: ${username}`);
+            
+            // UserDetailsService simulation
+            const user = users[username];
+            if (!user) {
+                addLogEntry('❌', 'UserDetailsService', 'User not found in employee database');
+                return null;
+            }
+            
+            addLogEntry('📋', 'UserDetailsService', `Employee found: ${user.name}, Role: ${user.role}`);
+            
+            // AuthenticationProvider simulation
+            if (user.password !== password) {
+                addLogEntry('❌', 'AuthenticationProvider', 'Password verification failed');
+                return null;
+            }
+            
+            addLogEntry('✅', 'AuthenticationProvider', 'Password verified successfully');
+            addLogEntry('🎫', 'Authentication Complete', `Access card issued for ${user.name} with ${user.role} privileges`);
+            
+            return { username, role: user.role, name: user.name };
+        }
+
+        function authorize(user, resource) {
+            addLogEntry('🔐', 'Authorization Check', `Checking ${user.name}'s access to ${resource}`);
+            
+            const requiredRoles = resourcePermissions[resource];
+            const hasAccess = requiredRoles.includes(user.role);
+            
+            if (hasAccess) {
+                addLogEntry('✅', 'Authorization Granted', `${user.role} role has access to ${resource}`);
+                return true;
+            } else {
+                addLogEntry('❌', 'Authorization Denied', `${user.role} role cannot access ${resource}. Required: ${requiredRoles.join(', ')}`);
+                return false;
+            }
+        }
+
+        function attemptAccess() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const resource = document.getElementById('resource').value;
+            const resultDiv = document.getElementById('result');
+            
+            if (!username || !password) {
+                resultDiv.className = 'result-box result-error';
+                resultDiv.textContent = 'Please enter both username and password';
+                resultDiv.style.display = 'block';
+                return;
+            }
+            
+            addLogEntry('🚪', 'Access Request', `${username} requesting access to ${resource}`);
+            
+            // Step 1: Authentication
+            const authenticatedUser = authenticate(username, password);
+            
+            if (!authenticatedUser) {
+                resultDiv.className = 'result-box result-error';
+                resultDiv.innerHTML = '🚫 <strong>Authentication Failed</strong><br>Invalid credentials. Access denied to building.';
+                resultDiv.style.display = 'block';
+                addLogEntry('🚫', 'Final Result', 'Access denied - Authentication failed');
+                return;
+            }
+            
+            currentUser = authenticatedUser;
+            
+            // Step 2: Authorization
+            const authorized = authorize(authenticatedUser, resource);
+            
+            if (authorized) {
+                resultDiv.className = 'result-box result-success';
+                resultDiv.innerHTML = `✅ <strong>Access Granted!</strong><br>Welcome ${authenticatedUser.name}! You can access the ${resource}.`;
+                addLogEntry('🎉', 'Final Result', `Access granted to ${resource}`);
+            } else {
+                resultDiv.className = 'result-box result-error';
+                resultDiv.innerHTML = `🔒 <strong>Access Denied</strong><br>Hello ${authenticatedUser.name}! You're authenticated but don't have permission for ${resource}.`;
+                addLogEntry('🔒', 'Final Result', `Access denied to ${resource} - Insufficient privileges`);
+            }
+            
+            resultDiv.style.display = 'block';
+        }
+
+        function logout() {
+            currentUser = null;
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            document.getElementById('result').style.display = 'none';
+            
+            addLogEntry('🚪', 'Logout', 'User has left the building');
+            addLogEntry('📋', 'System Reset', 'Ready for next access request');
+        }
+
+    </script>
+</body>
+</html>
