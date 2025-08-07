@@ -1,0 +1,2194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring Boot ToDo App - Complete Guide with Auth</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+            box-shadow: 0 0 30px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            text-align: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        /* Tab Navigation Styles */
+        .tabs-container {
+            margin-bottom: 30px;
+        }
+        
+        .tab-nav {
+            display: flex;
+            flex-wrap: wrap;
+            background: #f8f9fa;
+            border-radius: 10px 10px 0 0;
+            padding: 0;
+            margin: 0;
+            list-style: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow-x: auto;
+        }
+        
+        .tab-nav li {
+            flex: 1;
+            min-width: 120px;
+        }
+        
+        .tab-button {
+            display: block;
+            width: 100%;
+            padding: 15px 10px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            color: #6c757d;
+            text-align: center;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+            white-space: nowrap;
+        }
+        
+        .tab-button:hover {
+            background: rgba(0,123,255,0.1);
+            color: #007bff;
+        }
+        
+        .tab-button.active {
+            background: #007bff;
+            color: white;
+            border-bottom-color: #0056b3;
+            box-shadow: 0 -2px 4px rgba(0,123,255,0.3);
+        }
+        
+        /* Tab Content Styles */
+        .tab-content {
+            background: white;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            min-height: 600px;
+        }
+        
+        .tab-panel {
+            display: none;
+            padding: 30px;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        .tab-panel.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Content Styles */
+        h2, h3, h4 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+        
+        h2 {
+            border-left: 5px solid #3498db;
+            padding-left: 15px;
+            margin-top: 30px;
+            font-size: 1.8em;
+        }
+        
+        h3 {
+            color: #e74c3c;
+            font-size: 1.4em;
+            margin-top: 25px;
+        }
+        
+        h4 {
+            color: #8e44ad;
+            font-size: 1.2em;
+            margin-top: 20px;
+        }
+        
+        p, li {
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        ul, ol {
+            margin-left: 30px;
+            margin-bottom: 20px;
+        }
+        
+        pre {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 20px 0;
+            border-left: 5px solid #4299e1;
+            position: relative;
+        }
+        
+        code {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        
+        .tech-stack {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .tech-item {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .tech-item:hover {
+            transform: translateY(-5px);
+        }
+        
+        .architecture-diagram {
+            text-align: center;
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 2px dashed #dee2e6;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .feature-item {
+            background: #e8f5e8;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+        }
+        
+        .highlight-box {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 5px solid #f39c12;
+        }
+        
+        .security-box {
+            background: #ffe6e6;
+            border: 1px solid #ffb3b3;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 5px solid #dc3545;
+        }
+        
+        .copy-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #4299e1;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            opacity: 0.8;
+        }
+        
+        .copy-button:hover {
+            opacity: 1;
+        }
+        
+        .project-structure {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: monospace;
+            border-left: 5px solid #17a2b8;
+            margin: 20px 0;
+        }
+        
+        .api-endpoint {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .method-get { border-left-color: #4caf50; background: #e8f5e8; }
+        .method-post { border-left-color: #ff9800; background: #fff3e0; }
+        .method-put { border-left-color: #2196f3; background: #e3f2fd; }
+        .method-delete { border-left-color: #f44336; background: #ffebee; }
+        
+        .role-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        .role-table th, .role-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        .role-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+        
+        .role-admin { background: #ffebee; }
+        .role-manager { background: #e3f2fd; }
+        .role-user { background: #e8f5e8; }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                padding: 15px;
+            }
+            
+            .tab-nav {
+                flex-direction: column;
+            }
+            
+            .tab-nav li {
+                min-width: auto;
+            }
+            
+            .tab-button {
+                padding: 12px 15px;
+                font-size: 13px;
+            }
+            
+            .tab-panel {
+                padding: 20px 15px;
+            }
+            
+            .tech-stack {
+                grid-template-columns: 1fr;
+            }
+            
+            pre {
+                padding: 15px;
+            }
+            
+            h1 {
+                padding: 20px;
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🍃 Spring Boot ToDo App - Complete Guide with Authentication</h1>
+        
+        <div class="tabs-container">
+            <ul class="tab-nav">
+                <li><button class="tab-button active" data-tab="overview">📋 Overview</button></li>
+                <li><button class="tab-button" data-tab="setup">🚀 Setup</button></li>
+                <li><button class="tab-button" data-tab="dependencies">📦 Dependencies</button></li>
+                <li><button class="tab-button" data-tab="database">🗄️ Database</button></li>
+                <li><button class="tab-button" data-tab="entities">🏗️ Entities</button></li>
+                <li><button class="tab-button" data-tab="security">🔐 Security</button></li>
+                <li><button class="tab-button" data-tab="authentication">🔑 Authentication</button></li>
+                <li><button class="tab-button" data-tab="authorization">👮 Authorization</button></li>
+                <li><button class="tab-button" data-tab="repository">📊 Repository</button></li>
+                <li><button class="tab-button" data-tab="service">🔧 Service</button></li>
+                <li><button class="tab-button" data-tab="controller">🌐 Controller</button></li>
+                <li><button class="tab-button" data-tab="testing">✅ Testing</button></li>
+                <li><button class="tab-button" data-tab="api">📡 API</button></li>
+            </ul>
+            
+            <div class="tab-content">
+                <!-- Overview Tab Panel -->
+                <div id="overview" class="tab-panel active">
+                    <h2>📋 Project Overview</h2>
+                    
+                    <h4>🎯 What We're Building</h4>
+                    <p>A complete RESTful ToDo application with <strong>JWT Authentication</strong> and <strong>Role-based Authorization</strong> using Spring Boot, Spring Security, and modern best practices.</p>
+                    
+                    <h3>🏗️ Architecture Overview</h3>
+                    <div class="architecture-diagram">
+                        <p>🔐 <strong>Security Layer (JWT + Role-based Access)</strong></p>
+                        <p>⬇️</p>
+                        <p>🌐 <strong>REST Controller Layer</strong></p>
+                        <p>⬇️</p>
+                        <p>🔧 <strong>Service Layer (Business Logic + Authorization)</strong></p>
+                        <p>⬇️</p>
+                        <p>📊 <strong>Repository Layer</strong></p>
+                        <p>⬇️</p>
+                        <p>🗄️ <strong>Database Layer (Users + Roles + TODOs)</strong></p>
+                    </div>
+                    
+                    <h3>🛠️ Technology Stack</h3>
+                    <div class="tech-stack">
+                        <div class="tech-item">
+                            <div style="font-size: 2em;">☕</div>
+                            <h4>Java 17+</h4>
+                            <p>Programming Language</p>
+                        </div>
+                        <div class="tech-item">
+                            <div style="font-size: 2em;">🍃</div>
+                            <h4>Spring Boot 3.x</h4>
+                            <p>Framework</p>
+                        </div>
+                        <div class="tech-item">
+                            <div style="font-size: 2em;">🔐</div>
+                            <h4>Spring Security</h4>
+                            <p>Authentication & Authorization</p>
+                        </div>
+                        <div class="tech-item">
+                            <div style="font-size: 2em;">🎫</div>
+                            <h4>JWT</h4>
+                            <p>JSON Web Tokens</p>
+                        </div>
+                        <div class="tech-item">
+                            <div style="font-size: 2em;">📦</div>
+                            <h4>Maven</h4>
+                            <p>Build Tool</p>
+                        </div>
+                        <div class="tech-item">
+                            <div style="font-size: 2em;">🗄️</div>
+                            <h4>H2 Database</h4>
+                            <p>In-memory Database</p>
+                        </div>
+                    </div>
+                    
+                    <h3>🚀 Key Features</h3>
+                    <div class="features-grid">
+                        <div class="feature-item">🔐 JWT Authentication</div>
+                        <div class="feature-item">👮 Role-based Authorization</div>
+                        <div class="feature-item">👤 User Management</div>
+                        <div class="feature-item">✨ CRUD Operations</div>
+                        <div class="feature-item">🔒 Secure API Endpoints</div>
+                        <div class="feature-item">📊 Role-specific Data Access</div>
+                    </div>
+                    
+                    <h3>👥 User Roles & Permissions</h3>
+                    <table class="role-table">
+                        <thead>
+                            <tr>
+                                <th>Role</th>
+                                <th>Permissions</th>
+                                <th>Access Level</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="role-admin">
+                                <td><strong>🔴 ADMIN</strong></td>
+                                <td>Delete TODOs, Manage Users, Full Access</td>
+                                <td>System-wide</td>
+                            </tr>
+                            <tr class="role-manager">
+                                <td><strong>🔵 MANAGER</strong></td>
+                                <td>Create TODOs, Assign to Users, Manage Team</td>
+                                <td>Team-level</td>
+                            </tr>
+                            <tr class="role-user">
+                                <td><strong>🟢 USER</strong></td>
+                                <td>View Own TODOs, Update Own TODOs</td>
+                                <td>Personal</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Setup Tab Panel -->
+                <div id="setup" class="tab-panel">
+                    <h2>🚀 Project Setup</h2>
+                    
+                    <h3>📁 Enhanced Project Structure</h3>
+                    <div class="project-structure">
+todo-app/
+├── src/
+│   ├── main/
+│   │   ├── java/
+│   │   │   └── com/
+│   │   │       └── example/
+│   │   │           └── todoapp/
+│   │   │               ├── TodoAppApplication.java
+│   │   │               ├── controller/
+│   │   │               │   ├── TodoController.java
+│   │   │               │   ├── AuthController.java
+│   │   │               │   └── UserController.java
+│   │   │               ├── service/
+│   │   │               │   ├── TodoService.java
+│   │   │               │   ├── UserService.java
+│   │   │               │   └── AuthService.java
+│   │   │               ├── repository/
+│   │   │               │   ├── TodoRepository.java
+│   │   │               │   ├── UserRepository.java
+│   │   │               │   └── RoleRepository.java
+│   │   │               ├── entity/
+│   │   │               │   ├── Todo.java
+│   │   │               │   ├── User.java
+│   │   │               │   └── Role.java
+│   │   │               ├── security/
+│   │   │               │   ├── SecurityConfig.java
+│   │   │               │   ├── JwtAuthenticationFilter.java
+│   │   │               │   ├── JwtTokenProvider.java
+│   │   │               │   └── CustomUserDetailsService.java
+│   │   │               └── dto/
+│   │   │                   ├── LoginRequest.java
+│   │   │                   ├── JwtResponse.java
+│   │   │                   └── UserDto.java
+│   │   └── resources/
+│   │       ├── application.properties
+│   │       ├── schema.sql
+│   │       └── data.sql
+│   └── test/
+│       └── java/
+└── pom.xml
+                    </div>
+                    
+                    <h3>☕ Main Application Class</h3>
+                    <pre><code>package com.example.todoapp;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class TodoAppApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(TodoAppApplication.class, args);
+    }
+}</code></pre>
+                </div>
+
+                <!-- Dependencies Tab Panel -->
+                <div id="dependencies" class="tab-panel">
+                    <h2>📦 Enhanced Maven Dependencies</h2>
+                    
+                    <h3>🔧 Complete pom.xml with Security</h3>
+                    <pre><code>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+         http://maven.apache.org/xsd/maven-4.0.0.xsd"&gt;
+    &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+
+    &lt;parent&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-parent&lt;/artifactId&gt;
+        &lt;version&gt;3.2.0&lt;/version&gt;
+        &lt;relativePath/&gt;
+    &lt;/parent&gt;
+
+    &lt;groupId&gt;com.example&lt;/groupId&gt;
+    &lt;artifactId&gt;todo-app&lt;/artifactId&gt;
+    &lt;version&gt;1.0.0&lt;/version&gt;
+    &lt;name&gt;Todo Application with Authentication&lt;/name&gt;
+    &lt;description&gt;Spring Boot Todo App with JWT Authentication&lt;/description&gt;
+
+    &lt;properties&gt;
+        &lt;java.version&gt;17&lt;/java.version&gt;
+    &lt;/properties&gt;
+
+    &lt;dependencies&gt;
+        &lt;!-- Spring Boot Web Starter --&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+
+        &lt;!-- Spring Boot Data JPA Starter --&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-data-jpa&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+
+        &lt;!-- Spring Boot Security --&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-security&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+
+        &lt;!-- JWT Dependencies --&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;io.jsonwebtoken&lt;/groupId&gt;
+            &lt;artifactId&gt;jjwt-api&lt;/artifactId&gt;
+            &lt;version&gt;0.11.5&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;io.jsonwebtoken&lt;/groupId&gt;
+            &lt;artifactId&gt;jjwt-impl&lt;/artifactId&gt;
+            &lt;version&gt;0.11.5&lt;/version&gt;
+            &lt;scope&gt;runtime&lt;/scope&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;io.jsonwebtoken&lt;/groupId&gt;
+            &lt;artifactId&gt;jjwt-jackson&lt;/artifactId&gt;
+            &lt;version&gt;0.11.5&lt;/version&gt;
+            &lt;scope&gt;runtime&lt;/scope&gt;
+        &lt;/dependency&gt;
+
+        &lt;!-- H2 Database --&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;com.h2database&lt;/groupId&gt;
+            &lt;artifactId&gt;h2&lt;/artifactId&gt;
+            &lt;scope&gt;runtime&lt;/scope&gt;
+        &lt;/dependency&gt;
+
+        &lt;!-- Spring Boot Validation --&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-validation&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+
+        &lt;!-- Spring Boot Test Starter --&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-test&lt;/artifactId&gt;
+            &lt;scope&gt;test&lt;/scope&gt;
+        &lt;/dependency&gt;
+
+        &lt;!-- Spring Security Test --&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.security&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-security-test&lt;/artifactId&gt;
+            &lt;scope&gt;test&lt;/scope&gt;
+        &lt;/dependency&gt;
+    &lt;/dependencies&gt;
+
+    &lt;build&gt;
+        &lt;plugins&gt;
+            &lt;plugin&gt;
+                &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+                &lt;artifactId&gt;spring-boot-maven-plugin&lt;/artifactId&gt;
+            &lt;/plugin&gt;
+        &lt;/plugins&gt;
+    &lt;/build&gt;
+&lt;/project&gt;</code></pre>
+                    
+                    <div class="security-box">
+                        <h4>🔐 Security Dependencies Explained</h4>
+                        <ul>
+                            <li><strong>spring-boot-starter-security</strong> - Core security framework</li>
+                            <li><strong>jjwt-api</strong> - JWT token creation and parsing</li>
+                            <li><strong>jjwt-impl</strong> - JWT implementation runtime</li>
+                            <li><strong>jjwt-jackson</strong> - JSON processing for JWT</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Database Tab Panel -->
+                <div id="database" class="tab-panel">
+                    <h2>🗄️ Database Schema & Data</h2>
+                    
+                    <h3>📋 schema.sql</h3>
+                    <pre><code>-- Drop tables if they exist
+DROP TABLE IF EXISTS todo;
+DROP TABLE IF EXISTS user_roles;
+DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS roles;
+
+-- Create roles table
+CREATE TABLE roles (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(20) NOT NULL UNIQUE,
+    description VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create users table
+CREATE TABLE users (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    first_name VARCHAR(50),
+    last_name VARCHAR(50),
+    enabled BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Create user_roles junction table
+CREATE TABLE user_roles (
+    user_id BIGINT NOT NULL,
+    role_id BIGINT NOT NULL,
+    PRIMARY KEY (user_id, role_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE
+);
+
+-- Create enhanced todos table
+CREATE TABLE todo (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(100) NOT NULL,
+    description TEXT,
+    completed BOOLEAN DEFAULT FALSE,
+    priority ENUM('LOW', 'MEDIUM', 'HIGH', 'URGENT') DEFAULT 'MEDIUM',
+    created_by BIGINT NOT NULL,
+    assigned_to BIGINT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    due_date TIMESTAMP,
+    FOREIGN KEY (created_by) REFERENCES users(id),
+    FOREIGN KEY (assigned_to) REFERENCES users(id)
+);
+
+-- Create indexes for better performance
+CREATE INDEX idx_users_username ON users(username);
+CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_todo_created_by ON todo(created_by);
+CREATE INDEX idx_todo_assigned_to ON todo(assigned_to);
+CREATE INDEX idx_todo_completed ON todo(completed);</code></pre>
+                    
+                    <h3>📊 data.sql</h3>
+                    <pre><code>-- Insert roles
+INSERT INTO roles (name, description) VALUES
+('ADMIN', 'System Administrator with full access'),
+('MANAGER', 'Team Manager with user management capabilities'),
+('USER', 'Regular user with limited access');
+
+-- Insert users (password is 'password123' encoded with BCrypt)
+-- BCrypt hash for 'password123': $2a$12$2v6tL6Mz/SMDC.RzLNnU/uBcDIWP8oG.ZRLJxKZtgCOgbTBHjCYf2
+INSERT INTO users (username, email, password, first_name, last_name, enabled) VALUES
+('admin', 'admin@todoapp.com', '$2a$12$2v6tL6Mz/SMDC.RzLNnU/uBcDIWP8oG.ZRLJxKZtgCOgbTBHjCYf2', 'Admin', 'User', true),
+('manager1', 'manager1@todoapp.com', '$2a$12$2v6tL6Mz/SMDC.RzLNnU/uBcDIWP8oG.ZRLJxKZtgCOgbTBHjCYf2', 'John', 'Manager', true),
+('manager2', 'manager2@todoapp.com', '$2a$12$2v6tL6Mz/SMDC.RzLNnU/uBcDIWP8oG.ZRLJxKZtgCOgbTBHjCYf2', 'Sarah', 'Wilson', true),
+('user1', 'user1@todoapp.com', '$2a$12$2v6tL6Mz/SMDC.RzLNnU/uBcDIWP8oG.ZRLJxKZtgCOgbTBHjCYf2', 'Alice', 'Johnson', true),
+('user2', 'user2@todoapp.com', '$2a$12$2v6tL6Mz/SMDC.RzLNnU/uBcDIWP8oG.ZRLJxKZtgCOgbTBHjCYf2', 'Bob', 'Smith', true),
+('user3', 'user3@todoapp.com', '$2a$12$2v6tL6Mz/SMDC.RzLNnU/uBcDIWP8oG.ZRLJxKZtgCOgbTBHjCYf2', 'Charlie', 'Brown', true);
+
+-- Assign roles to users
+INSERT INTO user_roles (user_id, role_id) VALUES
+(1, 1), -- admin has ADMIN role
+(2, 2), -- manager1 has MANAGER role  
+(3, 2), -- manager2 has MANAGER role
+(4, 3), -- user1 has USER role
+(5, 3), -- user2 has USER role
+(6, 3); -- user3 has USER role
+
+-- Insert sample todos
+INSERT INTO todo (title, description, completed, priority, created_by, assigned_to, due_date) VALUES
+('Setup Development Environment', 'Install Java, Maven, and IDE', false, 'HIGH', 2, 4, '2024-02-15 17:00:00'),
+('Complete User Authentication', 'Implement JWT authentication system', false, 'URGENT', 2, 5, '2024-02-10 12:00:00'),
+('Write API Documentation', 'Document all REST endpoints', false, 'MEDIUM', 3, 6, '2024-02-20 18:00:00'),
+('Code Review Sprint 1', 'Review and approve Sprint 1 code changes', true, 'HIGH', 2, 2, '2024-02-05 16:00:00'),
+('Deploy to Staging', 'Deploy application to staging environment', false, 'MEDIUM', 1, 2, '2024-02-25 14:00:00'),
+('User Testing Session', 'Conduct user acceptance testing', false, 'LOW', 3, 4, '2024-03-01 10:00:00');</code></pre>
+                    
+                    <div class="highlight-box">
+                        <h4>🔐 Default Login Credentials</h4>
+                        <ul>
+                            <li><strong>Admin:</strong> admin / password123</li>
+                            <li><strong>Manager:</strong> manager1 / password123</li>
+                            <li><strong>User:</strong> user1 / password123</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Entities Tab Panel -->
+                <div id="entities" class="tab-panel">
+                    <h2>🏗️ Entity Models</h2>
+                    
+                    <h3>👤 User Entity</h3>
+                    <pre><code>package com.example.todoapp.entity;
+
+import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+@Entity
+@Table(name = "users")
+public class User implements UserDetails {
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
+    @NotBlank(message = "Username is required")
+    @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
+    @Column(unique = true, nullable = false)
+    private String username;
+    
+    @NotBlank(message = "Email is required")
+    @Email(message = "Email should be valid")
+    @Column(unique = true, nullable = false)
+    private String email;
+    
+    @NotBlank(message = "Password is required")
+    @Size(min = 6, message = "Password must be at least 6 characters")
+    @Column(nullable = false)
+    private String password;
+    
+    @Column(name = "first_name")
+    private String firstName;
+    
+    @Column(name = "last_name")
+    private String lastName;
+    
+    @Column(nullable = false)
+    private Boolean enabled = true;
+    
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+        name = "user_roles",
+        joinColumns = @JoinColumn(name = "user_id"),
+        inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
+    private Set&lt;Role&gt; roles;
+    
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+    
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+    
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+    
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
+    
+    // UserDetails implementation
+    @Override
+    public Collection&lt;? extends GrantedAuthority&gt; getAuthorities() {
+        return roles.stream()
+                .map(role -&gt; new SimpleGrantedAuthority("ROLE_" + role.getName()))
+                .collect(Collectors.toList());
+    }
+    
+    @Override
+    public boolean isAccountNonExpired() { return true; }
+    
+    @Override
+    public boolean isAccountNonLocked() { return true; }
+    
+    @Override
+    public boolean isCredentialsNonExpired() { return true; }
+    
+    @Override
+    public boolean isEnabled() { return enabled; }
+    
+    // Constructors
+    public User() {}
+    
+    public User(String username, String email, String password) {
+        this.username = username;
+        this.email = email;
+        this.password = password;
+    }
+    
+    // Getters and Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    
+    public String getUsername() { return username; }
+    public void setUsername(String username) { this.username = username; }
+    
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+    
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
+    
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
+    
+    public String getLastName() { return lastName; }
+    public void setLastName(String lastName) { this.lastName = lastName; }
+    
+    public Boolean getEnabled() { return enabled; }
+    public void setEnabled(Boolean enabled) { this.enabled = enabled; }
+    
+    public Set&lt;Role&gt; getRoles() { return roles; }
+    public void setRoles(Set&lt;Role&gt; roles) { this.roles = roles; }
+    
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+}</code></pre>
+                    
+                    <h3>👮 Role Entity</h3>
+                    <pre><code>package com.example.todoapp.entity;
+
+import jakarta.persistence.*;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "roles")
+public class Role {
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
+    @Column(unique = true, nullable = false)
+    private String name;
+    
+    private String description;
+    
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+    
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+    }
+    
+    // Constructors
+    public Role() {}
+    
+    public Role(String name, String description) {
+        this.name = name;
+        this.description = description;
+    }
+    
+    // Getters and Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+    
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+}</code></pre>
+                    
+                    <h3>📝 Enhanced Todo Entity</h3>
+                    <pre><code>package com.example.todoapp.entity;
+
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "todo")
+public class Todo {
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
+    @NotBlank(message = "Title cannot be blank")
+    @Size(max = 100, message = "Title cannot exceed 100 characters")
+    @Column(nullable = false)
+    private String title;
+    
+    @Size(max = 500, message = "Description cannot exceed 500 characters")
+    @Column(columnDefinition = "TEXT")
+    private String description;
+    
+    @Column(nullable = false)
+    private Boolean completed = false;
+    
+    @Enumerated(EnumType.STRING)
+    private Priority priority = Priority.MEDIUM;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by", nullable = false)
+    private User createdBy;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assigned_to")
+    private User assignedTo;
+    
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+    
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+    
+    @Column(name = "due_date")
+    private LocalDateTime dueDate;
+    
+    public enum Priority {
+        LOW, MEDIUM, HIGH, URGENT
+    }
+    
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+    
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
+    
+    // Constructors
+    public Todo() {}
+    
+    public Todo(String title, String description) {
+        this.title = title;
+        this.description = description;
+        this.completed = false;
+    }
+    
+    // Getters and Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
+    
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+    
+    public Boolean getCompleted() { return completed; }
+    public void setCompleted(Boolean completed) { this.completed = completed; }
+    
+    public Priority getPriority() { return priority; }
+    public void setPriority(Priority priority) { this.priority = priority; }
+    
+    public User getCreatedBy() { return createdBy; }
+    public void setCreatedBy(User createdBy) { this.createdBy = createdBy; }
+    
+    public User getAssignedTo() { return assignedTo; }
+    public void setAssignedTo(User assignedTo) { this.assignedTo = assignedTo; }
+    
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    
+    public LocalDateTime getDueDate() { return dueDate; }
+    public void setDueDate(LocalDateTime dueDate) { this.dueDate = dueDate; }
+}</code></pre>
+                </div>
+
+                <!-- Security Tab Panel -->
+                <div id="security" class="tab-panel">
+                    <h2>🔐 Security Configuration</h2>
+                    
+                    <h3>⚙️ Security Config</h3>
+                    <pre><code>package com.example.todoapp.security;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+@Configuration
+@EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true)
+public class SecurityConfig {
+    
+    @Autowired
+    private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    
+    @Autowired
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
+    
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+    
+    @Bean
+    public AuthenticationManager authenticationManager(
+            AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
+    }
+    
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http.csrf(csrf -&gt; csrf.disable())
+            .exceptionHandling(ex -&gt; ex.authenticationEntryPoint(jwtAuthenticationEntryPoint))
+            .sessionManagement(session -&gt; session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(auth -&gt; auth
+                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/h2-console/**").permitAll()
+                .requestMatchers("/api/todos/**").authenticated()
+                .requestMatchers("/api/users/**").authenticated()
+                .anyRequest().authenticated()
+            );
+        
+        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        
+        // For H2 Console
+        http.headers(headers -&gt; headers.frameOptions().disable());
+        
+        return http.build();
+    }
+}</code></pre>
+                    
+                    <h3>🎫 JWT Token Provider</h3>
+                    <pre><code>package com.example.todoapp.security;
+
+import io.jsonwebtoken.*;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Component;
+
+import java.security.Key;
+import java.util.Date;
+
+@Component
+public class JwtTokenProvider {
+    
+    @Value("${app.jwt-secret}")
+    private String jwtSecret;
+    
+    @Value("${app.jwt-expiration-milliseconds}")
+    private long jwtExpirationDate;
+    
+    // Generate JWT token
+    public String generateToken(Authentication authentication) {
+        String username = authentication.getName();
+        Date currentDate = new Date();
+        Date expireDate = new Date(currentDate.getTime() + jwtExpirationDate);
+        
+        return Jwts.builder()
+                .setSubject(username)
+                .setIssuedAt(new Date())
+                .setExpiration(expireDate)
+                .signWith(key())
+                .compact();
+    }
+    
+    private Key key() {
+        return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
+    }
+    
+    // Get username from JWT token
+    public String getUsername(String token) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(key())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+        return claims.getSubject();
+    }
+    
+    // Validate JWT token
+    public boolean validateToken(String token) {
+        try {
+            Jwts.parserBuilder()
+                    .setSigningKey(key())
+                    .build()
+                    .parse(token);
+            return true;
+        } catch (MalformedJwtException e) {
+            System.err.println("Invalid JWT token");
+        } catch (ExpiredJwtException e) {
+            System.err.println("JWT token is expired");
+        } catch (UnsupportedJwtException e) {
+            System.err.println("JWT token is unsupported");
+        } catch (IllegalArgumentException e) {
+            System.err.println("JWT claims string is empty");
+        }
+        return false;
+    }
+}</code></pre>
+                    
+                    <h3>🔒 JWT Authentication Filter</h3>
+                    <pre><code>package com.example.todoapp.security;
+
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import java.io.IOException;
+
+@Component
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
+    
+    @Autowired
+    private JwtTokenProvider tokenProvider;
+    
+    @Autowired
+    private UserDetailsService userDetailsService;
+    
+    @Override
+    protected void doFilterInternal(HttpServletRequest request,
+                                  HttpServletResponse response,
+                                  FilterChain filterChain) throws ServletException, IOException {
+        
+        String token = getTokenFromRequest(request);
+        
+        if (StringUtils.hasText(token) && tokenProvider.validateToken(token)) {
+            String username = tokenProvider.getUsername(token);
+            
+            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+            UsernamePasswordAuthenticationToken authenticationToken = 
+                    new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+            authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            
+            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+        }
+        
+        filterChain.doFilter(request, response);
+    }
+    
+    private String getTokenFromRequest(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
+        }
+        return null;
+    }
+}</code></pre>
+                    
+                    <div class="security-box">
+                        <h4>🔐 Enhanced application.properties</h4>
+                        <pre><code># Database Configuration
+spring.datasource.url=jdbc:h2:mem:testdb
+spring.datasource.driverClassName=org.h2.Driver
+spring.datasource.username=sa
+spring.datasource.password=password
+spring.h2.console.enabled=true
+
+# JPA Configuration
+spring.jpa.database-platform=org.hibernate.dialect.H2Dialect
+spring.jpa.hibernate.ddl-auto=none
+spring.jpa.show-sql=true
+spring.jpa.defer-datasource-initialization=true
+spring.sql.init.mode=always
+
+# JWT Configuration
+app.jwt-secret=mySecretKey1234567890123456789012345678901234567890
+app.jwt-expiration-milliseconds=604800000
+
+# Server Configuration
+server.port=8080
+logging.level.com.example.todoapp=DEBUG</code></pre>
+                    </div>
+                </div>
+
+                <!-- Authentication Tab Panel -->
+                <div id="authentication" class="tab-panel">
+                    <h2>🔑 Authentication Implementation</h2>
+                    
+                    <h3>🎫 Authentication Controller</h3>
+                    <pre><code>package com.example.todoapp.controller;
+
+import com.example.todoapp.dto.JwtResponse;
+import com.example.todoapp.dto.LoginRequest;
+import com.example.todoapp.security.JwtTokenProvider;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/auth")
+@CrossOrigin(origins = "*")
+public class AuthController {
+    
+    @Autowired
+    private AuthenticationManager authenticationManager;
+    
+    @Autowired
+    private JwtTokenProvider tokenProvider;
+    
+    @PostMapping("/login")
+    public ResponseEntity&lt;JwtResponse&gt; authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
+        
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        loginRequest.getUsername(),
+                        loginRequest.getPassword()
+                )
+        );
+        
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        String jwt = tokenProvider.generateToken(authentication);
+        
+        return ResponseEntity.ok(new JwtResponse(jwt));
+    }
+}</code></pre>
+                    
+                    <h3>📋 DTOs for Authentication</h3>
+                    <pre><code>// LoginRequest.java
+package com.example.todoapp.dto;
+
+import jakarta.validation.constraints.NotBlank;
+
+public class LoginRequest {
+    @NotBlank
+    private String username;
+    
+    @NotBlank
+    private String password;
+    
+    // Constructors
+    public LoginRequest() {}
+    
+    public LoginRequest(String username, String password) {
+        this.username = username;
+        this.password = password;
+    }
+    
+    // Getters and Setters
+    public String getUsername() { return username; }
+    public void setUsername(String username) { this.username = username; }
+    
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
+}
+
+// JwtResponse.java
+package com.example.todoapp.dto;
+
+public class JwtResponse {
+    private String accessToken;
+    private String tokenType = "Bearer";
+    
+    public JwtResponse(String accessToken) {
+        this.accessToken = accessToken;
+    }
+    
+    // Getters and Setters
+    public String getAccessToken() { return accessToken; }
+    public void setAccessToken(String accessToken) { this.accessToken = accessToken; }
+    
+    public String getTokenType() { return tokenType; }
+    public void setTokenType(String tokenType) { this.tokenType = tokenType; }
+}</code></pre>
+                    
+                    <h3>👥 Custom User Details Service</h3>
+                    <pre><code>package com.example.todoapp.security;
+
+import com.example.todoapp.entity.User;
+import com.example.todoapp.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
+
+@Service
+public class CustomUserDetailsService implements UserDetailsService {
+    
+    @Autowired
+    private UserRepository userRepository;
+    
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -&gt; new UsernameNotFoundException("User not found: " + username));
+        
+        return user;
+    }
+}</code></pre>
+                </div>
+
+                <!-- Authorization Tab Panel -->
+                <div id="authorization" class="tab-panel">
+                    <h2>👮 Authorization & Role-based Access</h2>
+                    
+                    <h3>🔒 Enhanced Todo Service with Authorization</h3>
+                    <pre><code>package com.example.todoapp.service;
+
+import com.example.todoapp.entity.Todo;
+import com.example.todoapp.entity.User;
+import com.example.todoapp.repository.TodoRepository;
+import com.example.todoapp.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
+
+@Service
+public class TodoService {
+    
+    @Autowired
+    private TodoRepository todoRepository;
+    
+    @Autowired
+    private UserRepository userRepository;
+    
+    // MANAGERS can create todos and assign to users
+    @PreAuthorize("hasRole('MANAGER') or hasRole('ADMIN')")
+    public Todo createTodo(Todo todo) {
+        User currentUser = getCurrentUser();
+        todo.setCreatedBy(currentUser);
+        
+        // If no assignee specified, assign to creator
+        if (todo.getAssignedTo() == null) {
+            todo.setAssignedTo(currentUser);
+        }
+        
+        return todoRepository.save(todo);
+    }
+    
+    // Users can only see their own todos, Managers see team todos, Admins see all
+    public List&lt;Todo&gt; getAllTodos() {
+        User currentUser = getCurrentUser();
+        
+        if (hasRole("ADMIN")) {
+            return todoRepository.findAll();
+        } else if (hasRole("MANAGER")) {
+            // Managers see todos they created or are assigned to
+            return todoRepository.findByCreatedByOrAssignedTo(currentUser, currentUser);
+        } else {
+            // Users see only their assigned todos
+            return todoRepository.findByAssignedTo(currentUser);
+        }
+    }
+    
+    // Users can update their own todos, Managers can update team todos
+    public Todo updateTodo(Long id, Todo updatedTodo) {
+        Todo existingTodo = todoRepository.findById(id)
+                .orElseThrow(() -&gt; new RuntimeException("Todo not found"));
+        
+        User currentUser = getCurrentUser();
+        
+        if (!canAccessTodo(existingTodo, currentUser)) {
+            throw new RuntimeException("Access denied");
+        }
+        
+        existingTodo.setTitle(updatedTodo.getTitle());
+        existingTodo.setDescription(updatedTodo.getDescription());
+        existingTodo.setCompleted(updatedTodo.getCompleted());
+        existingTodo.setPriority(updatedTodo.getPriority());
+        existingTodo.setDueDate(updatedTodo.getDueDate());
+        
+        return todoRepository.save(existingTodo);
+    }
+    
+    // Only ADMINS can delete todos
+    @PreAuthorize("hasRole('ADMIN')")
+    public void deleteTodo(Long id) {
+        Todo todo = todoRepository.findById(id)
+                .orElseThrow(() -&gt; new RuntimeException("Todo not found"));
+        todoRepository.delete(todo);
+    }
+    
+    // MANAGERS can assign todos to users
+    @PreAuthorize("hasRole('MANAGER') or hasRole('ADMIN')")
+    public Todo assignTodo(Long todoId, Long userId) {
+        Todo todo = todoRepository.findById(todoId)
+                .orElseThrow(() -&gt; new RuntimeException("Todo not found"));
+        
+        User assignee = userRepository.findById(userId)
+                .orElseThrow(() -&gt; new RuntimeException("User not found"));
+        
+        todo.setAssignedTo(assignee);
+        return todoRepository.save(todo);
+    }
+    
+    public Optional&lt;Todo&gt; getTodoById(Long id) {
+        Optional&lt;Todo&gt; todo = todoRepository.findById(id);
+        
+        if (todo.isPresent()) {
+            User currentUser = getCurrentUser();
+            if (!canAccessTodo(todo.get(), currentUser)) {
+                return Optional.empty();
+            }
+        }
+        
+        return todo;
+    }
+    
+    private boolean canAccessTodo(Todo todo, User user) {
+        // Admin can access all todos
+        if (hasRole("ADMIN")) {
+            return true;
+        }
+        
+        // Manager can access todos they created or are assigned to
+        if (hasRole("MANAGER")) {
+            return todo.getCreatedBy().getId().equals(user.getId()) ||
+                   todo.getAssignedTo().getId().equals(user.getId());
+        }
+        
+        // User can access only their assigned todos
+        return todo.getAssignedTo().getId().equals(user.getId());
+    }
+    
+    private User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -&gt; new RuntimeException("User not found"));
+    }
+    
+    private boolean hasRole(String role) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication.getAuthorities().stream()
+                .anyMatch(authority -&gt; authority.getAuthority().equals("ROLE_" + role));
+    }
+}</code></pre>
+                    
+                    <h3>📊 Enhanced Repository with Security Queries</h3>
+                    <pre><code>package com.example.todoapp.repository;
+
+import com.example.todoapp.entity.Todo;
+import com.example.todoapp.entity.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+public interface TodoRepository extends JpaRepository&lt;Todo, Long&gt; {
+    
+    // Find todos by assigned user
+    List&lt;Todo&gt; findByAssignedTo(User assignedTo);
+    
+    // Find todos by creator
+    List&lt;Todo&gt; findByCreatedBy(User createdBy);
+    
+    // Find todos by creator OR assigned user (for managers)
+    List&lt;Todo&gt; findByCreatedByOrAssignedTo(User createdBy, User assignedTo);
+    
+    // Find todos by completion status
+    List&lt;Todo&gt; findByCompleted(Boolean completed);
+    
+    // Find todos by priority
+    List&lt;Todo&gt; findByPriority(Todo.Priority priority);
+    
+    // Custom query for manager's team todos
+    @Query("SELECT t FROM Todo t WHERE t.createdBy = :manager OR t.assignedTo = :manager")
+    List&lt;Todo&gt; findManagerTodos(@Param("manager") User manager);
+    
+    // Find overdue todos
+    @Query("SELECT t FROM Todo t WHERE t.dueDate &lt; CURRENT_TIMESTAMP AND t.completed = false")
+    List&lt;Todo&gt; findOverdueTodos();
+    
+    // Count todos by user and status
+    @Query("SELECT COUNT(t) FROM Todo t WHERE t.assignedTo = :user AND t.completed = :completed")
+    Long countByAssignedToAndCompleted(@Param("user") User user, @Param("completed") Boolean completed);
+}</code></pre>
+                    
+                    <div class="security-box">
+                        <h4>🔐 Role-based Access Summary</h4>
+                        <table class="role-table">
+                            <thead>
+                                <tr>
+                                    <th>Action</th>
+                                    <th>ADMIN</th>
+                                    <th>MANAGER</th>
+                                    <th>USER</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Create TODO</td>
+                                    <td class="role-admin">✅ All</td>
+                                    <td class="role-manager">✅ Can assign</td>
+                                    <td class="role-user">❌ No</td>
+                                </tr>
+                                <tr>
+                                    <td>View TODOs</td>
+                                    <td class="role-admin">✅ All TODOs</td>
+                                    <td class="role-manager">✅ Team TODOs</td>
+                                    <td class="role-user">✅ Own TODOs</td>
+                                </tr>
+                                <tr>
+                                    <td>Update TODO</td>
+                                    <td class="role-admin">✅ All</td>
+                                    <td class="role-manager">✅ Team TODOs</td>
+                                    <td class="role-user">✅ Own TODOs</td>
+                                </tr>
+                                <tr>
+                                    <td>Delete TODO</td>
+                                    <td class="role-admin">✅ Only Admins</td>
+                                    <td class="role-manager">❌ No</td>
+                                    <td class="role-user">❌ No</td>
+                                </tr>
+                                <tr>
+                                    <td>Assign TODO</td>
+                                    <td class="role-admin">✅ All</td>
+                                    <td class="role-manager">✅ To users</td>
+                                    <td class="role-user">❌ No</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Enhanced Repository Tab Panel -->
+                <div id="repository" class="tab-panel">
+                    <h2>📊 Repository Layer</h2>
+                    
+                    <h3>👤 User Repository</h3>
+                    <pre><code>package com.example.todoapp.repository;
+
+import com.example.todoapp.entity.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
+    
+    Optional&lt;User&gt; findByUsername(String username);
+    
+    Optional&lt;User&gt; findByEmail(String email);
+    
+    Boolean existsByUsername(String username);
+    
+    Boolean existsByEmail(String email);
+    
+    @Query("SELECT u FROM User u JOIN u.roles r WHERE r.name = :roleName")
+    List&lt;User&gt; findByRoleName(@Param("roleName") String roleName);
+    
+    List&lt;User&gt; findByEnabledTrue();
+}</code></pre>
+                    
+                    <h3>👮 Role Repository</h3>
+                    <pre><code>package com.example.todoapp.repository;
+
+import com.example.todoapp.entity.Role;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
+
+@Repository
+public interface RoleRepository extends JpaRepository&lt;Role, Long&gt; {
+    
+    Optional&lt;Role&gt; findByName(String name);
+}</code></pre>
+                </div>
+
+                <!-- Enhanced Service Tab Panel -->
+                <div id="service" class="tab-panel">
+                    <h2>🔧 Service Layer</h2>
+                    
+                    <h3>👥 User Service</h3>
+                    <pre><code>package com.example.todoapp.service;
+
+import com.example.todoapp.entity.Role;
+import com.example.todoapp.entity.User;
+import com.example.todoapp.repository.RoleRepository;
+import com.example.todoapp.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
+@Service
+public class UserService {
+    
+    @Autowired
+    private UserRepository userRepository;
+    
+    @Autowired
+    private RoleRepository roleRepository;
+    
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    
+    @PreAuthorize("hasRole('ADMIN')")
+    public User createUser(User user, String roleName) {
+        // Check if username exists
+        if (userRepository.existsByUsername(user.getUsername())) {
+            throw new RuntimeException("Username is already taken!");
+        }
+        
+        // Check if email exists
+        if (userRepository.existsByEmail(user.getEmail())) {
+            throw new RuntimeException("Email is already in use!");
+        }
+        
+        // Encode password
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        
+        // Set default role if not specified
+        if (roleName == null) {
+            roleName = "USER";
+        }
+        
+        Role role = roleRepository.findByName(roleName)
+                .orElseThrow(() -&gt; new RuntimeException("Role not found: " + roleName));
+        
+        Set&lt;Role&gt; roles = new HashSet&lt;&gt;();
+        roles.add(role);
+        user.setRoles(roles);
+        
+        return userRepository.save(user);
+    }
+    
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
+    public List&lt;User&gt; getAllUsers() {
+        return userRepository.findByEnabledTrue();
+    }
+    
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
+    public Optional&lt;User&gt; getUserById(Long id) {
+        return userRepository.findById(id);
+    }
+    
+    @PreAuthorize("hasRole('ADMIN')")
+    public User updateUser(Long id, User updatedUser) {
+        User existingUser = userRepository.findById(id)
+                .orElseThrow(() -&gt; new RuntimeException("User not found"));
+        
+        existingUser.setFirstName(updatedUser.getFirstName());
+        existingUser.setLastName(updatedUser.getLastName());
+        existingUser.setEmail(updatedUser.getEmail());
+        existingUser.setEnabled(updatedUser.getEnabled());
+        
+        return userRepository.save(existingUser);
+    }
+    
+    @PreAuthorize("hasRole('ADMIN')")
+    public void deleteUser(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -&gt; new RuntimeException("User not found"));
+        userRepository.delete(user);
+    }
+    
+    public List&lt;User&gt; getUsersByRole(String roleName) {
+        return userRepository.findByRoleName(roleName);
+    }
+}</code></pre>
+                </div>
+
+                <!-- Enhanced Controller Tab Panel -->
+                <div id="controller" class="tab-panel">
+                    <h2>🌐 Enhanced Controllers</h2>
+                    
+                    <h3>📝 Secure Todo Controller</h3>
+                    <pre><code>package com.example.todoapp.controller;
+
+import com.example.todoapp.entity.Todo;
+import com.example.todoapp.service.TodoService;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Optional;
+
+@RestController
+@RequestMapping("/api/todos")
+@CrossOrigin(origins = "*")
+public class TodoController {
+    
+    @Autowired
+    private TodoService todoService;
+    
+    // Get all todos (filtered by role)
+    @GetMapping
+    public ResponseEntity&lt;List&lt;Todo&gt;&gt; getAllTodos() {
+        List&lt;Todo&gt; todos = todoService.getAllTodos();
+        return ResponseEntity.ok(todos);
+    }
+    
+    // Get todo by ID
+    @GetMapping("/{id}")
+    public ResponseEntity&lt;Todo&gt; getTodoById(@PathVariable Long id) {
+        Optional&lt;Todo&gt; todo = todoService.getTodoById(id);
+        return todo.map(ResponseEntity::ok)
+                   .orElse(ResponseEntity.notFound().build());
+    }
+    
+    // Create new todo (Managers and Admins only)
+    @PostMapping
+    @PreAuthorize("hasRole('MANAGER') or hasRole('ADMIN')")
+    public ResponseEntity&lt;Todo&gt; createTodo(@Valid @RequestBody Todo todo) {
+        Todo createdTodo = todoService.createTodo(todo);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdTodo);
+    }
+    
+    // Update existing todo
+    @PutMapping("/{id}")
+    public ResponseEntity&lt;Todo&gt; updateTodo(@PathVariable Long id, 
+                                          @Valid @RequestBody Todo todo) {
+        try {
+            Todo updatedTodo = todoService.updateTodo(id, todo);
+            return ResponseEntity.ok(updatedTodo);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+    }
+    
+    // Delete todo (Admins only)
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity&lt;Void&gt; deleteTodo(@PathVariable Long id) {
+        try {
+            todoService.deleteTodo(id);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+    
+    // Assign todo to user (Managers and Admins only)
+    @PutMapping("/{todoId}/assign/{userId}")
+    @PreAuthorize("hasRole('MANAGER') or hasRole('ADMIN')")
+    public ResponseEntity&lt;Todo&gt; assignTodo(@PathVariable Long todoId, 
+                                          @PathVariable Long userId) {
+        try {
+            Todo assignedTodo = todoService.assignTodo(todoId, userId);
+            return ResponseEntity.ok(assignedTodo);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+}</code></pre>
+                    
+                    <h3>👥 User Management Controller</h3>
+                    <pre><code>package com.example.todoapp.controller;
+
+import com.example.todoapp.entity.User;
+import com.example.todoapp.service.UserService;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Optional;
+
+@RestController
+@RequestMapping("/api/users")
+@CrossOrigin(origins = "*")
+public class UserController {
+    
+    @Autowired
+    private UserService userService;
+    
+    // Get all users (Admins and Managers only)
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
+    public ResponseEntity&lt;List&lt;User&gt;&gt; getAllUsers() {
+        List&lt;User&gt; users = userService.getAllUsers();
+        return ResponseEntity.ok(users);
+    }
+    
+    // Get user by ID (Admins and Managers only)
+    @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
+    public ResponseEntity&lt;User&gt; getUserById(@PathVariable Long id) {
+        Optional&lt;User&gt; user = userService.getUserById(id);
+        return user.map(ResponseEntity::ok)
+                   .orElse(ResponseEntity.notFound().build());
+    }
+    
+    // Create new user (Admins only)
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity&lt;User&gt; createUser(@Valid @RequestBody User user,
+                                          @RequestParam(defaultValue = "USER") String role) {
+        try {
+            User createdUser = userService.createUser(user, role);
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+    
+    // Update user (Admins only)
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity&lt;User&gt; updateUser(@PathVariable Long id, 
+                                          @Valid @RequestBody User user) {
+        try {
+            User updatedUser = userService.updateUser(id, user);
+            return ResponseEntity.ok(updatedUser);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+    
+    // Delete user (Admins only)
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity&lt;Void&gt; deleteUser(@PathVariable Long id) {
+        try {
+            userService.deleteUser(id);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+    
+    // Get users by role
+    @GetMapping("/role/{roleName}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
+    public ResponseEntity&lt;List&lt;User&gt;&gt; getUsersByRole(@PathVariable String roleName) {
+        List&lt;User&gt; users = userService.getUsersByRole(roleName);
+        return ResponseEntity.ok(users);
+    }
+}</code></pre>
+                </div>
+
+                <!-- Testing Tab Panel -->
+                <div id="testing" class="tab-panel">
+                    <h2>✅ Security Testing</h2>
+                    
+                    <h3>🧪 Authentication Tests</h3>
+                    <pre><code>package com.example.todoapp.security;
+
+import com.example.todoapp.dto.LoginRequest;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureTestMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+@SpringBootTest
+@AutoConfigureTestMvc
+public class AuthenticationTest {
+    
+    @Autowired
+    private MockMvc mockMvc;
+    
+    @Autowired
+    private ObjectMapper objectMapper;
+    
+    @Test
+    public void testValidLogin() throws Exception {
+        LoginRequest loginRequest = new LoginRequest("admin", "password123");
+        
+        mockMvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(loginRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessToken").exists())
+                .andExpect(jsonPath("$.tokenType").value("Bearer"));
+    }
+    
+    @Test
+    public void testInvalidLogin() throws Exception {
+        LoginRequest loginRequest = new LoginRequest("admin", "wrongpassword");
+        
+        mockMvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(loginRequest)))
+                .andExpect(status().isUnauthorized());
+    }
+}</code></pre>
+                    
+                    <h3>🔐 Authorization Tests</h3>
+                    <pre><code>package com.example.todoapp.security;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureTestMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.web.servlet.MockMvc;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+@SpringBootTest
+@AutoConfigureTestMvc
+public class AuthorizationTest {
+    
+    @Autowired
+    private MockMvc mockMvc;
+    
+    @Test
+    @WithMockUser(roles = "USER")
+    public void testUserCannotDeleteTodos() throws Exception {
+        mockMvc.perform(delete("/api/todos/1"))
+                .andExpect(status().isForbidden());
+    }
+    
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    public void testAdminCanDeleteTodos() throws Exception {
+        mockMvc.perform(delete("/api/todos/1"))
+                .andExpect(status().isNoContent());
+    }
+    
+    @Test
+    @WithMockUser(roles = "USER")
+    public void testUserCannotCreateTodos() throws Exception {
+        mockMvc.perform(post("/api/todos")
+                .contentType("application/json")
+                .content("{\"title\":\"Test\",\"description\":\"Test\"}"))
+                .andExpect(status().isForbidden());
+    }
+    
+    @Test
+    @WithMockUser(roles = "MANAGER")
+    public void testManagerCanCreateTodos() throws Exception {
+        mockMvc.perform(post("/api/todos")
+                .contentType("application/json")
+                .content("{\"title\":\"Test\",\"description\":\"Test\"}"))
+                .andExpect(status().isCreated());
+    }
+}</code></pre>
+                </div>
+
+                <!-- API Documentation Tab Panel -->
+                <div id="api" class="tab-panel">
+                    <h2>📡 Secure API Documentation</h2>
+                    
+                    <h3>🔑 Authentication Endpoints</h3>
+                    
+                    <div class="api-endpoint method-post">
+                        <h4>POST /api/auth/login</h4>
+                        <p><strong>Description:</strong> Authenticate user and get JWT token</p>
+                        <p><strong>Request Body:</strong></p>
+                        <pre><code>{
+  "username": "admin",
+  "password": "password123"
+}</code></pre>
+                        <p><strong>Response:</strong></p>
+                        <pre><code>{
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "tokenType": "Bearer"
+}</code></pre>
+                    </div>
+                    
+                    <h3>📝 Secured TODO Endpoints</h3>
+                    
+                    <div class="api-endpoint method-get">
+                        <h4>GET /api/todos</h4>
+                        <p><strong>Description:</strong> Get todos (filtered by user role)</p>
+                        <p><strong>Headers:</strong> Authorization: Bearer {token}</p>
+                        <p><strong>Access:</strong> All authenticated users</p>
+                    </div>
+                    
+                    <div class="api-endpoint method-post">
+                        <h4>POST /api/todos</h4>
+                        <p><strong>Description:</strong> Create new todo</p>
+                        <p><strong>Headers:</strong> Authorization: Bearer {token}</p>
+                        <p><strong>Access:</strong> MANAGER, ADMIN only</p>
+                        <p><strong>Request Body:</strong></p>
+                        <pre><code>{
+  "title": "Complete project",
+  "description": "Finish all pending tasks",
+  "priority": "HIGH",
+  "dueDate": "2024-02-15T17:00:00",
+  "assignedTo": {
+    "id": 4
+  }
+}</code></pre>
+                    </div>
+                    
+                    <div class="api-endpoint method-delete">
+                        <h4>DELETE /api/todos/{id}</h4>
+                        <p><strong>Description:</strong> Delete todo</p>
+                        <p><strong>Headers:</strong> Authorization: Bearer {token}</p>
+                        <p><strong>Access:</strong> ADMIN only</p>
+                    </div>
+                    
+                    <div class="api-endpoint method-put">
+                        <h4>PUT /api/todos/{todoId}/assign/{userId}</h4>
+                        <p><strong>Description:</strong> Assign todo to user</p>
+                        <p><strong>Headers:</strong> Authorization: Bearer {token}</p>
+                        <p><strong>Access:</strong> MANAGER, ADMIN only</p>
+                    </div>
+                    
+                    <h3>👥 User Management Endpoints</h3>
+                    
+                    <div class="api-endpoint method-get">
+                        <h4>GET /api/users</h4>
+                        <p><strong>Description:</strong> Get all users</p>
+                        <p><strong>Headers:</strong> Authorization: Bearer {token}</p>
+                        <p><strong>Access:</strong> MANAGER, ADMIN only</p>
+                    </div>
+                    
+                    <div class="api-endpoint method-post">
+                        <h4>POST /api/users?role=USER</h4>
+                        <p><strong>Description:</strong> Create new user</p>
+                        <p><strong>Headers:</strong> Authorization: Bearer {token}</p>
+                        <p><strong>Access:</strong> ADMIN only</p>
+                        <p><strong>Request Body:</strong></p>
+                        <pre><code>{
+  "username": "newuser",
+  "email": "newuser@example.com",
+  "password": "securepassword",
+  "firstName": "John",
+  "lastName": "Doe"
+}</code></pre>
+                    </div>
+                    
+                    <h3>🧪 Testing with cURL</h3>
+                    <pre><code># 1. Login to get token
+curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"password123"}'
+
+# Response: {"accessToken":"YOUR_JWT_TOKEN","tokenType":"Bearer"}
+
+# 2. Use token to access protected endpoints
+curl -X GET http://localhost:8080/api/todos \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+
+# 3. Create a todo (Manager/Admin only)
+curl -X POST http://localhost:8080/api/todos \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"title":"New Task","description":"Important task","priority":"HIGH"}'
+
+# 4. Assign todo to user (Manager/Admin only)
+curl -X PUT http://localhost:8080/api/todos/1/assign/4 \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+
+# 5. Delete todo (Admin only)
+curl -X DELETE http://localhost:8080/api/todos/1 \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"</code></pre>
+                    
+                    <div class="security-box">
+                        <h4>🔐 Security Features Summary</h4>
+                        <ul>
+                            <li>✅ <strong>JWT Authentication</strong> - Stateless token-based auth</li>
+                            <li>✅ <strong>Role-based Authorization</strong> - Three-tier access control</li>
+                            <li>✅ <strong>Password Encryption</strong> - BCrypt hashing</li>
+                            <li>✅ <strong>Method-level Security</strong> - @PreAuthorize annotations</li>
+                            <li>✅ <strong>Data Filtering</strong> - Users see only permitted data</li>
+                            <li>✅ <strong>Secure Endpoints</strong> - All APIs require authentication</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabPanels = document.querySelectorAll('.tab-panel');
+            
+            // Add click event listeners to tab buttons
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const tabId = this.getAttribute('data-tab');
+                    
+                    // Remove active class from all buttons and panels
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    tabPanels.forEach(panel => panel.classList.remove('active'));
+                    
+                    // Add active class to clicked button and corresponding panel
+                    this.classList.add('active');
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+            
+            // Add copy functionality to code blocks
+            document.querySelectorAll('pre').forEach(pre => {
+                const button = document.createElement('button');
+                button.className = 'copy-button';
+                button.textContent = 'Copy';
+                button.addEventListener('click', () => {
+                    navigator.clipboard.writeText(pre.textContent).then(() => {
+                        button.textContent = 'Copied!';
+                        setTimeout(() => {
+                            button.textContent = 'Copy';
+                        }, 2000);
+                    });
+                });
+                pre.appendChild(button);
+            });
+        });
+    </script>
+</body>
+</html>
