@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Java Interfaces: Functional & Marker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .tab-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .tab-buttons {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 1rem;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #6c757d;
+            transition: all 0.3s ease;
+        }
+
+        .tab-button:hover {
+            background: #e9ecef;
+            color: #495057;
+        }
+
+        .tab-button.active {
+            background: #667eea;
+            color: white;
+            border-bottom: 3px solid #5a6fd8;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 2rem;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section {
+            margin-bottom: 2rem;
+        }
+
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 1rem;
+            font-size: 1.8rem;
+            border-left: 4px solid #667eea;
+            padding-left: 1rem;
+        }
+
+        .section h3 {
+            color: #495057;
+            margin-bottom: 0.5rem;
+            font-size: 1.3rem;
+        }
+
+        .code-block {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            position: relative;
+        }
+
+        .code-block pre {
+            margin: 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .code-block::before {
+            content: 'Java';
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+        }
+
+        .highlight {
+            background: #fff3cd;
+            padding: 1rem;
+            border-left: 4px solid #ffc107;
+            border-radius: 4px;
+            margin: 1rem 0;
+        }
+
+        .example-box {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .interactive-demo {
+            background: #f8f9fa;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .demo-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .demo-button:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .output {
+            background: #343a40;
+            color: #28a745;
+            font-family: monospace;
+            padding: 1rem;
+            border-radius: 5px;
+            margin-top: 1rem;
+            min-height: 40px;
+            white-space: pre-wrap;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            border: 1px solid #dee2e6;
+            padding: 0.75rem;
+            text-align: left;
+        }
+
+        .comparison-table th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        .comparison-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .pros-cons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .pros, .cons {
+            padding: 1rem;
+            border-radius: 8px;
+        }
+
+        .pros {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+        }
+
+        .cons {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+        }
+
+        .info-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin: 1rem 0;
+            border-left: 4px solid #667eea;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .tab-buttons {
+                flex-direction: column;
+            }
+            
+            .pros-cons {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Java Interfaces Masterclass</h1>
+            <p>Master Functional & Marker Interfaces with Interactive Examples</p>
+        </div>
+
+        <div class="tab-container">
+            <div class="tab-buttons">
+                <button class="tab-button active" onclick="switchTab('functional', event)">
+                    🎯 Functional Interfaces
+                </button>
+                <button class="tab-button" onclick="switchTab('marker', event)">
+                    🏷️ Marker Interfaces
+                </button>
+                <button class="tab-button" onclick="switchTab('comparison', event)">
+                    ⚖️ Comparison
+                </button>
+            </div>
+
+            <!-- Functional Interface Tab -->
+            <div id="functional" class="tab-content active">
+                <div class="section">
+                    <h2>What is a Functional Interface?</h2>
+                    <p>A <strong>Functional Interface</strong> is an interface that contains exactly <strong>one abstract method</strong>. It can have multiple default and static methods, but only one abstract method.</p>
+                    
+                    <div class="highlight">
+                        <strong>Key Point:</strong> Functional interfaces are the foundation of Lambda expressions in Java 8+. They enable functional programming concepts in Java.
+                    </div>
+
+                    <div class="code-block">
+                        <pre>@FunctionalInterface
+public interface Calculator {
+    // Only one abstract method
+    int calculate(int a, int b);
+    
+    // Default methods are allowed
+    default void printResult(int result) {
+        System.out.println("Result: " + result);
+    }
+    
+    // Static methods are allowed
+    static void info() {
+        System.out.println("Calculator Interface");
+    }
+}</pre>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>Why are Functional Interfaces Required?</h2>
+                    <div class="info-card">
+                        <h3>🎯 Primary Reasons:</h3>
+                        <ul>
+                            <li><strong>Lambda Expression Support:</strong> Enables concise syntax for anonymous functions</li>
+                            <li><strong>Functional Programming:</strong> Brings functional programming paradigms to Java</li>
+                            <li><strong>Code Readability:</strong> Makes code more readable and maintainable</li>
+                            <li><strong>Stream API:</strong> Essential for Java 8's Stream API operations</li>
+                            <li><strong>Method References:</strong> Allows method references as lambda alternatives</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>Lambda Expressions with Functional Interfaces</h2>
+                    <p>Lambda expressions provide a clear and concise way to represent functional interfaces using an expression.</p>
+                    
+                    <div class="code-block">
+                        <pre>// Traditional way (Anonymous Inner Class)
+Calculator traditionalCalc = new Calculator() {
+    @Override
+    public int calculate(int a, int b) {
+        return a + b;
+    }
+};
+
+// Lambda Expression way
+Calculator lambdaCalc = (a, b) -> a + b;
+
+// Method Reference way
+Calculator methodRefCalc = Integer::sum;</pre>
+                    </div>
+
+                    <div class="interactive-demo">
+                        <h3>🎮 Interactive Lambda Demo</h3>
+                        <p>Try different lambda operations:</p>
+                        <button class="demo-button" onclick="demonstrateLambda('add')">Addition</button>
+                        <button class="demo-button" onclick="demonstrateLambda('multiply')">Multiplication</button>
+                        <button class="demo-button" onclick="demonstrateLambda('subtract')">Subtraction</button>
+                        <div class="output" id="lambdaOutput">Click a button to see lambda in action!</div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>Built-in Functional Interfaces</h2>
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Interface</th>
+                                <th>Method</th>
+                                <th>Purpose</th>
+                                <th>Example</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Predicate&lt;T&gt;</td>
+                                <td>test(T t)</td>
+                                <td>Boolean-valued function</td>
+                                <td>x -> x > 5</td>
+                            </tr>
+                            <tr>
+                                <td>Function&lt;T,R&gt;</td>
+                                <td>apply(T t)</td>
+                                <td>Transform T to R</td>
+                                <td>s -> s.length()</td>
+                            </tr>
+                            <tr>
+                                <td>Consumer&lt;T&gt;</td>
+                                <td>accept(T t)</td>
+                                <td>Consume input</td>
+                                <td>System.out::println</td>
+                            </tr>
+                            <tr>
+                                <td>Supplier&lt;T&gt;</td>
+                                <td>get()</td>
+                                <td>Supply values</td>
+                                <td>() -> new Date()</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="interactive-demo">
+                        <h3>🎮 Built-in Interface Demo</h3>
+                        <button class="demo-button" onclick="demonstrateBuiltIn('predicate')">Predicate</button>
+                        <button class="demo-button" onclick="demonstrateBuiltIn('function')">Function</button>
+                        <button class="demo-button" onclick="demonstrateBuiltIn('consumer')">Consumer</button>
+                        <button class="demo-button" onclick="demonstrateBuiltIn('supplier')">Supplier</button>
+                        <div class="output" id="builtInOutput">Click to explore built-in functional interfaces!</div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>Implementation Examples</h2>
+                    <div class="example-box">
+                        <h3>Complete Implementation Example:</h3>
+                        <div class="code-block">
+                            <pre>import java.util.function.*;
+import java.util.Arrays;
+import java.util.List;
+
+public class FunctionalInterfaceDemo {
+    public static void main(String[] args) {
+        // Custom Functional Interface
+        Processor processor = data -> data.toUpperCase();
+        System.out.println(processor.process("hello")); // HELLO
+        
+        // Using with Streams
+        List&lt;String&gt; names = Arrays.asList("alice", "bob", "charlie");
+        names.stream()
+             .map(processor::process)
+             .forEach(System.out::println);
+        
+        // Built-in Functional Interfaces
+        Predicate&lt;Integer&gt; isEven = n -> n % 2 == 0;
+        Function&lt;String, Integer&gt; getLength = String::length;
+        Consumer&lt;String&gt; printer = System.out::println;
+        Supplier&lt;Double&gt; randomValue = Math::random;
+    }
+}
+
+@FunctionalInterface
+interface Processor {
+    String process(String data);
+}</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Marker Interface Tab -->
+            <div id="marker" class="tab-content">
+                <div class="section">
+                    <h2>What is a Marker Interface?</h2>
+                    <p>A <strong>Marker Interface</strong> is an empty interface (no methods or fields) that provides metadata about a class. It's used to mark or tag classes with specific characteristics.</p>
+                    
+                    <div class="highlight">
+                        <strong>Key Point:</strong> Marker interfaces don't define behavior; they provide type information that can be checked at runtime using instanceof operator.
+                    </div>
+
+                    <div class="code-block">
+                        <pre>// Example of a marker interface
+public interface Serializable {
+    // Empty - no methods or fields
+}
+
+// Usage
+public class Person implements Serializable {
+    private String name;
+    private int age;
+    // Class implementation
+}</pre>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>Why are Marker Interfaces Required?</h2>
+                    <div class="info-card">
+                        <h3>🏷️ Primary Purposes:</h3>
+                        <ul>
+                            <li><strong>Runtime Type Checking:</strong> Enable instanceof checks for special behaviors</li>
+                            <li><strong>Framework Integration:</strong> Allow frameworks to identify special classes</li>
+                            <li><strong>Metadata Provision:</strong> Provide compile-time and runtime metadata</li>
+                            <li><strong>Design Patterns:</strong> Support various design patterns and architectural decisions</li>
+                            <li><strong>JVM Optimization:</strong> Help JVM make optimization decisions</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>Common Java Marker Interfaces</h2>
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Interface</th>
+                                <th>Purpose</th>
+                                <th>Package</th>
+                                <th>Usage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Serializable</td>
+                                <td>Object can be serialized</td>
+                                <td>java.io</td>
+                                <td>I/O operations</td>
+                            </tr>
+                            <tr>
+                                <td>Cloneable</td>
+                                <td>Object can be cloned</td>
+                                <td>java.lang</td>
+                                <td>Object cloning</td>
+                            </tr>
+                            <tr>
+                                <td>Remote</td>
+                                <td>Object can be used remotely</td>
+                                <td>java.rmi</td>
+                                <td>RMI operations</td>
+                            </tr>
+                            <tr>
+                                <td>RandomAccess</td>
+                                <td>List supports fast random access</td>
+                                <td>java.util</td>
+                                <td>Collection optimization</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="section">
+                    <h2>Implementation Examples</h2>
+                    <div class="example-box">
+                        <h3>Creating and Using Marker Interfaces:</h3>
+                        <div class="code-block">
+                            <pre>// Custom marker interface
+interface Loggable {
+    // Empty marker interface
+}
+
+interface Cacheable {
+    // Another marker interface
+}
+
+// Implementation
+class DatabaseService implements Loggable, Cacheable {
+    private String data;
+    
+    public void processData() {
+        System.out.println("Processing data...");
+    }
+}
+
+// Usage in framework code
+public class ServiceManager {
+    public void handleService(Object service) {
+        // Check for marker interfaces
+        if (service instanceof Loggable) {
+            System.out.println("Logging enabled for: " + service.getClass().getSimpleName());
+        }
+        
+        if (service instanceof Cacheable) {
+            System.out.println("Caching enabled for: " + service.getClass().getSimpleName());
+        }
+    }
+}</pre>
+                        </div>
+                    </div>
+
+                    <div class="interactive-demo">
+                        <h3>🎮 Marker Interface Demo</h3>
+                        <button class="demo-button" onclick="demonstrateMarker('check')">Check Interfaces</button>
+                        <button class="demo-button" onclick="demonstrateMarker('serialize')">Serialization</button>
+                        <button class="demo-button" onclick="demonstrateMarker('clone')">Cloning</button>
+                        <div class="output" id="markerOutput">Click to see marker interfaces in action!</div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>Marker Interface vs Annotations</h2>
+                    <div class="pros-cons">
+                        <div class="pros">
+                            <h3>✅ Marker Interfaces</h3>
+                            <ul>
+                                <li>Type safety at compile time</li>
+                                <li>Part of type hierarchy</li>
+                                <li>Can be used in generic constraints</li>
+                                <li>Better performance</li>
+                            </ul>
+                        </div>
+                        <div class="cons">
+                            <h3>📝 Annotations</h3>
+                            <ul>
+                                <li>Can carry data/parameters</li>
+                                <li>More flexible</li>
+                                <li>Don't affect class hierarchy</li>
+                                <li>Can be applied to methods, fields</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comparison Tab -->
+            <div id="comparison" class="tab-content">
+                <div class="section">
+                    <h2>Functional vs Marker Interfaces</h2>
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Aspect</th>
+                                <th>Functional Interface</th>
+                                <th>Marker Interface</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Methods</strong></td>
+                                <td>Exactly one abstract method</td>
+                                <td>No methods at all</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Purpose</strong></td>
+                                <td>Define behavior/operation</td>
+                                <td>Provide metadata/tagging</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Usage</strong></td>
+                                <td>Lambda expressions, method references</td>
+                                <td>instanceof checks, framework integration</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Examples</strong></td>
+                                <td>Runnable, Callable, Predicate</td>
+                                <td>Serializable, Cloneable, Remote</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Since Version</strong></td>
+                                <td>Java 8 (enhanced)</td>
+                                <td>Java 1.0</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Annotation</strong></td>
+                                <td>@FunctionalInterface (optional)</td>
+                                <td>No specific annotation</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="section">
+                    <h2>When to Use Each</h2>
+                    <div class="info-card">
+                        <h3>🎯 Use Functional Interfaces When:</h3>
+                        <ul>
+                            <li>You need to pass behavior as parameters</li>
+                            <li>Working with lambda expressions</li>
+                            <li>Implementing callback mechanisms</li>
+                            <li>Using Stream API operations</li>
+                            <li>Creating event handlers</li>
+                        </ul>
+                    </div>
+
+                    <div class="info-card">
+                        <h3>🏷️ Use Marker Interfaces When:</h3>
+                        <ul>
+                            <li>You need to tag classes for special treatment</li>
+                            <li>Framework needs to identify specific types</li>
+                            <li>Runtime type checking is required</li>
+                            <li>JVM optimizations are needed</li>
+                            <li>Type safety is important</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>Combined Example</h2>
+                    <div class="example-box">
+                        <div class="code-block">
+                            <pre>// Marker interface for special processing
+interface Priority {
+}
+
+// Functional interface for processing logic
+@FunctionalInterface
+interface TaskProcessor {
+    void process(String task);
+}
+
+// Implementation combining both concepts
+class ImportantTask implements Priority {
+    private String name;
+    
+    public ImportantTask(String name) {
+        this.name = name;
+    }
+    
+    public String getName() { return name; }
+}
+
+// Usage in a task manager
+class TaskManager {
+    public void executeTasks(List&lt;Object&gt; tasks, TaskProcessor processor) {
+        for (Object task : tasks) {
+            if (task instanceof Priority) {
+                System.out.println("High priority task detected!");
+            }
+            
+            if (task instanceof ImportantTask) {
+                ImportantTask importantTask = (ImportantTask) task;
+                processor.process(importantTask.getName());
+            }
+        }
+    }
+    
+    public static void main(String[] args) {
+        TaskManager manager = new TaskManager();
+        List&lt;Object&gt; tasks = Arrays.asList(
+            new ImportantTask("Database Backup"),
+            new ImportantTask("Security Update")
+        );
+        
+        // Using lambda expression with functional interface
+        manager.executeTasks(tasks, task -> 
+            System.out.println("Processing: " + task)
+        );
+    }
+}</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="interactive-demo">
+                    <h3>🎮 Complete Demo</h3>
+                    <button class="demo-button" onclick="demonstrateComplete()">Run Complete Example</button>
+                    <div class="output" id="completeOutput">Click to see both interfaces working together!</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(tabName, event) {
+            // Hide all tab contents
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => content.classList.remove('active'));
+            
+            // Remove active class from all buttons
+            const buttons = document.querySelectorAll('.tab-button');
+            buttons.forEach(button => button.classList.remove('active'));
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked button
+            event.target.classList.add('active');
+        }
+
+        function demonstrateLambda(operation) {
+            const output = document.getElementById('lambdaOutput');
+            const a = 10, b = 5;
+            
+            let result;
+            let lambdaCode;
+            let operator;
+            
+            switch(operation) {
+                case 'add':
+                    result = a + b;
+                    lambdaCode = '(a, b) -> a + b';
+                    operator = '+';
+                    break;
+                case 'multiply':
+                    result = a * b;
+                    lambdaCode = '(a, b) -> a * b';
+                    operator = '*';
+                    break;
+                case 'subtract':
+                    result = a - b;
+                    lambdaCode = '(a, b) -> a - b';
+                    operator = '-';
+                    break;
+            }
+            
+            output.innerHTML = `Lambda Expression: ${lambdaCode}
+Input: a = ${a}, b = ${b}
+Result: ${result}
+
+// Traditional way would require:
+Calculator calc = new Calculator() {
+    @Override
+    public int calculate(int a, int b) {
+        return a ${operator} b;
+    }
+};
+
+// Lambda way:
+Calculator calc = ${lambdaCode};`;
+        }
+
+        function demonstrateBuiltIn(type) {
+            const output = document.getElementById('builtInOutput');
+            
+            switch(type) {
+                case 'predicate':
+                    output.innerHTML = `Predicate<Integer> isEven = n -> n % 2 == 0;
+
+Testing numbers:
+isEven.test(4) = ${4 % 2 === 0}
+isEven.test(7) = ${7 % 2 === 0}
+isEven.test(10) = ${10 % 2 === 0}
+
+Usage in filtering:
+List<Integer> numbers = [1, 2, 3, 4, 5, 6];
+Even numbers: [2, 4, 6]`;
+                    break;
+                case 'function':
+                    output.innerHTML = `Function<String, Integer> getLength = s -> s.length();
+
+Testing strings:
+getLength.apply("Hello") = ${"Hello".length}
+getLength.apply("Java") = ${"Java".length}
+getLength.apply("Functional") = ${"Functional".length}
+
+Usage in mapping:
+["Hello", "Java"] -> [5, 4]`;
+                    break;
+                case 'consumer':
+                    output.innerHTML = `Consumer<String> printer = System.out::println;
+
+Testing with values:
+printer.accept("Hello World");
+printer.accept("Lambda Expressions");
+printer.accept("Functional Programming");
+
+Usage in forEach:
+list.forEach(printer);`;
+                    break;
+                case 'supplier':
+                    output.innerHTML = `Supplier<Double> randomValue = Math::random;
+Supplier<String> dateSupplier = () -> new Date().toString();
+
+Testing suppliers:
+randomValue.get() = ${Math.random().toFixed(4)}
+Current time = ${new Date().toTimeString()}
+
+Usage in factory patterns:
+Supplier<List<String>> listFactory = ArrayList::new;`;
+                    break;
+            }
+        }
+
+        function demonstrateMarker(type) {
+            const output = document.getElementById('markerOutput');
+            
+            switch(type) {
+                case 'check':
+                    output.innerHTML = `// Checking marker interfaces
+class DatabaseService implements Loggable, Cacheable { }
+
+DatabaseService service = new DatabaseService();
+
+instanceof checks:
+service instanceof Loggable = true
+service instanceof Cacheable = true
+service instanceof Serializable = false
+
+Framework decision making:
+✓ Enable logging for DatabaseService
+✓ Enable caching for DatabaseService
+✗ Serialization not supported`;
+                    break;
+                case 'serialize':
+                    output.innerHTML = `// Serialization example
+class Person implements Serializable {
+    private String name = "John Doe";
+    private int age = 30;
+}
+
+Person person = new Person();
+
+Serialization check:
+person instanceof Serializable = true
+✓ Object can be serialized to file/stream
+✓ Can be sent over network
+✓ Can be stored in database
+
+Without Serializable:
+⚠ NotSerializableException would be thrown`;
+                    break;
+                case 'clone':
+                    output.innerHTML = `// Cloneable interface example
+class Student implements Cloneable {
+    private String name = "Alice";
+    
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        return super.clone();
+    }
+}
+
+Student student = new Student();
+
+Cloning check:
+student instanceof Cloneable = true
+✓ Object can be cloned safely
+✓ clone() method will work
+✓ Shallow copy supported
+
+Without Cloneable:
+⚠ CloneNotSupportedException would be thrown`;
+                    break;
+            }
+        }
+
+        function demonstrateComplete() {
+            const output = document.getElementById('completeOutput');
+            
+            output.innerHTML = `Running complete example...
+
+🏷️ Marker Interface Detection:
+ImportantTask implements Priority = true
+✓ High priority task detected!
+
+📋 Task List:
+1. Database Backup (Priority: High)
+2. Security Update (Priority: High)
+
+🎯 Functional Interface Processing:
+TaskProcessor processor = task -> System.out.println("Processing: " + task);
+
+Execution Results:
+> High priority task detected!
+> Processing: Database Backup
+> High priority task detected!  
+> Processing: Security Update
+
+💡 Benefits Demonstrated:
+✓ Marker interfaces provide metadata (Priority)
+✓ Functional interfaces enable behavior (TaskProcessor)
+✓ Lambda expressions reduce boilerplate code
+✓ Runtime type checking works seamlessly
+✓ Clean, maintainable code structure`;
+        }
+    </script>
+</body>
+</html>
+                    
