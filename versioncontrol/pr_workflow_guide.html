@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pull Request Workflow Guide</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+        
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .navigation {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .nav-btn {
+            padding: 12px 24px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            font-weight: 600;
+        }
+        
+        .nav-btn:hover, .nav-btn.active {
+            background: rgba(255,255,255,0.9);
+            color: #333;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+        
+        .content-section {
+            display: none;
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .content-section.active {
+            display: block;
+            animation: slideIn 0.5s ease;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .step-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border-left: 5px solid #667eea;
+            transition: transform 0.3s ease;
+        }
+        
+        .step-card:hover {
+            transform: translateX(5px);
+        }
+        
+        .step-number {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 35px;
+            font-weight: bold;
+            margin-right: 15px;
+        }
+        
+        .code-block {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            position: relative;
+        }
+        
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #007acc;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .copy-btn:hover {
+            background: #005a9e;
+        }
+        
+        .interactive-demo {
+            background: #f8f9fa;
+            border: 2px dashed #667eea;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .demo-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .demo-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .conflict-simulator {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+        
+        .merge-conflict {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: monospace;
+        }
+        
+        .highlight-git {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        
+        .highlight-branch {
+            color: #27ae60;
+            font-weight: bold;
+        }
+        
+        .highlight-file {
+            color: #3498db;
+            font-weight: bold;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0;
+            transition: width 0.5s ease;
+        }
+        
+        .checklist {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            cursor: pointer;
+        }
+        
+        .checklist-item input[type="checkbox"] {
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+        
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            background: #e9ecef;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Pull Request Mastery</h1>
+            <p>Complete Interactive Guide to PR Workflow, Conflict Resolution & Merging</p>
+        </div>
+        
+        <div class="navigation">
+            <button class="nav-btn active" onclick="showSection('overview')">Overview</button>
+            <button class="nav-btn" onclick="showSection('creating-pr')">Creating PR</button>
+            <button class="nav-btn" onclick="showSection('conflicts')">Resolving Conflicts</button>
+            <button class="nav-btn" onclick="showSection('merging')">Merging Strategies</button>
+            <button class="nav-btn" onclick="showSection('best-practices')">Best Practices</button>
+            <button class="nav-btn" onclick="showSection('troubleshooting')">Troubleshooting</button>
+        </div>
+
+        <!-- Overview Section -->
+        <div id="overview" class="content-section active">
+            <h2>🎯 Pull Request Workflow Overview</h2>
+            
+            <div class="interactive-demo">
+                <h3>Interactive Workflow Visualizer</h3>
+                <button class="demo-btn" onclick="startWorkflow()">Start PR Workflow Demo</button>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="workflow-progress"></div>
+                </div>
+                <p id="workflow-status">Ready to begin...</p>
+            </div>
+
+            <div class="step-card">
+                <h3>🌟 What is a Pull Request?</h3>
+                <p>A Pull Request (PR) is a method of submitting contributions to a project. It tells others about changes you've pushed to a branch in a repository and allows team members to review the changes before they're merged into the main codebase.</p>
+            </div>
+
+            <div class="step-card">
+                <h3>📋 Typical PR Lifecycle</h3>
+                <ol>
+                    <li><strong>Branch Creation:</strong> Create a feature branch from main/master</li>
+                    <li><strong>Development:</strong> Make changes and commit them</li>
+                    <li><strong>Push:</strong> Push your branch to the remote repository</li>
+                    <li><strong>PR Creation:</strong> Open a pull request</li>
+                    <li><strong>Review Process:</strong> Code review and discussions</li>
+                    <li><strong>Conflict Resolution:</strong> Handle any merge conflicts</li>
+                    <li><strong>Approval:</strong> Get approval from reviewers</li>
+                    <li><strong>Merge:</strong> Merge the PR into the target branch</li>
+                </ol>
+            </div>
+
+            <div class="checklist">
+                <h4>Pre-PR Checklist</h4>
+                <div class="checklist-item">
+                    <input type="checkbox" id="pre1"> <label for="pre1">Code is properly tested</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="pre2"> <label for="pre2">Code follows project style guidelines</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="pre3"> <label for="pre3">Commit messages are clear and descriptive</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="pre4"> <label for="pre4">Branch is up to date with target branch</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="pre5"> <label for="pre5">Documentation is updated if needed</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Creating PR Section -->
+        <div id="creating-pr" class="content-section">
+            <h2>📝 Creating a Pull Request</h2>
+
+            <div class="step-card">
+                <span class="step-number">1</span>
+                <h3>Create and Switch to Feature Branch</h3>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+# Create and switch to a new branch
+<span class="highlight-git">git</span> checkout -b <span class="highlight-branch">feature/user-authentication</span>
+
+# Or create branch first, then switch
+<span class="highlight-git">git</span> branch <span class="highlight-branch">feature/user-authentication</span>
+<span class="highlight-git">git</span> checkout <span class="highlight-branch">feature/user-authentication</span>
+
+# Using newer git switch command
+<span class="highlight-git">git</span> switch -c <span class="highlight-branch">feature/user-authentication</span>
+                </div>
+            </div>
+
+            <div class="step-card">
+                <span class="step-number">2</span>
+                <h3>Make Changes and Commit</h3>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+# Make your changes to files
+# Then stage the changes
+<span class="highlight-git">git</span> add <span class="highlight-file">src/auth/login.js</span>
+<span class="highlight-git">git</span> add <span class="highlight-file">src/auth/register.js</span>
+
+# Or stage all changes
+<span class="highlight-git">git</span> add .
+
+# Commit with a descriptive message
+<span class="highlight-git">git</span> commit -m "feat: implement user authentication system
+
+- Add login functionality with JWT tokens
+- Add user registration with email validation
+- Add password hashing with bcrypt
+- Add authentication middleware
+
+Closes #123"
+                </div>
+                
+                <div class="warning">
+                    <strong>💡 Commit Message Best Practices:</strong>
+                    <ul>
+                        <li>Use conventional commit format: type(scope): description</li>
+                        <li>Types: feat, fix, docs, style, refactor, test, chore</li>
+                        <li>Keep subject line under 50 characters</li>
+                        <li>Reference issues/tickets when applicable</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="step-card">
+                <span class="step-number">3</span>
+                <h3>Push Branch to Remote</h3>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+# Push branch to remote repository
+<span class="highlight-git">git</span> push origin <span class="highlight-branch">feature/user-authentication</span>
+
+# If it's the first push of this branch, set upstream
+<span class="highlight-git">git</span> push -u origin <span class="highlight-branch">feature/user-authentication</span>
+
+# Check remote branches
+<span class="highlight-git">git</span> branch -r
+                </div>
+            </div>
+
+            <div class="step-card">
+                <span class="step-number">4</span>
+                <h3>Create Pull Request</h3>
+                
+                <div class="tabs">
+                    <button class="tab active" onclick="showTab('github')">GitHub</button>
+                    <button class="tab" onclick="showTab('gitlab')">GitLab</button>
+                    <button class="tab" onclick="showTab('bitbucket')">Bitbucket</button>
+                </div>
+
+                <div id="github" class="tab-content active">
+                    <h4>GitHub PR Creation</h4>
+                    <ol>
+                        <li>Navigate to your repository on GitHub</li>
+                        <li>Click "Compare & pull request" (appears after pushing)</li>
+                        <li>Or go to "Pull requests" tab → "New pull request"</li>
+                        <li>Select base branch (usually main/master) and compare branch</li>
+                        <li>Add title and description</li>
+                        <li>Add reviewers, assignees, and labels</li>
+                        <li>Click "Create pull request"</li>
+                    </ol>
+                </div>
+
+                <div id="gitlab" class="tab-content">
+                    <h4>GitLab Merge Request Creation</h4>
+                    <ol>
+                        <li>Navigate to your project on GitLab</li>
+                        <li>Go to "Merge requests" → "New merge request"</li>
+                        <li>Select source and target branches</li>
+                        <li>Add title and description</li>
+                        <li>Assign reviewers and set labels</li>
+                        <li>Configure merge options</li>
+                        <li>Click "Create merge request"</li>
+                    </ol>
+                </div>
+
+                <div id="bitbucket" class="tab-content">
+                    <h4>Bitbucket Pull Request Creation</h4>
+                    <ol>
+                        <li>Navigate to your repository on Bitbucket</li>
+                        <li>Click "Create pull request"</li>
+                        <li>Select source and destination branches</li>
+                        <li>Add title and description</li>
+                        <li>Add reviewers</li>
+                        <li>Set up build status checks if needed</li>
+                        <li>Click "Create pull request"</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="interactive-demo">
+                <h3>PR Template Generator</h3>
+                <button class="demo-btn" onclick="generatePRTemplate()">Generate PR Template</button>
+                <div id="pr-template-output" style="text-align: left; margin-top: 15px;"></div>
+            </div>
+        </div>
+
+        <!-- Conflicts Section -->
+        <div id="conflicts" class="content-section">
+            <h2>⚔️ Resolving Merge Conflicts</h2>
+
+            <div class="conflict-simulator">
+                <h3>🎮 Interactive Conflict Resolution Simulator</h3>
+                <p>Practice resolving conflicts in a safe environment!</p>
+                <button class="demo-btn" onclick="simulateConflict()">Create Sample Conflict</button>
+                <button class="demo-btn" onclick="resolveConflict()">Show Resolution</button>
+                <div id="conflict-display"></div>
+            </div>
+
+            <div class="step-card">
+                <span class="step-number">1</span>
+                <h3>Understanding Merge Conflicts</h3>
+                <p>Merge conflicts occur when Git cannot automatically resolve differences between branches. This happens when:</p>
+                <ul>
+                    <li>The same line(s) are modified differently in both branches</li>
+                    <li>A file is deleted in one branch but modified in another</li>
+                    <li>A file is renamed in one branch but modified in another</li>
+                </ul>
+            </div>
+
+            <div class="step-card">
+                <span class="step-number">2</span>
+                <h3>Detecting Conflicts</h3>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+# Update your branch with latest changes from main
+<span class="highlight-git">git</span> checkout <span class="highlight-branch">main</span>
+<span class="highlight-git">git</span> pull origin <span class="highlight-branch">main</span>
+<span class="highlight-git">git</span> checkout <span class="highlight-branch">feature/user-authentication</span>
+
+# Try to merge or rebase
+<span class="highlight-git">git</span> merge <span class="highlight-branch">main</span>
+# OR
+<span class="highlight-git">git</span> rebase <span class="highlight-branch">main</span>
+
+# If conflicts occur, Git will show:
+# CONFLICT (content): Merge conflict in <span class="highlight-file">filename.js</span>
+# Automatic merge failed; fix conflicts and then commit the result.
+                </div>
+            </div>
+
+            <div class="step-card">
+                <span class="step-number">3</span>
+                <h3>Conflict Markers Explained</h3>
+                <div class="merge-conflict">
+<<<<<<< HEAD (Current Change)
+function authenticate(user) {
+    return jwt.sign(user, 'secret-key');
+}
+=======
+function authenticateUser(user) {
+    return jwt.sign(user, process.env.JWT_SECRET);
+}
+>>>>>>> feature/user-authentication (Incoming Change)
+                </div>
+                <ul>
+                    <li><strong>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD:</strong> Your current branch changes</li>
+                    <li><strong>=======:</strong> Separator between changes</li>
+                    <li><strong>&gt;&gt;&gt;&gt;&gt;&gt;&gt; branch-name:</strong> Incoming changes from other branch</li>
+                </ul>
+            </div>
+
+            <div class="step-card">
+                <span class="step-number">4</span>
+                <h3>Resolving Conflicts Manually</h3>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+# 1. Open conflicted files in your editor
+# 2. Look for conflict markers (<<<<<<, ======, >>>>>>)
+# 3. Decide which changes to keep:
+#    - Keep HEAD changes
+#    - Keep incoming changes  
+#    - Keep both (merge them)
+#    - Write completely new code
+
+# Example resolution:
+function authenticateUser(user) {
+    return jwt.sign(user, process.env.JWT_SECRET);
+}
+
+# 4. Remove conflict markers
+# 5. Stage the resolved files
+<span class="highlight-git">git</span> add <span class="highlight-file">src/auth/login.js</span>
+
+# 6. Continue merge/rebase
+<span class="highlight-git">git</span> commit  # for merge
+<span class="highlight-git">git</span> rebase --continue  # for rebase
+                </div>
+            </div>
+
+            <div class="step-card">
+                <span class="step-number">5</span>
+                <h3>Using Merge Tools</h3>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+# Configure merge tool (one-time setup)
+<span class="highlight-git">git</span> config --global merge.tool vscode
+# OR
+<span class="highlight-git">git</span> config --global merge.tool vimdiff
+
+# Launch merge tool for conflicts
+<span class="highlight-git">git</span> mergetool
+
+# Popular merge tools:
+# - VS Code: code --wait
+# - Sublime Merge
+# - KDiff3
+# - Meld
+# - P4Merge
+                </div>
+            </div>
+
+            <div class="step-card">
+                <span class="step-number">6</span>
+                <h3>Advanced Conflict Resolution</h3>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+# Show conflict status
+<span class="highlight-git">git</span> status
+
+# Show conflicts in more detail
+<span class="highlight-git">git</span> diff --name-only --diff-filter=U
+
+# Abort merge if needed
+<span class="highlight-git">git</span> merge --abort
+
+# Abort rebase if needed
+<span class="highlight-git">git</span> rebase --abort
+
+# Use theirs or ours strategy for specific files
+<span class="highlight-git">git</span> checkout --theirs <span class="highlight-file">filename.js</span>  # Use incoming changes
+<span class="highlight-git">git</span> checkout --ours <span class="highlight-file">filename.js</span>   # Use your changes
+                </div>
+            </div>
+
+            <div class="warning">
+                <strong>⚠️ Conflict Resolution Tips:</strong>
+                <ul>
+                    <li>Always test your code after resolving conflicts</li>
+                    <li>Don't just pick one side - understand what each change does</li>
+                    <li>Communicate with team members about complex conflicts</li>
+                    <li>Consider pair programming for difficult conflict resolution</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Merging Section -->
+        <div id="merging" class="content-section">
+            <h2>🔀 Merging Strategies</h2>
+
+            <div class="interactive-demo">
+                <h3>Merge Strategy Visualizer</h3>
+                <button class="demo-btn" onclick="showMergeStrategy('merge')">Merge Commit</button>
+                <button class="demo-btn" onclick="showMergeStrategy('squash')">Squash & Merge</button>
+                <button class="demo-btn" onclick="showMergeStrategy('rebase')">Rebase & Merge</button>
+                <div id="merge-visualization"></div>
+            </div>
+
+            <div class="step-card">
+                <h3>1. 🔀 Merge Commit Strategy</h3>
+                <p><strong>Creates a merge commit that combines both branches</strong></p>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+# Standard merge (creates merge commit)
+<span class="highlight-git">git</span> checkout <span class="highlight-branch">main</span>
+<span class="highlight-git">git</span> merge <span class="highlight-branch">feature/user-auth</span>
+
+# GitHub CLI merge
+gh pr merge 123 --merge
+                </div>
+                <div class="success">
+                    <strong>✅ When to use:</strong> When you want to preserve branch history and see exactly when features were integrated.
+                </div>
+                <div class="warning">
+                    <strong>⚠️ Considerations:</strong> Can create a cluttered commit history with many merge commits.
+                </div>
+            </div>
+
+            <div class="step-card">
+                <h3>2. 📦 Squash and Merge Strategy</h3>
+                <p><strong>Combines all commits from the feature branch into a single commit</strong></p>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+# Interactive rebase to squash commits
+<span class="highlight-git">git</span> checkout <span class="highlight-branch">feature/user-auth</span>
+<span class="highlight-git">git</span> rebase -i <span class="highlight-branch">main</span>
+
+# In the interactive editor, change 'pick' to 'squash' for commits to combine
+# Then merge
+<span class="highlight-git">git</span> checkout <span class="highlight-branch">main</span>
+<span class="highlight-git">git</span> merge <span class="highlight-branch">feature/user-auth</span>
+
+# GitHub CLI squash merge
+gh pr merge 123 --squash
+                </div>
+                <div class="success">
+                    <strong>✅ When to use:</strong> For clean commit history, especially with messy feature branch commits.
+                </div>
+                <div class="warning">
+                    <strong>⚠️ Considerations:</strong> Loses individual commit history from the feature branch.
+                </div>
+            </div>
+
+            <div class="step-card">
+                <h3>3. 🔄 Rebase and Merge Strategy</h3>
+                <p><strong>Replays commits from feature branch onto main without creating a merge commit</strong></p>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+# Rebase feature branch onto main
+<span class="highlight-git">git</span> checkout <span class="highlight-branch">feature/user-auth</span>
+<span class="highlight-git">git</span> rebase <span class="highlight-branch">main</span>
+
+# Fast-forward merge (no merge commit)
+<span class="highlight-git">git</span> checkout <span class="highlight-branch">main</span>
+<span class="highlight-git">git</span> merge <span class="highlight-branch">feature/user-auth</span>
+
+# GitHub CLI rebase merge
+gh pr merge 123 --rebase
+                </div>
+                <div class="success">
+                    <strong>✅ When to use:</strong> For linear commit history without merge commits.
+                </div>
+                <div class="warning">
+                    <strong>⚠️ Considerations:</strong> Rewrites commit history, can be dangerous on shared branches.
+                </div>
+            </div>
+
+            <div class="step-card">
+                <h3>🎯 Choosing the Right Strategy</h3>
+                <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
+                    <thead>
+                        <tr style="background: #f8f9fa;">
+                            <th style="padding: 12px; border: 1px solid #dee2e6;">Strategy</th>
+                            <th style="padding: 12px; border: 1px solid #dee2e6;">History</th>
+                            <th style="padding: 12px; border: 1px solid #dee2e6;">Best For</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="padding: 12px; border: 1px solid #dee2e6;"><strong>Merge Commit</strong></td>
+                            <td style="padding: 12px; border: 1px solid #dee2e6;">Preserves all commits + merge commit</td>
+                            <td style="padding: 12px; border: 1px solid #dee2e6;">Feature branches, collaboration</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 12px; border: 1px solid #dee2e6;"><strong>Squash</strong></td>
+                            <td style="padding: 12px; border: 1px solid #dee2e6;">Single commit per feature</td>
+                            <td style="padding: 12px; border: 1px solid #dee2e6;">Clean history, small features</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 12px; border: 1px solid #dee2e6;"><strong>Rebase</strong></td>
+                            <td style="padding: 12px; border: 1px solid #dee2e6;">Linear history, no merge commits</td>
+                            <td style="padding: 12px; border: 1px solid #dee2e6;">Simple changes, hotfixes</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="step-card">
+                <h3>🚀 Advanced Merge Techniques</h3>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+# Merge with custom commit message
+<span class="highlight-git">git</span> merge <span class="highlight-branch">feature/user-auth</span> -m "Merge user authentication feature
+
+- Implements JWT-based authentication
+- Adds password hashing
+- Includes user registration flow"
+
+# Merge without fast-forward (always create merge commit)
+<span class="highlight-git">git</span> merge --no-ff <span class="highlight-branch">feature/user-auth</span>
+
+# Dry run merge (see what would happen)
+<span class="highlight-git">git</span> merge --no-commit --no-ff <span class="highlight-branch">feature/user-auth</span>
+<span class="highlight-git">git</span> diff --cached  # Review changes
+<span class="highlight-git">git</span> merge --abort  # Cancel if needed
+                </div>
+            </div>
+        </div>
+
+        <!-- Best Practices Section -->
+        <div id="best-practices" class="content-section">
+            <h2>⭐ Best Practices & Guidelines</h2>
+
+            <div class="step-card">
+                <h3>📝 PR Description Best Practices</h3>
+                <div class="interactive-demo">
+                    <button class="demo-btn" onclick="showPRExample('good')">Show Good PR</button>
+                    <button class="demo-btn" onclick="showPRExample('bad')">Show Bad PR</button>
+                    <div id="pr-example"></div>
+                </div>
+
+                <div class="checklist">
+                    <h4>✅ PR Description Checklist</h4>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="desc1"> <label for="desc1">Clear, descriptive title</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="desc2"> <label for="desc2">What changes were made</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="desc3"> <label for="desc3">Why changes were needed</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="desc4"> <label for="desc4">How to test the changes</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="desc5"> <label for="desc5">Screenshots/videos if UI changes</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="desc6"> <label for="desc6">Link to related issues/tickets</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="step-card">
+                <h3>🔍 Code Review Guidelines</h3>
+                <div class="tabs">
+                    <button class="tab active" onclick="showTab('reviewer')">For Reviewers</button>
+                    <button class="tab" onclick="showTab('author')">For Authors</button>
+                </div>
+
+                <div id="reviewer" class="tab-content active">
+                    <h4>👥 Reviewer Guidelines</h4>
+                    <ul>
+                        <li><strong>Be constructive:</strong> Focus on the code, not the person</li>
+                        <li><strong>Explain your reasoning:</strong> Don't just say "this is wrong"</li>
+                        <li><strong>Suggest improvements:</strong> Offer alternative solutions</li>
+                        <li><strong>Ask questions:</strong> "Could we handle this edge case?"</li>
+                        <li><strong>Praise good code:</strong> Acknowledge clever solutions</li>
+                        <li><strong>Check for:</strong> Logic errors, security issues, performance problems</li>
+                        <li><strong>Test the changes:</strong> Pull the branch and test locally</li>
+                    </ul>
+                </div>
+
+                <div id="author" class="tab-content">
+                    <h4>✍️ Author Guidelines</h4>
+                    <ul>
+                        <li><strong>Keep PRs small:</strong> Easier to review and less likely to have issues</li>
+                        <li><strong>Write clear commit messages:</strong> Follow conventional commit format</li>
+                        <li><strong>Add tests:</strong> Include unit tests for new functionality</li>
+                        <li><strong>Update documentation:</strong> Keep README and docs current</li>
+                        <li><strong>Respond promptly:</strong> Address review comments quickly</li>
+                        <li><strong>Be open to feedback:</strong> Don't take criticism personally</li>
+                        <li><strong>Self-review first:</strong> Review your own code before requesting review</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="step-card">
+                <h3>🏗️ Branch Management</h3>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+# Good branch naming conventions
+<span class="highlight-branch">feature/user-authentication</span>
+<span class="highlight-branch">bugfix/login-error-handling</span>
+<span class="highlight-branch">hotfix/security-patch</span>
+<span class="highlight-branch">docs/api-documentation</span>
+<span class="highlight-branch">refactor/payment-service</span>
+
+# Clean up after merge
+<span class="highlight-git">git</span> branch -d <span class="highlight-branch">feature/user-authentication</span>  # Delete local branch
+<span class="highlight-git">git</span> push origin --delete <span class="highlight-branch">feature/user-authentication</span>  # Delete remote branch
+
+# Prune deleted remote branches
+<span class="highlight-git">git</span> remote prune origin
+                </div>
+            </div>
+
+            <div class="step-card">
+                <h3>🧪 Testing and CI/CD Integration</h3>
+                <div class="warning">
+                    <strong>🚨 Pre-merge Requirements:</strong>
+                    <ul>
+                        <li>All automated tests must pass</li>
+                        <li>Code coverage thresholds must be met</li>
+                        <li>Linting and formatting checks pass</li>
+                        <li>Security scans show no critical issues</li>
+                        <li>At least one approved review</li>
+                    </ul>
+                </div>
+
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+# Example GitHub Actions workflow for PR checks
+name: PR Checks
+on: [pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+      - name: Install dependencies
+        run: npm install
+      - name: Run tests
+        run: npm test
+      - name: Check code coverage
+        run: npm run coverage
+      - name: Lint code
+        run: npm run lint
+                </div>
+            </div>
+        </div>
+
+        <!-- Troubleshooting Section -->
+        <div id="troubleshooting" class="content-section">
+            <h2>🔧 Troubleshooting Common Issues</h2>
+
+            <div class="step-card">
+                <h3>❌ Common Problems & Solutions</h3>
+                
+                <div class="conflict-simulator">
+                    <h4>Problem: "Your branch is behind origin/main"</h4>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+# Solution: Update your branch
+<span class="highlight-git">git</span> checkout <span class="highlight-branch">main</span>
+<span class="highlight-git">git</span> pull origin <span class="highlight-branch">main</span>
+<span class="highlight-git">git</span> checkout <span class="highlight-branch">your-feature-branch</span>
+<span class="highlight-git">git</span> merge <span class="highlight-branch">main</span>
+# OR
+<span class="highlight-git">git</span> rebase <span class="highlight-branch">main</span>
+                    </div>
+                </div>
+
+                <div class="conflict-simulator">
+                    <h4>Problem: "Cannot merge due to conflicts"</h4>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+# Solution: Resolve conflicts manually
+<span class="highlight-git">git</span> status  # See conflicted files
+# Edit conflicted files to resolve
+<span class="highlight-git">git</span> add <span class="highlight-file">conflicted-file.js</span>
+<span class="highlight-git">git</span> commit -m "resolve merge conflicts"
+                    </div>
+                </div>
+
+                <div class="conflict-simulator">
+                    <h4>Problem: "PR shows too many commits"</h4>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+# Solution: Squash commits
+<span class="highlight-git">git</span> rebase -i HEAD~3  # Squash last 3 commits
+# In editor: change 'pick' to 'squash' for commits to combine
+<span class="highlight-git">git</span> push --force-with-lease origin <span class="highlight-branch">your-branch</span>
+                    </div>
+                </div>
+
+                <div class="conflict-simulator">
+                    <h4>Problem: "Accidentally committed to main"</h4>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+# Solution: Move commits to new branch
+<span class="highlight-git">git</span> branch <span class="highlight-branch">new-feature-branch</span>  # Create branch with current commits
+<span class="highlight-git">git</span> reset --hard HEAD~2  # Reset main back 2 commits
+<span class="highlight-git">git</span> checkout <span class="highlight-branch">new-feature-branch</span>  # Switch to new branch
+                    </div>
+                </div>
+            </div>
+
+            <div class="step-card">
+                <h3>🛟 Emergency Commands</h3>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+# Abort current merge
+<span class="highlight-git">git</span> merge --abort
+
+# Abort current rebase
+<span class="highlight-git">git</span> rebase --abort
+
+# Undo last commit (keep changes)
+<span class="highlight-git">git</span> reset --soft HEAD~1
+
+# Undo last commit (discard changes)
+<span class="highlight-git">git</span> reset --hard HEAD~1
+
+# Force push (use with caution!)
+<span class="highlight-git">git</span> push --force-with-lease origin <span class="highlight-branch">branch-name</span>
+
+# See what you've been doing
+<span class="highlight-git">git</span> reflog
+
+# Recover lost commits
+<span class="highlight-git">git</span> checkout <commit-hash>
+<span class="highlight-git">git</span> checkout -b <span class="highlight-branch">recovered-branch</span>
+                </div>
+                
+                <div class="warning">
+                    <strong>⚠️ Use force push carefully:</strong> Only force push to feature branches, never to main/master or shared branches!
+                </div>
+            </div>
+
+            <div class="interactive-demo">
+                <h3>🎯 Git Command Cheat Sheet Generator</h3>
+                <button class="demo-btn" onclick="generateCheatSheet()">Generate Custom Cheat Sheet</button>
+                <div id="cheat-sheet-output"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentWorkflowStep = 0;
+        const workflowSteps = [
+            "Creating feature branch...",
+            "Making changes and commits...",
+            "Pushing to remote repository...", 
+            "Creating pull request...",
+            "Code review process...",
+            "Resolving any conflicts...",
+            "Getting approval...",
+            "Merging to main branch...",
+            "Workflow complete! 🎉"
+        ];
+
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Remove active class from all nav buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected section
+            document.getElementById(sectionId).classList.add('active');
+            
+            // Add active class to clicked button
+            event.target.classList.add('active');
+        }
+
+        function showTab(tabId) {
+            // Get the parent section to find tabs within it
+            const parentSection = event.target.closest('.content-section');
+            
+            // Hide all tab contents in this section
+            parentSection.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Remove active class from all tabs in this section
+            parentSection.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            parentSection.querySelector('#' + tabId).classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+
+        function copyCode(button) {
+            const codeBlock = button.parentNode;
+            const text = codeBlock.textContent.replace('Copy', '').trim();
+            navigator.clipboard.writeText(text).then(() => {
+                button.textContent = 'Copied!';
+                setTimeout(() => {
+                    button.textContent = 'Copy';
+                }, 2000);
+            });
+        }
+
+        function startWorkflow() {
+            currentWorkflowStep = 0;
+            const progressBar = document.getElementById('workflow-progress');
+            const statusText = document.getElementById('workflow-status');
+            
+            const interval = setInterval(() => {
+                if (currentWorkflowStep < workflowSteps.length) {
+                    statusText.textContent = workflowSteps[currentWorkflowStep];
+                    progressBar.style.width = ((currentWorkflowStep + 1) / workflowSteps.length) * 100 + '%';
+                    currentWorkflowStep++;
+                } else {
+                    clearInterval(interval);
+                }
+            }, 1500);
+        }
+
+        function generatePRTemplate() {
+            const template = `
+## 📋 Summary
+Brief description of the changes in this PR.
+
+## 🎯 Type of Change
+- [ ] Bug fix (non-breaking change which fixes an issue)
+- [ ] New feature (non-breaking change which adds functionality)
+- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
+- [ ] Documentation update
+
+## 🧪 Testing
+- [ ] Unit tests added/updated
+- [ ] Integration tests added/updated
+- [ ] Manual testing completed
+
+## 📸 Screenshots (if applicable)
+Add screenshots or GIFs showing the changes
+
+## 🔗 Related Issues
+Closes #issue_number
+
+## 📝 Additional Notes
+Any additional information for reviewers
+            `;
+            
+            document.getElementById('pr-template-output').innerHTML = 
+                '<div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button>' + 
+                '<pre>' + template + '</pre></div>';
+        }
+
+        function simulateConflict() {
+            const conflictHtml = `
+                <h4>Sample Merge Conflict:</h4>
+                <div class="merge-conflict">
+&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
+function calculateTotal(price, tax) {
+    return price + (price * tax);
+}
+=======
+function calculateTotal(price, taxRate, discount = 0) {
+    const subtotal = price - discount;
+    return subtotal + (subtotal * taxRate);
+}
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; feature/enhanced-calculator
+                </div>
+                <p><strong>Conflict explanation:</strong> Both branches modified the same function with different parameters and logic.</p>
+            `;
+            document.getElementById('conflict-display').innerHTML = conflictHtml;
+        }
+
+        function resolveConflict() {
+            const resolutionHtml = `
+                <h4>Resolved Version:</h4>
+                <div class="code-block">
+function calculateTotal(price, taxRate, discount = 0) {
+    // Apply discount first, then calculate tax on discounted amount
+    const subtotal = price - discount;
+    return subtotal + (subtotal * taxRate);
+}
+                </div>
+                <div class="success">
+                    <strong>Resolution strategy:</strong> Kept the enhanced version with discount parameter 
+                    and clearer variable naming, as it provides more functionality.
+                </div>
+            `;
+            document.getElementById('conflict-display').innerHTML = resolutionHtml;
+        }
+
+        function showMergeStrategy(strategy) {
+            const strategies = {
+                merge: {
+                    title: "Merge Commit Strategy",
+                    description: "Creates a merge commit that preserves branch history",
+                    visual: `
+                        <div style="font-family: monospace; line-height: 1.6;">
+                        main:     A---B---C-------G
+                                           \\     /
+                        feature:            D---E---F
+                        
+                        Result: G is a merge commit combining both branches
+                        </div>
+                    `
+                },
+                squash: {
+                    title: "Squash & Merge Strategy", 
+                    description: "Combines all feature commits into a single commit",
+                    visual: `
+                        <div style="font-family: monospace; line-height: 1.6;">
+                        main:     A---B---C---D'
+                        
+                        feature:  (D---E---F) → D' (squashed)
+                        
+                        Result: D' contains all changes from D, E, F
+                        </div>
+                    `
+                },
+                rebase: {
+                    title: "Rebase & Merge Strategy",
+                    description: "Replays commits linearly without merge commit", 
+                    visual: `
+                        <div style="font-family: monospace; line-height: 1.6;">
+                        main:     A---B---C---D'---E'---F'
+                        
+                        Result: D', E', F' are rebased commits from feature branch
+                        </div>
+                    `
+                }
+            };
+            
+            const strategy_info = strategies[strategy];
+            document.getElementById('merge-visualization').innerHTML = `
+                <div class="step-card">
+                    <h4>${strategy_info.title}</h4>
+                    <p>${strategy_info.description}</p>
+                    ${strategy_info.visual}
+                </div>
+            `;
+        }
+
+        function showPRExample(type) {
+            const examples = {
+                good: `
+                    <div class="success">
+                        <h4>✅ Good PR Example</h4>
+                        <strong>Title:</strong> feat: Add user authentication with JWT tokens<br><br>
+                        <strong>Description:</strong><br>
+                        ## Summary<br>
+                        Implements JWT-based authentication system for user login/registration.<br><br>
+                        ## Changes<br>
+                        - Added JWT token generation and validation<br>
+                        - Created login/register endpoints<br>
+                        - Added password hashing with bcrypt<br>
+                        - Implemented auth middleware<br><br>
+                        ## Testing<br>
+                        - Unit tests for auth functions<br>
+                        - Integration tests for endpoints<br>
+                        - Manual testing with Postman<br><br>
+                        Closes #123
+                    </div>
+                `,
+                bad: `
+                    <div style="background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 15px; border-radius: 8px;">
+                        <h4>❌ Bad PR Example</h4>
+                        <strong>Title:</strong> fixes<br><br>
+                        <strong>Description:</strong><br>
+                        fixed some stuff<br><br>
+                        <em>Problems: Vague title, no description of what was fixed, no testing info, no context</em>
+                    </div>
+                `
+            };
+            
+            document.getElementById('pr-example').innerHTML = examples[type];
+        }
+
+        function generateCheatSheet() {
+            const cheatSheet = `
+                <div class="code-block" style="text-align: left;">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                    <h4>🚀 Git PR Workflow Cheat Sheet</h4>
+                    
+                    # Branch Operations
+                    git checkout -b feature/my-feature    # Create and switch to branch
+                    git push -u origin feature/my-feature # Push and set upstream
+                    git branch -d feature/my-feature      # Delete local branch
+                    
+                    # Conflict Resolution  
+                    git status                            # Check conflict status
+                    git add resolved-file.js              # Stage resolved file
+                    git commit                            # Complete merge
+                    git merge --abort                     # Abort merge
+                    
+                    # Merge Strategies
+                    git merge feature-branch              # Standard merge
+                    git merge --squash feature-branch     # Squash merge
+                    git rebase main                       # Rebase onto main
+                    
+                    # Cleanup
+                    git remote prune origin               # Clean up remote branches
+                    git reflog                           # View command history
+                    git push --force-with-lease          # Safe force push
+                </div>
+            `;
+            
+            document.getElementById('cheat-sheet-output').innerHTML = cheatSheet;
+        }
+
+        // Auto-update progress when checklist items are checked
+        document.addEventListener('change', function(e) {
+            if (e.target.type === 'checkbox') {
+                updateProgress();
+            }
+        });
+
+        function updateProgress() {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            const checked = document.querySelectorAll('input[type="checkbox"]:checked');
+            const progress = (checked.length / checkboxes.length) * 100;
+            
+            // Update any progress bars on the page
+            document.querySelectorAll('.progress-fill').forEach(bar => {
+                if (!bar.id || bar.id !== 'workflow-progress') {
+                    bar.style.width = progress + '%';
+                }
+            });
+        }
+    </script>
+</body>
+</html>

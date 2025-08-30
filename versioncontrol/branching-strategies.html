@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Git Branches & Tags Interactive Tutorial</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease;
+        }
+
+        .section:hover {
+            transform: translateY(-5px);
+        }
+
+        .section h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .git-visual {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 5px solid #667eea;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+
+        .branch-demo {
+            background: #2c3e50;
+            color: #ecf0f1;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .branch-demo::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .commit {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #3498db;
+            color: white;
+            text-align: center;
+            line-height: 40px;
+            margin: 5px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .commit:hover {
+            transform: scale(1.2);
+            background: #e74c3c;
+        }
+
+        .branch-line {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            transition: background 0.3s ease;
+        }
+
+        .branch-line:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .branch-name {
+            font-weight: bold;
+            margin-right: 15px;
+            min-width: 80px;
+            color: #f39c12;
+        }
+
+        .interactive-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
+        .interactive-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .strategy-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 15px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .strategy-card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .strategy-details {
+            display: none;
+            background: rgba(255, 255, 255, 0.95);
+            color: #333;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .tag-demo {
+            background: linear-gradient(45deg, #ff9a9e, #fecfef);
+            color: #333;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            display: inline-block;
+            font-weight: bold;
+        }
+
+        .code-example {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+
+        .highlight {
+            color: #4ec9b0;
+        }
+
+        .command {
+            color: #f92672;
+        }
+
+        .quiz-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+
+        .quiz-btn {
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            margin: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .quiz-btn:hover {
+            background: #f8f9fa;
+            transform: translateY(-2px);
+        }
+
+        .quiz-btn.correct {
+            background: #2ecc71;
+            color: white;
+        }
+
+        .quiz-btn.incorrect {
+            background: #e74c3c;
+            color: white;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .animated {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌿 Git Branches & Tags Interactive Tutorial</h1>
+            <p>Master version control with hands-on examples and visual learning</p>
+        </div>
+
+        <div class="section">
+            <h2>🤔 Why Do We Need Branches?</h2>
+            <p>Imagine you're writing a book with multiple authors. Without branches, everyone would be editing the same document simultaneously, causing chaos! Branches allow parallel development without conflicts.</p>
+            
+            <div class="git-visual">
+                <strong>Without Branches (Chaos!):</strong><br>
+                Author 1 ✏️ → Chapter 1 ← ✏️ Author 2<br>
+                Author 3 ✏️ → Chapter 1 ← ✏️ Author 4<br>
+                💥 Conflicts everywhere!
+            </div>
+
+            <div class="git-visual">
+                <strong>With Branches (Organized!):</strong><br>
+                Main Book (master) 📖<br>
+                ├── Author 1's Branch 📝<br>
+                ├── Author 2's Branch 📝<br>
+                └── Author 3's Branch 📝<br>
+                ✨ Everyone works peacefully!
+            </div>
+
+            <button class="interactive-btn" onclick="demonstrateBranching()">See Branching in Action!</button>
+            <div id="branchDemo"></div>
+        </div>
+
+        <div class="section">
+            <h2>🎯 Understanding Git Branches Visually</h2>
+            <div class="branch-demo" id="visualDemo">
+                <div class="branch-line">
+                    <span class="branch-name">master:</span>
+                    <div class="commit">A</div>
+                    <div class="commit">B</div>
+                    <div class="commit">C</div>
+                </div>
+                <div class="branch-line">
+                    <span class="branch-name">feature:</span>
+                    <div style="margin-left: 50px;"></div>
+                    <div class="commit">D</div>
+                    <div class="commit">E</div>
+                </div>
+                <div class="branch-line">
+                    <span class="branch-name">hotfix:</span>
+                    <div style="margin-left: 90px;"></div>
+                    <div class="commit">F</div>
+                </div>
+            </div>
+            
+            <button class="interactive-btn" onclick="addCommit()">Add Commit</button>
+            <button class="interactive-btn" onclick="createBranch()">Create Branch</button>
+            <button class="interactive-btn" onclick="resetDemo()">Reset Demo</button>
+        </div>
+
+        <div class="section">
+            <h2>🏷️ What Are Tags?</h2>
+            <p>Tags are like bookmarks in your Git history. They mark specific points in time, usually for releases.</p>
+            
+            <div class="git-visual">
+                <strong>Timeline with Tags:</strong><br>
+                A → B → C → D → E → F<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag-demo">v1.0</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag-demo">v2.0</span>
+            </div>
+
+            <div class="code-example">
+                <span class="command">git tag</span> <span class="highlight">v1.0.0</span>  # Create a lightweight tag<br>
+                <span class="command">git tag -a</span> <span class="highlight">v1.0.0</span> <span class="highlight">-m "Release version 1.0.0"</span>  # Annotated tag<br>
+                <span class="command">git push origin</span> <span class="highlight">v1.0.0</span>  # Push tag to remote
+            </div>
+
+            <button class="interactive-btn" onclick="showTagExample()">Interactive Tag Demo</button>
+            <div id="tagDemo"></div>
+        </div>
+
+        <div class="section">
+            <h2>🚀 Popular Branching Strategies</h2>
+            
+            <div class="strategy-card" onclick="toggleStrategy('gitflow')">
+                <h3>🌊 Git Flow</h3>
+                <p>The classic branching model with master, develop, feature, release, and hotfix branches</p>
+                <div class="strategy-details" id="gitflow">
+                    <h4>How it works:</h4>
+                    <ul>
+                        <li><strong>master:</strong> Production-ready code</li>
+                        <li><strong>develop:</strong> Integration branch for features</li>
+                        <li><strong>feature/*:</strong> New features</li>
+                        <li><strong>release/*:</strong> Preparing releases</li>
+                        <li><strong>hotfix/*:</strong> Emergency fixes</li>
+                    </ul>
+                    <div class="code-example">
+                        <span class="command">git flow init</span><br>
+                        <span class="command">git flow feature start</span> <span class="highlight">new-feature</span><br>
+                        <span class="command">git flow feature finish</span> <span class="highlight">new-feature</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="strategy-card" onclick="toggleStrategy('github')">
+                <h3>🐙 GitHub Flow</h3>
+                <p>Simple workflow: master branch + feature branches with pull requests</p>
+                <div class="strategy-details" id="github">
+                    <h4>Simple and effective:</h4>
+                    <ul>
+                        <li><strong>master:</strong> Always deployable</li>
+                        <li><strong>feature branches:</strong> For all changes</li>
+                        <li><strong>Pull requests:</strong> For code review</li>
+                        <li><strong>Deploy:</strong> Immediately after merging</li>
+                    </ul>
+                    <div class="code-example">
+                        <span class="command">git checkout -b</span> <span class="highlight">feature-branch</span><br>
+                        <span class="comment"># Make changes, commit</span><br>
+                        <span class="command">git push origin</span> <span class="highlight">feature-branch</span><br>
+                        <span class="comment"># Create pull request</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="strategy-card" onclick="toggleStrategy('gitlab')">
+                <h3>🦊 GitLab Flow</h3>
+                <p>Environment-based branching with production and pre-production branches</p>
+                <div class="strategy-details" id="gitlab">
+                    <h4>Environment-focused:</h4>
+                    <ul>
+                        <li><strong>master:</strong> Main development branch</li>
+                        <li><strong>production:</strong> What's live in production</li>
+                        <li><strong>pre-production:</strong> Staging environment</li>
+                        <li><strong>feature branches:</strong> Merge to master</li>
+                    </ul>
+                    <div class="code-example">
+                        <span class="command">git checkout -b</span> <span class="highlight">feature/new-ui</span><br>
+                        <span class="comment"># Develop → merge to master → deploy to pre-prod → deploy to prod</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="strategy-card" onclick="toggleStrategy('oneflow')">
+                <h3>1️⃣ OneFlow</h3>
+                <p>Simplified Git Flow with only master branch and feature branches</p>
+                <div class="strategy-details" id="oneflow">
+                    <h4>Keep it simple:</h4>
+                    <ul>
+                        <li><strong>master:</strong> Main branch for everything</li>
+                        <li><strong>feature branches:</strong> For development</li>
+                        <li><strong>Tags:</strong> Mark releases</li>
+                        <li><strong>Rebase:</strong> Keep history clean</li>
+                    </ul>
+                    <div class="code-example">
+                        <span class="command">git checkout -b</span> <span class="highlight">feature/improvement</span><br>
+                        <span class="command">git rebase master</span><br>
+                        <span class="command">git checkout master && git merge</span> <span class="highlight">feature/improvement</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="quiz-section">
+            <h2>🧠 Test Your Knowledge!</h2>
+            <div id="quiz">
+                <h3>Which branching strategy is best for continuous deployment?</h3>
+                <button class="quiz-btn" onclick="checkAnswer(this, false)">Git Flow</button>
+                <button class="quiz-btn" onclick="checkAnswer(this, true)">GitHub Flow</button>
+                <button class="quiz-btn" onclick="checkAnswer(this, false)">GitLab Flow</button>
+                <button class="quiz-btn" onclick="checkAnswer(this, false)">OneFlow</button>
+                <div id="quizResult"></div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>💡 Best Practices</h2>
+            <div class="git-visual">
+                <strong>✅ DO:</strong><br>
+                • Use descriptive branch names (feature/user-authentication)<br>
+                • Keep branches short-lived<br>
+                • Use tags for releases<br>
+                • Write meaningful commit messages<br>
+                • Regularly sync with main branch<br><br>
+
+                <strong>❌ DON'T:</strong><br>
+                • Use generic names (temp, fix, test)<br>
+                • Keep branches alive for months<br>
+                • Commit directly to master in team projects<br>
+                • Force push to shared branches<br>
+                • Ignore merge conflicts
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let commitCounter = 1;
+        let branchCounter = 1;
+
+        function demonstrateBranching() {
+            const demoDiv = document.getElementById('branchDemo');
+            demoDiv.innerHTML = `
+                <div class="branch-demo">
+                    <h4>🎬 Branching Simulation</h4>
+                    <div class="branch-line">
+                        <span class="branch-name">master:</span>
+                        <div class="commit animated">1</div>
+                        <div class="commit animated">2</div>
+                        <div class="commit animated">3</div>
+                    </div>
+                    <div class="branch-line">
+                        <span class="branch-name">feature:</span>
+                        <div style="margin-left: 90px;"></div>
+                        <div class="commit animated">4</div>
+                        <div class="commit animated">5</div>
+                    </div>
+                    <p style="margin-top: 15px; color: #ecf0f1;">
+                        💡 Feature branch allows parallel development without affecting master!
+                    </p>
+                </div>
+            `;
+        }
+
+        function addCommit() {
+            const visualDemo = document.getElementById('visualDemo');
+            const masterLine = visualDemo.querySelector('.branch-line');
+            const newCommit = document.createElement('div');
+            newCommit.className = 'commit';
+            newCommit.textContent = String.fromCharCode(65 + commitCounter + 5);
+            newCommit.onclick = function() {
+                this.style.background = '#e74c3c';
+                setTimeout(() => this.style.background = '#3498db', 500);
+            };
+            masterLine.appendChild(newCommit);
+            commitCounter++;
+        }
+
+        function createBranch() {
+            const visualDemo = document.getElementById('visualDemo');
+            const newBranch = document.createElement('div');
+            newBranch.className = 'branch-line';
+            newBranch.innerHTML = `
+                <span class="branch-name">branch${branchCounter}:</span>
+                <div style="margin-left: ${Math.random() * 100 + 50}px;"></div>
+                <div class="commit">X</div>
+            `;
+            visualDemo.appendChild(newBranch);
+            branchCounter++;
+        }
+
+        function resetDemo() {
+            const visualDemo = document.getElementById('visualDemo');
+            visualDemo.innerHTML = `
+                <div class="branch-line">
+                    <span class="branch-name">master:</span>
+                    <div class="commit">A</div>
+                    <div class="commit">B</div>
+                    <div class="commit">C</div>
+                </div>
+                <div class="branch-line">
+                    <span class="branch-name">feature:</span>
+                    <div style="margin-left: 50px;"></div>
+                    <div class="commit">D</div>
+                    <div class="commit">E</div>
+                </div>
+                <div class="branch-line">
+                    <span class="branch-name">hotfix:</span>
+                    <div style="margin-left: 90px;"></div>
+                    <div class="commit">F</div>
+                </div>
+            `;
+            commitCounter = 1;
+            branchCounter = 1;
+        }
+
+        function showTagExample() {
+            const tagDemo = document.getElementById('tagDemo');
+            tagDemo.innerHTML = `
+                <div class="branch-demo">
+                    <h4>🏷️ Tagging in Action</h4>
+                    <div class="branch-line">
+                        <span class="branch-name">commits:</span>
+                        <div class="commit">A</div>
+                        <div class="commit">B</div>
+                        <div class="commit" style="background: #f39c12;">C</div>
+                        <div class="commit">D</div>
+                        <div class="commit" style="background: #f39c12;">E</div>
+                    </div>
+                    <div class="branch-line">
+                        <span class="branch-name">tags:</span>
+                        <div style="margin-left: 90px;"></div>
+                        <div class="tag-demo">v1.0</div>
+                        <div style="margin-left: 40px;"></div>
+                        <div class="tag-demo">v2.0</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function toggleStrategy(strategyId) {
+            const details = document.getElementById(strategyId);
+            const isVisible = details.style.display === 'block';
+            
+            // Hide all strategy details
+            document.querySelectorAll('.strategy-details').forEach(el => {
+                el.style.display = 'none';
+            });
+            
+            // Show clicked strategy if it wasn't visible
+            if (!isVisible) {
+                details.style.display = 'block';
+            }
+        }
+
+        function checkAnswer(button, isCorrect) {
+            const buttons = document.querySelectorAll('.quiz-btn');
+            const resultDiv = document.getElementById('quizResult');
+            
+            buttons.forEach(btn => {
+                btn.disabled = true;
+                btn.classList.remove('correct', 'incorrect');
+            });
+            
+            if (isCorrect) {
+                button.classList.add('correct');
+                resultDiv.innerHTML = '<p style="color: #2ecc71; font-weight: bold; margin-top: 15px;">🎉 Correct! GitHub Flow is perfect for continuous deployment because of its simplicity and fast feedback loop.</p>';
+            } else {
+                button.classList.add('incorrect');
+                // Find and highlight the correct answer
+                buttons.forEach(btn => {
+                    if (btn.textContent === 'GitHub Flow') {
+                        btn.classList.add('correct');
+                    }
+                });
+                resultDiv.innerHTML = '<p style="color: #e74c3c; font-weight: bold; margin-top: 15px;">❌ Not quite! GitHub Flow is the best choice for continuous deployment due to its streamlined process.</p>';
+            }
+            
+            // Reset quiz after 3 seconds
+            setTimeout(() => {
+                buttons.forEach(btn => {
+                    btn.disabled = false;
+                    btn.classList.remove('correct', 'incorrect');
+                });
+                resultDiv.innerHTML = '';
+            }, 3000);
+        }
+
+        // Add some interactive effects
+        document.addEventListener('DOMContentLoaded', function() {
+            const commits = document.querySelectorAll('.commit');
+            commits.forEach(commit => {
+                commit.addEventListener('click', function() {
+                    this.style.background = '#e74c3c';
+                    setTimeout(() => this.style.background = '#3498db', 500);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
