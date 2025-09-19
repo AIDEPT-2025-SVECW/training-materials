@@ -1,758 +1,1022 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spring Framework JDBC Demo</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Spring Framework JDBC Template</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+      }
+
+      h1 {
+        text-align: center;
+        color: #2c3e50;
+        margin-bottom: 30px;
+        font-size: 2.5em;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .demo-section {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 25px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        border-left: 5px solid #3498db;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .demo-section:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+      }
+
+      .demo-section h2 {
+        color: #2c3e50;
+        margin-bottom: 15px;
+        font-size: 1.8em;
+        border-bottom: 3px solid #3498db;
+        padding-bottom: 10px;
+      }
+
+      .code-block {
+        background: #2c3e50;
+        color: #ecf0f1;
+        padding: 20px;
+        border-radius: 10px;
+        margin: 15px 0;
+        font-family: "Courier New", monospace;
+        font-size: 14px;
+        line-height: 1.6;
+        overflow-x: auto;
+        position: relative;
+        border: 1px solid #34495e;
+      }
+
+      .code-block::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(
+          90deg,
+          #e74c3c,
+          #f39c12,
+          #f1c40f,
+          #2ecc71,
+          #3498db,
+          #9b59b6
+        );
+        border-radius: 10px 10px 0 0;
+      }
+
+      .keyword {
+        color: #e74c3c;
+        font-weight: bold;
+      }
+
+      .string {
+        color: #2ecc71;
+      }
+
+      .comment {
+        color: #95a5a6;
+        font-style: italic;
+      }
+
+      .class-name {
+        color: #f39c12;
+        font-weight: bold;
+      }
+
+      .method {
+        color: #3498db;
+      }
+
+      .annotation {
+        color: #e67e22;
+      }
+
+      .interactive-panel {
+        background: #ecf0f1;
+        border-radius: 10px;
+        padding: 20px;
+        margin-top: 20px;
+        border: 2px solid #bdc3c7;
+      }
+
+      .btn {
+        background: linear-gradient(45deg, #3498db, #2ecc71);
+        color: white;
+        border: none;
+        padding: 12px 25px;
+        border-radius: 25px;
+        cursor: pointer;
+        font-size: 16px;
+        margin: 10px 5px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+      }
+
+      .btn:active {
+        transform: translateY(0);
+      }
+
+      .output {
+        background: #34495e;
+        color: #ecf0f1;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 15px;
+        font-family: monospace;
+        min-height: 60px;
+        border-left: 4px solid #2ecc71;
+        white-space: pre-wrap;
+      }
+
+      .input-group {
+        margin: 15px 0;
+      }
+
+      .input-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+        color: #2c3e50;
+      }
+
+      .input-group input,
+      .input-group select {
+        width: 100%;
+        padding: 10px;
+        border: 2px solid #bdc3c7;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: border-color 0.3s ease;
+      }
+
+      .input-group input:focus,
+      .input-group select:focus {
+        outline: none;
+        border-color: #3498db;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+      }
+
+      .highlight {
+        background: #f39c12;
+        color: white;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-weight: bold;
+      }
+
+      .tabs {
+        display: flex;
+        margin-bottom: 20px;
+        border-bottom: 2px solid #ecf0f1;
+      }
+
+      .tab {
+        padding: 12px 20px;
+        background: #ecf0f1;
+        border: none;
+        cursor: pointer;
+        border-radius: 8px 8px 0 0;
+        margin-right: 5px;
+        transition: all 0.3s ease;
+      }
+
+      .tab.active {
+        background: #3498db;
+        color: white;
+      }
+
+      .tab-content {
+        display: none;
+      }
+
+      .tab-content.active {
+        display: block;
+      }
+
+      .status-indicator {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        margin-right: 8px;
+      }
+
+      .status-connected {
+        background: #2ecc71;
+        animation: pulse 2s infinite;
+      }
+
+      .status-disconnected {
+        background: #e74c3c;
+      }
+
+      @keyframes pulse {
+        0% {
+          opacity: 1;
         }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
+        50% {
+          opacity: 0.5;
         }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            backdrop-filter: blur(10px);
+        100% {
+          opacity: 1;
         }
+      }
 
-        h1 {
-            text-align: center;
-            color: #2c3e50;
-            margin-bottom: 30px;
-            font-size: 2.5em;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-        }
+      .concept-box {
+        background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+        border: 2px solid #dee2e6;
+        border-radius: 10px;
+        padding: 20px;
+        margin: 15px 0;
+        position: relative;
+        overflow: hidden;
+      }
 
-        .demo-section {
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 25px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-            border-left: 5px solid #3498db;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
+      .concept-box::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(180deg, #3498db, #2ecc71);
+      }
 
-        .demo-section:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
-        }
+      .concept-title {
+        color: #2c3e50;
+        font-size: 1.2em;
+        font-weight: bold;
+        margin-bottom: 10px;
+      }
 
-        .demo-section h2 {
-            color: #2c3e50;
-            margin-bottom: 15px;
-            font-size: 1.8em;
-            border-bottom: 3px solid #3498db;
-            padding-bottom: 10px;
-        }
+      .documentation-nav {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 25px;
+        color: white;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+      }
 
-        .code-block {
-            background: #2c3e50;
-            color: #ecf0f1;
-            padding: 20px;
-            border-radius: 10px;
-            margin: 15px 0;
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-            line-height: 1.6;
-            overflow-x: auto;
-            position: relative;
-            border: 1px solid #34495e;
-        }
+      .nav-header {
+        text-align: center;
+        margin-bottom: 25px;
+      }
 
-        .code-block::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, #e74c3c, #f39c12, #f1c40f, #2ecc71, #3498db, #9b59b6);
-            border-radius: 10px 10px 0 0;
-        }
+      .nav-header h3 {
+        color: white;
+        margin-bottom: 10px;
+        font-size: 1.8em;
+      }
 
-        .keyword {
-            color: #e74c3c;
-            font-weight: bold;
-        }
+      .nav-header p {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 1.1em;
+      }
 
-        .string {
-            color: #2ecc71;
-        }
+      .nav-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+      }
 
-        .comment {
-            color: #95a5a6;
-            font-style: italic;
-        }
+      .nav-card {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
 
-        .class-name {
-            color: #f39c12;
-            font-weight: bold;
-        }
+      .nav-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.2);
+      }
 
-        .method {
-            color: #3498db;
-        }
+      .nav-icon {
+        font-size: 2.5em;
+        margin-bottom: 15px;
+      }
 
-        .annotation {
-            color: #e67e22;
-        }
+      .nav-card h4 {
+        color: white;
+        margin-bottom: 10px;
+        font-size: 1.3em;
+      }
 
-        .interactive-panel {
-            background: #ecf0f1;
-            border-radius: 10px;
-            padding: 20px;
-            margin-top: 20px;
-            border: 2px solid #bdc3c7;
-        }
+      .nav-card p {
+        color: rgba(255, 255, 255, 0.8);
+        margin-bottom: 15px;
+        font-size: 0.9em;
+        line-height: 1.4;
+      }
 
-        .btn {
-            background: linear-gradient(45deg, #3498db, #2ecc71);
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 25px;
-            cursor: pointer;
-            font-size: 16px;
-            margin: 10px 5px;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
+      .nav-link {
+        display: inline-block;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 25px;
+        text-decoration: none;
+        font-weight: bold;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+      }
 
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-        }
+      .nav-link:hover {
+        background: rgba(255, 255, 255, 0.3);
+        border-color: rgba(255, 255, 255, 0.5);
+        transform: scale(1.05);
+      }
 
-        .btn:active {
-            transform: translateY(0);
-        }
+      .method-list {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+      }
 
-        .output {
-            background: #34495e;
-            color: #ecf0f1;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 15px;
-            font-family: monospace;
-            min-height: 60px;
-            border-left: 4px solid #2ecc71;
-            white-space: pre-wrap;
-        }
-
-        .input-group {
-            margin: 15px 0;
-        }
-
-        .input-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #2c3e50;
-        }
-
-        .input-group input, .input-group select {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #bdc3c7;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: border-color 0.3s ease;
-        }
-
-        .input-group input:focus, .input-group select:focus {
-            outline: none;
-            border-color: #3498db;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-        }
-
-        .highlight {
-            background: #f39c12;
-            color: white;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-weight: bold;
-        }
-
-        .tabs {
-            display: flex;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #ecf0f1;
-        }
-
-        .tab {
-            padding: 12px 20px;
-            background: #ecf0f1;
-            border: none;
-            cursor: pointer;
-            border-radius: 8px 8px 0 0;
-            margin-right: 5px;
-            transition: all 0.3s ease;
-        }
-
-        .tab.active {
-            background: #3498db;
-            color: white;
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        .status-indicator {
-            display: inline-block;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            margin-right: 8px;
-        }
-
-        .status-connected {
-            background: #2ecc71;
-            animation: pulse 2s infinite;
-        }
-
-        .status-disconnected {
-            background: #e74c3c;
-        }
-
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
-        }
-
-        .concept-box {
-            background: linear-gradient(45deg, #f8f9fa, #e9ecef);
-            border: 2px solid #dee2e6;
-            border-radius: 10px;
-            padding: 20px;
-            margin: 15px 0;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .concept-box::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 4px;
-            height: 100%;
-            background: linear-gradient(180deg, #3498db, #2ecc71);
-        }
-
-        .concept-title {
-            color: #2c3e50;
-            font-size: 1.2em;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-
-        .documentation-nav {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 15px;
-    padding: 25px;
-    margin-bottom: 25px;
-    color: white;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-}
-
-.nav-header {
-    text-align: center;
-    margin-bottom: 25px;
-}
-
-.nav-header h3 {
-    color: white;
-    margin-bottom: 10px;
-    font-size: 1.8em;
-}
-
-.nav-header p {
-    color: rgba(255, 255, 255, 0.8);
-    font-size: 1.1em;
-}
-
-.nav-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 20px;
-}
-
-.nav-card {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-    padding: 20px;
-    text-align: center;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.nav-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.2);
-}
-
-.nav-icon {
-    font-size: 2.5em;
-    margin-bottom: 15px;
-}
-
-.nav-card h4 {
-    color: white;
-    margin-bottom: 10px;
-    font-size: 1.3em;
-}
-
-.nav-card p {
-    color: rgba(255, 255, 255, 0.8);
-    margin-bottom: 15px;
-    font-size: 0.9em;
-    line-height: 1.4;
-}
-
-.nav-link {
-    display: inline-block;
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
-    padding: 10px 20px;
-    border-radius: 25px;
-    text-decoration: none;
-    font-weight: bold;
-    transition: all 0.3s ease;
-    border: 2px solid transparent;
-}
-
-.nav-link:hover {
-    background: rgba(255, 255, 255, 0.3);
-    border-color: rgba(255, 255, 255, 0.5);
-    transform: scale(1.05);
-}
-
-.method-list {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 8px;
-}
-
-.method-item {
-    background: rgba(255, 255, 255, 0.2);
-    padding: 5px 10px;
-    border-radius: 15px;
-    font-size: 0.8em;
-    font-family: 'Courier New', monospace;
-    color: white;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-}
+      .method-item {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 0.8em;
+        font-family: "Courier New", monospace;
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <h1>🌱 Spring Framework JDBC Demo</h1>
+      <h1>🌱 Spring Framework JDBC Template</h1>
 
-        <div class="documentation-nav">
-    <div class="nav-header">
-        <h3>📚 JdbcTemplate Documentation & Resources</h3>
-        <p>Explore comprehensive documentation and advanced methods</p>
-    </div>
-    
-    <div class="nav-grid">
-        <div class="nav-card">
+      <div class="documentation-nav">
+        <div class="nav-header">
+          <h3>📚 JdbcTemplate Documentation & Resources</h3>
+          <p>Explore comprehensive documentation and advanced methods</p>
+        </div>
+
+        <div class="nav-grid">
+          <div class="nav-card">
             <div class="nav-icon">📖</div>
             <h4>Official Spring Documentation</h4>
             <p>Complete reference guide for JdbcTemplate</p>
-            <a href="https://docs.spring.io/spring-framework/reference/data-access/jdbc/core.html" target="_blank" class="nav-link">
-                View Documentation
+            <a
+              href="https://docs.spring.io/spring-framework/reference/data-access/jdbc/core.html"
+              target="_blank"
+              class="nav-link"
+            >
+              View Documentation
             </a>
-        </div>
-        
-        <div class="nav-card">
+          </div>
+
+          <div class="nav-card">
             <div class="nav-icon">🔧</div>
             <h4>JdbcTemplate API Reference</h4>
             <p>Detailed API documentation with all methods</p>
-            <a href="https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/jdbc/core/JdbcTemplate.html" target="_blank" class="nav-link">
-                View API Reference
+            <a
+              href="https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/jdbc/core/JdbcTemplate.html"
+              target="_blank"
+              class="nav-link"
+            >
+              View API Reference
             </a>
-        </div>
-        
-        <div class="nav-card">
+          </div>
+
+          <div class="nav-card">
             <div class="nav-icon">💡</div>
             <h4>Common Methods Quick Reference</h4>
             <div class="method-list">
-                <span class="method-item">query()</span>
-                <span class="method-item">queryForObject()</span>
-                <span class="method-item">queryForList()</span>
-                <span class="method-item">update()</span>
-                <span class="method-item">batchUpdate()</span>
-                <span class="method-item">execute()</span>
+              <span class="method-item">query()</span>
+              <span class="method-item">queryForObject()</span>
+              <span class="method-item">queryForList()</span>
+              <span class="method-item">update()</span>
+              <span class="method-item">batchUpdate()</span>
+              <span class="method-item">execute()</span>
             </div>
-        </div>
-        
-        <div class="nav-card">
+          </div>
+
+          <div class="nav-card">
             <div class="nav-icon">📋</div>
             <h4>Best Practices Guide</h4>
             <p>Learn advanced patterns and best practices</p>
-            <a href="https://docs.spring.io/spring-framework/reference/data-access/jdbc/core.html#jdbc-JdbcTemplate-examples" target="_blank" class="nav-link">
-                View Examples
+            <a
+              href="https://docs.spring.io/spring-framework/reference/data-access/jdbc/core.html#jdbc-JdbcTemplate-examples"
+              target="_blank"
+              class="nav-link"
+            >
+              View Examples
             </a>
+          </div>
         </div>
-    </div>
-</div>
-        
-        <!-- DataSource Section -->
-        <div class="demo-section">
-            <h2>1. DataSource (DriverManagerDataSource)</h2>
-            <div class="concept-box">
-                <div class="concept-title">What is DataSource?</div>
-                <p>DataSource is an interface that provides a standard way to connect to a database. DriverManagerDataSource is Spring's implementation that creates a new connection for each request.</p>
-            </div>
-            
-            <div class="tabs">
-                <button class="tab active" onclick="showTab('datasource-config')">Configuration</button>
-                <button class="tab" onclick="showTab('datasource-demo')">Interactive Demo</button>
-            </div>
-            
-            <div id="datasource-config" class="tab-content active">
-                <div class="code-block">
-<span class="comment">// DataSource Configuration</span>
-<span class="keyword">import</span> org.springframework.jdbc.datasource.DriverManagerDataSource;
+      </div>
 
-<span class="annotation">@Configuration</span>
-<span class="keyword">public class</span> <span class="class-name">DatabaseConfig</span> {
-    
-    <span class="annotation">@Bean</span>
-    <span class="keyword">public</span> <span class="class-name">DataSource</span> <span class="method">dataSource</span>() {
-        <span class="class-name">DriverManagerDataSource</span> dataSource = <span class="keyword">new</span> <span class="class-name">DriverManagerDataSource</span>();
-        dataSource.<span class="method">setDriverClassName</span>(<span class="string">"com.mysql.cj.jdbc.Driver"</span>);
-        dataSource.<span class="method">setUrl</span>(<span class="string">"jdbc:mysql://localhost:3306/testdb"</span>);
-        dataSource.<span class="method">setUsername</span>(<span class="string">"root"</span>);
-        dataSource.<span class="method">setPassword</span>(<span class="string">"password"</span>);
-        <span class="keyword">return</span> dataSource;
-    }
-}
-                </div>
-            </div>
-            
-            <div id="datasource-demo" class="tab-content">
-                <div class="interactive-panel">
-                    <div class="input-group">
-                        <label>Database URL:</label>
-                        <input type="text" id="dbUrl" value="jdbc:mysql://localhost:3306/testdb">
-                    </div>
-                    <div class="input-group">
-                        <label>Username:</label>
-                        <input type="text" id="dbUser" value="root">
-                    </div>
-                    <div class="input-group">
-                        <label>Password:</label>
-                        <input type="password" id="dbPassword" value="password">
-                    </div>
-                    <button class="btn" onclick="simulateDataSourceConnection()">Test Connection</button>
-                    <div class="output" id="datasource-output">Click "Test Connection" to simulate DataSource configuration...</div>
-                </div>
-            </div>
+      <!-- DataSource Section -->
+      <div class="demo-section">
+        <h2>1. DataSource (DriverManagerDataSource)</h2>
+        <div class="concept-box">
+          <div class="concept-title">What is DataSource?</div>
+          <p>
+            DataSource is an interface that provides a standard way to connect
+            to a database. DriverManagerDataSource is Spring's implementation
+            that creates a new connection for each request.
+          </p>
         </div>
 
-        <!-- JDBC Template Section -->
-        <div class="demo-section">
-            <h2>2. JdbcTemplate</h2>
-            <div class="concept-box">
-                <div class="concept-title">What is JdbcTemplate?</div>
-                <p>JdbcTemplate is Spring's central class for JDBC operations. It handles resource management, exception handling, and provides a simplified API for database operations.</p>
-            </div>
-            
-            <div class="tabs">
-                <button class="tab active" onclick="showTab('jdbc-config')">Configuration</button>
-                <button class="tab" onclick="showTab('jdbc-operations')">Operations</button>
-                <button class="tab" onclick="showTab('jdbc-demo')">Interactive Demo</button>
-            </div>
-            
-            <div id="jdbc-config" class="tab-content active">
-                <div class="code-block">
-<span class="comment">// JdbcTemplate Configuration</span>
-<span class="keyword">import</span> org.springframework.jdbc.core.JdbcTemplate;
-
-<span class="annotation">@Service</span>
-<span class="keyword">public class</span> <span class="class-name">UserService</span> {
-    
-    <span class="keyword">private</span> <span class="class-name">JdbcTemplate</span> jdbcTemplate;
-    
-    <span class="keyword">public</span> <span class="method">UserService</span>(<span class="class-name">DataSource</span> dataSource) {
-        <span class="keyword">this</span>.jdbcTemplate = <span class="keyword">new</span> <span class="class-name">JdbcTemplate</span>(dataSource);
-    }
-    
-    <span class="comment">// Alternative: Auto-inject JdbcTemplate</span>
-    <span class="annotation">@Autowired</span>
-    <span class="keyword">private</span> <span class="class-name">JdbcTemplate</span> jdbcTemplate;
-}
-                </div>
-            </div>
-            
-            <div id="jdbc-operations" class="tab-content">
-                <div class="code-block">
-<span class="comment">// Common JdbcTemplate Operations</span>
-
-<span class="comment">// 1. Query for single value</span>
-<span class="keyword">public</span> <span class="keyword">int</span> <span class="method">getUserCount</span>() {
-    <span class="keyword">return</span> jdbcTemplate.<span class="method">queryForObject</span>(<span class="string">"SELECT COUNT(*) FROM users"</span>, <span class="class-name">Integer</span>.<span class="keyword">class</span>);
-}
-
-<span class="comment">// 2. Query for list of objects</span>
-<span class="keyword">public</span> <span class="class-name">List</span>&lt;<span class="class-name">User</span>&gt; <span class="method">getAllUsers</span>() {
-    <span class="keyword">return</span> jdbcTemplate.<span class="method">query</span>(<span class="string">"SELECT * FROM users"</span>, <span class="keyword">new</span> <span class="class-name">UserRowMapper</span>());
-}
-
-<span class="comment">// 3. Update operation</span>
-<span class="keyword">public</span> <span class="keyword">int</span> <span class="method">updateUser</span>(<span class="class-name">User</span> user) {
-    <span class="keyword">return</span> jdbcTemplate.<span class="method">update</span>(<span class="string">"UPDATE users SET name=?, email=? WHERE id=?"</span>, 
-                                user.<span class="method">getName</span>(), user.<span class="method">getEmail</span>(), user.<span class="method">getId</span>());
-}
-
-<span class="comment">// 4. Insert operation</span>
-<span class="keyword">public</span> <span class="keyword">int</span> <span class="method">insertUser</span>(<span class="class-name">User</span> user) {
-    <span class="keyword">return</span> jdbcTemplate.<span class="method">update</span>(<span class="string">"INSERT INTO users (name, email) VALUES (?, ?)"</span>, 
-                                user.<span class="method">getName</span>(), user.<span class="method">getEmail</span>());
-}
-                </div>
-            </div>
-            
-            <div id="jdbc-demo" class="tab-content">
-                <div class="interactive-panel">
-                    <div class="input-group">
-                        <label>SQL Query:</label>
-                        <select id="sqlQuery" onchange="updateQueryInput()">
-                            <option value="SELECT * FROM users">SELECT * FROM users</option>
-                            <option value="SELECT COUNT(*) FROM users">SELECT COUNT(*) FROM users</option>
-                            <option value="INSERT INTO users (name, email) VALUES (?, ?)">INSERT INTO users</option>
-                            <option value="UPDATE users SET name=? WHERE id=?">UPDATE users</option>
-                        </select>
-                    </div>
-                    <div class="input-group">
-                        <label>Parameters (comma-separated):</label>
-                        <input type="text" id="queryParams" placeholder="John Doe, john@example.com">
-                    </div>
-                    <button class="btn" onclick="executeJdbcQuery()">Execute Query</button>
-                    <div class="output" id="jdbc-output">Select a query and click "Execute Query" to simulate JdbcTemplate operations...</div>
-                </div>
-            </div>
+        <div class="tabs">
+          <button class="tab active" onclick="showTab('datasource-config')">
+            Configuration
+          </button>
+          <button class="tab" onclick="showTab('datasource-demo')">
+            Interactive Demo
+          </button>
         </div>
 
-        <!-- RowMapper Section -->
-        <div class="demo-section">
-            <h2>3. RowMapper</h2>
-            <div class="concept-box">
-                <div class="concept-title">What is RowMapper?</div>
-                <p>RowMapper is a functional interface that maps rows of a ResultSet to Java objects. It's used to convert database rows into POJOs.</p>
-            </div>
-            
-            <div class="tabs">
-                <button class="tab active" onclick="showTab('rowmapper-impl')">Implementation</button>
-                <button class="tab" onclick="showTab('rowmapper-demo')">Interactive Demo</button>
-            </div>
-            
-            <div id="rowmapper-impl" class="tab-content active">
-                <div class="code-block">
-<span class="comment">// Custom RowMapper Implementation</span>
-<span class="keyword">import</span> org.springframework.jdbc.core.RowMapper;
-<span class="keyword">import</span> java.sql.ResultSet;
-<span class="keyword">import</span> java.sql.SQLException;
+        <div id="datasource-config" class="tab-content active">
+          <pre class="code-block">
+            <span class="comment">// DataSource Configuration</span>
+            <span class="keyword">import</span>
+            org.springframework.jdbc.datasource.DriverManagerDataSource;
 
-<span class="keyword">public class</span> <span class="class-name">UserRowMapper</span> <span class="keyword">implements</span> <span class="class-name">RowMapper</span>&lt;<span class="class-name">User</span>&gt; {
-    
-    <span class="annotation">@Override</span>
-    <span class="keyword">public</span> <span class="class-name">User</span> <span class="method">mapRow</span>(<span class="class-name">ResultSet</span> rs, <span class="keyword">int</span> rowNum) <span class="keyword">throws</span> <span class="class-name">SQLException</span> {
-        <span class="class-name">User</span> user = <span class="keyword">new</span> <span class="class-name">User</span>();
-        user.<span class="method">setId</span>(rs.<span class="method">getLong</span>(<span class="string">"id"</span>));
-        user.<span class="method">setName</span>(rs.<span class="method">getString</span>(<span class="string">"name"</span>));
-        user.<span class="method">setEmail</span>(rs.<span class="method">getString</span>(<span class="string">"email"</span>));
-        user.<span class="method">setCreatedAt</span>(rs.<span class="method">getTimestamp</span>(<span class="string">"created_at"</span>));
-        <span class="keyword">return</span> user;
-    }
-}
+            <span class="annotation">@Configuration</span>
+            <span class="keyword">public class</span>
+            <span class="class-name">DatabaseConfig</span> {
 
-<span class="comment">// Usage with JdbcTemplate</span>
-<span class="keyword">public</span> <span class="class-name">List</span>&lt;<span class="class-name">User</span>&gt; <span class="method">findAllUsers</span>() {
-    <span class="keyword">return</span> jdbcTemplate.<span class="method">query</span>(<span class="string">"SELECT * FROM users"</span>, <span class="keyword">new</span> <span class="class-name">UserRowMapper</span>());
-}
-
-<span class="comment">// Lambda expression alternative</span>
-<span class="keyword">public</span> <span class="class-name">List</span>&lt;<span class="class-name">User</span>&gt; <span class="method">findAllUsersLambda</span>() {
-    <span class="keyword">return</span> jdbcTemplate.<span class="method">query</span>(<span class="string">"SELECT * FROM users"</span>, (rs, rowNum) -> {
-        <span class="class-name">User</span> user = <span class="keyword">new</span> <span class="class-name">User</span>();
-        user.<span class="method">setId</span>(rs.<span class="method">getLong</span>(<span class="string">"id"</span>));
-        user.<span class="method">setName</span>(rs.<span class="method">getString</span>(<span class="string">"name"</span>));
-        user.<span class="method">setEmail</span>(rs.<span class="method">getString</span>(<span class="string">"email"</span>));
-        <span class="keyword">return</span> user;
-    });
-}
-                </div>
-            </div>
-            
-            <div id="rowmapper-demo" class="tab-content">
-                <div class="interactive-panel">
-                    <div class="input-group">
-                        <label>ResultSet Data (JSON format):</label>
-                        <input type="text" id="resultSetData" value='{"id": 1, "name": "John Doe", "email": "john@example.com", "created_at": "2024-01-15"}'>
-                    </div>
-                    <button class="btn" onclick="simulateRowMapping()">Apply RowMapper</button>
-                    <div class="output" id="rowmapper-output">Enter ResultSet data and click "Apply RowMapper" to see object mapping...</div>
-                </div>
-            </div>
+            <span class="annotation">@Bean</span>
+            <span class="keyword">public</span>
+            <span class="class-name">DataSource</span>
+            <span class="method">dataSource</span>() {
+            <span class="class-name">DriverManagerDataSource</span> dataSource =
+            <span class="keyword">new</span>
+            <span class="class-name">DriverManagerDataSource</span>();
+            dataSource.<span class="method">setDriverClassName</span>(<span
+              class="string"
+              >"com.mysql.cj.jdbc.Driver"</span
+            >); dataSource.<span class="method">setUrl</span>(<span
+              class="string"
+              >"jdbc:mysql://localhost:3306/testdb"</span
+            >); dataSource.<span class="method">setUsername</span>(<span
+              class="string"
+              >"root"</span
+            >); dataSource.<span class="method">setPassword</span>(<span
+              class="string"
+              >"password"</span
+            >); <span class="keyword">return</span> dataSource; } }
+          </pre>
         </div>
 
-        <!-- BeanPropertyRowMapper Section -->
-        <div class="demo-section">
-            <h2>4. BeanPropertyRowMapper</h2>
-            <div class="concept-box">
-                <div class="concept-title">What is BeanPropertyRowMapper?</div>
-                <p>BeanPropertyRowMapper is a built-in RowMapper that automatically maps database columns to Java bean properties by matching column names to property names.</p>
+        <div id="datasource-demo" class="tab-content">
+          <div class="interactive-panel">
+            <div class="input-group">
+              <label>Database URL:</label>
+              <input
+                type="text"
+                id="dbUrl"
+                value="jdbc:mysql://localhost:3306/testdb"
+              />
             </div>
-            
-            <div class="tabs">
-                <button class="tab active" onclick="showTab('beanmapper-usage')">Usage</button>
-                <button class="tab" onclick="showTab('beanmapper-demo')">Interactive Demo</button>
+            <div class="input-group">
+              <label>Username:</label>
+              <input type="text" id="dbUser" value="root" />
             </div>
-            
-            <div id="beanmapper-usage" class="tab-content active">
-                <div class="code-block">
-<span class="comment">// BeanPropertyRowMapper Usage</span>
-<span class="keyword">import</span> org.springframework.jdbc.core.BeanPropertyRowMapper;
-
-<span class="comment">// Simple usage - automatic mapping</span>
-<span class="keyword">public</span> <span class="class-name">List</span>&lt;<span class="class-name">User</span>&gt; <span class="method">findAllUsers</span>() {
-    <span class="keyword">return</span> jdbcTemplate.<span class="method">query</span>(<span class="string">"SELECT * FROM users"</span>, 
-                            <span class="keyword">new</span> <span class="class-name">BeanPropertyRowMapper</span>&lt;&gt;(<span class="class-name">User</span>.<span class="keyword">class</span>));
-}
-
-<span class="comment">// Alternative static method</span>
-<span class="keyword">public</span> <span class="class-name">List</span>&lt;<span class="class-name">User</span>&gt; <span class="method">findAllUsersStatic</span>() {
-    <span class="keyword">return</span> jdbcTemplate.<span class="method">query</span>(<span class="string">"SELECT * FROM users"</span>, 
-                            <span class="class-name">BeanPropertyRowMapper</span>.<span class="method">newInstance</span>(<span class="class-name">User</span>.<span class="keyword">class</span>));
-}
-
-<span class="comment">// Single object query</span>
-<span class="keyword">public</span> <span class="class-name">User</span> <span class="method">findUserById</span>(<span class="keyword">long</span> id) {
-    <span class="keyword">return</span> jdbcTemplate.<span class="method">queryForObject</span>(<span class="string">"SELECT * FROM users WHERE id = ?"</span>, 
-                                    <span class="keyword">new</span> <span class="class-name">BeanPropertyRowMapper</span>&lt;&gt;(<span class="class-name">User</span>.<span class="keyword">class</span>), id);
-}
-
-<span class="comment">// User POJO class</span>
-<span class="keyword">public class</span> <span class="class-name">User</span> {
-    <span class="keyword">private</span> <span class="keyword">Long</span> id;           <span class="comment">// maps to 'id' column</span>
-    <span class="keyword">private</span> <span class="class-name">String</span> name;       <span class="comment">// maps to 'name' column</span>
-    <span class="keyword">private</span> <span class="class-name">String</span> email;      <span class="comment">// maps to 'email' column</span>
-    <span class="keyword">private</span> <span class="class-name">Date</span> createdAt;    <span class="comment">// maps to 'created_at' column</span>
-    
-    <span class="comment">// Getters and setters required for BeanPropertyRowMapper</span>
-    <span class="keyword">public</span> <span class="keyword">Long</span> <span class="method">getId</span>() { <span class="keyword">return</span> id; }
-    <span class="keyword">public</span> <span class="keyword">void</span> <span class="method">setId</span>(<span class="keyword">Long</span> id) { <span class="keyword">this</span>.id = id; }
-    <span class="comment">// ... other getters and setters</span>
-}
-                </div>
+            <div class="input-group">
+              <label>Password:</label>
+              <input type="password" id="dbPassword" value="password" />
             </div>
-            
-            <div id="beanmapper-demo" class="tab-content">
-                <div class="interactive-panel">
-                    <div class="input-group">
-                        <label>Database Columns (comma-separated):</label>
-                        <input type="text" id="dbColumns" value="id, name, email, created_at">
-                    </div>
-                    <div class="input-group">
-                        <label>Java Bean Properties (comma-separated):</label>
-                        <input type="text" id="beanProperties" value="id, name, email, createdAt">
-                    </div>
-                    <div class="input-group">
-                        <label>Sample Data:</label>
-                        <input type="text" id="sampleData" value='{"id": 1, "name": "Alice Smith", "email": "alice@example.com", "created_at": "2024-01-20"}'>
-                    </div>
-                    <button class="btn" onclick="simulateBeanPropertyMapping()">Apply BeanPropertyRowMapper</button>
-                    <div class="output" id="beanmapper-output">Configure columns and properties, then click "Apply BeanPropertyRowMapper"...</div>
-                </div>
+            <button class="btn" onclick="simulateDataSourceConnection()">
+              Test Connection
+            </button>
+            <div class="output" id="datasource-output">
+              Click "Test Connection" to simulate DataSource configuration...
             </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- JDBC Template Section -->
+      <div class="demo-section">
+        <h2>2. JdbcTemplate</h2>
+        <div class="concept-box">
+          <div class="concept-title">What is JdbcTemplate?</div>
+          <p>
+            JdbcTemplate is Spring's central class for JDBC operations. It
+            handles resource management, exception handling, and provides a
+            simplified API for database operations.
+          </p>
         </div>
 
-        <!-- Comparison Section -->
-        <div class="demo-section">
-            <h2>5. Comparison: Custom RowMapper vs BeanPropertyRowMapper</h2>
-            <div class="grid">
-                <div class="concept-box">
-                    <div class="concept-title">Custom RowMapper</div>
-                    <p><strong>Pros:</strong></p>
-                    <ul>
-                        <li>Full control over mapping logic</li>
-                        <li>Can handle complex transformations</li>
-                        <li>Better performance for complex mappings</li>
-                        <li>Can handle column name mismatches</li>
-                    </ul>
-                    <p><strong>Cons:</strong></p>
-                    <ul>
-                        <li>More boilerplate code</li>
-                        <li>Need to maintain mapping code</li>
-                        <li>Manual error handling</li>
-                    </ul>
-                </div>
-                <div class="concept-box">
-                    <div class="concept-title">BeanPropertyRowMapper</div>
-                    <p><strong>Pros:</strong></p>
-                    <ul>
-                        <li>Zero configuration for simple mappings</li>
-                        <li>Automatic column-to-property mapping</li>
-                        <li>Less code to maintain</li>
-                        <li>Handles common data types automatically</li>
-                    </ul>
-                    <p><strong>Cons:</strong></p>
-                    <ul>
-                        <li>Limited control over mapping logic</li>
-                        <li>Requires getter/setter methods</li>
-                        <li>Column names must match property names</li>
-                        <li>Less efficient for simple mappings</li>
-                    </ul>
-                </div>
-            </div>
+        <div class="tabs">
+          <button class="tab active" onclick="showTab('jdbc-config')">
+            Configuration
+          </button>
+          <button class="tab" onclick="showTab('jdbc-operations')">
+            Operations
+          </button>
+          <button class="tab" onclick="showTab('jdbc-demo')">
+            Interactive Demo
+          </button>
         </div>
 
-        <!-- Complete Example Section -->
-        <div class="demo-section">
-            <h2>6. Complete Working Example</h2>
-            <div class="interactive-panel">
-                <div class="input-group">
-                    <label>Connection Status:</label>
-                    <div>
-                        <span id="connection-status" class="status-indicator status-disconnected"></span>
-                        <span id="connection-text">Disconnected</span>
-                    </div>
-                </div>
-                <button class="btn" onclick="runCompleteExample()">Run Complete Example</button>
-                <div class="output" id="complete-output">Click "Run Complete Example" to see all components working together...</div>
-            </div>
+        <div id="jdbc-config" class="tab-content active">
+          <pre class="code-block">
+            <span class="comment">// JdbcTemplate Configuration</span>
+            <span class="keyword">import</span>
+            org.springframework.jdbc.core.JdbcTemplate;
+
+            <span class="annotation">@Service</span>
+            <span class="keyword">public class</span>
+            <span class="class-name">UserService</span> {
+
+            <span class="keyword">private</span>
+            <span class="class-name">JdbcTemplate</span> jdbcTemplate;
+
+            <span class="keyword">public</span>
+            <span class="method">UserService</span>(<span class="class-name"
+              >DataSource</span
+            >
+            dataSource) { <span class="keyword">this</span>.jdbcTemplate =
+            <span class="keyword">new</span>
+            <span class="class-name">JdbcTemplate</span>(dataSource); }
+
+            <span class="comment"
+              >// Alternative: Auto-inject JdbcTemplate</span
+            >
+            <span class="annotation">@Autowired</span>
+            <span class="keyword">private</span>
+            <span class="class-name">JdbcTemplate</span> jdbcTemplate; }
+          </pre>
         </div>
+
+        <div id="jdbc-operations" class="tab-content">
+          <pre class="code-block">
+            <span class="comment">// Common JdbcTemplate Operations</span>
+
+            <span class="comment">// 1. Query for single value</span>
+            <span class="keyword">public</span>
+            <span class="keyword">int</span>
+            <span class="method">getUserCount</span>() {
+            <span class="keyword">return</span> jdbcTemplate.<span
+              class="method"
+              >queryForObject</span
+            >(<span class="string">"SELECT COUNT(*) FROM users"</span>,
+            <span class="class-name">Integer</span>.<span class="keyword"
+              >class</span
+            >); }
+
+            <span class="comment">// 2. Query for list of objects</span>
+            <span class="keyword">public</span>
+            <span class="class-name">List</span>&lt;<span class="class-name"
+              >User</span
+            >&gt; <span class="method">getAllUsers</span>() {
+            <span class="keyword">return</span> jdbcTemplate.<span
+              class="method"
+              >query</span
+            >(<span class="string">"SELECT * FROM users"</span>,
+            <span class="keyword">new</span>
+            <span class="class-name">UserRowMapper</span>()); }
+
+            <span class="comment">// 3. Update operation</span>
+            <span class="keyword">public</span>
+            <span class="keyword">int</span>
+            <span class="method">updateUser</span>(<span class="class-name"
+              >User</span
+            >
+            user) { <span class="keyword">return</span> jdbcTemplate.<span
+              class="method"
+              >update</span
+            >(<span class="string"
+              >"UPDATE users SET name=?, email=? WHERE id=?"</span
+            >, user.<span class="method">getName</span>(), user.<span
+              class="method"
+              >getEmail</span
+            >(), user.<span class="method">getId</span>()); }
+
+            <span class="comment">// 4. Insert operation</span>
+            <span class="keyword">public</span>
+            <span class="keyword">int</span>
+            <span class="method">insertUser</span>(<span class="class-name"
+              >User</span
+            >
+            user) { <span class="keyword">return</span> jdbcTemplate.<span
+              class="method"
+              >update</span
+            >(<span class="string"
+              >"INSERT INTO users (name, email) VALUES (?, ?)"</span
+            >, user.<span class="method">getName</span>(), user.<span
+              class="method"
+              >getEmail</span
+            >()); }
+          </pre>
+        </div>
+
+        <div id="jdbc-demo" class="tab-content">
+          <div class="interactive-panel">
+            <div class="input-group">
+              <label>SQL Query:</label>
+              <select id="sqlQuery" onchange="updateQueryInput()">
+                <option value="SELECT * FROM users">SELECT * FROM users</option>
+                <option value="SELECT COUNT(*) FROM users">
+                  SELECT COUNT(*) FROM users
+                </option>
+                <option value="INSERT INTO users (name, email) VALUES (?, ?)">
+                  INSERT INTO users
+                </option>
+                <option value="UPDATE users SET name=? WHERE id=?">
+                  UPDATE users
+                </option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label>Parameters (comma-separated):</label>
+              <input
+                type="text"
+                id="queryParams"
+                placeholder="John Doe, john@example.com"
+              />
+            </div>
+            <button class="btn" onclick="executeJdbcQuery()">
+              Execute Query
+            </button>
+            <div class="output" id="jdbc-output">
+              Select a query and click "Execute Query" to simulate JdbcTemplate
+              operations...
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RowMapper Section -->
+      <div class="demo-section">
+        <h2>3. RowMapper</h2>
+        <div class="concept-box">
+          <div class="concept-title">What is RowMapper?</div>
+          <p>
+            RowMapper is a functional interface that maps rows of a ResultSet to
+            Java objects. It's used to convert database rows into POJOs.
+          </p>
+        </div>
+
+        <div class="tabs">
+          <button class="tab active" onclick="showTab('rowmapper-impl')">
+            Implementation
+          </button>
+          <button class="tab" onclick="showTab('rowmapper-demo')">
+            Interactive Demo
+          </button>
+        </div>
+
+        <div id="rowmapper-impl" class="tab-content active">
+          <pre class="code-block">
+            <span class="comment">// Custom RowMapper Implementation</span>
+            <span class="keyword">import</span>
+            org.springframework.jdbc.core.RowMapper;
+            <span class="keyword">import</span> java.sql.ResultSet;
+            <span class="keyword">import</span> java.sql.SQLException;
+
+            <span class="keyword">public class</span>
+            <span class="class-name">UserRowMapper</span>
+            <span class="keyword">implements</span>
+            <span class="class-name">RowMapper</span>&lt;<span
+              class="class-name"
+              >User</span
+            >&gt; {
+
+            <span class="annotation">@Override</span>
+            <span class="keyword">public</span>
+            <span class="class-name">User</span>
+            <span class="method">mapRow</span>(<span class="class-name"
+              >ResultSet</span
+            >
+            rs, <span class="keyword">int</span> rowNum)
+            <span class="keyword">throws</span>
+            <span class="class-name">SQLException</span> {
+            <span class="class-name">User</span> user =
+            <span class="keyword">new</span>
+            <span class="class-name">User</span>(); user.<span class="method"
+              >setId</span
+            >(rs.<span class="method">getLong</span>(<span class="string"
+              >"id"</span
+            >)); user.<span class="method">setName</span>(rs.<span
+              class="method"
+              >getString</span
+            >(<span class="string">"name"</span>)); user.<span class="method"
+              >setEmail</span
+            >(rs.<span class="method">getString</span>(<span class="string"
+              >"email"</span
+            >)); user.<span class="method">setCreatedAt</span>(rs.<span
+              class="method"
+              >getTimestamp</span
+            >(<span class="string">"created_at"</span>));
+            <span class="keyword">return</span> user; } }
+
+            <span class="comment">// Usage with JdbcTemplate</span>
+            <span class="keyword">public</span>
+            <span class="class-name">List</span>&lt;<span class="class-name"
+              >User</span
+            >&gt; <span class="method">findAllUsers</span>() {
+            <span class="keyword">return</span> jdbcTemplate.<span
+              class="method"
+              >query</span
+            >(<span class="string">"SELECT * FROM users"</span>,
+            <span class="keyword">new</span>
+            <span class="class-name">UserRowMapper</span>()); }
+
+            <span class="comment">// Lambda expression alternative</span>
+            <span class="keyword">public</span>
+            <span class="class-name">List</span>&lt;<span class="class-name"
+              >User</span
+            >&gt; <span class="method">findAllUsersLambda</span>() {
+            <span class="keyword">return</span> jdbcTemplate.<span
+              class="method"
+              >query</span
+            >(<span class="string">"SELECT * FROM users"</span>, (rs, rowNum) ->
+            { <span class="class-name">User</span> user =
+            <span class="keyword">new</span>
+            <span class="class-name">User</span>(); user.<span class="method"
+              >setId</span
+            >(rs.<span class="method">getLong</span>(<span class="string"
+              >"id"</span
+            >)); user.<span class="method">setName</span>(rs.<span
+              class="method"
+              >getString</span
+            >(<span class="string">"name"</span>)); user.<span class="method"
+              >setEmail</span
+            >(rs.<span class="method">getString</span>(<span class="string"
+              >"email"</span
+            >)); <span class="keyword">return</span> user; }); }
+          </pre>
+        </div>
+
+        <div id="rowmapper-demo" class="tab-content">
+          <div class="interactive-panel">
+            <div class="input-group">
+              <label>ResultSet Data (JSON format):</label>
+              <input
+                type="text"
+                id="resultSetData"
+                value='{"id": 1, "name": "John Doe", "email": "john@example.com", "created_at": "2024-01-15"}'
+              />
+            </div>
+            <button class="btn" onclick="simulateRowMapping()">
+              Apply RowMapper
+            </button>
+            <div class="output" id="rowmapper-output">
+              Enter ResultSet data and click "Apply RowMapper" to see object
+              mapping...
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BeanPropertyRowMapper Section -->
+      <div class="demo-section">
+        <h2>4. BeanPropertyRowMapper</h2>
+        <div class="concept-box">
+          <div class="concept-title">What is BeanPropertyRowMapper?</div>
+          <p>
+            BeanPropertyRowMapper is a built-in RowMapper that automatically
+            maps database columns to Java bean properties by matching column
+            names to property names.
+          </p>
+        </div>
+
+        <div class="tabs">
+          <button class="tab active" onclick="showTab('beanmapper-usage')">
+            Usage
+          </button>
+          <button class="tab" onclick="showTab('beanmapper-demo')">
+            Interactive Demo
+          </button>
+        </div>
+
+        <div id="beanmapper-usage" class="tab-content active">
+          <pre class="code-block">
+            <span class="comment">// BeanPropertyRowMapper Usage</span>
+            <span class="keyword">import</span>
+            org.springframework.jdbc.core.BeanPropertyRowMapper;
+
+            <span class="comment">// Simple usage - automatic mapping</span>
+            <span class="keyword">public</span>
+            <span class="class-name">List</span>&lt;<span class="class-name"
+              >User</span
+            >&gt; <span class="method">findAllUsers</span>() {
+            <span class="keyword">return</span> jdbcTemplate.<span
+              class="method"
+              >query</span
+            >(<span class="string">"SELECT * FROM users"</span>,
+            <span class="keyword">new</span>
+            <span class="class-name">BeanPropertyRowMapper</span>&lt;&gt;(<span
+              class="class-name"
+              >User</span
+            >.<span class="keyword">class</span>)); }
+
+            <span class="comment">// Alternative static method</span>
+            <span class="keyword">public</span>
+            <span class="class-name">List</span>&lt;<span class="class-name"
+              >User</span
+            >&gt; <span class="method">findAllUsersStatic</span>() {
+            <span class="keyword">return</span> jdbcTemplate.<span
+              class="method"
+              >query</span
+            >(<span class="string">"SELECT * FROM users"</span>,
+            <span class="class-name">BeanPropertyRowMapper</span>.<span
+              class="method"
+              >newInstance</span
+            >(<span class="class-name">User</span>.<span class="keyword"
+              >class</span
+            >)); }
+
+            <span class="comment">// Single object query</span>
+            <span class="keyword">public</span>
+            <span class="class-name">User</span>
+            <span class="method">findUserById</span>(<span class="keyword"
+              >long</span
+            >
+            id) { <span class="keyword">return</span> jdbcTemplate.<span
+              class="method"
+              >queryForObject</span
+            >(<span class="string">"SELECT * FROM users WHERE id = ?"</span>,
+            <span class="keyword">new</span>
+            <span class="class-name">BeanPropertyRowMapper</span>&lt;&gt;(<span
+              class="class-name"
+              >User</span
+            >.<span class="keyword">class</span>), id); }
+
+            <span class="comment">// User POJO class</span>
+            <span class="keyword">public class</span>
+            <span class="class-name">User</span> {
+            <span class="keyword">private</span>
+            <span class="keyword">Long</span> id;
+            <span class="comment">// maps to 'id' column</span>
+            <span class="keyword">private</span>
+            <span class="class-name">String</span> name;
+            <span class="comment">// maps to 'name' column</span>
+            <span class="keyword">private</span>
+            <span class="class-name">String</span> email;
+            <span class="comment">// maps to 'email' column</span>
+            <span class="keyword">private</span>
+            <span class="class-name">Date</span> createdAt;
+            <span class="comment">// maps to 'created_at' column</span>
+
+            <span class="comment"
+              >// Getters and setters required for BeanPropertyRowMapper</span
+            >
+            <span class="keyword">public</span>
+            <span class="keyword">Long</span>
+            <span class="method">getId</span>() {
+            <span class="keyword">return</span> id; }
+            <span class="keyword">public</span>
+            <span class="keyword">void</span>
+            <span class="method">setId</span>(<span class="keyword">Long</span>
+            id) { <span class="keyword">this</span>.id = id; }
+            <span class="comment">// ... other getters and setters</span>
+            }
+          </pre>
+        </div>
+
+        <div id="beanmapper-demo" class="tab-content">
+          <div class="interactive-panel">
+            <div class="input-group">
+              <label>Database Columns (comma-separated):</label>
+              <input
+                type="text"
+                id="dbColumns"
+                value="id, name, email, created_at"
+              />
+            </div>
+            <div class="input-group">
+              <label>Java Bean Properties (comma-separated):</label>
+              <input
+                type="text"
+                id="beanProperties"
+                value="id, name, email, createdAt"
+              />
+            </div>
+            <div class="input-group">
+              <label>Sample Data:</label>
+              <input
+                type="text"
+                id="sampleData"
+                value='{"id": 1, "name": "Alice Smith", "email": "alice@example.com", "created_at": "2024-01-20"}'
+              />
+            </div>
+            <button class="btn" onclick="simulateBeanPropertyMapping()">
+              Apply BeanPropertyRowMapper
+            </button>
+            <div class="output" id="beanmapper-output">
+              Configure columns and properties, then click "Apply
+              BeanPropertyRowMapper"...
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Comparison Section -->
+      <div class="demo-section">
+        <h2>5. Comparison: Custom RowMapper vs BeanPropertyRowMapper</h2>
+        <div class="grid">
+          <div class="concept-box">
+            <div class="concept-title">Custom RowMapper</div>
+            <p><strong>Pros:</strong></p>
+            <ul>
+              <li>Full control over mapping logic</li>
+              <li>Can handle complex transformations</li>
+              <li>Better performance for complex mappings</li>
+              <li>Can handle column name mismatches</li>
+            </ul>
+            <p><strong>Cons:</strong></p>
+            <ul>
+              <li>More boilerplate code</li>
+              <li>Need to maintain mapping code</li>
+              <li>Manual error handling</li>
+            </ul>
+          </div>
+          <div class="concept-box">
+            <div class="concept-title">BeanPropertyRowMapper</div>
+            <p><strong>Pros:</strong></p>
+            <ul>
+              <li>Zero configuration for simple mappings</li>
+              <li>Automatic column-to-property mapping</li>
+              <li>Less code to maintain</li>
+              <li>Handles common data types automatically</li>
+            </ul>
+            <p><strong>Cons:</strong></p>
+            <ul>
+              <li>Limited control over mapping logic</li>
+              <li>Requires getter/setter methods</li>
+              <li>Column names must match property names</li>
+              <li>Less efficient for simple mappings</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Complete Example Section -->
+      <div class="demo-section">
+        <h2>6. Complete Working Example</h2>
+        <div class="interactive-panel">
+          <div class="input-group">
+            <label>Connection Status:</label>
+            <div>
+              <span
+                id="connection-status"
+                class="status-indicator status-disconnected"
+              ></span>
+              <span id="connection-text">Disconnected</span>
+            </div>
+          </div>
+          <button class="btn" onclick="runCompleteExample()">
+            Run Complete Example
+          </button>
+          <div class="output" id="complete-output">
+            Click "Run Complete Example" to see all components working
+            together...
+          </div>
+        </div>
+      </div>
     </div>
 
     <script src="spring-jdbc-js.js"></script>
-</body>
+  </body>
 </html>
