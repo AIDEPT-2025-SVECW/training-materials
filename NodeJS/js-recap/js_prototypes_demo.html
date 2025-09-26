@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript Prototypes and Inheritance Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+            border-left: 5px solid #4facfe;
+            padding-left: 25px;
+            border-radius: 5px;
+        }
+        
+        .section h2 {
+            color: #2c3e50;
+            font-size: 1.8em;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .section h3 {
+            color: #34495e;
+            font-size: 1.4em;
+            margin: 20px 0 10px 0;
+        }
+        
+        .analogy {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            border-left: 5px solid #ff6b6b;
+            position: relative;
+        }
+        
+        .analogy::before {
+            content: "💡";
+            font-size: 24px;
+            position: absolute;
+            top: 15px;
+            right: 20px;
+        }
+        
+        .analogy h4 {
+            color: #c0392b;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+        
+        pre {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            line-height: 1.4;
+            border: 1px solid #4a5568;
+        }
+        
+        .demo-section {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border-radius: 10px;
+            padding: 25px;
+            margin: 20px 0;
+            color: white;
+        }
+        
+        .demo-section h3 {
+            color: white;
+            margin-bottom: 15px;
+        }
+        
+        .interactive-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 10px 10px 0;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .interactive-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        
+        .output {
+            background: #1a202c;
+            color: #68d391;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            border: 2px solid #4a5568;
+        }
+        
+        .prototype-chain {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .prototype-box {
+            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+            border: 2px solid #2ecc71;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px;
+            text-align: center;
+            min-width: 120px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        
+        .arrow {
+            font-size: 24px;
+            color: #3498db;
+            margin: 0 10px;
+        }
+        
+        .keyword {
+            color: #ff79c6;
+            font-weight: bold;
+        }
+        
+        .string {
+            color: #f1fa8c;
+        }
+        
+        .comment {
+            color: #6272a4;
+            font-style: italic;
+        }
+        
+        .function {
+            color: #50fa7b;
+        }
+        
+        .number {
+            color: #bd93f9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔗 JavaScript Prototypes & Inheritance</h1>
+            <p>Master the fundamentals of prototype-based programming</p>
+        </div>
+        
+        <div class="content">
+            <div class="section">
+                <h2>🧬 What are Prototypes?</h2>
+                
+                <div class="analogy">
+                    <h4>🏗️ Blueprint Analogy</h4>
+                    <p>Think of prototypes like architectural blueprints. Just as a house blueprint contains the design that many houses can follow, a JavaScript prototype contains properties and methods that many objects can inherit. Each house (object) built from the blueprint has access to all the rooms and features defined in the blueprint, but can also have its own unique additions.</p>
+                </div>
+                
+                <p>In JavaScript, every object has a hidden link to another object called its <strong>prototype</strong>. When you try to access a property that doesn't exist on an object, JavaScript automatically looks up the prototype chain to find it.</p>
+                
+                <h3>Basic Prototype Example:</h3>
+                <pre><span class="comment">// Every function has a prototype property</span>
+<span class="keyword">function</span> <span class="function">Person</span>(name, age) {
+    <span class="keyword">this</span>.name = name;
+    <span class="keyword">this</span>.age = age;
+}
+
+<span class="comment">// Adding methods to the prototype</span>
+Person.prototype.greet = <span class="keyword">function</span>() {
+    <span class="keyword">return</span> <span class="string">`Hello, I'm ${this.name} and I'm ${this.age} years old.`</span>;
+};
+
+Person.prototype.isAdult = <span class="keyword">function</span>() {
+    <span class="keyword">return</span> <span class="keyword">this</span>.age >= <span class="number">18</span>;
+};
+
+<span class="comment">// Creating instances</span>
+<span class="keyword">const</span> person1 = <span class="keyword">new</span> Person(<span class="string">'Alice'</span>, <span class="number">25</span>);
+<span class="keyword">const</span> person2 = <span class="keyword">new</span> Person(<span class="string">'Bob'</span>, <span class="number">17</span>);
+
+<span class="comment">// Both objects can use prototype methods</span>
+console.log(person1.greet()); <span class="comment">// "Hello, I'm Alice and I'm 25 years old."</span>
+console.log(person2.isAdult()); <span class="comment">// false</span></pre>
+            </div>
+            
+            <div class="section">
+                <h2>🔗 The Prototype Chain</h2>
+                
+                <div class="analogy">
+                    <h4>🎯 Delegation Chain Analogy</h4>
+                    <p>Imagine a company hierarchy where if an employee doesn't know how to do something, they ask their manager. If the manager doesn't know, they ask their director, and so on up the chain. JavaScript's prototype chain works similarly - if an object doesn't have a property, it asks its prototype, then the prototype's prototype, until it reaches the top (null).</p>
+                </div>
+                
+                <div class="prototype-chain">
+                    <div class="prototype-box">Your Object</div>
+                    <div class="arrow">→</div>
+                    <div class="prototype-box">Constructor.prototype</div>
+                    <div class="arrow">→</div>
+                    <div class="prototype-box">Object.prototype</div>
+                    <div class="arrow">→</div>
+                    <div class="prototype-box">null</div>
+                </div>
+                
+                <pre><span class="comment">// Demonstrating the prototype chain</span>
+<span class="keyword">function</span> <span class="function">Animal</span>(species) {
+    <span class="keyword">this</span>.species = species;
+}
+
+Animal.prototype.breathe = <span class="keyword">function</span>() {
+    <span class="keyword">return</span> <span class="string">`${this.species} is breathing`</span>;
+};
+
+<span class="keyword">function</span> <span class="function">Dog</span>(name, breed) {
+    Animal.call(<span class="keyword">this</span>, <span class="string">'Canine'</span>); <span class="comment">// Call parent constructor</span>
+    <span class="keyword">this</span>.name = name;
+    <span class="keyword">this</span>.breed = breed;
+}
+
+<span class="comment">// Set up inheritance</span>
+Dog.prototype = Object.create(Animal.prototype);
+Dog.prototype.constructor = Dog;
+
+<span class="comment">// Add Dog-specific methods</span>
+Dog.prototype.bark = <span class="keyword">function</span>() {
+    <span class="keyword">return</span> <span class="string">`${this.name} says Woof!`</span>;
+};
+
+<span class="keyword">const</span> myDog = <span class="keyword">new</span> Dog(<span class="string">'Buddy'</span>, <span class="string">'Golden Retriever'</span>);
+
+<span class="comment">// myDog can access methods from both Dog and Animal prototypes</span>
+console.log(myDog.bark());    <span class="comment">// "Buddy says Woof!" (from Dog.prototype)</span>
+console.log(myDog.breathe()); <span class="comment">// "Canine is breathing" (from Animal.prototype)</span></pre>
+            </div>
+            
+            <div class="section">
+                <h2>🎭 Modern Inheritance with Classes</h2>
+                
+                <div class="analogy">
+                    <h4>🏫 School Class Analogy</h4>
+                    <p>ES6 classes are like creating a curriculum for a school subject. The base class (like "Science") defines general concepts, while specialized classes (like "Biology" or "Chemistry") extend the base class with more specific knowledge. Students (instances) learn both the general and specialized concepts.</p>
+                </div>
+                
+                <pre><span class="comment">// Modern ES6 class syntax</span>
+<span class="keyword">class</span> Animal {
+    <span class="function">constructor</span>(species, name) {
+        <span class="keyword">this</span>.species = species;
+        <span class="keyword">this</span>.name = name;
+    }
+    
+    <span class="function">breathe</span>() {
+        <span class="keyword">return</span> <span class="string">`${this.name} the ${this.species} is breathing`</span>;
+    }
+    
+    <span class="function">move</span>() {
+        <span class="keyword">return</span> <span class="string">`${this.name} is moving`</span>;
+    }
+}
+
+<span class="keyword">class</span> Bird <span class="keyword">extends</span> Animal {
+    <span class="function">constructor</span>(name, canFly = <span class="keyword">true</span>) {
+        <span class="keyword">super</span>(<span class="string">'Bird'</span>, name); <span class="comment">// Call parent constructor</span>
+        <span class="keyword">this</span>.canFly = canFly;
+    }
+    
+    <span class="comment">// Override parent method</span>
+    <span class="function">move</span>() {
+        <span class="keyword">if</span> (<span class="keyword">this</span>.canFly) {
+            <span class="keyword">return</span> <span class="string">`${this.name} is flying`</span>;
+        } <span class="keyword">else</span> {
+            <span class="keyword">return</span> <span class="keyword">super</span>.move(); <span class="comment">// Call parent method</span>
+        }
+    }
+    
+    <span class="function">chirp</span>() {
+        <span class="keyword">return</span> <span class="string">`${this.name} says chirp chirp!`</span>;
+    }
+}
+
+<span class="keyword">class</span> Penguin <span class="keyword">extends</span> Bird {
+    <span class="function">constructor</span>(name) {
+        <span class="keyword">super</span>(name, <span class="keyword">false</span>); <span class="comment">// Penguins can't fly</span>
+    }
+    
+    <span class="function">swim</span>() {
+        <span class="keyword">return</span> <span class="string">`${this.name} is swimming gracefully`</span>;
+    }
+    
+    <span class="comment">// Override chirp method</span>
+    <span class="function">chirp</span>() {
+        <span class="keyword">return</span> <span class="string">`${this.name} says squawk squawk!`</span>;
+    }
+}</pre>
+            </div>
+            
+            <div class="demo-section">
+                <h3>🚀 Interactive Demonstrations</h3>
+                <p>Click the buttons below to see prototypes and inheritance in action!</p>
+                
+                <button class="interactive-btn" onclick="demoBasicPrototype()">Basic Prototype Demo</button>
+                <button class="interactive-btn" onclick="demoPrototypeChain()">Prototype Chain Demo</button>
+                <button class="interactive-btn" onclick="demoClassInheritance()">Class Inheritance Demo</button>
+                <button class="interactive-btn" onclick="demoMethodOverriding()">Method Overriding Demo</button>
+                <button class="interactive-btn" onclick="clearOutput()">Clear Output</button>
+                
+                <div class="output" id="output">Click a button above to see the demonstration!</div>
+            </div>
+            
+            <div class="section">
+                <h2>🔍 Key Concepts Summary</h2>
+                
+                <h3>1. Prototype Property vs __proto__</h3>
+                <pre><span class="comment">// Functions have a 'prototype' property</span>
+<span class="keyword">function</span> <span class="function">MyFunction</span>() {}
+console.log(MyFunction.prototype); <span class="comment">// Object with constructor property</span>
+
+<span class="comment">// Objects have a __proto__ property (internal [[Prototype]])</span>
+<span class="keyword">const</span> obj = <span class="keyword">new</span> MyFunction();
+console.log(obj.__proto__ === MyFunction.prototype); <span class="comment">// true</span></pre>
+                
+                <h3>2. Constructor Functions vs Classes</h3>
+                <pre><span class="comment">// Constructor function approach (older)</span>
+<span class="keyword">function</span> <span class="function">Car</span>(make, model) {
+    <span class="keyword">this</span>.make = make;
+    <span class="keyword">this</span>.model = model;
+}
+Car.prototype.start = <span class="keyword">function</span>() { <span class="comment">/* ... */</span> };
+
+<span class="comment">// Class approach (ES6+, preferred)</span>
+<span class="keyword">class</span> Car {
+    <span class="function">constructor</span>(make, model) {
+        <span class="keyword">this</span>.make = make;
+        <span class="keyword">this</span>.model = model;
+    }
+    <span class="function">start</span>() { <span class="comment">/* ... */</span> }
+}</pre>
+                
+                <h3>3. Important Methods</h3>
+                <pre><span class="comment">// Object.create() - creates object with specific prototype</span>
+<span class="keyword">const</span> parent = { x: <span class="number">1</span>, y: <span class="number">2</span> };
+<span class="keyword">const</span> child = Object.create(parent);
+
+<span class="comment">// Object.getPrototypeOf() - gets object's prototype</span>
+console.log(Object.getPrototypeOf(child) === parent); <span class="comment">// true</span>
+
+<span class="comment">// hasOwnProperty() - checks if property is own (not inherited)</span>
+console.log(child.hasOwnProperty(<span class="string">'x'</span>)); <span class="comment">// false (inherited)</span>
+child.z = <span class="number">3</span>;
+console.log(child.hasOwnProperty(<span class="string">'z'</span>)); <span class="comment">// true (own property)</span></pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function demoBasicPrototype() {
+            const output = document.getElementById('output');
+            output.innerHTML = `
+<strong>🔧 Basic Prototype Demonstration:</strong>
+
+// Creating a constructor function
+function Vehicle(type, wheels) {
+    this.type = type;
+    this.wheels = wheels;
+}
+
+// Adding methods to prototype
+Vehicle.prototype.describe = function() {
+    return \`This is a \${this.type} with \${this.wheels} wheels\`;
+};
+
+Vehicle.prototype.honk = function() {
+    return "Beep beep!";
+};
+
+// Creating instances
+const car = new Vehicle("car", 4);
+const bike = new Vehicle("bicycle", 2);
+
+<strong>Results:</strong>
+car.describe(): "${createVehicleDemo().car.describe()}"
+bike.describe(): "${createVehicleDemo().bike.describe()}"
+car.honk(): "${createVehicleDemo().car.honk()}"
+
+<strong>Prototype chain verification:</strong>
+car.__proto__ === Vehicle.prototype: ${createVehicleDemo().car.__proto__ === createVehicleDemo().Vehicle.prototype}
+bike.__proto__ === Vehicle.prototype: ${createVehicleDemo().bike.__proto__ === createVehicleDemo().Vehicle.prototype}
+            `;
+        }
+
+        function demoPrototypeChain() {
+            const output = document.getElementById('output');
+            output.innerHTML = `
+<strong>🔗 Prototype Chain Demonstration:</strong>
+
+// Setting up inheritance chain
+function Animal(species) {
+    this.species = species;
+}
+Animal.prototype.breathe = function() {
+    return \`\${this.species} is breathing\`;
+};
+
+function Mammal(species, hasFur) {
+    Animal.call(this, species);
+    this.hasFur = hasFur;
+}
+Mammal.prototype = Object.create(Animal.prototype);
+Mammal.prototype.constructor = Mammal;
+Mammal.prototype.produceMilk = function() {
+    return "Producing milk for offspring";
+};
+
+function Cat(name) {
+    Mammal.call(this, "Feline", true);
+    this.name = name;
+}
+Cat.prototype = Object.create(Mammal.prototype);
+Cat.prototype.constructor = Cat;
+Cat.prototype.meow = function() {
+    return \`\${this.name} says meow!\`;
+};
+
+const fluffy = new Cat("Fluffy");
+
+<strong>Results - accessing methods from different levels:</strong>
+fluffy.meow(): "${createCatDemo().meow()}"
+fluffy.produceMilk(): "${createCatDemo().produceMilk()}"
+fluffy.breathe(): "${createCatDemo().breathe()}"
+
+<strong>Prototype chain verification:</strong>
+fluffy instanceof Cat: ${createCatDemo() instanceof createCatClasses().Cat}
+fluffy instanceof Mammal: ${createCatDemo() instanceof createCatClasses().Mammal}
+fluffy instanceof Animal: ${createCatDemo() instanceof createCatClasses().Animal}
+            `;
+        }
+
+        function demoClassInheritance() {
+            const output = document.getElementById('output');
+            const demo = createModernClassDemo();
+            output.innerHTML = `
+<strong>🎭 Modern Class Inheritance Demonstration:</strong>
+
+class Animal {
+    constructor(species, name) {
+        this.species = species;
+        this.name = name;
+    }
+    
+    breathe() {
+        return \`\${this.name} the \${this.species} is breathing\`;
+    }
+}
+
+class Bird extends Animal {
+    constructor(name, canFly = true) {
+        super("Bird", name);
+        this.canFly = canFly;
+    }
+    
+    chirp() {
+        return \`\${this.name} says chirp!\`;
+    }
+}
+
+class Penguin extends Bird {
+    constructor(name) {
+        super(name, false);
+    }
+    
+    swim() {
+        return \`\${this.name} is swimming\`;
+    }
+}
+
+const robin = new Bird("Robin");
+const pingu = new Penguin("Pingu");
+
+<strong>Results:</strong>
+robin.breathe(): "${demo.robin.breathe()}"
+robin.chirp(): "${demo.robin.chirp()}"
+robin.canFly: ${demo.robin.canFly}
+
+pingu.breathe(): "${demo.pingu.breathe()}"
+pingu.chirp(): "${demo.pingu.chirp()}"
+pingu.swim(): "${demo.pingu.swim()}"
+pingu.canFly: ${demo.pingu.canFly}
+
+<strong>Inheritance verification:</strong>
+robin instanceof Bird: ${demo.robin instanceof demo.Bird}
+pingu instanceof Penguin: ${demo.pingu instanceof demo.Penguin}
+pingu instanceof Bird: ${demo.pingu instanceof demo.Bird}
+            `;
+        }
+
+        function demoMethodOverriding() {
+            const output = document.getElementById('output');
+            const demo = createOverrideDemo();
+            output.innerHTML = `
+<strong>🔄 Method Overriding Demonstration:</strong>
+
+class Shape {
+    constructor(name) {
+        this.name = name;
+    }
+    
+    area() {
+        return "Area calculation not implemented";
+    }
+    
+    describe() {
+        return \`This is a \${this.name} with area: \${this.area()}\`;
+    }
+}
+
+class Rectangle extends Shape {
+    constructor(width, height) {
+        super("Rectangle");
+        this.width = width;
+        this.height = height;
+    }
+    
+    // Override the area method
+    area() {
+        return this.width * this.height;
+    }
+}
+
+class Circle extends Shape {
+    constructor(radius) {
+        super("Circle");
+        this.radius = radius;
+    }
+    
+    // Override the area method
+    area() {
+        return Math.PI * this.radius * this.radius;
+    }
+}
+
+const rectangle = new Rectangle(5, 3);
+const circle = new Circle(4);
+
+<strong>Results showing method overriding:</strong>
+rectangle.area(): ${demo.rectangle.area()}
+rectangle.describe(): "${demo.rectangle.describe()}"
+
+circle.area(): ${demo.circle.area().toFixed(2)}
+circle.describe(): "${demo.circle.describe()}"
+
+<strong>Polymorphism in action:</strong>
+Both objects use the same describe() method from Shape,
+but each calculates area differently through overriding!
+            `;
+        }
+
+        function clearOutput() {
+            document.getElementById('output').innerHTML = 'Output cleared. Click a button above to see a demonstration!';
+        }
+
+        // Helper functions for demonstrations
+        function createVehicleDemo() {
+            function Vehicle(type, wheels) {
+                this.type = type;
+                this.wheels = wheels;
+            }
+            Vehicle.prototype.describe = function() {
+                return `This is a ${this.type} with ${this.wheels} wheels`;
+            };
+            Vehicle.prototype.honk = function() {
+                return "Beep beep!";
+            };
+
+            const car = new Vehicle("car", 4);
+            const bike = new Vehicle("bicycle", 2);
+            
+            return { Vehicle, car, bike };
+        }
+
+        function createCatClasses() {
+            function Animal(species) {
+                this.species = species;
+            }
+            Animal.prototype.breathe = function() {
+                return `${this.species} is breathing`;
+            };
+
+            function Mammal(species, hasFur) {
+                Animal.call(this, species);
+                this.hasFur = hasFur;
+            }
+            Mammal.prototype = Object.create(Animal.prototype);
+            Mammal.prototype.constructor = Mammal;
+            Mammal.prototype.produceMilk = function() {
+                return "Producing milk for offspring";
+            };
+
+            function Cat(name) {
+                Mammal.call(this, "Feline", true);
+                this.name = name;
+            }
+            Cat.prototype = Object.create(Mammal.prototype);
+            Cat.prototype.constructor = Cat;
+            Cat.prototype.meow = function() {
+                return `${this.name} says meow!`;
+            };
+
+            return { Animal, Mammal, Cat };
+        }
+
+        function createCatDemo() {
+            const classes = createCatClasses();
+            return new classes.Cat("Fluffy");
+        }
+
+        function createModernClassDemo() {
+            class Animal {
+                constructor(species, name) {
+                    this.species = species;
+                    this.name = name;
+                }
+                
+                breathe() {
+                    return `${this.name} the ${this.species} is breathing`;
+                }
+            }
+
+            class Bird extends Animal {
+                constructor(name, canFly = true) {
+                    super("Bird", name);
+                    this.canFly = canFly;
+                }
+                
+                chirp() {
+                    return `${this.name} says chirp!`;
+                }
+            }
+
+            class Penguin extends Bird {
+                constructor(name) {
+                    super(name, false);
+                }
+                
+                swim() {
+                    return `${this.name} is swimming`;
+                }
+            }
+
+            const robin = new Bird("Robin");
+            const pingu = new Penguin("Pingu");
+            
+            return { Animal, Bird, Penguin, robin, pingu };
+        }
+
+        function createOverrideDemo() {
+            class Shape {
+                constructor(name) {
+                    this.name = name;
+                }
+                
+                area() {
+                    return "Area calculation not implemented";
+                }
+                
+                describe() {
+                    return `This is a ${this.name} with area: ${this.area()}`;
+                }
+            }
+
+            class Rectangle extends Shape {
+                constructor(width, height) {
+                    super("Rectangle");
+                    this.width = width;
+                    this.height = height;
+                }
+                
+                area() {
+                    return this.width * this.height;
+                }
+            }
+
+            class Circle extends Shape {
+                constructor(radius) {
+                    super("Circle");
+                    this.radius = radius;
+                }
+                
+                area() {
+                    return Math.PI * this.radius * this.radius;
+                }
+            }
+
+            const rectangle = new Rectangle(5, 3);
+            const circle = new Circle(4);
+            
+            return { Shape, Rectangle, Circle, rectangle, circle };
+        }
+    </script>
+</body>
+</html>

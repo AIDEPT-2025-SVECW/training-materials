@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript Closures and Lexical Scoping Demo</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #4a5568;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        h2 {
+            color: #2d3748;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+            margin-top: 40px;
+        }
+
+        h3 {
+            color: #4a5568;
+            margin-top: 30px;
+        }
+
+        .concept-card {
+            background: #f8fafc;
+            border-left: 5px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 10px 10px 0;
+        }
+
+        .analogy-box {
+            background: linear-gradient(135deg, #ffeaa7, #fab1a0);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 2px solid #e17055;
+        }
+
+        .analogy-box h4 {
+            margin-top: 0;
+            color: #2d3748;
+            display: flex;
+            align-items: center;
+        }
+
+        .analogy-box h4:before {
+            content: "💡";
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+
+        pre {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            border: 2px solid #4a5568;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .interactive-section {
+            background: #e6fffa;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 2px solid #38b2ac;
+        }
+
+        .demo-button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 10px 5px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .demo-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+        }
+
+        .output {
+            background: #1a202c;
+            color: #68d391;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            min-height: 50px;
+            border: 2px solid #2d3748;
+        }
+
+        .highlight {
+            background: #ffd700;
+            padding: 2px 4px;
+            border-radius: 3px;
+            color: #2d3748;
+            font-weight: bold;
+        }
+
+        .scope-visualization {
+            background: white;
+            border: 2px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            position: relative;
+        }
+
+        .scope-box {
+            border: 2px dashed #4a5568;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            position: relative;
+        }
+
+        .global-scope {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .function-scope {
+            background: rgba(118, 75, 162, 0.1);
+        }
+
+        .scope-label {
+            position: absolute;
+            top: -10px;
+            left: 10px;
+            background: white;
+            padding: 2px 8px;
+            font-size: 12px;
+            font-weight: bold;
+            color: #4a5568;
+        }
+
+        .key-points {
+            background: #fff5f5;
+            border-left: 5px solid #e53e3e;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .key-points ul {
+            margin: 10px 0;
+        }
+
+        .key-points li {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧠 JavaScript Closures and Lexical Scoping</h1>
+
+        <div class="concept-card">
+            <h2>📚 What is Lexical Scoping?</h2>
+            <p><strong>Lexical Scoping</strong> means that the scope of variables is determined by <em>where they are declared in the code</em>, not where they are called from. JavaScript uses lexical scoping, which means inner functions have access to variables in their outer (enclosing) scope.</p>
+            
+            <div class="analogy-box">
+                <h4>Real-World Analogy: Russian Nesting Dolls (Matryoshka)</h4>
+                <p>Think of lexical scoping like Russian nesting dolls. Each doll (function) can see and access all the dolls that contain it (outer scopes), but cannot see the dolls nested inside it (inner scopes). The innermost doll can see all the outer dolls, but the outermost doll cannot see what's inside.</p>
+            </div>
+        </div>
+
+        <div class="scope-visualization">
+            <div class="scope-box global-scope">
+                <div class="scope-label">Global Scope</div>
+                <p>var globalVar = "I'm global!";</p>
+                <div class="scope-box function-scope">
+                    <div class="scope-label">Function Scope</div>
+                    <p>var outerVar = "I'm in outer function";</p>
+                    <div class="scope-box" style="background: rgba(255, 193, 7, 0.1);">
+                        <div class="scope-label">Inner Function Scope</div>
+                        <p>var innerVar = "I'm inner";</p>
+                        <p>// Can access: innerVar, outerVar, globalVar</p>
+                    </div>
+                    <p>// Can access: outerVar, globalVar</p>
+                </div>
+                <p>// Can only access: globalVar</p>
+            </div>
+        </div>
+
+        <h3>🔍 Lexical Scoping Example</h3>
+        <pre>
+function outerFunction(x) {
+    var outerVariable = x;
+    
+    function innerFunction(y) {
+        var innerVariable = y;
+        // Can access both outerVariable and innerVariable
+        console.log('Outer:', outerVariable);
+        console.log('Inner:', innerVariable);
+        console.log('Sum:', outerVariable + innerVariable);
+    }
+    
+    return innerFunction;
+}
+
+var myFunction = outerFunction(10);
+myFunction(5);
+// Output: Outer: 10, Inner: 5, Sum: 15
+        </pre>
+
+        <div class="interactive-section">
+            <h3>🎮 Try Lexical Scoping</h3>
+            <button class="demo-button" onclick="demonstrateLexicalScoping()">Run Lexical Scoping Demo</button>
+            <div class="output" id="lexicalOutput">Click the button to see lexical scoping in action!</div>
+        </div>
+
+        <div class="concept-card">
+            <h2>🔒 What are Closures?</h2>
+            <p><strong>A closure</strong> is a feature where an inner function has access to variables from its outer (enclosing) function's scope even after the outer function has finished executing. The inner function "closes over" the outer function's variables.</p>
+            
+            <div class="analogy-box">
+                <h4>Real-World Analogy: A Backpack</h4>
+                <p>Imagine a function is like a person going on a journey. When the person (inner function) leaves their home (outer function), they pack a backpack with essential items (variables from outer scope). Even when they're far from home, they still have access to everything in their backpack. That backpack is the closure - it keeps the necessary items (variables) available wherever the person goes.</p>
+            </div>
+
+            <div class="key-points">
+                <h4>🎯 Key Points about Closures:</h4>
+                <ul>
+                    <li>Inner functions have access to outer function's variables</li>
+                    <li>The outer function's variables remain accessible even after the outer function returns</li>
+                    <li>Each closure has its own independent copy of the outer function's variables</li>
+                    <li>Closures are created every time a function is created</li>
+                </ul>
+            </div>
+        </div>
+
+        <h3>🔧 Basic Closure Example</h3>
+        <pre>
+function createCounter() {
+    var count = 0;  // Private variable
+    
+    return function() {
+        count++;    // Access to outer variable
+        return count;
+    };
+}
+
+var counter1 = createCounter();
+var counter2 = createCounter();
+
+console.log(counter1()); // 1
+console.log(counter1()); // 2
+console.log(counter2()); // 1 (independent counter)
+console.log(counter1()); // 3
+        </pre>
+
+        <div class="interactive-section">
+            <h3>🎮 Try Creating Counters</h3>
+            <button class="demo-button" onclick="createNewCounter()">Create New Counter</button>
+            <button class="demo-button" onclick="incrementCounter()">Increment Current Counter</button>
+            <button class="demo-button" onclick="resetDemo()">Reset Demo</button>
+            <div class="output" id="counterOutput">Click 'Create New Counter' to start!</div>
+        </div>
+
+        <h3>🏭 Advanced Closure Example: Function Factory</h3>
+        <pre>
+function createMultiplier(multiplier) {
+    return function(number) {
+        return number * multiplier;
+    };
+}
+
+var double = createMultiplier(2);
+var triple = createMultiplier(3);
+var quadruple = createMultiplier(4);
+
+console.log(double(5));    // 10
+console.log(triple(5));    // 15
+console.log(quadruple(5)); // 20
+        </pre>
+
+        <div class="interactive-section">
+            <h3>🎮 Try Function Factory</h3>
+            <input type="number" id="multiplierInput" placeholder="Enter multiplier" value="2" style="padding: 8px; margin: 5px; border-radius: 5px; border: 1px solid #ccc;">
+            <input type="number" id="numberInput" placeholder="Enter number" value="5" style="padding: 8px; margin: 5px; border-radius: 5px; border: 1px solid #ccc;">
+            <button class="demo-button" onclick="demonstrateFactory()">Create & Use Multiplier</button>
+            <div class="output" id="factoryOutput">Enter values and click the button!</div>
+        </div>
+
+        <h3>📦 Practical Example: Private Variables</h3>
+        <pre>
+function createBankAccount(initialBalance) {
+    var balance = initialBalance;  // Private variable
+    
+    return {
+        deposit: function(amount) {
+            if (amount > 0) {
+                balance += amount;
+                return 'Deposited $' + amount + '. New balance: $' + balance;
+            }
+            return 'Invalid deposit amount';
+        },
+        
+        withdraw: function(amount) {
+            if (amount > 0 && amount <= balance) {
+                balance -= amount;
+                return 'Withdrew $' + amount + '. New balance: $' + balance;
+            }
+            return 'Invalid withdrawal amount';
+        },
+        
+        getBalance: function() {
+            return 'Current balance: $' + balance;
+        }
+        // Note: No direct access to 'balance' variable from outside
+    };
+}
+
+var myAccount = createBankAccount(100);
+        </pre>
+
+        <div class="interactive-section">
+            <h3>🎮 Try Bank Account Demo</h3>
+            <input type="number" id="amountInput" placeholder="Amount" value="10" style="padding: 8px; margin: 5px; border-radius: 5px; border: 1px solid #ccc;">
+            <button class="demo-button" onclick="depositMoney()">Deposit</button>
+            <button class="demo-button" onclick="withdrawMoney()">Withdraw</button>
+            <button class="demo-button" onclick="checkBalance()">Check Balance</button>
+            <button class="demo-button" onclick="createAccount()">Create New Account ($100)</button>
+            <div class="output" id="bankOutput">Click 'Create New Account' to start!</div>
+        </div>
+
+        <div class="analogy-box">
+            <h4>Another Analogy: A Secret Recipe Box</h4>
+            <p>Imagine a chef (outer function) who has a secret recipe (variable) locked in a special box. Before leaving the kitchen, the chef gives you (inner function) a key to that box. Even after the chef leaves (outer function returns), you still have the key and can access the secret recipe whenever you need it. That's how closures work - they give you lasting access to the outer function's variables.</p>
+        </div>
+
+        <div class="concept-card">
+            <h2>⚠️ Common Closure Gotcha: Loops</h2>
+            <p>A common mistake with closures happens in loops. Here's the problem and solution:</p>
+        </div>
+
+        <h3>❌ The Problem</h3>
+        <pre>
+// This doesn't work as expected
+function createButtons() {
+    var buttons = [];
+    
+    for (var i = 0; i < 3; i++) {
+        buttons.push(function() {
+            console.log('Button ' + i + ' clicked'); // Always logs 3!
+        });
+    }
+    
+    return buttons;
+}
+        </pre>
+
+        <h3>✅ The Solution</h3>
+        <pre>
+// Solution 1: Use let instead of var
+function createButtonsFixed1() {
+    var buttons = [];
+    
+    for (let i = 0; i < 3; i++) {  // 'let' creates new scope each iteration
+        buttons.push(function() {
+            console.log('Button ' + i + ' clicked');
+        });
+    }
+    
+    return buttons;
+}
+
+// Solution 2: Use IIFE (Immediately Invoked Function Expression)
+function createButtonsFixed2() {
+    var buttons = [];
+    
+    for (var i = 0; i < 3; i++) {
+        buttons.push((function(index) {
+            return function() {
+                console.log('Button ' + index + ' clicked');
+            };
+        })(i));
+    }
+    
+    return buttons;
+}
+        </pre>
+
+        <div class="interactive-section">
+            <h3>🎮 Try Loop Closure Demo</h3>
+            <button class="demo-button" onclick="demonstrateLoopProblem()">Show Problem</button>
+            <button class="demo-button" onclick="demonstrateLoopSolution()">Show Solution</button>
+            <div class="output" id="loopOutput">Click buttons to see the difference!</div>
+        </div>
+
+        <div class="concept-card">
+            <h2>🎯 Summary</h2>
+            <div class="key-points">
+                <h4>Lexical Scoping:</h4>
+                <ul>
+                    <li>Scope is determined by <span class="highlight">where variables are declared</span></li>
+                    <li>Inner functions can access outer function variables</li>
+                    <li>Scope chain goes from inner to outer</li>
+                </ul>
+                
+                <h4>Closures:</h4>
+                <ul>
+                    <li>Inner functions <span class="highlight">retain access</span> to outer variables even after outer function returns</li>
+                    <li>Each closure is <span class="highlight">independent</span></li>
+                    <li>Great for creating <span class="highlight">private variables</span> and <span class="highlight">function factories</span></li>
+                    <li>Common use cases: callbacks, event handlers, module patterns</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables for demos
+        var counters = [];
+        var currentAccount = null;
+
+        // Lexical Scoping Demonstration
+        function demonstrateLexicalScoping() {
+            function outerFunction(x) {
+                var outerVariable = x;
+                
+                function innerFunction(y) {
+                    var innerVariable = y;
+                    return 'Outer: ' + outerVariable + ', Inner: ' + innerVariable + ', Sum: ' + (outerVariable + innerVariable);
+                }
+                
+                return innerFunction;
+            }
+
+            var myFunction = outerFunction(10);
+            var result = myFunction(5);
+            
+            document.getElementById('lexicalOutput').innerHTML = 
+                'Created outer function with x=10<br>' +
+                'Called inner function with y=5<br>' +
+                'Result: ' + result + '<br>' +
+                '<em>Inner function can access outer variable even after outer function returned!</em>';
+        }
+
+        // Counter Closure Demonstration
+        function createCounter() {
+            var count = 0;
+            
+            return {
+                increment: function() {
+                    count++;
+                    return count;
+                },
+                getCount: function() {
+                    return count;
+                }
+            };
+        }
+
+        function createNewCounter() {
+            var newCounter = createCounter();
+            counters.push(newCounter);
+            
+            document.getElementById('counterOutput').innerHTML = 
+                'Created counter #' + counters.length + '<br>' +
+                'Total counters: ' + counters.length + '<br>' +
+                'Current counter value: 0';
+        }
+
+        function incrementCounter() {
+            if (counters.length === 0) {
+                document.getElementById('counterOutput').innerHTML = 'Please create a counter first!';
+                return;
+            }
+            
+            var currentCounter = counters[counters.length - 1];
+            var newValue = currentCounter.increment();
+            
+            var output = 'Incremented counter #' + counters.length + '<br>';
+            output += 'New value: ' + newValue + '<br>';
+            output += 'All counter values: ';
+            
+            for (var i = 0; i < counters.length; i++) {
+                output += 'Counter' + (i + 1) + ': ' + counters[i].getCount() + ' ';
+            }
+            
+            document.getElementById('counterOutput').innerHTML = output;
+        }
+
+        function resetDemo() {
+            counters = [];
+            document.getElementById('counterOutput').innerHTML = 'All counters reset! Click "Create New Counter" to start.';
+        }
+
+        // Function Factory Demonstration
+        function demonstrateFactory() {
+            var multiplier = parseInt(document.getElementById('multiplierInput').value) || 2;
+            var number = parseInt(document.getElementById('numberInput').value) || 5;
+            
+            function createMultiplier(mult) {
+                return function(num) {
+                    return num * mult;
+                };
+            }
+            
+            var multiplierFunction = createMultiplier(multiplier);
+            var result = multiplierFunction(number);
+            
+            document.getElementById('factoryOutput').innerHTML = 
+                'Created multiplier function with factor: ' + multiplier + '<br>' +
+                'Applied to number: ' + number + '<br>' +
+                'Result: ' + result + '<br>' +
+                '<em>The multiplier value (' + multiplier + ') is "remembered" by the closure!</em>';
+        }
+
+        // Bank Account Demonstration
+        function createBankAccount(initialBalance) {
+            var balance = initialBalance;
+            
+            return {
+                deposit: function(amount) {
+                    if (amount > 0) {
+                        balance += amount;
+                        return 'Deposited $' + amount + '. New balance: $' + balance;
+                    }
+                    return 'Invalid deposit amount';
+                },
+                
+                withdraw: function(amount) {
+                    if (amount > 0 && amount <= balance) {
+                        balance -= amount;
+                        return 'Withdrew $' + amount + '. New balance: $' + balance;
+                    }
+                    return 'Insufficient funds or invalid amount';
+                },
+                
+                getBalance: function() {
+                    return 'Current balance: $' + balance;
+                }
+            };
+        }
+
+        function createAccount() {
+            currentAccount = createBankAccount(100);
+            document.getElementById('bankOutput').innerHTML = 'New bank account created with $100 initial balance!';
+        }
+
+        function depositMoney() {
+            if (!currentAccount) {
+                document.getElementById('bankOutput').innerHTML = 'Please create an account first!';
+                return;
+            }
+            
+            var amount = parseInt(document.getElementById('amountInput').value) || 0;
+            var result = currentAccount.deposit(amount);
+            document.getElementById('bankOutput').innerHTML = result;
+        }
+
+        function withdrawMoney() {
+            if (!currentAccount) {
+                document.getElementById('bankOutput').innerHTML = 'Please create an account first!';
+                return;
+            }
+            
+            var amount = parseInt(document.getElementById('amountInput').value) || 0;
+            var result = currentAccount.withdraw(amount);
+            document.getElementById('bankOutput').innerHTML = result;
+        }
+
+        function checkBalance() {
+            if (!currentAccount) {
+                document.getElementById('bankOutput').innerHTML = 'Please create an account first!';
+                return;
+            }
+            
+            var result = currentAccount.getBalance();
+            document.getElementById('bankOutput').innerHTML = result;
+        }
+
+        // Loop Closure Problem/Solution Demonstration
+        function demonstrateLoopProblem() {
+            var buttons = [];
+            
+            // The problematic version
+            for (var i = 0; i < 3; i++) {
+                buttons.push(function() {
+                    return 'Button ' + i + ' clicked';
+                });
+            }
+            
+            var output = 'Problem: Using var in loop<br>';
+            output += 'Button 0: ' + buttons[0]() + '<br>';
+            output += 'Button 1: ' + buttons[1]() + '<br>';
+            output += 'Button 2: ' + buttons[2]() + '<br>';
+            output += '<em>All buttons show the same value (3) because they all reference the same variable!</em>';
+            
+            document.getElementById('loopOutput').innerHTML = output;
+        }
+
+        function demonstrateLoopSolution() {
+            var buttons = [];
+            
+            // The fixed version using IIFE
+            for (var i = 0; i < 3; i++) {
+                buttons.push((function(index) {
+                    return function() {
+                        return 'Button ' + index + ' clicked';
+                    };
+                })(i));
+            }
+            
+            var output = 'Solution: Using IIFE to create separate scope<br>';
+            output += 'Button 0: ' + buttons[0]() + '<br>';
+            output += 'Button 1: ' + buttons[1]() + '<br>';
+            output += 'Button 2: ' + buttons[2]() + '<br>';
+            output += '<em>Each button now has its own copy of the index value!</em>';
+            
+            document.getElementById('loopOutput').innerHTML = output;
+        }
+    </script>
+</body>
+</html>
