@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Node.js Architecture & Event Loop Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        h2 {
+            color: #4a5568;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        h3 {
+            color: #2d3748;
+            margin: 20px 0 15px 0;
+            font-size: 1.3rem;
+        }
+        
+        .analogy {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            border-left: 5px solid #ff6b6b;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            font-style: italic;
+        }
+        
+        .architecture-demo {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 20px 0;
+        }
+        
+        .component {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            padding: 20px;
+            border-radius: 12px;
+            border: 2px solid #667eea;
+            transition: all 0.3s ease;
+        }
+        
+        .component:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+        
+        .component h4 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+        
+        .event-loop-demo {
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+        
+        .phases {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .phase {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .phase:hover, .phase.active {
+            border-color: #667eea;
+            background: #f0f8ff;
+            transform: scale(1.05);
+        }
+        
+        .phase h5 {
+            color: #2d3748;
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+        
+        .controls {
+            text-align: center;
+            margin: 25px 0;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            margin: 0 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .visualization {
+            background: #1a202c;
+            color: #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            min-height: 200px;
+            font-family: 'Courier New', monospace;
+            overflow-y: auto;
+            max-height: 400px;
+        }
+        
+        .log-entry {
+            margin: 5px 0;
+            padding: 8px;
+            border-radius: 5px;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        .log-sync { background: #2d5a87; }
+        .log-async { background: #5a2d87; }
+        .log-callback { background: #875a2d; }
+        .log-phase { background: #2d8755; }
+        
+        pre {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin: 15px 0;
+            border-left: 5px solid #667eea;
+            font-family: 'Courier New', monospace;
+            line-height: 1.6;
+        }
+        
+        .code-example {
+            margin: 20px 0;
+        }
+        
+        .highlight {
+            background: #48bb78;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        
+        @media (max-width: 768px) {
+            .architecture-demo {
+                grid-template-columns: 1fr;
+            }
+            
+            .phases {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Node.js Architecture & Event Loop Interactive Demo</h1>
+        
+        <div class="section">
+            <h2>📋 What is Node.js?</h2>
+            <p><strong>Node.js</strong> is a JavaScript runtime built on Chrome's V8 JavaScript engine. It allows you to run JavaScript on the server side, outside of a web browser.</p>
+            
+            <div class="analogy">
+                <h3>🏪 Restaurant Analogy</h3>
+                <p>Think of Node.js as a <strong>single-threaded restaurant</strong> with one super-efficient waiter (the main thread). Instead of waiting at each table for customers to finish eating (blocking), the waiter takes orders, sends them to the kitchen (I/O operations), and continues serving other tables. When food is ready, the kitchen calls the waiter back to deliver it.</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🏗️ Node.js Architecture</h2>
+            <div class="architecture-demo">
+                <div class="component">
+                    <h4>🧠 V8 JavaScript Engine</h4>
+                    <p>Compiles and executes JavaScript code. Handles memory allocation and garbage collection.</p>
+                </div>
+                <div class="component">
+                    <h4>📚 libuv Library</h4>
+                    <p>Provides asynchronous I/O operations, event loop, and cross-platform support for file system, networking, etc.</p>
+                </div>
+                <div class="component">
+                    <h4>🔧 C++ Bindings</h4>
+                    <p>Bridge between JavaScript and C++ libraries. Enables access to system-level operations.</p>
+                </div>
+                <div class="component">
+                    <h4>📦 Node.js APIs</h4>
+                    <p>Built-in modules like fs (file system), http, crypto, etc. that provide functionality for server-side development.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🔄 The Event Loop</h2>
+            
+            <div class="analogy">
+                <h3>🎪 Circus Performer Analogy</h3>
+                <p>The Event Loop is like a <strong>circus performer juggling multiple balls</strong>. Each ball represents a different type of task. The performer keeps all balls in the air by quickly moving between them in a specific order, never dropping any. Similarly, the Event Loop cycles through different phases, handling different types of operations in each phase.</p>
+            </div>
+
+            <div class="event-loop-demo">
+                <h3>Event Loop Phases:</h3>
+                <div class="phases">
+                    <div class="phase" data-phase="timers">
+                        <h5>⏰ Timers</h5>
+                        <p>setTimeout, setInterval</p>
+                    </div>
+                    <div class="phase" data-phase="pending">
+                        <h5>⏳ Pending Callbacks</h5>
+                        <p>I/O callbacks deferred</p>
+                    </div>
+                    <div class="phase" data-phase="idle">
+                        <h5>😴 Idle, Prepare</h5>
+                        <p>Internal use only</p>
+                    </div>
+                    <div class="phase" data-phase="poll">
+                        <h5>📥 Poll</h5>
+                        <p>Fetch new I/O events</p>
+                    </div>
+                    <div class="phase" data-phase="check">
+                        <h5>✅ Check</h5>
+                        <p>setImmediate callbacks</p>
+                    </div>
+                    <div class="phase" data-phase="close">
+                        <h5>🚪 Close Callbacks</h5>
+                        <p>Socket close events</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>💻 Code Examples</h2>
+            
+            <div class="code-example">
+                <h3>Blocking vs Non-Blocking Code:</h3>
+                
+                <h4>❌ Blocking (Synchronous):</h4>
+<pre>
+console.log('Start');
+
+// This blocks the entire thread
+const data = fs.readFileSync('large-file.txt');
+console.log('File read complete');
+
+console.log('End');
+
+// Output order: Start → File read complete → End
+// Everything waits for file reading to finish
+</pre>
+
+                <h4>✅ Non-Blocking (Asynchronous):</h4>
+<pre>
+console.log('Start');
+
+// This doesn't block - uses callback
+fs.readFile('large-file.txt', (err, data) => {
+    console.log('File read complete');
+});
+
+console.log('End');
+
+// Output order: Start → End → File read complete
+// Execution continues while file is being read
+</pre>
+            </div>
+
+            <div class="code-example">
+                <h3>Event Loop Demonstration:</h3>
+<pre>
+console.log('1: Start');
+
+setTimeout(() => {
+    console.log('2: Timer callback');
+}, 0);
+
+setImmediate(() => {
+    console.log('3: Immediate callback');
+});
+
+process.nextTick(() => {
+    console.log('4: Next tick callback');
+});
+
+console.log('5: End');
+
+// Typical output order:
+// 1: Start
+// 5: End
+// 4: Next tick callback
+// 3: Immediate callback
+// 2: Timer callback
+</pre>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🎮 Interactive Event Loop Simulation</h2>
+            
+            <div class="controls">
+                <button onclick="simulateEventLoop()">🚀 Start Event Loop Simulation</button>
+                <button onclick="clearLog()">🧹 Clear Log</button>
+                <button onclick="addAsyncOperation()">⚡ Add Async Operation</button>
+            </div>
+            
+            <div class="visualization" id="eventLog">
+                <div class="log-entry">Click "Start Event Loop Simulation" to see the magic happen! ✨</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🔑 Key Concepts</h2>
+            
+            <h3>Single-Threaded but Concurrent:</h3>
+            <p>Node.js uses <span class="highlight">one main thread</span> for executing JavaScript, but delegates I/O operations to a thread pool managed by libuv.</p>
+            
+            <h3>Event-Driven Architecture:</h3>
+            <p>Everything revolves around <span class="highlight">events and callbacks</span>. When an operation completes, it emits an event that triggers a callback function.</p>
+            
+            <h3>Non-Blocking I/O:</h3>
+            <p>I/O operations don't block the main thread. The system can handle <span class="highlight">thousands of concurrent connections</span> efficiently.</p>
+            
+            <div class="analogy">
+                <h3>🏢 Office Building Analogy</h3>
+                <p>Imagine Node.js as an <strong>office building with one elevator operator</strong> (main thread) and multiple floors (I/O operations). The operator doesn't wait at each floor - they drop people off, continue to other floors, and come back when called. This way, the elevator is always moving and serving multiple requests efficiently.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let simulationRunning = false;
+        let phaseIndex = 0;
+        const phases = ['timers', 'pending', 'idle', 'poll', 'check', 'close'];
+        const phaseDescriptions = {
+            timers: 'Executing timer callbacks (setTimeout, setInterval)',
+            pending: 'Executing I/O callbacks that were deferred',
+            idle: 'Internal operations (idle, prepare)',
+            poll: 'Polling for new I/O events and executing I/O callbacks',
+            check: 'Executing setImmediate callbacks',
+            close: 'Executing close callbacks (e.g., socket.on("close"))'
+        };
+
+        function addLogEntry(message, type = '') {
+            const log = document.getElementById('eventLog');
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('eventLog').innerHTML = '';
+            addLogEntry('Event log cleared. Ready for new simulation! 🎯');
+        }
+
+        function highlightPhase(phase) {
+            // Remove active class from all phases
+            document.querySelectorAll('.phase').forEach(p => p.classList.remove('active'));
+            // Add active class to current phase
+            if (phase) {
+                const phaseElement = document.querySelector(`[data-phase="${phase}"]`);
+                if (phaseElement) {
+                    phaseElement.classList.add('active');
+                }
+            }
+        }
+
+        async function simulateEventLoop() {
+            if (simulationRunning) return;
+            
+            simulationRunning = true;
+            const button = event.target;
+            button.disabled = true;
+            button.textContent = '🔄 Running Simulation...';
+            
+            addLogEntry('🚀 Starting Event Loop simulation...', 'sync');
+            
+            // Simulate synchronous code
+            addLogEntry('📋 Executing synchronous JavaScript code', 'sync');
+            await sleep(800);
+            
+            // Simulate event loop phases
+            for (let cycle = 1; cycle <= 2; cycle++) {
+                addLogEntry(`🔄 Event Loop Cycle ${cycle} starting`, 'phase');
+                
+                for (const phase of phases) {
+                    highlightPhase(phase);
+                    addLogEntry(`⚡ Phase: ${phase.toUpperCase()} - ${phaseDescriptions[phase]}`, 'phase');
+                    
+                    // Simulate some work in each phase
+                    switch (phase) {
+                        case 'timers':
+                            await sleep(600);
+                            addLogEntry('⏰ Executing setTimeout callback', 'callback');
+                            break;
+                        case 'poll':
+                            await sleep(800);
+                            addLogEntry('📁 File system read operation completed', 'async');
+                            addLogEntry('🌐 HTTP request callback executed', 'callback');
+                            break;
+                        case 'check':
+                            await sleep(400);
+                            addLogEntry('✅ setImmediate callback executed', 'callback');
+                            break;
+                        default:
+                            await sleep(300);
+                    }
+                }
+                
+                highlightPhase(null);
+                await sleep(500);
+            }
+            
+            addLogEntry('✨ Event Loop simulation completed!', 'phase');
+            addLogEntry('💡 In reality, this happens thousands of times per second!', 'sync');
+            
+            button.disabled = false;
+            button.textContent = '🚀 Start Event Loop Simulation';
+            simulationRunning = false;
+        }
+
+        function addAsyncOperation() {
+            const operations = [
+                '📁 Reading configuration file...',
+                '🌐 Making HTTP request to API...',
+                '💾 Writing data to database...',
+                '📧 Sending email notification...',
+                '🔍 Processing image upload...',
+                '📊 Generating analytics report...'
+            ];
+            
+            const operation = operations[Math.floor(Math.random() * operations.length)];
+            addLogEntry(operation, 'async');
+            
+            // Simulate completion after random delay
+            setTimeout(() => {
+                addLogEntry(`✅ ${operation.replace('...', '')} completed!`, 'callback');
+            }, Math.random() * 3000 + 500);
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // Add click handlers for phase exploration
+        document.querySelectorAll('.phase').forEach(phase => {
+            phase.addEventListener('click', function() {
+                const phaseType = this.dataset.phase;
+                const description = phaseDescriptions[phaseType];
+                addLogEntry(`🔍 Exploring ${phaseType.toUpperCase()} phase: ${description}`, 'phase');
+            });
+        });
+
+        // Initialize
+        addLogEntry('🌟 Node.js Event Loop Demo loaded and ready!', 'sync');
+        addLogEntry('💡 Click on any phase above to learn more about it', 'sync');
+    </script>
+</body>
+</html>
