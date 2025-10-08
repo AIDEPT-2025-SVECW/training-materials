@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Git Merge vs Rebase Demo — Fixed</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{
+      font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+      min-height:100vh;padding:20px
+    }
+    .container{max-width:1200px;margin:0 auto;background:#fff;border-radius:15px;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden}
+    header{background:linear-gradient(135deg,#2d3748 0%,#1a202c 100%);color:#fff;padding:30px;text-align:center}
+    header h1{font-size:2.5em;margin-bottom:10px}
+    header p{font-size:1.1em;opacity:.9}
+
+    /* Tabs */
+    .tabs{display:flex;background:#f7fafc;border-bottom:2px solid #e2e8f0}
+    .tab{
+      flex:1;padding:18px;text-align:center;cursor:pointer;font-weight:600;
+      font-size:1.05em;transition:all .3s;border:none;background:transparent;color:#4a5568
+    }
+    .tab:hover{background:#edf2f7}
+    .tab[aria-selected="true"]{
+      background:#fff;color:#667eea;border-bottom:3px solid #667eea
+    }
+    .content{padding:40px}
+    .tab-content{display:none;animation:fadeIn .5s}
+    .tab-content.active{display:block}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+    .section{margin-bottom:40px}
+    .section h2{color:#2d3748;font-size:1.8em;margin-bottom:20px;padding-bottom:10px;border-bottom:3px solid #667eea}
+    .section h3{color:#4a5568;font-size:1.3em;margin:25px 0 15px}
+    .section p{color:#4a5568;line-height:1.8;margin-bottom:15px;font-size:1.05em}
+
+    pre{
+      background:#2d3748;color:#f7fafc;padding:20px;border-radius:8px;overflow-x:auto;
+      font-family:'Courier New', monospace;font-size:.95em;line-height:1.6;margin:20px 0;border-left:4px solid #667eea
+    }
+
+    .visual-demo{background:#f7fafc;padding:30px;border-radius:10px;margin:25px 0;border:2px solid #e2e8f0}
+    .commit-graph{display:flex;flex-direction:column;gap:15px;margin:20px 0}
+    .branch{display:flex;align-items:center;gap:10px}
+    .branch-label{font-weight:600;min-width:80px;color:#2d3748}
+    .commit{
+      width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+      font-weight:600;color:#fff;font-size:.9em;box-shadow:0 2px 5px rgba(0,0,0,.2)
+    }
+    .commit.main{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%)}
+    .commit.feature{background:linear-gradient(135deg,#f093fb 0%,#f5576c 100%)}
+    .commit.merge{background:linear-gradient(135deg,#4facfe 0%,#00f2fe 100%)}
+    .arrow{color:#cbd5e0;font-size:1.5em}
+
+    .highlight{background:#fef5e7;padding:15px;border-left:4px solid #f59e0b;border-radius:5px;margin:20px 0}
+    .highlight strong{color:#d97706}
+
+    .comparison-table{
+      width:100%;border-collapse:collapse;margin:25px 0;background:#fff;border-radius:8px;overflow:hidden;
+      box-shadow:0 2px 10px rgba(0,0,0,.1)
+    }
+    .comparison-table th{background:#667eea;color:#fff;padding:15px;text-align:left;font-weight:600}
+    .comparison-table td{padding:15px;border-bottom:1px solid #e2e8f0;color:#4a5568}
+    .comparison-table tr:last-child td{border-bottom:none}
+    .comparison-table tr:hover{background:#f7fafc}
+
+    .interactive-btn{
+      background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;border:none;padding:12px 25px;border-radius:25px;
+      cursor:pointer;font-weight:600;font-size:1em;transition:transform .2s, box-shadow .2s;margin:10px 5px
+    }
+    .interactive-btn:hover{transform:translateY(-2px);box-shadow:0 5px 15px rgba(102,126,234,.4)}
+    .interactive-btn:active{transform:translateY(0)}
+    #demo-area{min-height:200px;margin-top:20px}
+
+    ul{margin-left:25px;margin-bottom:15px}
+    li{color:#4a5568;line-height:1.8;margin-bottom:8px}
+    .badge{display:inline-block;padding:5px 12px;background:#667eea;color:#fff;border-radius:15px;font-size:.85em;font-weight:600;margin-right:5px}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🔀 Git Merge vs Rebase</h1>
+      <p>Interactive guide to understanding git merge and rebase commands</p>
+    </header>
+
+    <!-- Tabs -->
+    <div class="tabs" role="tablist" aria-label="Git topics">
+      <button class="tab" role="tab" aria-selected="true" aria-controls="merge" id="tab-merge" data-tab="merge">Merge</button>
+      <button class="tab" role="tab" aria-selected="false" aria-controls="rebase" id="tab-rebase" data-tab="rebase">Rebase</button>
+      <button class="tab" role="tab" aria-selected="false" aria-controls="comparison" id="tab-comparison" data-tab="comparison">Comparison</button>
+      <button class="tab" role="tab" aria-selected="false" aria-controls="interactive" id="tab-interactive" data-tab="interactive">Interactive Demo</button>
+    </div>
+
+    <div class="content">
+      <!-- MERGE TAB -->
+      <div id="merge" class="tab-content active" role="tabpanel" aria-labelledby="tab-merge">
+        <div class="section">
+          <h2>Git Merge</h2>
+          <p>Git merge combines two branches by creating a new merge commit that has two parent commits. It preserves the complete history and chronological order of commits.</p>
+
+          <div class="visual-demo">
+            <h3>Visual Representation: Before Merge</h3>
+            <div class="commit-graph">
+              <div class="branch">
+                <span class="branch-label">main:</span>
+                <div class="commit main">A</div><span class="arrow">→</span>
+                <div class="commit main">B</div><span class="arrow">→</span>
+                <div class="commit main">C</div>
+              </div>
+              <div class="branch">
+                <span class="branch-label">feature:</span>
+                <div style="width:50px"></div><span style="width:30px"></span>
+                <div class="commit feature">D</div><span class="arrow">→</span>
+                <div class="commit feature">E</div>
+              </div>
+            </div>
+
+            <h3 style="margin-top:30px;">After Merge</h3>
+            <div class="commit-graph">
+              <div class="branch">
+                <span class="branch-label">main:</span>
+                <div class="commit main">A</div><span class="arrow">→</span>
+                <div class="commit main">B</div><span class="arrow">→</span>
+                <div class="commit main">C</div><span class="arrow">→</span>
+                <div class="commit merge">M</div>
+              </div>
+              <div class="branch">
+                <span class="branch-label">feature:</span>
+                <div style="width:50px"></div><span style="width:30px"></span>
+                <div class="commit feature">D</div><span class="arrow">→</span>
+                <div class="commit feature">E</div><span class="arrow">↗</span>
+              </div>
+            </div>
+            <p style="margin-top:15px;font-style:italic;color:#718096;"><strong>M</strong> is the merge commit with two parents: C and E</p>
+          </div>
+
+          <h3>Basic Merge Command</h3>
+<pre>
+# Switch to the branch you want to merge INTO
+git checkout main
+
+# Merge the feature branch into main
+git merge feature
+</pre>
+
+          <h3>Merge Types</h3>
+          <div class="highlight">
+            <strong>Fast-Forward Merge:</strong> When there are no new commits on the target branch, Git simply moves the pointer forward.
+          </div>
+<pre>
+# Fast-forward merge (no merge commit created)
+git merge feature
+
+# Force creation of merge commit even if fast-forward is possible
+git merge --no-ff feature
+</pre>
+
+          <h3>Handling Merge Conflicts</h3>
+<pre>
+# Attempt merge
+git merge feature
+
+# If conflicts occur, Git will pause and show:
+# Auto-merging file.txt
+# CONFLICT (content): Merge conflict in file.txt
+
+# View conflicted files
+git status
+
+# Edit conflicted files (look for conflict markers)
+# &lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
+# your changes
+# =======
+# their changes
+# &gt;&gt;&gt;&gt;&gt;&gt;&gt; feature
+
+# After resolving conflicts
+git add file.txt
+git commit -m "Merge feature branch, resolved conflicts"
+
+# Or abort the merge
+git merge --abort
+</pre>
+
+          <h3>Advanced Merge Options</h3>
+<pre>
+# Merge with a custom commit message
+git merge feature -m "Merge feature: Add new functionality"
+
+# Merge without committing (review changes first)
+git merge --no-commit feature
+
+# Squash all feature branch commits into one
+git merge --squash feature
+git commit -m "Feature: Complete implementation"
+
+# Use a specific merge strategy
+git merge -s recursive -X theirs feature
+</pre>
+
+          <h3>When to Use Merge</h3>
+          <ul>
+            <li>Working on public/shared branches</li>
+            <li>Want to preserve complete history</li>
+            <li>Need to maintain context of when branches diverged</li>
+            <li>Working in teams where history transparency is important</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- REBASE TAB -->
+      <div id="rebase" class="tab-content" role="tabpanel" aria-labelledby="tab-rebase" hidden>
+        <div class="section">
+          <h2>Git Rebase</h2>
+          <p>Git rebase moves or combines a sequence of commits to a new base commit. It rewrites history by creating new commits with different parent commits, resulting in a linear history.</p>
+
+          <div class="visual-demo">
+            <h3>Visual Representation: Before Rebase</h3>
+            <div class="commit-graph">
+              <div class="branch">
+                <span class="branch-label">main:</span>
+                <div class="commit main">A</div><span class="arrow">→</span>
+                <div class="commit main">B</div><span class="arrow">→</span>
+                <div class="commit main">C</div>
+              </div>
+              <div class="branch">
+                <span class="branch-label">feature:</span>
+                <div style="width:50px"></div><span style="width:30px"></span>
+                <div class="commit feature">D</div><span class="arrow">→</span>
+                <div class="commit feature">E</div>
+              </div>
+            </div>
+
+            <h3 style="margin-top:30px;">After Rebase</h3>
+            <div class="commit-graph">
+              <div class="branch">
+                <span class="branch-label">main:</span>
+                <div class="commit main">A</div><span class="arrow">→</span>
+                <div class="commit main">B</div><span class="arrow">→</span>
+                <div class="commit main">C</div><span class="arrow">→</span>
+                <div class="commit feature">D'</div><span class="arrow">→</span>
+                <div class="commit feature">E'</div>
+              </div>
+            </div>
+            <p style="margin-top:15px;font-style:italic;color:#718096;">D' and E' are new commits with the same changes but different parents</p>
+          </div>
+
+          <h3>Basic Rebase Command</h3>
+<pre>
+# Switch to the feature branch
+git checkout feature
+
+# Rebase onto main
+git rebase main
+
+# Alternative: specify both branches
+git rebase main feature
+</pre>
+
+          <h3>Handling Rebase Conflicts</h3>
+<pre>
+# Start rebase
+git rebase main
+
+# If conflicts occur, Git pauses at each conflict
+# Resolve conflicts in files
+
+# After resolving, stage the files
+git add file.txt
+
+# Continue the rebase
+git rebase --continue
+
+# Skip the current commit if needed
+git rebase --skip
+
+# Abort and return to original state
+git rebase --abort
+</pre>
+
+          <h3>Interactive Rebase</h3>
+          <p>Interactive rebase allows you to edit, reorder, squash, or drop commits:</p>
+<pre>
+# Start interactive rebase for last 3 commits
+git rebase -i HEAD~3
+
+# Or rebase interactively onto another branch
+git rebase -i main
+
+# In the editor, you'll see:
+# pick abc1234 First commit
+# pick def5678 Second commit
+# pick ghi9012 Third commit
+
+# Change 'pick' to:
+# p, pick   = use commit as-is
+# r, reword = use commit, but edit the message
+# e, edit   = use commit, but stop to amend
+# s, squash = combine with previous commit
+# f, fixup  = like squash, but discard commit message
+# d, drop   = remove commit
+</pre>
+
+          <h3>Common Interactive Rebase Operations</h3>
+<pre>
+# Squash last 3 commits into one
+git rebase -i HEAD~3
+# Change last 2 'pick' to 'squash', save and edit commit message
+
+# Edit a specific commit
+git rebase -i HEAD~5
+# Change 'pick' to 'edit' for desired commit
+# Make your changes
+git add .
+git commit --amend
+git rebase --continue
+
+# Reorder commits
+git rebase -i HEAD~4
+# Simply reorder the lines in the editor
+</pre>
+
+          <h3>Rebase with Autosquash</h3>
+<pre>
+# Create a fixup commit
+git commit --fixup abc1234
+
+# Automatically squash fixup commits
+git rebase -i --autosquash main
+</pre>
+
+          <h3>Force Push After Rebase</h3>
+          <div class="highlight">
+            <strong>Warning:</strong> After rebasing a pushed branch, you must force push (rewrites history).
+          </div>
+<pre>
+# Force push (be careful with shared branches!)
+git push --force-with-lease
+
+# Or the more aggressive version
+git push --force
+</pre>
+
+          <h3>When to Use Rebase</h3>
+          <ul>
+            <li>Working on private/local branches before pushing</li>
+            <li>Want a clean, linear project history</li>
+            <li>Cleaning up local commits before sharing</li>
+            <li>Updating feature branch with latest main changes</li>
+          </ul>
+
+          <div class="highlight">
+            <strong>Golden Rule:</strong> Never rebase commits that have been pushed to a shared/public branch!
+          </div>
+        </div>
+      </div>
+
+      <!-- COMPARISON TAB -->
+      <div id="comparison" class="tab-content" role="tabpanel" aria-labelledby="tab-comparison" hidden>
+        <div class="section">
+          <h2>Merge vs Rebase: Detailed Comparison</h2>
+
+          <table class="comparison-table">
+            <thead>
+              <tr><th>Aspect</th><th>Merge</th><th>Rebase</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>History</strong></td><td>Preserves complete history with merge commits</td><td>Creates linear history, rewrites commits</td></tr>
+              <tr><td><strong>Commits</strong></td><td>Creates new merge commit</td><td>Replays commits on new base</td></tr>
+              <tr><td><strong>Safety</strong></td><td>Safe for public branches</td><td>Dangerous for public branches</td></tr>
+              <tr><td><strong>Traceability</strong></td><td>Easy to see when branches merged</td><td>Difficult to track original branch points</td></tr>
+              <tr><td><strong>Conflicts</strong></td><td>Resolve conflicts once</td><td>May resolve same conflict multiple times</td></tr>
+              <tr><td><strong>Readability</strong></td><td>Can become cluttered with many merges</td><td>Clean, linear history</td></tr>
+              <tr><td><strong>Use Case</strong></td><td>Integrating shared branches</td><td>Cleaning up local work</td></tr>
+            </tbody>
+          </table>
+
+          <h3>Decision Guide</h3>
+          <div class="visual-demo">
+            <h3><span class="badge">Use MERGE when:</span></h3>
+            <ul>
+              <li>Working with public/shared branches</li>
+              <li>You need to preserve the exact history</li>
+              <li>Multiple people are working on the same branch</li>
+              <li>You want to maintain context of parallel development</li>
+              <li>Integrating long-lived feature branches</li>
+              <li>Following "merge commit" workflow in your team</li>
+            </ul>
+
+            <h3 style="margin-top:25px;"><span class="badge">Use REBASE when:</span></h3>
+            <ul>
+              <li>Working on private, local branches</li>
+              <li>You want a clean, linear history</li>
+              <li>Updating your feature branch with latest main</li>
+              <li>Cleaning up commits before pushing</li>
+              <li>Squashing multiple small commits</li>
+              <li>You haven't pushed the commits yet</li>
+            </ul>
+          </div>
+
+          <h3>Example Workflow Comparison</h3>
+
+          <h4>Merge Workflow:</h4>
+<pre>
+# On feature branch
+git checkout feature
+git commit -m "Add feature A"
+git commit -m "Add feature B"
+
+# Update with main changes
+git checkout main
+git pull
+git checkout feature
+git merge main
+
+# When feature is complete
+git checkout main
+git merge feature
+git push
+</pre>
+
+          <h4>Rebase Workflow:</h4>
+<pre>
+# On feature branch
+git checkout feature
+git commit -m "Add feature A"
+git commit -m "Add feature B"
+
+# Update with main changes
+git fetch origin
+git rebase origin/main
+
+# Clean up commits locally
+git rebase -i HEAD~2
+
+# When feature is complete
+git checkout main
+git merge feature  # This will be a fast-forward
+git push
+</pre>
+        </div>
+      </div>
+
+      <!-- INTERACTIVE DEMO TAB -->
+      <div id="interactive" class="tab-content" role="tabpanel" aria-labelledby="tab-interactive" hidden>
+        <div class="section">
+          <h2>Interactive Demonstrations</h2>
+
+          <div class="visual-demo">
+            <h3>Simulate Git Operations</h3>
+            <p>Click the buttons below to see step-by-step demonstrations:</p>
+
+            <div>
+              <button class="interactive-btn" id="btn-merge">Show Merge Process</button>
+              <button class="interactive-btn" id="btn-rebase">Show Rebase Process</button>
+              <button class="interactive-btn" id="btn-conflict">Show Conflict Resolution</button>
+              <button class="interactive-btn" id="btn-clear">Clear</button>
+            </div>
+
+            <div id="demo-area"></div>
+          </div>
+
+          <h3>Quick Reference Commands</h3>
+<pre>
+# MERGE COMMANDS
+git merge &lt;branch&gt;                    # Merge branch into current branch
+git merge --no-ff &lt;branch&gt;            # Force merge commit
+git merge --squash &lt;branch&gt;           # Squash and merge
+git merge --abort                     # Cancel merge
+
+# REBASE COMMANDS
+git rebase &lt;branch&gt;                   # Rebase current branch onto branch
+git rebase -i &lt;branch&gt;                # Interactive rebase
+git rebase --continue                 # Continue after resolving conflicts
+git rebase --skip                     # Skip current commit
+git rebase --abort                    # Cancel rebase
+
+# CHECKING STATUS
+git status                            # See current state
+git log --graph --oneline             # View commit graph
+git log --all --decorate --graph      # Detailed graph
+
+# CONFLICT RESOLUTION
+git diff                              # See changes
+git add &lt;file&gt;                        # Stage resolved files
+git checkout --theirs &lt;file&gt;         # Accept their changes
+git checkout --ours &lt;file&gt;           # Keep your changes
+</pre>
+
+          <h3>Best Practices Summary</h3>
+          <div class="highlight">
+            <ul>
+              <li><strong>Never rebase public history</strong> - only rebase commits that haven't been pushed</li>
+              <li><strong>Use merge for feature integration</strong> - especially on shared branches</li>
+              <li><strong>Use rebase to clean up local work</strong> - before pushing to remote</li>
+              <li><strong>Communicate with your team</strong> - establish conventions</li>
+              <li><strong>Use interactive rebase sparingly</strong> - to organize commits logically</li>
+              <li><strong>Always pull before push after rebase</strong> - check for remote changes</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div><!-- /content -->
+  </div><!-- /container -->
+
+  <script>
+    // ---------- TABS (no inline onclick; accessible & resilient) ----------
+    (function () {
+      const tabButtons = Array.from(document.querySelectorAll('.tab'));
+      const panels = Array.from(document.querySelectorAll('.tab-content'));
+
+      function activate(tabId) {
+        // update buttons
+        tabButtons.forEach(btn => {
+          const isActive = btn.dataset.tab === tabId;
+          btn.setAttribute('aria-selected', String(isActive));
+          if (isActive) btn.focus({ preventScroll: true });
+        });
+
+        // update panels
+        panels.forEach(panel => {
+          const isActive = panel.id === tabId;
+          panel.classList.toggle('active', isActive);
+          panel.hidden = !isActive;
+        });
+      }
+
+      // Click support
+      tabButtons.forEach(btn => {
+        btn.addEventListener('click', () => activate(btn.dataset.tab));
+      });
+
+      // Keyboard support (Left/Right/Home/End)
+      document.querySelector('.tabs').addEventListener('keydown', (e) => {
+        const idx = tabButtons.findIndex(b => b.getAttribute('aria-selected') === 'true');
+        let nextIdx = idx;
+
+        if (e.key === 'ArrowRight') nextIdx = (idx + 1) % tabButtons.length;
+        else if (e.key === 'ArrowLeft') nextIdx = (idx - 1 + tabButtons.length) % tabButtons.length;
+        else if (e.key === 'Home') nextIdx = 0;
+        else if (e.key === 'End') nextIdx = tabButtons.length - 1;
+        else return;
+
+        e.preventDefault();
+        const next = tabButtons[nextIdx];
+        next.click();
+      });
+
+      // Initialize default active tab
+      activate('merge');
+    })();
+
+    // ---------- INTERACTIVE DEMOS ----------
+    const demoArea = () => document.getElementById('demo-area');
+
+    function demonstrateMerge() {
+      demoArea().innerHTML = `
+        <h3 style="color:#2d3748;margin-top:20px;">Merge Process Demonstration</h3>
+        <div style="background:#fff;padding:20px;border-radius:8px;margin-top:15px;">
+          <p><strong>Step 1:</strong> Initial state - main and feature branches diverged</p>
+          <pre style="margin:10px 0;">
+main:    A --- B --- C
+              \\
+feature:       D --- E</pre>
+
+          <p style="margin-top:15px;"><strong>Step 2:</strong> Execute merge command</p>
+          <pre style="margin:10px 0;">$ git checkout main
+$ git merge feature</pre>
+
+          <p style="margin-top:15px;"><strong>Step 3:</strong> Git creates merge commit M</p>
+          <pre style="margin:10px 0;">
+main:    A --- B --- C --- M
+              \\             /
+feature:       D --------- E</pre>
+
+          <p style="margin-top:15px;"><strong>Result:</strong> History preserved, merge commit has two parents (C and E)</p>
+          <div style="background:#f0fdf4;padding:15px;border-left:4px solid #22c55e;margin-top:15px;border-radius:4px;">
+            ✓ All commits remain in chronological order<br/>
+            ✓ Branch history is preserved<br/>
+            ✓ Easy to revert the entire merge
+          </div>
+        </div>`;
+    }
+
+    function demonstrateRebase() {
+      demoArea().innerHTML = `
+        <h3 style="color:#2d3748;margin-top:20px;">Rebase Process Demonstration</h3>
+        <div style="background:#fff;padding:20px;border-radius:8px;margin-top:15px;">
+          <p><strong>Step 1:</strong> Initial state - main and feature branches diverged</p>
+          <pre style="margin:10px 0;">
+main:    A --- B --- C
+              \\
+feature:       D --- E</pre>
+
+          <p style="margin-top:15px;"><strong>Step 2:</strong> Execute rebase command</p>
+          <pre style="margin:10px 0;">$ git checkout feature
+$ git rebase main</pre>
+
+          <p style="margin-top:15px;"><strong>Step 3:</strong> Git replays D and E on top of C</p>
+          <pre style="margin:10px 0;">
+main:    A --- B --- C --- D' --- E'
+              \\
+feature:       D --- E (abandoned)</pre>
+
+          <p style="margin-top:15px;"><strong>Result:</strong> Linear history, commits D' and E' are new (different SHA)</p>
+          <div style="background:#fef3c7;padding:15px;border-left:4px solid #f59e0b;margin-top:15px;border-radius:4px;">
+            ⚠ Original D and E commits are replaced<br/>
+            ⚠ Requires force push if already pushed<br/>
+            ✓ Clean, linear history
+          </div>
+        </div>`;
+    }
+
+    function demonstrateConflict() {
+      demoArea().innerHTML = `
+        <h3 style="color:#2d3748;margin-top:20px;">Conflict Resolution Demonstration</h3>
+        <div style="background:#fff;padding:20px;border-radius:8px;margin-top:15px;">
+          <p><strong>Scenario:</strong> Both branches modified the same file</p>
+
+          <p style="margin-top:15px;"><strong>Step 1:</strong> Attempt merge/rebase</p>
+          <pre style="margin:10px 0;">$ git merge feature
+Auto-merging app.js
+CONFLICT (content): Merge conflict in app.js
+Automatic merge failed; fix conflicts and then commit the result.</pre>
+
+          <p style="margin-top:15px;"><strong>Step 2:</strong> View the conflict in the file</p>
+          <pre style="margin:10px 0;">function calculate() {
+&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
+    return x + y + z;  // Your changes
+=======
+    return x * y * z;  // Their changes
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; feature
+}</pre>
+
+          <p style="margin-top:15px;"><strong>Step 3:</strong> Resolve the conflict (edit the file)</p>
+          <pre style="margin:10px 0;">function calculate() {
+    return (x + y) * z;  // Combined solution
+}</pre>
+
+          <p style="margin-top:15px;"><strong>Step 4:</strong> Stage and complete</p>
+          <pre style="margin:10px 0;">$ git add app.js
+$ git commit -m "Resolved merge conflict in app.js"
+# OR for rebase
+$ git rebase --continue</pre>
+
+          <div style="background:#dbeafe;padding:15px;border-left:4px solid #3b82f6;margin-top:15px;border-radius:4px;">
+            💡 <strong>Tip:</strong> Use <code>git status</code> to see which files have conflicts<br/>
+            💡 Use <code>git diff</code> to see the differences<br/>
+            💡 Use <code>git merge --abort</code> or <code>git rebase --abort</code> to cancel
+          </div>
+        </div>`;
+    }
+
+    function clearDemo(){ demoArea().innerHTML = ''; }
+
+    // Wire demo buttons after DOM is ready
+    window.addEventListener('DOMContentLoaded', () => {
+      const byId = id => document.getElementById(id);
+      byId('btn-merge').addEventListener('click', demonstrateMerge);
+      byId('btn-rebase').addEventListener('click', demonstrateRebase);
+      byId('btn-conflict').addEventListener('click', demonstrateConflict);
+      byId('btn-clear').addEventListener('click', clearDemo);
+    });
+  </script>
+</body>
+</html>
