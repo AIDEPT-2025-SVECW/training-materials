@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JS Engine Visualizer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        
+        .analogy-box {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border-left: 5px solid #ff6b6b;
+        }
+        
+        .analogy-box h3 {
+            color: #c44569;
+            margin-bottom: 10px;
+        }
+        
+        .analogy-box p {
+            color: #444;
+            line-height: 1.6;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: bold;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .visualization {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            border: 2px solid #dee2e6;
+        }
+        
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .icon {
+            font-size: 1.5em;
+        }
+        
+        .call-stack {
+            min-height: 200px;
+        }
+        
+        .stack-item {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            padding: 15px;
+            margin: 8px 0;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOut {
+            to {
+                transform: translateX(20px);
+                opacity: 0;
+            }
+        }
+        
+        .heap-memory {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+            min-height: 150px;
+        }
+        
+        .heap-item {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            animation: fadeIn 0.5s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        .heap-item strong {
+            color: #c44569;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .web-apis {
+            min-height: 150px;
+        }
+        
+        .api-item {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            padding: 15px;
+            margin: 8px 0;
+            border-radius: 8px;
+            animation: pulse 2s infinite;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+        
+        .queues {
+            min-height: 150px;
+        }
+        
+        .queue-container {
+            margin-bottom: 15px;
+        }
+        
+        .queue-label {
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+        
+        .task-item {
+            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+            padding: 12px;
+            margin: 6px 0;
+            border-radius: 8px;
+            font-size: 0.9em;
+            animation: slideInQueue 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        @keyframes slideInQueue {
+            from {
+                transform: translateY(-10px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .microtask-item {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            padding: 12px;
+            margin: 6px 0;
+            border-radius: 8px;
+            font-size: 0.9em;
+            animation: slideInQueue 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .event-loop {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+            animation: rotate 3s linear infinite;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        @keyframes rotate {
+            0% { box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); }
+            50% { box-shadow: 0 6px 25px rgba(102, 126, 234, 0.6); }
+            100% { box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); }
+        }
+        
+        .code-section {
+            margin-top: 30px;
+        }
+        
+        .code-section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            font-size: 14px;
+            line-height: 1.5;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .legend {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .legend-color {
+            width: 30px;
+            height: 30px;
+            border-radius: 5px;
+        }
+        
+        .empty-state {
+            color: #999;
+            font-style: italic;
+            padding: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 JavaScript Engine Visualizer</h1>
+        <p class="subtitle">Understanding the Browser's JavaScript Runtime</p>
+        
+        <div class="analogy-box">
+            <h3>🎭 The Restaurant Analogy</h3>
+            <p>
+                <strong>Call Stack:</strong> The chef's current order ticket - one dish at a time!<br>
+                <strong>Heap Memory:</strong> The kitchen's storage room - where all ingredients (objects) are stored.<br>
+                <strong>Web APIs:</strong> The kitchen timers and delivery service - handling async tasks.<br>
+                <strong>Task Queue:</strong> The waiting line for regular customers (setTimeout, events).<br>
+                <strong>Microtask Queue:</strong> VIP fast-pass line (Promises) - gets served first!<br>
+                <strong>Event Loop:</strong> The waiter checking if chef is free and bringing next order.
+            </p>
+        </div>
+        
+        <div class="controls">
+            <button onclick="demo1()">Demo 1: Simple Sync</button>
+            <button onclick="demo2()">Demo 2: setTimeout</button>
+            <button onclick="demo3()">Demo 3: Promises</button>
+            <button onclick="demo4()">Demo 4: Mixed Queue</button>
+            <button onclick="reset()">Reset</button>
+        </div>
+        
+        <div class="visualization">
+            <div class="section">
+                <h2><span class="icon">📚</span> Call Stack</h2>
+                <div id="callStack" class="call-stack">
+                    <div class="empty-state">Stack is empty</div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2><span class="icon">🗄️</span> Heap Memory</h2>
+                <div id="heap" class="heap-memory">
+                    <div class="empty-state">No objects allocated</div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2><span class="icon">⚡</span> Web APIs</h2>
+                <div id="webApis" class="web-apis">
+                    <div class="empty-state">No async operations</div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2><span class="icon">📋</span> Task Queues</h2>
+                <div id="queues" class="queues">
+                    <div class="queue-container">
+                        <div class="queue-label">🎯 Microtask Queue (Priority)</div>
+                        <div id="microtaskQueue">
+                            <div class="empty-state">Empty</div>
+                        </div>
+                    </div>
+                    <div class="queue-container">
+                        <div class="queue-label">📦 Task Queue (Callback Queue)</div>
+                        <div id="taskQueue">
+                            <div class="empty-state">Empty</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section event-loop">
+            <span class="icon">🔄</span> Event Loop: Monitoring...
+        </div>
+        
+        <div class="code-section">
+            <h3>Current Demo Code:</h3>
+            <pre id="codeDisplay">Click a demo button to see the code</pre>
+        </div>
+        
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);"></div>
+                <span>Call Stack</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);"></div>
+                <span>Heap Memory</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);"></div>
+                <span>Web APIs</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);"></div>
+                <span>Task Queue</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);"></div>
+                <span>Microtask Queue</span>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let callStack = [];
+        let heap = {};
+        let webApis = [];
+        let taskQueue = [];
+        let microtaskQueue = [];
+        
+        function updateUI() {
+            const callStackEl = document.getElementById('callStack');
+            const heapEl = document.getElementById('heap');
+            const webApisEl = document.getElementById('webApis');
+            const taskQueueEl = document.getElementById('taskQueue');
+            const microtaskQueueEl = document.getElementById('microtaskQueue');
+            
+            // Update Call Stack
+            if (callStack.length === 0) {
+                callStackEl.innerHTML = '<div class="empty-state">Stack is empty</div>';
+            } else {
+                callStackEl.innerHTML = callStack.map(item => 
+                    `<div class="stack-item">${item}</div>`
+                ).reverse().join('');
+            }
+            
+            // Update Heap
+            const heapKeys = Object.keys(heap);
+            if (heapKeys.length === 0) {
+                heapEl.innerHTML = '<div class="empty-state">No objects allocated</div>';
+            } else {
+                heapEl.innerHTML = heapKeys.map(key => 
+                    `<div class="heap-item"><strong>${key}</strong>${heap[key]}</div>`
+                ).join('');
+            }
+            
+            // Update Web APIs
+            if (webApis.length === 0) {
+                webApisEl.innerHTML = '<div class="empty-state">No async operations</div>';
+            } else {
+                webApisEl.innerHTML = webApis.map(item => 
+                    `<div class="api-item">${item}</div>`
+                ).join('');
+            }
+            
+            // Update Task Queue
+            if (taskQueue.length === 0) {
+                taskQueueEl.innerHTML = '<div class="empty-state">Empty</div>';
+            } else {
+                taskQueueEl.innerHTML = taskQueue.map(item => 
+                    `<div class="task-item">${item}</div>`
+                ).join('');
+            }
+            
+            // Update Microtask Queue
+            if (microtaskQueue.length === 0) {
+                microtaskQueueEl.innerHTML = '<div class="empty-state">Empty</div>';
+            } else {
+                microtaskQueueEl.innerHTML = microtaskQueue.map(item => 
+                    `<div class="microtask-item">${item}</div>`
+                ).join('');
+            }
+        }
+        
+        function reset() {
+            callStack = [];
+            heap = {};
+            webApis = [];
+            taskQueue = [];
+            microtaskQueue = [];
+            updateUI();
+            document.getElementById('codeDisplay').textContent = 'Click a demo button to see the code';
+        }
+        
+        async function demo1() {
+            reset();
+            document.getElementById('codeDisplay').textContent = `function multiply(a, b) {
+  return a * b;
+}
+
+function square(n) {
+  return multiply(n, n);
+}
+
+function calculate() {
+  const result = square(5);
+  console.log(result);
+}
+
+calculate();`;
+            
+            await sleep(500);
+            
+            // Step 1: calculate() called
+            callStack.push('calculate()');
+            updateUI();
+            await sleep(800);
+            
+            // Step 2: square() called
+            callStack.push('square(5)');
+            updateUI();
+            await sleep(800);
+            
+            // Step 3: multiply() called
+            callStack.push('multiply(5, 5)');
+            updateUI();
+            await sleep(800);
+            
+            // Step 4: multiply returns
+            callStack.pop();
+            updateUI();
+            await sleep(800);
+            
+            // Step 5: square returns
+            callStack.pop();
+            updateUI();
+            await sleep(800);
+            
+            // Step 6: calculate completes
+            callStack.pop();
+            updateUI();
+        }
+        
+        async function demo2() {
+            reset();
+            document.getElementById('codeDisplay').textContent = `console.log('Start');
+
+setTimeout(() => {
+  console.log('Timeout!');
+}, 2000);
+
+console.log('End');`;
+            
+            await sleep(500);
+            
+            // Step 1
+            callStack.push('console.log("Start")');
+            updateUI();
+            await sleep(800);
+            callStack.pop();
+            updateUI();
+            await sleep(500);
+            
+            // Step 2: setTimeout goes to Web API
+            callStack.push('setTimeout(cb, 2000)');
+            updateUI();
+            await sleep(800);
+            
+            webApis.push('⏰ Timer: 2000ms');
+            callStack.pop();
+            updateUI();
+            await sleep(1500);
+            
+            // Step 3
+            callStack.push('console.log("End")');
+            updateUI();
+            await sleep(800);
+            callStack.pop();
+            updateUI();
+            await sleep(1000);
+            
+            // Step 4: Timer completes, callback to task queue
+            webApis = [];
+            taskQueue.push('setTimeout callback');
+            updateUI();
+            await sleep(1000);
+            
+            // Step 5: Event loop moves callback to stack
+            taskQueue = [];
+            callStack.push('setTimeout callback');
+            updateUI();
+            await sleep(800);
+            
+            callStack.push('console.log("Timeout!")');
+            updateUI();
+            await sleep(800);
+            callStack.pop();
+            updateUI();
+            await sleep(500);
+            callStack.pop();
+            updateUI();
+        }
+        
+        async function demo3() {
+            reset();
+            document.getElementById('codeDisplay').textContent = `console.log('Start');
+
+Promise.resolve()
+  .then(() => console.log('Promise 1'))
+  .then(() => console.log('Promise 2'));
+
+console.log('End');`;
+            
+            await sleep(500);
+            
+            // Step 1
+            callStack.push('console.log("Start")');
+            updateUI();
+            await sleep(800);
+            callStack.pop();
+            updateUI();
+            await sleep(500);
+            
+            // Step 2: Promise resolves immediately
+            callStack.push('Promise.resolve()');
+            heap['promise1'] = 'Promise{resolved}';
+            updateUI();
+            await sleep(800);
+            
+            microtaskQueue.push('.then() → Promise 1');
+            callStack.pop();
+            updateUI();
+            await sleep(1000);
+            
+            // Step 3
+            callStack.push('console.log("End")');
+            updateUI();
+            await sleep(800);
+            callStack.pop();
+            updateUI();
+            await sleep(1000);
+            
+            // Step 4: Microtasks run before task queue!
+            microtaskQueue.shift();
+            callStack.push('console.log("Promise 1")');
+            updateUI();
+            await sleep(800);
+            
+            microtaskQueue.push('.then() → Promise 2');
+            callStack.pop();
+            updateUI();
+            await sleep(1000);
+            
+            // Step 5
+            microtaskQueue.shift();
+            callStack.push('console.log("Promise 2")');
+            updateUI();
+            await sleep(800);
+            callStack.pop();
+            updateUI();
+        }
+        
+        async function demo4() {
+            reset();
+            document.getElementById('codeDisplay').textContent = `console.log('Start');
+
+setTimeout(() => {
+  console.log('Timeout');
+}, 0);
+
+Promise.resolve()
+  .then(() => console.log('Promise'));
+
+console.log('End');`;
+            
+            await sleep(500);
+            
+            // Start
+            callStack.push('console.log("Start")');
+            updateUI();
+            await sleep(800);
+            callStack.pop();
+            updateUI();
+            await sleep(500);
+            
+            // setTimeout to Web API
+            callStack.push('setTimeout(cb, 0)');
+            updateUI();
+            await sleep(800);
+            webApis.push('⏰ Timer: 0ms');
+            callStack.pop();
+            updateUI();
+            await sleep(800);
+            
+            // Timer completes immediately, goes to task queue
+            webApis = [];
+            taskQueue.push('setTimeout callback');
+            updateUI();
+            await sleep(1000);
+            
+            // Promise
+            callStack.push('Promise.resolve()');
+            heap['promise1'] = 'Promise{resolved}';
+            updateUI();
+            await sleep(800);
+            microtaskQueue.push('.then() callback');
+            callStack.pop();
+            updateUI();
+            await sleep(1000);
+            
+            // End
+            callStack.push('console.log("End")');
+            updateUI();
+            await sleep(800);
+            callStack.pop();
+            updateUI();
+            await sleep(1000);
+            
+            // Now stack is empty! Event loop checks queues
+            // Microtasks have PRIORITY!
+            microtaskQueue.shift();
+            callStack.push('Promise callback');
+            updateUI();
+            await sleep(800);
+            callStack.push('console.log("Promise")');
+            updateUI();
+            await sleep(800);
+            callStack.pop();
+            callStack.pop();
+            updateUI();
+            await sleep(1000);
+            
+            // Now task queue
+            taskQueue.shift();
+            callStack.push('setTimeout callback');
+            updateUI();
+            await sleep(800);
+            callStack.push('console.log("Timeout")');
+            updateUI();
+            await sleep(800);
+            callStack.pop();
+            callStack.pop();
+            updateUI();
+        }
+        
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+        
+        // Initial render
+        updateUI();
+    </script>
+</body>
+</html>
