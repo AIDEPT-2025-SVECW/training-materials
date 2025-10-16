@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NPM Version Management & Semantic Versioning</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 5px solid #667eea;
+        }
+        
+        .section h2 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.8em;
+        }
+        
+        .section h3 {
+            color: #34495e;
+            margin: 20px 0 10px 0;
+            font-size: 1.3em;
+        }
+        
+        .analogy {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        
+        .analogy strong {
+            color: #856404;
+        }
+        
+        .interactive-box {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .version-display {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin: 20px 0;
+            font-size: 3em;
+            font-weight: bold;
+        }
+        
+        .version-part {
+            padding: 20px 30px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            min-width: 80px;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+        
+        .version-part:hover {
+            transform: scale(1.1);
+        }
+        
+        .major { background: linear-gradient(135deg, #f093fb, #f5576c); }
+        .minor { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+        .patch { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+        
+        .label {
+            font-size: 0.4em;
+            opacity: 0.9;
+            display: block;
+            margin-top: 5px;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        
+        button {
+            padding: 12px 25px;
+            font-size: 1em;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            color: white;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        
+        .btn-major { background: linear-gradient(135deg, #f093fb, #f5576c); }
+        .btn-minor { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+        .btn-patch { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+        .btn-reset { background: linear-gradient(135deg, #6c757d, #495057); }
+        
+        pre {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 0.95em;
+            line-height: 1.5;
+            margin: 15px 0;
+        }
+        
+        .keyword { color: #c678dd; }
+        .string { color: #98c379; }
+        .number { color: #d19a66; }
+        .comment { color: #5c6370; font-style: italic; }
+        .function { color: #61afef; }
+        
+        .range-examples {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .range-card {
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s;
+        }
+        
+        .range-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+        
+        .range-symbol {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        
+        .log {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+        
+        .log-entry {
+            padding: 5px 0;
+            border-bottom: 1px solid #333;
+        }
+        
+        .log-major { color: #f5576c; }
+        .log-minor { color: #00f2fe; }
+        .log-patch { color: #38f9d7; }
+        
+        .highlight {
+            background: #e7f3ff;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📦 NPM Version Management & Semantic Versioning</h1>
+            <p>Master the art of versioning your Node.js packages</p>
+        </header>
+        
+        <div class="content">
+            <!-- Introduction Section -->
+            <div class="section">
+                <h2>🎯 What is Semantic Versioning (SemVer)?</h2>
+                <p>Semantic Versioning is a versioning scheme that uses a three-part number: <strong>MAJOR.MINOR.PATCH</strong> (e.g., 2.4.1)</p>
+                
+                <div class="analogy">
+                    <strong>🏠 House Analogy:</strong> Think of software versions like renovating a house:
+                    <ul style="margin-top: 10px; margin-left: 20px;">
+                        <li><strong>MAJOR (2.x.x):</strong> Tearing down walls and rebuilding - breaks compatibility</li>
+                        <li><strong>MINOR (x.4.x):</strong> Adding a new room - new features, still compatible</li>
+                        <li><strong>PATCH (x.x.1):</strong> Fixing a leaky faucet - bug fixes only</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Interactive Demo -->
+            <div class="section">
+                <h2>🎮 Interactive Version Manager</h2>
+                <div class="interactive-box">
+                    <div class="version-display">
+                        <div class="version-part major">
+                            <span id="major">1</span>
+                            <span class="label">MAJOR</span>
+                        </div>
+                        <span style="color: #666;">.</span>
+                        <div class="version-part minor">
+                            <span id="minor">0</span>
+                            <span class="label">MINOR</span>
+                        </div>
+                        <span style="color: #666;">.</span>
+                        <div class="version-part patch">
+                            <span id="patch">0</span>
+                            <span class="label">PATCH</span>
+                        </div>
+                    </div>
+                    
+                    <div class="controls">
+                        <button class="btn-major" onclick="incrementMajor()">🚀 Increment MAJOR</button>
+                        <button class="btn-minor" onclick="incrementMinor()">✨ Increment MINOR</button>
+                        <button class="btn-patch" onclick="incrementPatch()">🔧 Increment PATCH</button>
+                        <button class="btn-reset" onclick="resetVersion()">↺ Reset</button>
+                    </div>
+                    
+                    <div class="log" id="changeLog">
+                        <div class="log-entry">Version initialized at 1.0.0</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Rules Section -->
+            <div class="section">
+                <h2>📋 The Three Rules of SemVer</h2>
+                
+                <h3>1. MAJOR Version (Breaking Changes)</h3>
+                <p>Increment when you make incompatible API changes that break existing functionality.</p>
+                <pre><span class="comment">// Version 1.x.x - Old API</span>
+<span class="keyword">function</span> <span class="function">calculateTotal</span>(price) {
+    <span class="keyword">return</span> price * <span class="number">1.1</span>; <span class="comment">// Returns number</span>
+}
+
+<span class="comment">// Version 2.0.0 - Breaking change!</span>
+<span class="keyword">function</span> <span class="function">calculateTotal</span>(items) {
+    <span class="keyword">return</span> {  <span class="comment">// Now returns object</span>
+        subtotal: items.reduce((a, b) => a + b, <span class="number">0</span>),
+        tax: <span class="number">0.1</span>
+    };
+}</pre>
+                
+                <h3>2. MINOR Version (New Features)</h3>
+                <p>Increment when you add functionality in a backward-compatible manner.</p>
+                <pre><span class="comment">// Version 1.0.0 - Original</span>
+<span class="keyword">class</span> User {
+    <span class="function">constructor</span>(name) {
+        <span class="keyword">this</span>.name = name;
+    }
+}
+
+<span class="comment">// Version 1.1.0 - Added new method (backward-compatible)</span>
+<span class="keyword">class</span> User {
+    <span class="function">constructor</span>(name) {
+        <span class="keyword">this</span>.name = name;
+    }
+    
+    <span class="function">getGreeting</span>() {  <span class="comment">// New feature!</span>
+        <span class="keyword">return</span> <span class="string">`Hello, ${this.name}!`</span>;
+    }
+}</pre>
+                
+                <h3>3. PATCH Version (Bug Fixes)</h3>
+                <p>Increment when you make backward-compatible bug fixes.</p>
+                <pre><span class="comment">// Version 1.1.0 - Bug present</span>
+<span class="keyword">function</span> <span class="function">formatDate</span>(date) {
+    <span class="keyword">return</span> date.getMonth() + <span class="string">'/'</span> + date.getDate();  <span class="comment">// Missing year!</span>
+}
+
+<span class="comment">// Version 1.1.1 - Bug fixed</span>
+<span class="keyword">function</span> <span class="function">formatDate</span>(date) {
+    <span class="keyword">return</span> date.getMonth() + <span class="string">'/'</span> + date.getDate() + <span class="string">'/'</span> + date.getFullYear();
+}</pre>
+            </div>
+            
+            <!-- Version Ranges Section -->
+            <div class="section">
+                <h2>🎯 NPM Version Ranges in package.json</h2>
+                <p>NPM allows you to specify version ranges for dependencies, giving you control over which updates to accept.</p>
+                
+                <div class="range-examples">
+                    <div class="range-card">
+                        <div class="range-symbol">^1.2.3</div>
+                        <strong>Caret (^)</strong>
+                        <p>Allows MINOR and PATCH updates</p>
+                        <small>Accepts: ≥1.2.3 &lt;2.0.0</small>
+                    </div>
+                    
+                    <div class="range-card">
+                        <div class="range-symbol">~1.2.3</div>
+                        <strong>Tilde (~)</strong>
+                        <p>Allows only PATCH updates</p>
+                        <small>Accepts: ≥1.2.3 &lt;1.3.0</small>
+                    </div>
+                    
+                    <div class="range-card">
+                        <div class="range-symbol">1.2.3</div>
+                        <strong>Exact</strong>
+                        <p>Only this specific version</p>
+                        <small>Accepts: 1.2.3 only</small>
+                    </div>
+                    
+                    <div class="range-card">
+                        <div class="range-symbol">*</div>
+                        <strong>Wildcard</strong>
+                        <p>Any version</p>
+                        <small>Accepts: Latest available</small>
+                    </div>
+                </div>
+                
+                <h3>package.json Example:</h3>
+                <pre>{
+  <span class="string">"name"</span>: <span class="string">"my-awesome-app"</span>,
+  <span class="string">"version"</span>: <span class="string">"1.0.0"</span>,
+  <span class="string">"dependencies"</span>: {
+    <span class="string">"express"</span>: <span class="string">"^4.18.0"</span>,     <span class="comment">// Accept 4.18.0 to &lt;5.0.0</span>
+    <span class="string">"lodash"</span>: <span class="string">"~4.17.21"</span>,    <span class="comment">// Accept 4.17.21 to &lt;4.18.0</span>
+    <span class="string">"react"</span>: <span class="string">"18.2.0"</span>,       <span class="comment">// Exact version only</span>
+    <span class="string">"axios"</span>: <span class="string">"*"</span>            <span class="comment">// Latest version (not recommended!)</span>
+  }
+}</pre>
+            </div>
+            
+            <!-- NPM Commands Section -->
+            <div class="section">
+                <h2>⚡ NPM Version Commands</h2>
+                
+                <h3>Automatic Version Bumping:</h3>
+                <pre><span class="comment"># Increment patch version (1.0.0 → 1.0.1)</span>
+npm version patch
+
+<span class="comment"># Increment minor version (1.0.1 → 1.1.0)</span>
+npm version minor
+
+<span class="comment"># Increment major version (1.1.0 → 2.0.0)</span>
+npm version major
+
+<span class="comment"># Set specific version</span>
+npm version <span class="number">2.5.1</span>
+
+<span class="comment"># Add pre-release identifier</span>
+npm version prerelease --preid=<span class="string">beta</span>  <span class="comment"># → 1.0.0-beta.0</span></pre>
+                
+                <h3>Installing Specific Versions:</h3>
+                <pre><span class="comment"># Install latest version</span>
+npm install express
+
+<span class="comment"># Install specific version</span>
+npm install express@<span class="number">4.18.0</span>
+
+<span class="comment"># Install with version range</span>
+npm install express@<span class="string">^4.18.0</span>
+
+<span class="comment"># Update packages within allowed ranges</span>
+npm update
+
+<span class="comment"># Check for outdated packages</span>
+npm outdated</pre>
+            </div>
+            
+            <!-- Best Practices Section -->
+            <div class="section">
+                <h2>✅ Best Practices</h2>
+                
+                <div class="analogy">
+                    <strong>📚 Remember:</strong>
+                    <ul style="margin-top: 10px; margin-left: 20px;">
+                        <li><strong>Start at 1.0.0</strong> for your first stable release</li>
+                        <li><strong>Use 0.x.x</strong> for initial development (anything can change)</li>
+                        <li><strong>Never change published versions</strong> - always increment</li>
+                        <li><strong>Document breaking changes</strong> in CHANGELOG.md</li>
+                        <li><strong>Use ^ for dependencies</strong> in most cases (safe updates)</li>
+                        <li><strong>Lock versions</strong> with package-lock.json for consistency</li>
+                    </ul>
+                </div>
+                
+                <h3>Version Lifecycle Example:</h3>
+                <pre><span class="number">0.1.0</span>  → Initial development
+<span class="number">0.2.0</span>  → Added user authentication
+<span class="number">0.5.0</span>  → Major features complete
+<span class="number">1.0.0</span>  → First stable release! 🎉
+<span class="number">1.0.1</span>  → Fixed login bug
+<span class="number">1.1.0</span>  → Added password reset feature
+<span class="number">1.2.0</span>  → Added two-factor authentication
+<span class="number">2.0.0</span>  → Changed API structure (breaking change)</pre>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let major = 1;
+        let minor = 0;
+        let patch = 0;
+        
+        function updateDisplay() {
+            document.getElementById('major').textContent = major;
+            document.getElementById('minor').textContent = minor;
+            document.getElementById('patch').textContent = patch;
+        }
+        
+        function addLog(message, type) {
+            const log = document.getElementById('changeLog');
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            entry.textContent = message;
+            log.insertBefore(entry, log.firstChild);
+            
+            // Keep only last 10 entries
+            while (log.children.length > 10) {
+                log.removeChild(log.lastChild);
+            }
+        }
+        
+        function incrementMajor() {
+            major++;
+            minor = 0;
+            patch = 0;
+            updateDisplay();
+            addLog(`🚀 MAJOR update: ${major}.${minor}.${patch} - Breaking changes introduced!`, 'major');
+        }
+        
+        function incrementMinor() {
+            minor++;
+            patch = 0;
+            updateDisplay();
+            addLog(`✨ MINOR update: ${major}.${minor}.${patch} - New features added!`, 'minor');
+        }
+        
+        function incrementPatch() {
+            patch++;
+            updateDisplay();
+            addLog(`🔧 PATCH update: ${major}.${minor}.${patch} - Bug fixes applied!`, 'patch');
+        }
+        
+        function resetVersion() {
+            major = 1;
+            minor = 0;
+            patch = 0;
+            updateDisplay();
+            const log = document.getElementById('changeLog');
+            log.innerHTML = '<div class="log-entry">Version reset to 1.0.0</div>';
+        }
+    </script>
+</body>
+</html>

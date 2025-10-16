@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Express.js Application Structure</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding: 25px;
+            background: #f7fafc;
+            border-radius: 10px;
+            border-left: 5px solid #667eea;
+            transition: all 0.3s ease;
+        }
+
+        .section:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .section h2 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-size: 1.8em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .icon {
+            font-size: 1.2em;
+        }
+
+        .analogy {
+            background: #fff5e6;
+            border-left: 4px solid #f59e0b;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .analogy strong {
+            color: #d97706;
+            display: block;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+
+        .explanation {
+            color: #4a5568;
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+
+        pre {
+            background: #1a202c;
+            color: #68d391;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .keyword {
+            color: #f687b3;
+        }
+
+        .string {
+            color: #fbbf24;
+        }
+
+        .comment {
+            color: #718096;
+            font-style: italic;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: #e2e8f0;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            color: #2d3748;
+        }
+
+        .tab:hover {
+            background: #cbd5e0;
+            transform: translateY(-2px);
+        }
+
+        .tab.active {
+            background: #667eea;
+            color: white;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .interactive-demo {
+            background: #edf2f7;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .demo-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .demo-btn {
+            padding: 10px 20px;
+            background: #48bb78;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .demo-btn:hover {
+            background: #38a169;
+            transform: scale(1.05);
+        }
+
+        .demo-output {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            min-height: 80px;
+            border: 2px solid #cbd5e0;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+
+        .structure-tree {
+            background: #2d3748;
+            color: #68d391;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 15px 0;
+        }
+
+        .tree-item {
+            margin-left: 20px;
+            color: #90cdf4;
+        }
+
+        .tree-folder {
+            color: #fbbf24;
+            font-weight: bold;
+        }
+
+        .tree-file {
+            color: #68d391;
+        }
+
+        .highlight {
+            background: #fef5e7;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: 600;
+            color: #d97706;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Express.js Application Structure</h1>
+            <p>Learn how to organize and build Express.js applications with interactive examples</p>
+        </div>
+
+        <div class="content">
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('overview')">📋 Overview</button>
+                <button class="tab" onclick="showTab('basic')">🏗️ Basic Structure</button>
+                <button class="tab" onclick="showTab('routing')">🛣️ Routing</button>
+                <button class="tab" onclick="showTab('middleware')">⚙️ Middleware</button>
+                <button class="tab" onclick="showTab('advanced')">🚀 Advanced</button>
+            </div>
+
+            <!-- Overview Tab -->
+            <div id="overview" class="tab-content active">
+                <div class="section">
+                    <h2><span class="icon">📖</span> What is Express.js?</h2>
+                    <p class="explanation">
+                        Express.js is a minimal and flexible Node.js web application framework that provides a robust set of features for web and mobile applications. It's like the foundation and framework of a house - it gives you the essential structure and tools to build your web application efficiently.
+                    </p>
+                    
+                    <div class="analogy">
+                        <strong>🏢 Analogy: Express.js as a Building Manager</strong>
+                        Think of Express.js as a building manager in a large office complex. Just like a building manager:
+                        <ul style="margin-top: 10px; margin-left: 20px; line-height: 1.8;">
+                            <li><strong>Routes requests</strong> - Directs visitors to the right floor/office (routing)</li>
+                            <li><strong>Checks security</strong> - Verifies IDs before entry (middleware)</li>
+                            <li><strong>Handles requests</strong> - Processes visitor needs (request handlers)</li>
+                            <li><strong>Sends responses</strong> - Provides information or services (responses)</li>
+                        </ul>
+                    </div>
+
+                    <div class="structure-tree">
+📁 express-app/<br>
+<span class="tree-item">├── 📁 <span class="tree-folder">node_modules/</span>     <span class="comment">// Dependencies</span></span><br>
+<span class="tree-item">├── 📁 <span class="tree-folder">public/</span>           <span class="comment">// Static files (CSS, images, JS)</span></span><br>
+<span class="tree-item">├── 📁 <span class="tree-folder">routes/</span>           <span class="comment">// Route handlers</span></span><br>
+<span class="tree-item">├── 📁 <span class="tree-folder">views/</span>            <span class="comment">// Template files</span></span><br>
+<span class="tree-item">├── 📁 <span class="tree-folder">middleware/</span>       <span class="comment">// Custom middleware</span></span><br>
+<span class="tree-item">├── 📁 <span class="tree-folder">models/</span>           <span class="comment">// Database models</span></span><br>
+<span class="tree-item">├── 📁 <span class="tree-folder">controllers/</span>      <span class="comment">// Business logic</span></span><br>
+<span class="tree-item">├── 📄 <span class="tree-file">app.js</span>            <span class="comment">// Main application file</span></span><br>
+<span class="tree-item">├── 📄 <span class="tree-file">package.json</span>      <span class="comment">// Project metadata</span></span><br>
+<span class="tree-item">└── 📄 <span class="tree-file">.env</span>              <span class="comment">// Environment variables</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Basic Structure Tab -->
+            <div id="basic" class="tab-content">
+                <div class="section">
+                    <h2><span class="icon">🏗️</span> Basic Express Application</h2>
+                    <p class="explanation">
+                        A basic Express app starts with importing Express, creating an app instance, defining routes, and starting a server. It's like setting up a simple reception desk that can greet visitors and direct them.
+                    </p>
+
+                    <pre><span class="comment">// 1. Import Express</span>
+<span class="keyword">const</span> express = <span class="keyword">require</span>(<span class="string">'express'</span>);
+
+<span class="comment">// 2. Create Express application instance</span>
+<span class="keyword">const</span> app = <span class="keyword">express</span>();
+
+<span class="comment">// 3. Define a basic route</span>
+app.<span class="keyword">get</span>(<span class="string">'/'</span>, (req, res) => {
+    res.<span class="keyword">send</span>(<span class="string">'Hello, World!'</span>);
+});
+
+<span class="comment">// 4. Start the server</span>
+<span class="keyword">const</span> PORT = <span class="string">3000</span>;
+app.<span class="keyword">listen</span>(PORT, () => {
+    console.log(<span class="string">`Server running on http://localhost:${PORT}`</span>);
+});</pre>
+
+                    <div class="analogy">
+                        <strong>🚪 Analogy: The Reception Desk</strong>
+                        <ul style="margin-top: 10px; margin-left: 20px; line-height: 1.8;">
+                            <li><span class="highlight">app.get('/')</span> - The front door of your building</li>
+                            <li><span class="highlight">req</span> (request) - A visitor arriving with questions</li>
+                            <li><span class="highlight">res</span> (response) - The receptionist's answer</li>
+                            <li><span class="highlight">app.listen()</span> - Opening the building for business</li>
+                        </ul>
+                    </div>
+
+                    <div class="interactive-demo">
+                        <h3>🎮 Interactive Demo: Simulate Requests</h3>
+                        <div class="demo-controls">
+                            <button class="demo-btn" onclick="simulateRequest('GET', '/')">GET /</button>
+                            <button class="demo-btn" onclick="simulateRequest('GET', '/about')">GET /about</button>
+                            <button class="demo-btn" onclick="simulateRequest('POST', '/api/users')">POST /api/users</button>
+                        </div>
+                        <div class="demo-output" id="demo-output">Click a button to simulate a request...</div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2><span class="icon">📦</span> App Configuration</h2>
+                    <p class="explanation">
+                        Express apps need configuration to handle various tasks like parsing JSON, serving static files, and setting up view engines.
+                    </p>
+
+                    <pre><span class="keyword">const</span> express = <span class="keyword">require</span>(<span class="string">'express'</span>);
+<span class="keyword">const</span> path = <span class="keyword">require</span>(<span class="string">'path'</span>);
+<span class="keyword">const</span> app = <span class="keyword">express</span>();
+
+<span class="comment">// Parse JSON bodies</span>
+app.<span class="keyword">use</span>(express.<span class="keyword">json</span>());
+
+<span class="comment">// Parse URL-encoded bodies</span>
+app.<span class="keyword">use</span>(express.<span class="keyword">urlencoded</span>({ extended: <span class="keyword">true</span> }));
+
+<span class="comment">// Serve static files from 'public' directory</span>
+app.<span class="keyword">use</span>(express.<span class="keyword">static</span>(path.<span class="keyword">join</span>(__dirname, <span class="string">'public'</span>)));
+
+<span class="comment">// Set view engine (for templates)</span>
+app.<span class="keyword">set</span>(<span class="string">'view engine'</span>, <span class="string">'ejs'</span>);
+app.<span class="keyword">set</span>(<span class="string">'views'</span>, path.<span class="keyword">join</span>(__dirname, <span class="string">'views'</span>));</pre>
+                </div>
+            </div>
+
+            <!-- Routing Tab -->
+            <div id="routing" class="tab-content">
+                <div class="section">
+                    <h2><span class="icon">🛣️</span> Routing in Express</h2>
+                    <p class="explanation">
+                        Routing determines how an application responds to client requests at specific endpoints (URIs) with specific HTTP methods (GET, POST, PUT, DELETE, etc.).
+                    </p>
+
+                    <div class="analogy">
+                        <strong>🗺️ Analogy: City Traffic System</strong>
+                        Think of routes like streets in a city:
+                        <ul style="margin-top: 10px; margin-left: 20px; line-height: 1.8;">
+                            <li><span class="highlight">GET</span> - Read the street sign (retrieve information)</li>
+                            <li><span class="highlight">POST</span> - Deliver mail to an address (create new data)</li>
+                            <li><span class="highlight">PUT</span> - Renovate a building (update existing data)</li>
+                            <li><span class="highlight">DELETE</span> - Demolish a building (remove data)</li>
+                        </ul>
+                    </div>
+
+                    <pre><span class="comment">// Basic Routes</span>
+app.<span class="keyword">get</span>(<span class="string">'/'</span>, (req, res) => {
+    res.<span class="keyword">send</span>(<span class="string">'Home Page'</span>);
+});
+
+app.<span class="keyword">get</span>(<span class="string">'/about'</span>, (req, res) => {
+    res.<span class="keyword">send</span>(<span class="string">'About Page'</span>);
+});
+
+app.<span class="keyword">post</span>(<span class="string">'/api/users'</span>, (req, res) => {
+    <span class="keyword">const</span> newUser = req.body;
+    <span class="comment">// Save user to database...</span>
+    res.<span class="keyword">json</span>({ message: <span class="string">'User created'</span>, user: newUser });
+});
+
+<span class="comment">// Route with URL parameters</span>
+app.<span class="keyword">get</span>(<span class="string">'/users/:id'</span>, (req, res) => {
+    <span class="keyword">const</span> userId = req.params.id;
+    res.<span class="keyword">send</span>(<span class="string">`User profile for ID: ${userId}`</span>);
+});
+
+<span class="comment">// Route with query parameters</span>
+app.<span class="keyword">get</span>(<span class="string">'/search'</span>, (req, res) => {
+    <span class="keyword">const</span> query = req.query.q;
+    res.<span class="keyword">send</span>(<span class="string">`Search results for: ${query}`</span>);
+});</pre>
+
+                    <div class="interactive-demo">
+                        <h3>🎮 Interactive Demo: Route Parameters</h3>
+                        <p>Enter a user ID to see how route parameters work:</p>
+                        <div class="demo-controls">
+                            <input type="text" id="userIdInput" placeholder="Enter user ID" style="padding: 10px; border-radius: 6px; border: 2px solid #cbd5e0; margin-right: 10px;">
+                            <button class="demo-btn" onclick="testRouteParam()">Test Route</button>
+                        </div>
+                        <div class="demo-output" id="route-output">Enter a user ID and click Test Route...</div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2><span class="icon">📂</span> Router Modules</h2>
+                    <p class="explanation">
+                        For larger applications, Express provides <span class="highlight">express.Router()</span> to create modular route handlers. It's like having different departments in a company, each handling their own responsibilities.
+                    </p>
+
+                    <pre><span class="comment">// routes/users.js</span>
+<span class="keyword">const</span> express = <span class="keyword">require</span>(<span class="string">'express'</span>);
+<span class="keyword">const</span> router = express.<span class="keyword">Router</span>();
+
+<span class="comment">// Middleware specific to this router</span>
+router.<span class="keyword">use</span>((req, res, next) => {
+    console.log(<span class="string">'User route accessed'</span>);
+    <span class="keyword">next</span>();
+});
+
+<span class="comment">// Define routes</span>
+router.<span class="keyword">get</span>(<span class="string">'/'</span>, (req, res) => {
+    res.<span class="keyword">json</span>({ message: <span class="string">'Get all users'</span> });
+});
+
+router.<span class="keyword">get</span>(<span class="string">'/:id'</span>, (req, res) => {
+    res.<span class="keyword">json</span>({ message: <span class="string">`Get user ${req.params.id}`</span> });
+});
+
+router.<span class="keyword">post</span>(<span class="string">'/'</span>, (req, res) => {
+    res.<span class="keyword">json</span>({ message: <span class="string">'Create user'</span>, data: req.body });
+});
+
+<span class="keyword">module.exports</span> = router;
+
+<span class="comment">// app.js - Using the router</span>
+<span class="keyword">const</span> userRoutes = <span class="keyword">require</span>(<span class="string">'./routes/users'</span>);
+app.<span class="keyword">use</span>(<span class="string">'/api/users'</span>, userRoutes);</pre>
+                </div>
+            </div>
+
+            <!-- Middleware Tab -->
+            <div id="middleware" class="tab-content">
+                <div class="section">
+                    <h2><span class="icon">⚙️</span> Middleware Functions</h2>
+                    <p class="explanation">
+                        Middleware functions are functions that have access to the request object (req), response object (res), and the next middleware function. They can execute code, modify req/res, end the request-response cycle, or call the next middleware.
+                    </p>
+
+                    <div class="analogy">
+                        <strong>🔐 Analogy: Security Checkpoints at an Airport</strong>
+                        Middleware is like the series of checkpoints at an airport:
+                        <ul style="margin-top: 10px; margin-left: 20px; line-height: 1.8;">
+                            <li><strong>Ticket Check</strong> - Authentication middleware verifies identity</li>
+                            <li><strong>Security Scan</strong> - Validation middleware checks data</li>
+                            <li><strong>Customs</strong> - Authorization middleware checks permissions</li>
+                            <li><strong>Gate</strong> - Finally reach your destination (route handler)</li>
+                        </ul>
+                        Each checkpoint can either let you through (call next()) or stop you (send a response).
+                    </div>
+
+                    <pre><span class="comment">// Simple logging middleware</span>
+<span class="keyword">const</span> logger = (req, res, next) => {
+    console.log(<span class="string">`${req.method} ${req.url} - ${new Date().toISOString()}`</span>);
+    <span class="keyword">next</span>(); <span class="comment">// Pass control to next middleware</span>
+};
+
+<span class="comment">// Authentication middleware</span>
+<span class="keyword">const</span> authenticate = (req, res, next) => {
+    <span class="keyword">const</span> token = req.headers[<span class="string">'authorization'</span>];
+    
+    <span class="keyword">if</span> (!token) {
+        <span class="keyword">return</span> res.<span class="keyword">status</span>(<span class="string">401</span>).<span class="keyword">json</span>({ error: <span class="string">'No token provided'</span> });
+    }
+    
+    <span class="comment">// Verify token...</span>
+    <span class="keyword">next</span>();
+};
+
+<span class="comment">// Error handling middleware</span>
+<span class="keyword">const</span> errorHandler = (err, req, res, next) => {
+    console.error(err.stack);
+    res.<span class="keyword">status</span>(<span class="string">500</span>).<span class="keyword">json</span>({ 
+        error: <span class="string">'Something went wrong!'</span>,
+        message: err.message 
+    });
+};
+
+<span class="comment">// Use middleware</span>
+app.<span class="keyword">use</span>(logger); <span class="comment">// Applied to all routes</span>
+app.<span class="keyword">use</span>(<span class="string">'/admin'</span>, authenticate); <span class="comment">// Applied only to /admin routes</span>
+app.<span class="keyword">use</span>(errorHandler); <span class="comment">// Error middleware (must be last)</span></pre>
+
+                    <div class="interactive-demo">
+                        <h3>🎮 Interactive Demo: Middleware Chain</h3>
+                        <p>Watch how a request passes through middleware:</p>
+                        <div class="demo-controls">
+                            <button class="demo-btn" onclick="simulateMiddleware(true)">Request with Token</button>
+                            <button class="demo-btn" onclick="simulateMiddleware(false)">Request without Token</button>
+                        </div>
+                        <div class="demo-output" id="middleware-output">Click a button to see middleware in action...</div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2><span class="icon">🔗</span> Middleware Types</h2>
+                    
+                    <pre><span class="comment">// 1. Application-level middleware</span>
+app.<span class="keyword">use</span>((req, res, next) => {
+    req.requestTime = <span class="keyword">Date</span>.<span class="keyword">now</span>();
+    <span class="keyword">next</span>();
+});
+
+<span class="comment">// 2. Router-level middleware</span>
+<span class="keyword">const</span> router = express.<span class="keyword">Router</span>();
+router.<span class="keyword">use</span>((req, res, next) => {
+    console.log(<span class="string">'Router middleware'</span>);
+    <span class="keyword">next</span>();
+});
+
+<span class="comment">// 3. Built-in middleware</span>
+app.<span class="keyword">use</span>(express.<span class="keyword">json</span>());
+app.<span class="keyword">use</span>(express.<span class="keyword">static</span>(<span class="string">'public'</span>));
+
+<span class="comment">// 4. Third-party middleware</span>
+<span class="keyword">const</span> cors = <span class="keyword">require</span>(<span class="string">'cors'</span>);
+app.<span class="keyword">use</span>(<span class="keyword">cors</span>());
+
+<span class="comment">// 5. Error-handling middleware (must have 4 parameters)</span>
+app.<span class="keyword">use</span>((err, req, res, next) => {
+    res.<span class="keyword">status</span>(<span class="string">500</span>).<span class="keyword">json</span>({ error: err.message });
+});</pre>
+                </div>
+            </div>
+
+            <!-- Advanced Tab -->
+            <div id="advanced" class="tab-content">
+                <div class="section">
+                    <h2><span class="icon">🏛️</span> MVC Architecture Pattern</h2>
+                    <p class="explanation">
+                        MVC (Model-View-Controller) is a design pattern that separates an application into three interconnected components. It's like organizing a restaurant with clear roles.
+                    </p>
+
+                    <div class="analogy">
+                        <strong>🍽️ Analogy: Restaurant Organization</strong>
+                        <ul style="margin-top: 10px; margin-left: 20px; line-height: 1.8;">
+                            <li><strong>Model</strong> (Kitchen) - Prepares the food (handles data and business logic)</li>
+                            <li><strong>View</strong> (Presentation) - How the dish is plated (user interface)</li>
+                            <li><strong>Controller</strong> (Waiter) - Takes orders and delivers food (handles requests/responses)</li>
+                        </ul>
+                    </div>
+
+                    <pre><span class="comment">// models/User.js - Model (Data Layer)</span>
+<span class="keyword">const</span> users = []; <span class="comment">// In real app: database</span>
+
+<span class="keyword">class</span> <span class="keyword">User</span> {
+    <span class="keyword">static</span> <span class="keyword">findAll</span>() {
+        <span class="keyword">return</span> users;
+    }
+    
+    <span class="keyword">static</span> <span class="keyword">findById</span>(id) {
+        <span class="keyword">return</span> users.<span class="keyword">find</span>(u => u.id === id);
+    }
+    
+    <span class="keyword">static</span> <span class="keyword">create</span>(userData) {
+        <span class="keyword">const</span> newUser = { id: users.length + <span class="string">1</span>, ...userData };
+        users.<span class="keyword">push</span>(newUser);
+        <span class="keyword">return</span> newUser;
+    }
+}
+
+<span class="keyword">module.exports</span> = User;
+
+<span class="comment">// controllers/userController.js - Controller (Business Logic)</span>
+<span class="keyword">const</span> User = <span class="keyword">require</span>(<span class="string">'../models/User'</span>);
+
+<span class="keyword">exports</span>.getAllUsers = (req, res) => {
+    <span class="keyword">try</span> {
+        <span class="keyword">const</span> users = User.<span class="keyword">findAll</span>();
+        res.<span class="keyword">json</span>(users);
+    } <span class="keyword">catch</span> (error) {
+        res.<span class="keyword">status</span>(<span class="string">500</span>).<span class="keyword">json</span>({ error: error.message });
+    }
+};
+
+<span class="keyword">exports</span>.createUser = (req, res) => {
+    <span class="keyword">try</span> {
+        <span class="keyword">const</span> newUser = User.<span class="keyword">create</span>(req.body);
+        res.<span class="keyword">status</span>(<span class="string">201</span>).<span class="keyword">json</span>(newUser);
+    } <span class="keyword">catch</span> (error) {
+        res.<span class="keyword">status</span>(<span class="string">400</span>).<span class="keyword">json</span>({ error: error.message });
+    }
+};
+
+<span class="comment">// routes/users.js - Routes</span>
+<span class="keyword">const</span> express = <span class="keyword">require</span>(<span class="string">'express'</span>);
+<span class="keyword">const</span> router = express.<span class="keyword">Router</span>();
+<span class="keyword">const</span> userController = <span class="keyword">require</span>(<span class="string">'../controllers/userController'</span>);
+
+router.<span class="keyword">get</span>(<span class="string">'/'</span>, userController.getAllUsers);
+router.<span class="keyword">post</span>(<span class="string">'/'</span>, userController.createUser);
+
+<span class="keyword">module.exports</span> = router;</pre>
+                </div>
+
+                <div class="section">
+                    <h2><span class="icon">🔒</span> Environment Variables & Config</h2>
+                    <p class="explanation">
+                        Environment variables keep sensitive data like API keys, database URLs, and configuration separate from your code. Think of it like keeping your house keys separate from your public address.
+                    </p>
+
+                    <pre><span class="comment">// .env file (never commit this!)</span>
+PORT=<span class="string">3000</span>
+DATABASE_URL=<span class="string">mongodb://localhost:27017/myapp</span>
+JWT_SECRET=<span class="string">your-secret-key</span>
+NODE_ENV=<span class="string">development</span>
+
+<span class="comment">// app.js - Using environment variables</span>
+<span class="keyword">require</span>(<span class="string">'dotenv'</span>).<span class="keyword">config</span>();
+
+<span class="keyword">const</span> express = <span class="keyword">require</span>(<span class="string">'express'</span>);
+<span class="keyword">const</span> app = <span class="keyword">express</span>();
+
+<span class="keyword">const</span> PORT = process.env.PORT || <span class="string">3000</span>;
+<span class="keyword">const</span> DB_URL = process.env.DATABASE_URL;
+
+<span class="comment">// Use in your app</span>
+app.<span class="keyword">listen</span>(PORT, () => {
+    console.log(<span class="string">`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`</span>);
+});</pre>
+                </div>
+
+                <div class="section">
+                    <h2><span class="icon">🎯</span> Complete Application Structure</h2>
+                    <p class="explanation">
+                        Here's a production-ready Express application structure that combines all concepts:
+                    </p>
+
+                    <pre><span class="comment">// app.js - Main Application File</span>
+<span class="keyword">require</span>(<span class="string">'dotenv'</span>).<span class="keyword">config</span>();
+<span class="keyword">const</span> express = <span class="keyword">require</span>(<span class="string">'express'</span>);
+<span class="keyword">const</span> path = <span class="keyword">require</span>(<span class="string">'path'</span>);
+<span class="keyword">const</span> cors = <span class="keyword">require</span>(<span class="string">'cors'</span>);
+<span class="keyword">const</span> helmet = <span class="keyword">require</span>(<span class="string">'helmet'</span>);
+<span class="keyword">const</span> morgan = <span class="keyword">require</span>(<span class="string">'morgan'</span>);
+
+<span class="comment">// Import routes</span>
+<span class="keyword">const</span> userRoutes = <span class="keyword">require</span>(<span class="string">'./routes/users'</span>);
+<span class="keyword">const</span> productRoutes = <span class="keyword">require</span>(<span class="string">'./routes/products'</span>);
+
+<span class="comment">// Import middleware</span>
+<span class="keyword">const</span> errorHandler = <span class="keyword">require</span>(<span class="string">'./middleware/errorHandler'</span>);
+<span class="keyword">const</span> notFound = <span class="keyword">require</span>(<span class="string">'./middleware/notFound'</span>);
+
+<span class="comment">// Create Express app</span>
+<span class="keyword">const</span> app = <span class="keyword">express</span>();
+
+<span class="comment">// Security & parsing middleware</span>
+app.<span class="keyword">use</span>(<span class="keyword">helmet</span>()); <span class="comment">// Security headers</span>
+app.<span class="keyword">use</span>(<span class="keyword">cors</span>()); <span class="comment">// Enable CORS</span>
+app.<span class="keyword">use</span>(express.<span class="keyword">json</span>()); <span class="comment">// Parse JSON</span>
+app.<span class="keyword">use</span>(express.<span class="keyword">urlencoded</span>({ extended: <span class="keyword">true</span> }));
+app.<span class="keyword">use</span>(<span class="keyword">morgan</span>(<span class="string">'dev'</span>)); <span class="comment">// Logging</span>
+
+<span class="comment">// Static files</span>
+app.<span class="keyword">use</span>(express.<span class="keyword">static</span>(path.<span class="keyword">join</span>(__dirname, <span class="string">'public'</span>)));
+
+<span class="comment">// API Routes</span>
+app.<span class="keyword">use</span>(<span class="string">'/api/users'</span>, userRoutes);
+app.<span class="keyword">use</span>(<span class="string">'/api/products'</span>, productRoutes);
+
+<span class="comment">// Health check endpoint</span>
+app.<span class="keyword">get</span>(<span class="string">'/health'</span>, (req, res) => {
+    res.<span class="keyword">json</span>({ status: <span class="string">'OK'</span>, timestamp: <span class="keyword">Date</span>.<span class="keyword">now</span>() });
+});
+
+<span class="comment">// Error handling (must be last)</span>
+app.<span class="keyword">use</span>(notFound);
+app.<span class="keyword">use</span>(errorHandler);
+
+<span class="comment">// Start server</span>
+<span class="keyword">const</span> PORT = process.env.PORT || <span class="string">3000</span>;
+app.<span class="keyword">listen</span>(PORT, () => {
+    console.log(<span class="string">`🚀 Server running on http://localhost:${PORT}`</span>);
+});
+
+<span class="keyword">module.exports</span> = app;</pre>
+
+                    <div class="interactive-demo">
+                        <h3>🎮 Interactive Demo: Full Request Cycle</h3>
+                        <p>See how a request flows through the complete application:</p>
+                        <div class="demo-controls">
+                            <button class="demo-btn" onclick="simulateFullCycle()">Simulate Complete Request</button>
+                        </div>
+                        <div class="demo-output" id="full-cycle-output">Click to see the full request/response cycle...</div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2><span class="icon">📚</span> Best Practices</h2>
+                    <div class="explanation">
+                        <ul style="margin-left: 20px; line-height: 2;">
+                            <li>✅ <strong>Separate concerns</strong>: Use MVC or similar patterns</li>
+                            <li>✅ <strong>Use environment variables</strong>: Never hardcode secrets</li>
+                            <li>✅ <strong>Implement error handling</strong>: Catch and handle errors gracefully</li>
+                            <li>✅ <strong>Validate input</strong>: Always validate and sanitize user input</li>
+                            <li>✅ <strong>Use async/await</strong>: Handle asynchronous operations properly</li>
+                            <li>✅ <strong>Log appropriately</strong>: Use proper logging for debugging</li>
+                            <li>✅ <strong>Security first</strong>: Use helmet, rate limiting, and authentication</li>
+                            <li>✅ <strong>RESTful design</strong>: Follow REST principles for APIs</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching
+        function showTab(tabName) {
+            const tabs = document.querySelectorAll('.tab');
+            const contents = document.querySelectorAll('.tab-content');
+            
+            tabs.forEach(tab => tab.classList.remove('active'));
+            contents.forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        // Simulate basic request
+        function simulateRequest(method, path) {
+            const output = document.getElementById('demo-output');
+            const routes = {
+                'GET-/': 'Response: "Hello, World!" (200 OK)',
+                'GET-/about': 'Response: "About Page" (200 OK)',
+                'POST-/api/users': 'Response: { "message": "User created", "user": {...} } (201 Created)'
+            };
+            
+            const key = `${method}-${path}`;
+            const response = routes[key] || `Response: 404 Not Found - Route ${method} ${path} does not exist`;
+            
+            output.innerHTML = `<strong>Request:</strong> ${method} ${path}\n<strong>${response}</strong>`;
+        }
+
+        // Test route parameters
+        function testRouteParam() {
+            const userId = document.getElementById('userIdInput').value;
+            const output = document.getElementById('route-output');
+            
+            if (!userId) {
+                output.innerHTML = '<span style="color: #e53e3e;">❌ Please enter a user ID!</span>';
+                return;
+            }
+            
+            output.innerHTML = `<strong>Route:</strong> GET /users/${userId}\n<strong>Route Pattern:</strong> /users/:id\n<strong>Extracted Parameter:</strong> req.params.id = "${userId}"\n<strong>Response:</strong> "User profile for ID: ${userId}" (200 OK)`;
+        }
+
+        // Simulate middleware chain
+        function simulateMiddleware(hasToken) {
+            const output = document.getElementById('middleware-output');
+            let log = '';
+            
+            log += '1️⃣ <strong>Logger Middleware</strong>\n';
+            log += '   ✓ Log: GET /admin - ' + new Date().toISOString() + '\n';
+            log += '   ✓ Calling next()...\n\n';
+            
+            log += '2️⃣ <strong>Authentication Middleware</strong>\n';
+            if (hasToken) {
+                log += '   ✓ Token found in headers\n';
+                log += '   ✓ Token verified successfully\n';
+                log += '   ✓ Calling next()...\n\n';
+                log += '3️⃣ <strong>Route Handler</strong>\n';
+                log += '   ✓ Response: { "message": "Admin dashboard" }\n';
+                log += '   ✓ Status: 200 OK';
+            } else {
+                log += '   ❌ No token found in headers\n';
+                log += '   ❌ Response: { "error": "No token provided" }\n';
+                log += '   ❌ Status: 401 Unauthorized\n';
+                log += '   ⚠️ Request stopped - next() NOT called';
+            }
+            
+            output.innerHTML = log;
+        }
+
+        // Simulate full request cycle
+        function simulateFullCycle() {
+            const output = document.getElementById('full-cycle-output');
+            let log = '';
+            
+            log += '📨 <strong>Incoming Request:</strong> POST /api/users\n';
+            log += '   Body: { "name": "John", "email": "john@example.com" }\n\n';
+            
+            log += '⚙️ <strong>Middleware Chain:</strong>\n';
+            log += '   1. helmet() → Security headers added ✓\n';
+            log += '   2. cors() → CORS headers added ✓\n';
+            log += '   3. express.json() → Body parsed ✓\n';
+            log += '   4. morgan() → Request logged ✓\n\n';
+            
+            log += '🛣️ <strong>Routing:</strong>\n';
+            log += '   → Matched route: POST /api/users\n';
+            log += '   → Controller: userController.createUser\n\n';
+            
+            log += '🏗️ <strong>Controller Layer:</strong>\n';
+            log += '   → Validation passed ✓\n';
+            log += '   → Calling User.create()\n\n';
+            
+            log += '💾 <strong>Model Layer:</strong>\n';
+            log += '   → User created in database\n';
+            log += '   → Returning user object\n\n';
+            
+            log += '📤 <strong>Response:</strong>\n';
+            log += '   Status: 201 Created\n';
+            log += '   Body: { "id": 1, "name": "John", "email": "john@example.com" }\n\n';
+            
+            log += '✅ <strong>Request Complete!</strong>';
+            
+            output.innerHTML = log;
+        }
+    </script>
+</body>
+</html>

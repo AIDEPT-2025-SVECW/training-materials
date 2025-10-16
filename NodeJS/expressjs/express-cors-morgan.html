@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Express.js Third-Party Middleware Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 5px solid #667eea;
+        }
+        
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.8em;
+        }
+        
+        .section h3 {
+            color: #764ba2;
+            margin: 20px 0 10px 0;
+            font-size: 1.3em;
+        }
+        
+        .analogy {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        
+        .analogy strong {
+            color: #856404;
+        }
+        
+        .explanation {
+            line-height: 1.8;
+            color: #333;
+            margin: 15px 0;
+        }
+        
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            margin: 15px 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .keyword { color: #ff79c6; }
+        .function { color: #50fa7b; }
+        .string { color: #f1fa8c; }
+        .comment { color: #6272a4; font-style: italic; }
+        .variable { color: #8be9fd; }
+        
+        .demo-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 2px solid #667eea;
+        }
+        
+        .demo-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .output {
+            background: #f8f9fa;
+            border: 2px solid #dee2e6;
+            border-radius: 6px;
+            padding: 15px;
+            min-height: 100px;
+            font-family: 'Courier New', Courier, monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .log-entry {
+            padding: 8px;
+            margin: 5px 0;
+            border-radius: 4px;
+            border-left: 3px solid #667eea;
+            background: white;
+        }
+        
+        .log-morgan {
+            border-left-color: #28a745;
+        }
+        
+        .log-cors {
+            border-left-color: #ffc107;
+        }
+        
+        .highlight {
+            background: #fff3cd;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        
+        .key-points {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        
+        .key-points ul {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+        
+        .key-points li {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Express.js Third-Party Middleware</h1>
+            <p>Interactive Guide to Morgan & CORS</p>
+        </div>
+        
+        <div class="content">
+            <!-- Introduction -->
+            <div class="section">
+                <h2>📚 What is Middleware?</h2>
+                <div class="explanation">
+                    Middleware are functions that have access to the request object (req), response object (res), and the next middleware function in the application's request-response cycle. They can execute code, modify req/res objects, end the request-response cycle, or call the next middleware.
+                </div>
+                
+                <div class="analogy">
+                    <strong>🎯 Analogy:</strong> Think of middleware like security checkpoints at an airport. Each checkpoint (middleware) inspects your documents (request), stamps your passport (modifies request), logs your entry (morgan), and then passes you to the next checkpoint. You pass through multiple checkpoints before reaching your gate (final route handler).
+                </div>
+            </div>
+
+            <!-- Morgan Section -->
+            <div class="section">
+                <h2>📝 Morgan - HTTP Request Logger</h2>
+                
+                <div class="explanation">
+                    <strong>Morgan</strong> is a logging middleware that automatically logs HTTP requests to your Express application. It records details like method, URL, status code, response time, and more.
+                </div>
+                
+                <div class="analogy">
+                    <strong>🎯 Analogy:</strong> Morgan is like a security camera at a store entrance that records everyone who enters - noting the time they came in, what they were wearing (HTTP method), where they went (URL), and how long they stayed (response time).
+                </div>
+                
+                <h3>Basic Setup:</h3>
+<pre><span class="comment">// Install: npm install morgan</span>
+
+<span class="keyword">const</span> <span class="variable">express</span> = <span class="function">require</span>(<span class="string">'express'</span>);
+<span class="keyword">const</span> <span class="variable">morgan</span> = <span class="function">require</span>(<span class="string">'morgan'</span>);
+
+<span class="keyword">const</span> <span class="variable">app</span> = <span class="function">express</span>();
+
+<span class="comment">// Use morgan middleware with 'dev' format</span>
+<span class="variable">app</span>.<span class="function">use</span>(<span class="function">morgan</span>(<span class="string">'dev'</span>));
+
+<span class="comment">// Your routes</span>
+<span class="variable">app</span>.<span class="function">get</span>(<span class="string">'/'</span>, (req, res) => {
+    res.<span class="function">send</span>(<span class="string">'Hello World'</span>);
+});
+
+<span class="variable">app</span>.<span class="function">listen</span>(3000);</pre>
+
+                <h3>Morgan Formats:</h3>
+                <div class="key-points">
+                    <ul>
+                        <li><strong>'combined'</strong> - Standard Apache combined log output</li>
+                        <li><strong>'common'</strong> - Standard Apache common log output</li>
+                        <li><strong>'dev'</strong> - Concise colored output for development</li>
+                        <li><strong>'short'</strong> - Shorter than default, includes response time</li>
+                        <li><strong>'tiny'</strong> - Minimal output</li>
+                    </ul>
+                </div>
+
+                <h3>Custom Morgan Format:</h3>
+<pre><span class="comment">// Create a custom format</span>
+<span class="variable">app</span>.<span class="function">use</span>(<span class="function">morgan</span>(<span class="string">':method :url :status :response-time ms'</span>));
+
+<span class="comment">// Custom token example</span>
+<span class="variable">morgan</span>.<span class="function">token</span>(<span class="string">'id'</span>, <span class="keyword">function</span> (req, res) {
+    <span class="keyword">return</span> req.<span class="variable">id</span>;
+});
+
+<span class="variable">app</span>.<span class="function">use</span>(<span class="function">morgan</span>(<span class="string">':id :method :url'</span>));</pre>
+
+                <div class="demo-section">
+                    <h3>🎮 Interactive Demo - Morgan Logging</h3>
+                    <div class="demo-controls">
+                        <button onclick="simulateRequest('GET', '/api/users')">GET /api/users</button>
+                        <button onclick="simulateRequest('POST', '/api/products')">POST /api/products</button>
+                        <button onclick="simulateRequest('DELETE', '/api/users/123')">DELETE /api/users/123</button>
+                        <button onclick="clearLogs()">Clear Logs</button>
+                    </div>
+                    <div class="output" id="morgan-output"></div>
+                </div>
+            </div>
+
+            <!-- CORS Section -->
+            <div class="section">
+                <h2>🌐 CORS - Cross-Origin Resource Sharing</h2>
+                
+                <div class="explanation">
+                    <strong>CORS</strong> is a security feature implemented by browsers that restricts web pages from making requests to a different domain than the one serving the web page. The cors middleware helps configure which origins can access your API.
+                </div>
+                
+                <div class="analogy">
+                    <strong>🎯 Analogy:</strong> CORS is like a bouncer at an exclusive club. By default, the club (your API) only allows people from the same building (same origin) to enter. The CORS middleware is the bouncer's VIP list - you tell it which external guests (other domains) are allowed in and what they're allowed to do once inside.
+                </div>
+                
+                <h3>Why is CORS Needed?</h3>
+                <div class="explanation">
+                    Imagine your API is at <span class="highlight">api.example.com</span> and your frontend is at <span class="highlight">myapp.com</span>. Without CORS configuration, the browser will block requests from myapp.com to api.example.com because they're different origins (cross-origin).
+                </div>
+
+                <h3>Basic Setup:</h3>
+<pre><span class="comment">// Install: npm install cors</span>
+
+<span class="keyword">const</span> <span class="variable">express</span> = <span class="function">require</span>(<span class="string">'express'</span>);
+<span class="keyword">const</span> <span class="variable">cors</span> = <span class="function">require</span>(<span class="string">'cors'</span>);
+
+<span class="keyword">const</span> <span class="variable">app</span> = <span class="function">express</span>();
+
+<span class="comment">// Enable ALL CORS requests (simple usage)</span>
+<span class="variable">app</span>.<span class="function">use</span>(<span class="function">cors</span>());
+
+<span class="variable">app</span>.<span class="function">get</span>(<span class="string">'/'</span>, (req, res) => {
+    res.<span class="function">json</span>({ message: <span class="string">'CORS enabled!'</span> });
+});</pre>
+
+                <h3>Configuring CORS:</h3>
+<pre><span class="comment">// Allow specific origin</span>
+<span class="keyword">const</span> <span class="variable">corsOptions</span> = {
+    origin: <span class="string">'https://myapp.com'</span>,
+    optionsSuccessStatus: 200
+};
+<span class="variable">app</span>.<span class="function">use</span>(<span class="function">cors</span>(<span class="variable">corsOptions</span>));
+
+<span class="comment">// Allow multiple origins</span>
+<span class="keyword">const</span> <span class="variable">whitelist</span> = [<span class="string">'https://myapp.com'</span>, <span class="string">'https://anotherapp.com'</span>];
+<span class="keyword">const</span> <span class="variable">corsOptions</span> = {
+    origin: <span class="keyword">function</span> (origin, callback) {
+        <span class="keyword">if</span> (<span class="variable">whitelist</span>.<span class="function">indexOf</span>(origin) !== -1 || !origin) {
+            <span class="function">callback</span>(<span class="keyword">null</span>, <span class="keyword">true</span>);
+        } <span class="keyword">else</span> {
+            <span class="function">callback</span>(<span class="keyword">new</span> <span class="function">Error</span>(<span class="string">'Not allowed by CORS'</span>));
+        }
+    }
+};
+<span class="variable">app</span>.<span class="function">use</span>(<span class="function">cors</span>(<span class="variable">corsOptions</span>));
+
+<span class="comment">// Enable CORS for specific route only</span>
+<span class="variable">app</span>.<span class="function">get</span>(<span class="string">'/products'</span>, <span class="function">cors</span>(), (req, res) => {
+    res.<span class="function">json</span>({ products: [] });
+});</pre>
+
+                <h3>CORS Options:</h3>
+                <div class="key-points">
+                    <ul>
+                        <li><strong>origin</strong> - Configures the Access-Control-Allow-Origin header</li>
+                        <li><strong>methods</strong> - Configures the Access-Control-Allow-Methods header</li>
+                        <li><strong>allowedHeaders</strong> - Configures the Access-Control-Allow-Headers header</li>
+                        <li><strong>exposedHeaders</strong> - Configures the Access-Control-Expose-Headers header</li>
+                        <li><strong>credentials</strong> - Configures the Access-Control-Allow-Credentials header</li>
+                        <li><strong>maxAge</strong> - Configures the Access-Control-Max-Age header</li>
+                    </ul>
+                </div>
+
+                <div class="demo-section">
+                    <h3>🎮 Interactive Demo - CORS Checking</h3>
+                    <div class="demo-controls">
+                        <button onclick="testCors('https://myapp.com', true)">Request from Allowed Origin</button>
+                        <button onclick="testCors('https://hacker.com', false)">Request from Blocked Origin</button>
+                        <button onclick="testCors('same-origin', true)">Same-Origin Request</button>
+                        <button onclick="clearCorsLogs()">Clear Logs</button>
+                    </div>
+                    <div class="output" id="cors-output"></div>
+                </div>
+            </div>
+
+            <!-- Combined Example -->
+            <div class="section">
+                <h2>🔗 Complete Example: Morgan + CORS Together</h2>
+                
+<pre><span class="keyword">const</span> <span class="variable">express</span> = <span class="function">require</span>(<span class="string">'express'</span>);
+<span class="keyword">const</span> <span class="variable">morgan</span> = <span class="function">require</span>(<span class="string">'morgan'</span>);
+<span class="keyword">const</span> <span class="variable">cors</span> = <span class="function">require</span>(<span class="string">'cors'</span>);
+
+<span class="keyword">const</span> <span class="variable">app</span> = <span class="function">express</span>();
+
+<span class="comment">// CORS configuration</span>
+<span class="keyword">const</span> <span class="variable">corsOptions</span> = {
+    origin: [<span class="string">'https://myapp.com'</span>, <span class="string">'https://dashboard.com'</span>],
+    methods: [<span class="string">'GET'</span>, <span class="string">'POST'</span>, <span class="string">'PUT'</span>, <span class="string">'DELETE'</span>],
+    allowedHeaders: [<span class="string">'Content-Type'</span>, <span class="string">'Authorization'</span>],
+    credentials: <span class="keyword">true</span>,
+    maxAge: 3600 <span class="comment">// 1 hour</span>
+};
+
+<span class="comment">// Apply middleware</span>
+<span class="variable">app</span>.<span class="function">use</span>(<span class="function">morgan</span>(<span class="string">'combined'</span>)); <span class="comment">// Logs all requests</span>
+<span class="variable">app</span>.<span class="function">use</span>(<span class="function">cors</span>(<span class="variable">corsOptions</span>)); <span class="comment">// Enables CORS with config</span>
+<span class="variable">app</span>.<span class="function">use</span>(<span class="variable">express</span>.<span class="function">json</span>()); <span class="comment">// Parse JSON bodies</span>
+
+<span class="comment">// Routes</span>
+<span class="variable">app</span>.<span class="function">get</span>(<span class="string">'/api/users'</span>, (req, res) => {
+    <span class="comment">// Morgan logs this request automatically</span>
+    <span class="comment">// CORS headers are added automatically</span>
+    res.<span class="function">json</span>({ users: [{ id: 1, name: <span class="string">'John'</span> }] });
+});
+
+<span class="variable">app</span>.<span class="function">post</span>(<span class="string">'/api/users'</span>, (req, res) => {
+    <span class="keyword">const</span> <span class="variable">newUser</span> = req.body;
+    res.<span class="function">status</span>(201).<span class="function">json</span>({ message: <span class="string">'User created'</span>, user: <span class="variable">newUser</span> });
+});
+
+<span class="keyword">const</span> <span class="variable">PORT</span> = process.env.PORT || 3000;
+<span class="variable">app</span>.<span class="function">listen</span>(<span class="variable">PORT</span>, () => {
+    console.<span class="function">log</span>(<span class="string">`Server running on port ${PORT}`</span>);
+});</pre>
+
+                <div class="key-points">
+                    <strong>Key Takeaways:</strong>
+                    <ul>
+                        <li><strong>Order matters:</strong> Middleware is executed in the order it's defined. Morgan should come early to log all requests.</li>
+                        <li><strong>CORS before routes:</strong> Enable CORS before defining your routes so all routes get CORS headers.</li>
+                        <li><strong>Morgan logs everything:</strong> It automatically logs all HTTP requests that hit your server.</li>
+                        <li><strong>CORS is automatic:</strong> Once configured, it automatically adds appropriate headers to responses.</li>
+                        <li><strong>Third-party middleware saves time:</strong> Instead of writing logging and CORS logic yourself, these packages provide battle-tested solutions.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let requestCount = 0;
+
+        function simulateRequest(method, url) {
+            requestCount++;
+            const startTime = Date.now();
+            const responseTime = Math.floor(Math.random() * 200) + 50;
+            const statusCode = method === 'DELETE' ? 204 : method === 'POST' ? 201 : 200;
+            
+            setTimeout(() => {
+                const output = document.getElementById('morgan-output');
+                const logEntry = document.createElement('div');
+                logEntry.className = 'log-entry log-morgan';
+                
+                const timestamp = new Date().toLocaleTimeString();
+                const colorMethod = method === 'GET' ? '🟢' : method === 'POST' ? '🟡' : '🔴';
+                
+                logEntry.innerHTML = `
+                    <strong>[${timestamp}]</strong> ${colorMethod} <strong>${method}</strong> ${url} 
+                    <span style="color: green;">${statusCode}</span> 
+                    <span style="color: blue;">${responseTime}ms</span>
+                `;
+                
+                output.insertBefore(logEntry, output.firstChild);
+                
+                if (output.children.length > 10) {
+                    output.removeChild(output.lastChild);
+                }
+            }, 100);
+        }
+
+        function clearLogs() {
+            document.getElementById('morgan-output').innerHTML = '<div style="color: #999; text-align: center;">Logs cleared. Make some requests to see Morgan in action!</div>';
+        }
+
+        function testCors(origin, allowed) {
+            const output = document.getElementById('cors-output');
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry log-cors';
+            
+            const timestamp = new Date().toLocaleTimeString();
+            const icon = allowed ? '✅' : '❌';
+            const status = allowed ? 'ALLOWED' : 'BLOCKED';
+            const color = allowed ? 'green' : 'red';
+            
+            logEntry.innerHTML = `
+                <strong>[${timestamp}]</strong> ${icon} Origin: <strong>${origin}</strong><br>
+                <span style="color: ${color}; font-weight: bold;">Status: ${status}</span><br>
+                ${allowed ? 
+                    '<span style="color: green;">✓ Access-Control-Allow-Origin: ' + origin + '</span>' : 
+                    '<span style="color: red;">✗ CORS policy blocked this request</span>'}
+            `;
+            
+            output.insertBefore(logEntry, output.firstChild);
+            
+            if (output.children.length > 8) {
+                output.removeChild(output.lastChild);
+            }
+        }
+
+        function clearCorsLogs() {
+            document.getElementById('cors-output').innerHTML = '<div style="color: #999; text-align: center;">Logs cleared. Test CORS requests to see how it works!</div>';
+        }
+
+        // Initialize outputs
+        clearLogs();
+        clearCorsLogs();
+    </script>
+</body>
+</html>

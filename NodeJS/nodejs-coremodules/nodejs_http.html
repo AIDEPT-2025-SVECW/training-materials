@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Node.js HTTP Module Demo</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #3498db, #9b59b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 1.2em;
+            margin-bottom: 40px;
+        }
+
+        .concept-section {
+            margin: 30px 0;
+            padding: 25px;
+            border-radius: 12px;
+            border-left: 5px solid #3498db;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+
+        .concept-section:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .concept-title {
+            font-size: 1.5em;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .concept-icon {
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+
+        .analogy-box {
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .analogy-box::before {
+            content: "💡";
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 1.5em;
+            opacity: 0.7;
+        }
+
+        pre {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+            border: 1px solid #4a5568;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .interactive-demo {
+            background: #e8f4f8;
+            border: 2px solid #3498db;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+        }
+
+        .demo-button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .demo-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .demo-button:active {
+            transform: translateY(0);
+        }
+
+        .output {
+            background: #2d3748;
+            color: #68d391;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-family: monospace;
+            min-height: 50px;
+            border: 2px solid #4a5568;
+        }
+
+        .highlight {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #ffc107;
+            margin: 15px 0;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f1f2f6;
+            border-radius: 8px 8px 0 0;
+            overflow: hidden;
+        }
+
+        .tab {
+            padding: 12px 20px;
+            background: #ddd;
+            cursor: pointer;
+            border: none;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            background: #3498db;
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .method-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .method-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .method-card:hover {
+            border-color: #3498db;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .method-name {
+            font-weight: bold;
+            color: #e74c3c;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Node.js HTTP Module</h1>
+        <p class="subtitle">Understanding the Foundation of Web Servers</p>
+
+        <div class="concept-section">
+            <h2 class="concept-title">
+                <span class="concept-icon">🌐</span>
+                What is the HTTP Module?
+            </h2>
+            <p>The HTTP module is one of Node.js's core modules that allows you to create HTTP servers and clients. It's the foundation that enables Node.js to handle web requests and responses.</p>
+            
+            <div class="analogy-box">
+                <strong>🏪 Restaurant Analogy:</strong><br>
+                Think of the HTTP module as a restaurant system. The HTTP server is like a restaurant that can:
+                <br>• Accept customers (incoming requests)
+                <br>• Take orders (parse request data)
+                <br>• Prepare food (process the request)
+                <br>• Serve meals (send responses back)
+            </div>
+
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('basic')">Basic Server</button>
+                <button class="tab" onclick="showTab('advanced')">Advanced Features</button>
+                <button class="tab" onclick="showTab('client')">HTTP Client</button>
+            </div>
+
+            <div class="tab-content active" id="basic">
+                <h3>Creating a Basic HTTP Server</h3>
+                <pre>const http = require('http');
+
+// Create a server
+const server = http.createServer((request, response) => {
+    // Set response header
+    response.writeHead(200, {'Content-Type': 'text/html'});
+    
+    // Send response body
+    response.end('&lt;h1&gt;Hello from Node.js HTTP Server!&lt;/h1&gt;');
+});
+
+// Start listening on port 3000
+server.listen(3000, () => {
+    console.log('Server running on http://localhost:3000');
+});
+
+// Handle server events
+server.on('connection', (socket) => {
+    console.log('New connection established');
+});
+
+server.on('error', (err) => {
+    console.error('Server error:', err);
+});</pre>
+            </div>
+
+            <div class="tab-content" id="advanced">
+                <h3>Advanced Server Features</h3>
+                <pre>const http = require('http');
+const url = require('url');
+
+const server = http.createServer((req, res) => {
+    // Parse URL and query parameters
+    const parsedUrl = url.parse(req.url, true);
+    const path = parsedUrl.pathname;
+    const method = req.method;
+    
+    // Set CORS headers
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+    res.setHeader('Content-Type', 'application/json');
+    
+    // Route handling
+    if (path === '/api/users' && method === 'GET') {
+        const users = [
+            { id: 1, name: 'Alice', email: 'alice@example.com' },
+            { id: 2, name: 'Bob', email: 'bob@example.com' }
+        ];
+        res.writeHead(200);
+        res.end(JSON.stringify(users));
+    } 
+    else if (path === '/api/users' && method === 'POST') {
+        let body = '';
+        
+        // Collect request data
+        req.on('data', chunk => {
+            body += chunk.toString();
+        });
+        
+        req.on('end', () => {
+            try {
+                const userData = JSON.parse(body);
+                // Process user data here
+                res.writeHead(201);
+                res.end(JSON.stringify({ 
+                    message: 'User created', 
+                    user: userData 
+                }));
+            } catch (error) {
+                res.writeHead(400);
+                res.end(JSON.stringify({ error: 'Invalid JSON' }));
+            }
+        });
+    } 
+    else {
+        // 404 Not Found
+        res.writeHead(404);
+        res.end(JSON.stringify({ error: 'Route not found' }));
+    }
+});
+
+server.listen(3000);</pre>
+            </div>
+
+            <div class="tab-content" id="client">
+                <h3>HTTP Client (Making Requests)</h3>
+                <pre>const http = require('http');
+const https = require('https'); // For HTTPS requests
+
+// GET Request
+const getRequest = () => {
+    const options = {
+        hostname: 'jsonplaceholder.typicode.com',
+        port: 443,
+        path: '/posts/1',
+        method: 'GET'
+    };
+
+    const req = https.request(options, (res) => {
+        let data = '';
+        
+        res.on('data', (chunk) => {
+            data += chunk;
+        });
+        
+        res.on('end', () => {
+            console.log('Response:', JSON.parse(data));
+        });
+    });
+
+    req.on('error', (error) => {
+        console.error('Request error:', error);
+    });
+
+    req.end();
+};
+
+// POST Request
+const postRequest = (postData) => {
+    const data = JSON.stringify(postData);
+    
+    const options = {
+        hostname: 'jsonplaceholder.typicode.com',
+        port: 443,
+        path: '/posts',
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Content-Length': data.length
+        }
+    };
+
+    const req = https.request(options, (res) => {
+        console.log(`Status Code: ${res.statusCode}`);
+        
+        let responseData = '';
+        res.on('data', (chunk) => {
+            responseData += chunk;
+        });
+        
+        res.on('end', () => {
+            console.log('Response:', JSON.parse(responseData));
+        });
+    });
+
+    req.write(data);
+    req.end();
+};</pre>
+            </div>
+        </div>
+
+        <div class="concept-section">
+            <h2 class="concept-title">
+                <span class="concept-icon">🔧</span>
+                Key HTTP Module Methods & Properties
+            </h2>
+            
+            <div class="method-grid">
+                <div class="method-card">
+                    <div class="method-name">http.createServer([options], [requestListener])</div>
+                    <p>Creates a new HTTP server instance. The requestListener is a function automatically added to the 'request' event.</p>
+                </div>
+                
+                <div class="method-card">
+                    <div class="method-name">server.listen(port, [hostname], [callback])</div>
+                    <p>Starts the server listening for connections on the specified port and hostname.</p>
+                </div>
+                
+                <div class="method-card">
+                    <div class="method-name">response.writeHead(statusCode, [headers])</div>
+                    <p>Sends a response header to the request. Must be called before response.write() or response.end().</p>
+                </div>
+                
+                <div class="method-card">
+                    <div class="method-name">response.write(chunk, [encoding])</div>
+                    <p>Sends a chunk of the response body. Can be called multiple times.</p>
+                </div>
+                
+                <div class="method-card">
+                    <div class="method-name">response.end([data], [encoding])</div>
+                    <p>Signals that all response headers and body have been sent. Must be called on each response.</p>
+                </div>
+                
+                <div class="method-card">
+                    <div class="method-name">request.method</div>
+                    <p>The request method as a string (GET, POST, PUT, DELETE, etc.)</p>
+                </div>
+                
+                <div class="method-card">
+                    <div class="method-name">request.url</div>
+                    <p>The complete request URL string, including query parameters.</p>
+                </div>
+                
+                <div class="method-card">
+                    <div class="method-name">request.headers</div>
+                    <p>An object containing the request headers as key-value pairs.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="concept-section">
+            <h2 class="concept-title">
+                <span class="concept-icon">🎭</span>
+                Request-Response Lifecycle
+            </h2>
+            
+            <div class="analogy-box">
+                <strong>📮 Post Office Analogy:</strong><br>
+                The HTTP request-response cycle is like sending and receiving mail:
+                <br>1. <strong>Client writes a letter</strong> (creates HTTP request)
+                <br>2. <strong>Postal service delivers</strong> (network transmission)
+                <br>3. <strong>Recipient reads letter</strong> (server processes request)
+                <br>4. <strong>Recipient writes reply</strong> (server creates response)
+                <br>5. <strong>Reply is delivered back</strong> (response sent to client)
+            </div>
+
+            <div class="interactive-demo">
+                <h3>🎮 Interactive HTTP Simulation</h3>
+                <p>Click the buttons below to simulate different HTTP operations:</p>
+                
+                <button class="demo-button" onclick="simulateRequest('GET', '/api/users')">
+                    GET Request
+                </button>
+                <button class="demo-button" onclick="simulateRequest('POST', '/api/users')">
+                    POST Request
+                </button>
+                <button class="demo-button" onclick="simulateRequest('PUT', '/api/users/1')">
+                    PUT Request
+                </button>
+                <button class="demo-button" onclick="simulateRequest('DELETE', '/api/users/1')">
+                    DELETE Request
+                </button>
+                <button class="demo-button" onclick="simulateError()">
+                    Simulate Error
+                </button>
+
+                <div class="output" id="demo-output">
+                    Click a button above to see HTTP simulation...
+                </div>
+            </div>
+        </div>
+
+        <div class="highlight">
+            <strong>💡 Pro Tips:</strong>
+            <ul>
+                <li>Always call <code>response.end()</code> to complete the response</li>
+                <li>Handle errors with <code>server.on('error', callback)</code></li>
+                <li>Use <code>request.on('data')</code> and <code>request.on('end')</code> for POST/PUT data</li>
+                <li>Set appropriate <code>Content-Type</code> headers</li>
+                <li>Consider using frameworks like Express.js for complex applications</li>
+            </ul>
+        </div>
+
+        <div class="concept-section">
+            <h2 class="concept-title">
+                <span class="concept-icon">⚡</span>
+                HTTP Status Codes Quick Reference
+            </h2>
+            <div class="method-grid">
+                <div class="method-card">
+                    <div class="method-name" style="color: #27ae60;">2xx Success</div>
+                    <p>200 OK, 201 Created, 204 No Content</p>
+                </div>
+                <div class="method-card">
+                    <div class="method-name" style="color: #f39c12;">3xx Redirection</div>
+                    <p>301 Moved Permanently, 302 Found, 304 Not Modified</p>
+                </div>
+                <div class="method-card">
+                    <div class="method-name" style="color: #e74c3c;">4xx Client Error</div>
+                    <p>400 Bad Request, 401 Unauthorized, 404 Not Found</p>
+                </div>
+                <div class="method-card">
+                    <div class="method-name" style="color: #8e44ad;">5xx Server Error</div>
+                    <p>500 Internal Server Error, 502 Bad Gateway, 503 Service Unavailable</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabName) {
+            // Hide all tab contents
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => content.classList.remove('active'));
+            
+            // Remove active class from all tabs
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function simulateRequest(method, path) {
+            const output = document.getElementById('demo-output');
+            output.innerHTML = `
+🚀 <strong>Simulating ${method} Request</strong>
+📍 Path: ${path}
+⏱️ Processing...
+
+<span style="color: #68d391;">✅ Request Headers:</span>
+   Host: localhost:3000
+   User-Agent: Node.js HTTP Client
+   Content-Type: application/json
+   Accept: */*
+
+<span style="color: #68d391;">✅ Server Processing:</span>
+   • Parsing URL: ${path}
+   • Method: ${method}
+   • Route matching...
+   • Preparing response...
+
+<span style="color: #68d391;">✅ Response:</span>
+   Status: 200 OK
+   Content-Type: application/json
+   
+   ${method === 'GET' ? 
+     '{"users": [{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}]}' :
+     method === 'POST' ? 
+     '{"message": "User created", "id": 3}' :
+     method === 'PUT' ? 
+     '{"message": "User updated", "id": 1}' :
+     '{"message": "User deleted", "id": 1}'
+   }
+
+⚡ Request completed in 45ms
+            `;
+        }
+
+        function simulateError() {
+            const output = document.getElementById('demo-output');
+            output.innerHTML = `
+🚀 <strong>Simulating Error Scenario</strong>
+📍 Path: /api/invalid-endpoint
+⚠️ Processing...
+
+<span style="color: #f56565;">❌ Error Occurred:</span>
+   • Route not found
+   • Generating error response...
+
+<span style="color: #f56565;">❌ Error Response:</span>
+   Status: 404 Not Found
+   Content-Type: application/json
+   
+   {"error": "Route not found", "path": "/api/invalid-endpoint"}
+
+⚡ Error handled in 12ms
+            `;
+        }
+
+        // Add some interactive animations
+        document.addEventListener('DOMContentLoaded', function() {
+            const sections = document.querySelectorAll('.concept-section');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            });
+
+            sections.forEach(section => {
+                section.style.opacity = '0';
+                section.style.transform = 'translateY(20px)';
+                section.style.transition = 'all 0.6s ease';
+                observer.observe(section);
+            });
+        });
+    </script>
+</body>
+</html>

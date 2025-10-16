@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Express Template Inheritance & Partials</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 8px;
+            border-left: 5px solid #667eea;
+        }
+
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .section h3 {
+            color: #764ba2;
+            margin: 25px 0 15px 0;
+            font-size: 1.3em;
+        }
+
+        .analogy {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #2196F3;
+        }
+
+        .analogy-title {
+            font-weight: bold;
+            color: #1976D2;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .analogy-title:before {
+            content: "💡";
+            font-size: 1.5em;
+        }
+
+        pre {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            margin: 20px 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .keyword { color: #569cd6; }
+        .string { color: #ce9178; }
+        .function { color: #dcdcaa; }
+        .comment { color: #6a9955; }
+        .tag { color: #4ec9b0; }
+        .attribute { color: #9cdcfe; }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: #e0e0e0;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .tab:hover {
+            background: #d0d0d0;
+            transform: translateY(-2px);
+        }
+
+        .tab.active {
+            background: #667eea;
+            color: white;
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .visual-demo {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 2px solid #667eea;
+        }
+
+        .visual-demo h4 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .box {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 6px;
+            border: 2px dashed #ccc;
+        }
+
+        .layout-box {
+            background: #fff3e0;
+            border-color: #ff9800;
+        }
+
+        .partial-box {
+            background: #e8f5e9;
+            border-color: #4caf50;
+        }
+
+        .content-box {
+            background: #e3f2fd;
+            border-color: #2196f3;
+        }
+
+        .key-points {
+            background: #fff9e6;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .key-points h4 {
+            color: #ff9800;
+            margin-bottom: 15px;
+        }
+
+        .key-points ul {
+            list-style-position: inside;
+            padding-left: 20px;
+        }
+
+        .key-points li {
+            margin: 10px 0;
+            padding-left: 10px;
+        }
+
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .comparison-item {
+            padding: 20px;
+            border-radius: 8px;
+            background: white;
+            border: 2px solid #e0e0e0;
+        }
+
+        .comparison-item h4 {
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+
+        @media (max-width: 768px) {
+            .comparison {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Express Template Inheritance & Partials</h1>
+            <p>Master the art of reusable templates in Node.js Express</p>
+        </div>
+
+        <div class="content">
+            <!-- Introduction Section -->
+            <div class="section">
+                <h2>📚 What are Template Engines?</h2>
+                <p>Template engines in Express allow you to use static template files in your application. At runtime, the template engine replaces variables in a template file with actual values and transforms the template into an HTML file sent to the client.</p>
+                
+                <div class="analogy">
+                    <div class="analogy-title">Real-World Analogy</div>
+                    <p>Think of templates like a <strong>restaurant menu template</strong>. Every restaurant has a similar menu structure (header, sections, footer), but the actual dishes and prices are different. Instead of designing a new menu from scratch each time, you use a template and just fill in the specific details!</p>
+                </div>
+            </div>
+
+            <!-- Template Inheritance Section -->
+            <div class="section">
+                <h2>🏗️ Template Inheritance (Layouts)</h2>
+                <p>Template inheritance allows you to create a base "skeleton" template that contains all the common elements of your site (header, footer, navigation) and then extend it in other templates.</p>
+
+                <div class="analogy">
+                    <div class="analogy-title">Building Construction Analogy</div>
+                    <p>Imagine building apartments in a building. The <strong>base layout</strong> is like the building's structure (foundation, walls, plumbing, electricity). Each apartment (page) inherits this structure but has its own interior design (content). You don't rebuild the entire structure for each apartment!</p>
+                </div>
+
+                <div class="tabs">
+                    <button class="tab active" onclick="showTab('layout-setup')">Setup</button>
+                    <button class="tab" onclick="showTab('layout-base')">Base Layout</button>
+                    <button class="tab" onclick="showTab('layout-extend')">Extending Layout</button>
+                    <button class="tab" onclick="showTab('layout-route')">Routes</button>
+                </div>
+
+                <div id="layout-setup" class="tab-content active">
+                    <h3>Installation & Setup</h3>
+                    <pre><span class="comment">// Install EJS (Embedded JavaScript templates)</span>
+<span class="keyword">npm install</span> ejs express-ejs-layouts
+
+<span class="comment">// app.js - Setup</span>
+<span class="keyword">const</span> <span class="function">express</span> = <span class="function">require</span>(<span class="string">'express'</span>);
+<span class="keyword">const</span> <span class="function">expressLayouts</span> = <span class="function">require</span>(<span class="string">'express-ejs-layouts'</span>);
+
+<span class="keyword">const</span> app = <span class="function">express</span>();
+
+<span class="comment">// Set view engine</span>
+app.<span class="function">set</span>(<span class="string">'view engine'</span>, <span class="string">'ejs'</span>);
+
+<span class="comment">// Use express-ejs-layouts middleware</span>
+app.<span class="function">use</span>(expressLayouts);
+
+<span class="comment">// Set default layout</span>
+app.<span class="function">set</span>(<span class="string">'layout'</span>, <span class="string">'layouts/main'</span>);
+
+app.<span class="function">listen</span>(3000, () => {
+    console.<span class="function">log</span>(<span class="string">'Server running on port 3000'</span>);
+});</pre>
+                </div>
+
+                <div id="layout-base" class="tab-content">
+                    <h3>Base Layout File</h3>
+                    <pre><span class="comment">&lt;!-- views/layouts/main.ejs --&gt;</span>
+<span class="tag">&lt;!DOCTYPE html&gt;</span>
+<span class="tag">&lt;html</span> <span class="attribute">lang</span>=<span class="string">"en"</span><span class="tag">&gt;</span>
+<span class="tag">&lt;head&gt;</span>
+    <span class="tag">&lt;meta</span> <span class="attribute">charset</span>=<span class="string">"UTF-8"</span><span class="tag">&gt;</span>
+    <span class="tag">&lt;title&gt;</span>&lt;%= title %&gt;<span class="tag">&lt;/title&gt;</span>
+    <span class="tag">&lt;link</span> <span class="attribute">rel</span>=<span class="string">"stylesheet"</span> <span class="attribute">href</span>=<span class="string">"/css/style.css"</span><span class="tag">&gt;</span>
+<span class="tag">&lt;/head&gt;</span>
+<span class="tag">&lt;body&gt;</span>
+    <span class="comment">&lt;!-- Common Header for all pages --&gt;</span>
+    <span class="tag">&lt;header&gt;</span>
+        <span class="tag">&lt;nav&gt;</span>
+            <span class="tag">&lt;a</span> <span class="attribute">href</span>=<span class="string">"/"</span><span class="tag">&gt;</span>Home<span class="tag">&lt;/a&gt;</span>
+            <span class="tag">&lt;a</span> <span class="attribute">href</span>=<span class="string">"/about"</span><span class="tag">&gt;</span>About<span class="tag">&lt;/a&gt;</span>
+            <span class="tag">&lt;a</span> <span class="attribute">href</span>=<span class="string">"/contact"</span><span class="tag">&gt;</span>Contact<span class="tag">&lt;/a&gt;</span>
+        <span class="tag">&lt;/nav&gt;</span>
+    <span class="tag">&lt;/header&gt;</span>
+
+    <span class="comment">&lt;!-- This is where child templates inject their content --&gt;</span>
+    <span class="tag">&lt;main&gt;</span>
+        <span class="keyword">&lt;%- body %&gt;</span>
+    <span class="tag">&lt;/main&gt;</span>
+
+    <span class="comment">&lt;!-- Common Footer for all pages --&gt;</span>
+    <span class="tag">&lt;footer&gt;</span>
+        <span class="tag">&lt;p&gt;</span>&copy; 2025 Priya's Restaurant. All rights reserved.<span class="tag">&lt;/p&gt;</span>
+    <span class="tag">&lt;/footer&gt;</span>
+<span class="tag">&lt;/body&gt;</span>
+<span class="tag">&lt;/html&gt;</span></pre>
+
+                    <div class="visual-demo">
+                        <h4>Visual Representation:</h4>
+                        <div class="box layout-box">
+                            <strong>📄 Layout (main.ejs)</strong>
+                            <div style="margin-top: 10px;">Header | Nav</div>
+                            <div class="box content-box" style="margin: 10px 0;">
+                                <strong>🔄 &lt;%- body %&gt;</strong> (Content gets inserted here)
+                            </div>
+                            <div>Footer</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="layout-extend" class="tab-content">
+                    <h3>Child Templates (Extending the Layout)</h3>
+                    <pre><span class="comment">&lt;!-- views/home.ejs --&gt;</span>
+<span class="tag">&lt;div</span> <span class="attribute">class</span>=<span class="string">"home-page"</span><span class="tag">&gt;</span>
+    <span class="tag">&lt;h1&gt;</span>Welcome to Priya's Restaurant<span class="tag">&lt;/h1&gt;</span>
+    <span class="tag">&lt;p&gt;</span>Authentic Indian cuisine made with love!<span class="tag">&lt;/p&gt;</span>
+    
+    <span class="tag">&lt;div</span> <span class="attribute">class</span>=<span class="string">"featured-dishes"</span><span class="tag">&gt;</span>
+        <span class="tag">&lt;h2&gt;</span>Today's Special<span class="tag">&lt;/h2&gt;</span>
+        <span class="keyword">&lt;% dishes.forEach(dish =&gt; { %&gt;</span>
+            <span class="tag">&lt;div</span> <span class="attribute">class</span>=<span class="string">"dish"</span><span class="tag">&gt;</span>
+                <span class="tag">&lt;h3&gt;</span>&lt;%= dish.name %&gt;<span class="tag">&lt;/h3&gt;</span>
+                <span class="tag">&lt;p&gt;</span>&lt;%= dish.price %&gt;<span class="tag">&lt;/p&gt;</span>
+            <span class="tag">&lt;/div&gt;</span>
+        <span class="keyword">&lt;% }); %&gt;</span>
+    <span class="tag">&lt;/div&gt;</span>
+<span class="tag">&lt;/div&gt;</span>
+
+<span class="comment">&lt;!-- views/about.ejs --&gt;</span>
+<span class="tag">&lt;div</span> <span class="attribute">class</span>=<span class="string">"about-page"</span><span class="tag">&gt;</span>
+    <span class="tag">&lt;h1&gt;</span>About Our Restaurant<span class="tag">&lt;/h1&gt;</span>
+    <span class="tag">&lt;p&gt;</span>Founded by Chef Rajesh Kumar in 2020...<span class="tag">&lt;/p&gt;</span>
+    
+    <span class="tag">&lt;div</span> <span class="attribute">class</span>=<span class="string">"team"</span><span class="tag">&gt;</span>
+        <span class="tag">&lt;h2&gt;</span>Meet Our Team<span class="tag">&lt;/h2&gt;</span>
+        <span class="keyword">&lt;% team.forEach(member =&gt; { %&gt;</span>
+            <span class="tag">&lt;div</span> <span class="attribute">class</span>=<span class="string">"member"</span><span class="tag">&gt;</span>
+                <span class="tag">&lt;h3&gt;</span>&lt;%= member.name %&gt;<span class="tag">&lt;/h3&gt;</span>
+                <span class="tag">&lt;p&gt;</span>&lt;%= member.role %&gt;<span class="tag">&lt;/p&gt;</span>
+            <span class="tag">&lt;/div&gt;</span>
+        <span class="keyword">&lt;% }); %&gt;</span>
+    <span class="tag">&lt;/div&gt;</span>
+<span class="tag">&lt;/div&gt;</span></pre>
+                </div>
+
+                <div id="layout-route" class="tab-content">
+                    <h3>Express Routes</h3>
+                    <pre><span class="comment">// routes/index.js</span>
+<span class="keyword">const</span> <span class="function">express</span> = <span class="function">require</span>(<span class="string">'express'</span>);
+<span class="keyword">const</span> router = express.<span class="function">Router</span>();
+
+<span class="comment">// Home route</span>
+router.<span class="function">get</span>(<span class="string">'/'</span>, (req, res) => {
+    res.<span class="function">render</span>(<span class="string">'home'</span>, {
+        title: <span class="string">'Home - Priya\'s Restaurant'</span>,
+        dishes: [
+            { name: <span class="string">'Butter Chicken'</span>, price: <span class="string">'₹350'</span> },
+            { name: <span class="string">'Paneer Tikka'</span>, price: <span class="string">'₹280'</span> },
+            { name: <span class="string">'Biryani'</span>, price: <span class="string">'₹320'</span> }
+        ]
+    });
+});
+
+<span class="comment">// About route</span>
+router.<span class="function">get</span>(<span class="string">'/about'</span>, (req, res) => {
+    res.<span class="function">render</span>(<span class="string">'about'</span>, {
+        title: <span class="string">'About Us - Priya\'s Restaurant'</span>,
+        team: [
+            { name: <span class="string">'Rajesh Kumar'</span>, role: <span class="string">'Head Chef'</span> },
+            { name: <span class="string">'Anjali Sharma'</span>, role: <span class="string">'Manager'</span> },
+            { name: <span class="string">'Vikram Singh'</span>, role: <span class="string">'Sous Chef'</span> }
+        ]
+    });
+});
+
+<span class="keyword">module.exports</span> = router;</pre>
+                </div>
+
+                <div class="key-points">
+                    <h4>🔑 Key Benefits of Template Inheritance:</h4>
+                    <ul>
+                        <li><strong>DRY Principle:</strong> Don't Repeat Yourself - write header/footer once</li>
+                        <li><strong>Consistency:</strong> All pages automatically have the same structure</li>
+                        <li><strong>Easy Updates:</strong> Change layout once, affects all pages</li>
+                        <li><strong>Maintainability:</strong> Easier to manage and debug your templates</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Partials Section -->
+            <div class="section">
+                <h2>🧩 Partials (Reusable Components)</h2>
+                <p>Partials are small, reusable template fragments that can be included in multiple templates. They're like LEGO blocks - small pieces you can use anywhere to build bigger things.</p>
+
+                <div class="analogy">
+                    <div class="analogy-title">LEGO Blocks Analogy</div>
+                    <p>Think of partials as <strong>LEGO blocks</strong>. You have standard pieces (header, footer, card, button) that you can snap into different creations (pages). Instead of crafting each piece every time, you reuse the same blocks across multiple builds!</p>
+                </div>
+
+                <div class="tabs">
+                    <button class="tab active" onclick="showTab('partial-create')">Creating Partials</button>
+                    <button class="tab" onclick="showTab('partial-use')">Using Partials</button>
+                    <button class="tab" onclick="showTab('partial-params')">Passing Data</button>
+                    <button class="tab" onclick="showTab('partial-examples')">Real Examples</button>
+                </div>
+
+                <div id="partial-create" class="tab-content active">
+                    <h3>Creating Partial Files</h3>
+                    <pre><span class="comment">&lt;!-- views/partials/header.ejs --&gt;</span>
+<span class="tag">&lt;header</span> <span class="attribute">class</span>=<span class="string">"site-header"</span><span class="tag">&gt;</span>
+    <span class="tag">&lt;div</span> <span class="attribute">class</span>=<span class="string">"logo"</span><span class="tag">&gt;</span>
+        <span class="tag">&lt;h1&gt;</span>Priya's Restaurant<span class="tag">&lt;/h1&gt;</span>
+    <span class="tag">&lt;/div&gt;</span>
+    <span class="tag">&lt;nav&gt;</span>
+        <span class="tag">&lt;a</span> <span class="attribute">href</span>=<span class="string">"/"</span><span class="tag">&gt;</span>Home<span class="tag">&lt;/a&gt;</span>
+        <span class="tag">&lt;a</span> <span class="attribute">href</span>=<span class="string">"/menu"</span><span class="tag">&gt;</span>Menu<span class="tag">&lt;/a&gt;</span>
+        <span class="tag">&lt;a</span> <span class="attribute">href</span>=<span class="string">"/about"</span><span class="tag">&gt;</span>About<span class="tag">&lt;/a&gt;</span>
+        <span class="tag">&lt;a</span> <span class="attribute">href</span>=<span class="string">"/contact"</span><span class="tag">&gt;</span>Contact<span class="tag">&lt;/a&gt;</span>
+    <span class="tag">&lt;/nav&gt;</span>
+<span class="tag">&lt;/header&gt;</span>
+
+<span class="comment">&lt;!-- views/partials/footer.ejs --&gt;</span>
+<span class="tag">&lt;footer</span> <span class="attribute">class</span>=<span class="string">"site-footer"</span><span class="tag">&gt;</span>
+    <span class="tag">&lt;div</span> <span class="attribute">class</span>=<span class="string">"footer-content"</span><span class="tag">&gt;</span>
+        <span class="tag">&lt;div</span> <span class="attribute">class</span>=<span class="string">"contact-info"</span><span class="tag">&gt;</span>
+            <span class="tag">&lt;h3&gt;</span>Contact Us<span class="tag">&lt;/h3&gt;</span>
+            <span class="tag">&lt;p&gt;</span>123 MG Road, Mumbai<span class="tag">&lt;/p&gt;</span>
+            <span class="tag">&lt;p&gt;</span>Phone: +91 98765 43210<span class="tag">&lt;/p&gt;</span>
+        <span class="tag">&lt;/div&gt;</span>
+        <span class="tag">&lt;p&gt;</span>&copy; 2025 Priya's Restaurant<span class="tag">&lt;/p&gt;</span>
+    <span class="tag">&lt;/div&gt;</span>
+<span class="tag">&lt;/footer&gt;</span>
+
+<span class="comment">&lt;!-- views/partials/dish-card.ejs --&gt;</span>
+<span class="tag">&lt;div</span> <span class="attribute">class</span>=<span class="string">"dish-card"</span><span class="tag">&gt;</span>
+    <span class="tag">&lt;img</span> <span class="attribute">src</span>=<span class="string">"&lt;%= dish.image %&gt;"</span> <span class="attribute">alt</span>=<span class="string">"&lt;%= dish.name %&gt;"</span><span class="tag">&gt;</span>
+    <span class="tag">&lt;h3&gt;</span>&lt;%= dish.name %&gt;<span class="tag">&lt;/h3&gt;</span>
+    <span class="tag">&lt;p</span> <span class="attribute">class</span>=<span class="string">"description"</span><span class="tag">&gt;</span>&lt;%= dish.description %&gt;<span class="tag">&lt;/p&gt;</span>
+    <span class="tag">&lt;p</span> <span class="attribute">class</span>=<span class="string">"price"</span><span class="tag">&gt;</span>&lt;%= dish.price %&gt;<span class="tag">&lt;/p&gt;</span>
+    <span class="tag">&lt;button&gt;</span>Order Now<span class="tag">&lt;/button&gt;</span>
+<span class="tag">&lt;/div&gt;</span></pre>
+                </div>
+
+                <div id="partial-use" class="tab-content">
+                    <h3>Including Partials in Templates</h3>
+                    <pre><span class="comment">&lt;!-- views/menu.ejs --&gt;</span>
+<span class="tag">&lt;!DOCTYPE html&gt;</span>
+<span class="tag">&lt;html&gt;</span>
+<span class="tag">&lt;head&gt;</span>
+    <span class="tag">&lt;title&gt;</span>Menu - Priya's Restaurant<span class="tag">&lt;/title&gt;</span>
+<span class="tag">&lt;/head&gt;</span>
+<span class="tag">&lt;body&gt;</span>
+    <span class="comment">&lt;!-- Include header partial --&gt;</span>
+    <span class="keyword">&lt;%- include('partials/header') %&gt;</span>
+
+    <span class="tag">&lt;main&gt;</span>
+        <span class="tag">&lt;h1&gt;</span>Our Menu<span class="tag">&lt;/h1&gt;</span>
+        
+        <span class="tag">&lt;div</span> <span class="attribute">class</span>=<span class="string">"menu-grid"</span><span class="tag">&gt;</span>
+            <span class="keyword">&lt;% dishes.forEach(dish =&gt; { %&gt;</span>
+                <span class="comment">&lt;!-- Include dish-card partial for each dish --&gt;</span>
+                <span class="keyword">&lt;%- include('partials/dish-card', {dish: dish}) %&gt;</span>
+            <span class="keyword">&lt;% }); %&gt;</span>
+        <span class="tag">&lt;/div&gt;</span>
+    <span class="tag">&lt;/main&gt;</span>
+
+    <span class="comment">&lt;!-- Include footer partial --&gt;</span>
+    <span class="keyword">&lt;%- include('partials/footer') %&gt;</span>
+<span class="tag">&lt;/body&gt;</span>
+<span class="tag">&lt;/html&gt;</span></pre>
+
+                    <div class="visual-demo">
+                        <h4>How Partials Are Assembled:</h4>
+                        <div class="box partial-box">
+                            <strong>🔧 header.ejs</strong> (reusable)
+                        </div>
+                        <div class="box content-box">
+                            <strong>📝 Main Content</strong>
+                            <div style="margin: 10px 0;">
+                                <div class="box partial-box" style="display: inline-block; margin: 5px;">dish-card.ejs</div>
+                                <div class="box partial-box" style="display: inline-block; margin: 5px;">dish-card.ejs</div>
+                                <div class="box partial-box" style="display: inline-block; margin: 5px;">dish-card.ejs</div>
+                            </div>
+                        </div>
+                        <div class="box partial-box">
+                            <strong>🔧 footer.ejs</strong> (reusable)
+                        </div>
+                    </div>
+                </div>
+
+                <div id="partial-params" class="tab-content">
+                    <h3>Passing Data to Partials</h3>
+                    <pre><span class="comment">&lt;!-- views/partials/user-card.ejs --&gt;</span>
+<span class="tag">&lt;div</span> <span class="attribute">class</span>=<span class="string">"user-card"</span><span class="tag">&gt;</span>
+    <span class="tag">&lt;img</span> <span class="attribute">src</span>=<span class="string">"&lt;%= user.avatar %&gt;"</span> <span class="attribute">alt</span>=<span class="string">"&lt;%= user.name %&gt;"</span><span class="tag">&gt;</span>
+    <span class="tag">&lt;h3&gt;</span>&lt;%= user.name %&gt;<span class="tag">&lt;/h3&gt;</span>
+    <span class="tag">&lt;p&gt;</span>&lt;%= user.role %&gt;<span class="tag">&lt;/p&gt;</span>
+    <span class="keyword">&lt;% if (showEmail) { %&gt;</span>
+        <span class="tag">&lt;p&gt;</span>&lt;%= user.email %&gt;<span class="tag">&lt;/p&gt;</span>
+    <span class="keyword">&lt;% } %&gt;</span>
+<span class="tag">&lt;/div&gt;</span>
+
+<span class="comment">&lt;!-- Using the partial with different data --&gt;</span>
+<span class="comment">&lt;!-- views/team.ejs --&gt;</span>
+<span class="tag">&lt;div</span> <span class="attribute">class</span>=<span class="string">"team-section"</span><span class="tag">&gt;</span>
+    <span class="tag">&lt;h2&gt;</span>Our Team<span class="tag">&lt;/h2&gt;</span>
+    
+    <span class="comment">&lt;!-- Pass data as an object --&gt;</span>
+    <span class="keyword">&lt;%- include('partials/user-card', {
+        user: {
+            name: 'Amit Patel',
+            role: 'Head Chef',
+            avatar: '/img/amit.jpg',
+            email: 'amit@priya.com'
+        },
+        showEmail: true
+    }) %&gt;</span>
+    
+    <span class="keyword">&lt;%- include('partials/user-card', {
+        user: {
+            name: 'Sneha Reddy',
+            role: 'Pastry Chef',
+            avatar: '/img/sneha.jpg',
+            email: 'sneha@priya.com'
+        },
+        showEmail: false
+    }) %&gt;</span>
+<span class="tag">&lt;/div&gt;</span>
+
+<span class="comment">// Route with data</span>
+router.<span class="function">get</span>(<span class="string">'/team'</span>, (req, res) => {
+    res.<span class="function">render</span>(<span class="string">'team'</span>, {
+        title: <span class="string">'Our Team'</span>
+    });
+});</pre>
+                </div>
+
+                <div id="partial-examples" class="tab-content">
+                    <h3>Real-World Partial Examples</h3>
+                    <pre><span class="comment">&lt;!-- views/partials/alert.ejs --&gt;</span>
+<span class="tag">&lt;div</span> <span class="attribute">class</span>=<span class="string">"alert alert-&lt;%= type %&gt;"</span><span class="tag">&gt;</span>
+    <span class="keyword">&lt;% if (type === 'success') { %&gt;</span>
+        <span class="tag">&lt;span&gt;</span>✅<span class="tag">&lt;/span&gt;</span>
+    <span class="keyword">&lt;% } else if (type === 'error') { %&gt;</span>
+        <span class="tag">&lt;span&gt;</span>❌<span class="tag">&lt;/span&gt;</span>
+    <span class="keyword">&lt;% } else if (type === 'warning') { %&gt;</span>
+        <span class="tag">&lt;span&gt;</span>⚠️<span class="tag">&lt;/span&gt;</span>
+    <span class="keyword">&lt;% } %&gt;</span>
+    <span class="tag">&lt;p&gt;</span>&lt;%= message %&gt;<span class="tag">&lt;/p&gt;</span>
+<span class="tag">&lt;/div&gt;</span>
+
+<span class="comment">&lt;!-- views/partials/review.ejs --&gt;</span>
+<span class="tag">&lt;div</span> <span class="attribute">class</span>=<span class="string">"review-card"</span><span class="tag">&gt;</span>
+    <span class="tag">&lt;div</span> <span class="attribute">class</span>=<span class="string">"reviewer"</span><span class="tag">&gt;</span>
+        <span class="tag">&lt;strong&gt;</span>&lt;%= review.customerName %&gt;<span class="tag">&lt;/strong&gt;</span>
+        <span class="tag">&lt;span</span> <span class="attribute">class</span>=<span class="string">"date"</span><span class="tag">&gt;</span>&lt;%= review.date %&gt;<span class="tag">&lt;/span&gt;</span>
+    <span class="tag">&lt;/div&gt;</span>
+    <span class="tag">&lt;div</span> <span class="attribute">class</span>=<span class="string">"rating"</span><span class="tag">&gt;</span>
+        <span class="keyword">&lt;% for(let i = 0; i &lt; review.stars; i++) { %&gt;</span>
+            ⭐
+        <span class="keyword">&lt;% } %&gt;</span>
+    <span class="tag">&lt;/div&gt;</span>
+    <span class="tag">&lt;p&gt;</span>&lt;%= review.comment %&gt;<span class="tag">&lt;/p&gt;</span>
+<span class="tag">&lt;/div&gt;</span>
+
+<span class="comment">&lt;!-- Using these partials --&gt;</span>
+<span class="comment">&lt;!-- views/booking-confirmation.ejs --&gt;</span>
+<span class="keyword">&lt;%- include('partials/header') %&gt;</span>
+
+<span class="tag">&lt;main&gt;</span>
+    <span class="keyword">&lt;%- include('partials/alert', {
+        type: 'success',
+        message: 'Your table has been booked for 8 PM, Kavya!'
+    }) %&gt;</span>
+    
+    <span class="tag">&lt;h2&gt;</span>Recent Reviews<span class="tag">&lt;/h2&gt;</span>
+    <span class="keyword">&lt;% reviews.forEach(review =&gt; { %&gt;</span>
+        <span class="keyword">&lt;%- include('partials/review', {review: review}) %&gt;</span>
+    <span class="keyword">&lt;% }); %&gt;</span>
+<span class="tag">&lt;/main&gt;</span>
+
+<span class="keyword">&lt;%- include('partials/footer') %&gt;</span></pre>
+                </div>
+
+                <div class="key-points">
+                    <h4>🔑 Key Benefits of Partials:</h4>
+                    <ul>
+                        <li><strong>Reusability:</strong> Write once, use everywhere (headers, footers, cards)</li>
+                        <li><strong>Consistency:</strong> UI components look the same across pages</li>
+                        <li><strong>Maintainability:</strong> Update one partial, changes reflect everywhere</li>
+                        <li><strong>Modularity:</strong> Break complex pages into manageable pieces</li>
+                        <li><strong>Dynamic Content:</strong> Pass different data to same partial</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Comparison Section -->
+            <div class="section">
+                <h2>⚖️ Layout vs Partials: When to Use What?</h2>
+                
+                <div class="comparison">
+                    <div class="comparison-item">
+                        <h4>🏗️ Use Layouts When:</h4>
+                        <ul>
+                            <li>You need a consistent page structure</li>
+                            <li>Header and footer are same across pages</li>
+                            <li>You want to define overall page skeleton</li>
+                            <li>Managing SEO meta tags centrally</li>
+                        </ul>
+                        <p style="margin-top: 15px;"><strong>Example:</strong> All pages need same header, footer, and meta tags</p>
+                    </div>
+                    
+                    <div class="comparison-item">
+                        <h4>🧩 Use Partials When:</h4>
+                        <ul>
+                            <li>You have reusable UI components</li>
+                            <li>Same element appears multiple times</li>
+                            <li>Need to pass different data to same template</li>
+                            <li>Breaking down complex pages</li>
+                        </ul>
+                        <p style="margin-top: 15px;"><strong>Example:</strong> Product cards, user cards, alert messages, forms</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Complete Example Section -->
+            <div class="section">
+                <h2>🎯 Complete Working Example</h2>
+                <p>Let's see how everything works together in a real restaurant website:</p>
+
+                <div class="tabs">
+                    <button class="tab active" onclick="showTab('complete-structure')">Folder Structure</button>
+                    <button class="tab" onclick="showTab('complete-app')">app.js</button>
+                    <button class="tab" onclick="showTab('complete-routes')">Routes</button>
+                    <button class="tab" onclick="showTab('complete-templates')">Templates</button>
+                </div>
+
+                <div id="complete-structure" class="tab-content active">
+                    <h3>Project Structure</h3>
+                    <pre>restaurant-app/
+│
+├── app.js
+├── package.json
+│
+├── routes/
+│   └── index.js
+│
+├── views/
+│   ├── layouts/
+│   │   └── main.ejs          <span class="comment">// Base layout</span>
+│   │
+│   ├── partials/
+│   │   ├── header.ejs         <span class="comment">// Navigation header</span>
+│   │   ├── footer.ejs         <span class="comment">// Footer with contact info</span>
+│   │   ├── dish-card.ejs      <span class="comment">// Reusable dish card</span>
+│   │   ├── review.ejs         <span class="comment">// Customer review card</span>
+│   │   └── alert.ejs          <span class="comment">// Alert messages</span>
+│   │
+│   ├── home.ejs               <span class="comment">// Home page</span>
+│   ├── menu.ejs               <span class="comment">// Menu page</span>
+│   ├── about.ejs              <span class="comment">// About page</span>
+│   └── booking.ejs            <span class="comment">// Booking page</span>
+│
+└── public/
+    ├── css/
+    │   └── style.css
+    └── img/</pre>
+                </div>
+
+                <div id="complete-app" class="tab-content">
+                    <h3>Main Application Setup</h3>
+                    <pre><span class="comment">// app.js</span>
+<span class="keyword">const</span> <span class="function">express</span> = <span class="function">require</span>(<span class="string">'express'</span>);
+<span class="keyword">const</span> <span class="function">expressLayouts</span> = <span class="function">require</span>(<span class="string">'express-ejs-layouts'</span>);
+<span class="keyword">const</span> <span class="function">path</span> = <span class="function">require</span>(<span class="string">'path'</span>);
+
+<span class="keyword">const</span> app = <span class="function">express</span>();
+
+<span class="comment">// View engine setup</span>
+app.<span class="function">set</span>(<span class="string">'view engine'</span>, <span class="string">'ejs'</span>);
+app.<span class="function">set</span>(<span class="string">'views'</span>, path.<span class="function">join</span>(__dirname, <span class="string">'views'</span>));
+
+<span class="comment">// Use express-ejs-layouts</span>
+app.<span class="function">use</span>(expressLayouts);
+app.<span class="function">set</span>(<span class="string">'layout'</span>, <span class="string">'layouts/main'</span>);
+
+<span class="comment">// Static files</span>
+app.<span class="function">use</span>(express.<span class="function">static</span>(<span class="string">'public'</span>));
+
+<span class="comment">// Body parser</span>
+app.<span class="function">use</span>(express.<span class="function">urlencoded</span>({ extended: <span class="keyword">true</span> }));
+
+<span class="comment">// Routes</span>
+<span class="keyword">const</span> indexRouter = <span class="function">require</span>(<span class="string">'./routes/index'</span>);
+app.<span class="function">use</span>(<span class="string">'/'</span>, indexRouter);
+
+<span class="comment">// Start server</span>
+<span class="keyword">const</span> PORT = process.env.PORT || 3000;
+app.<span class="function">listen</span>(PORT, () => {
+    console.<span class="function">log</span>(`Server running on http://localhost:${PORT}`);
+});</pre>
+                </div>
+
+                <div id="complete-routes" class="tab-content">
+                    <h3>Complete Routes File</h3>
+                    <pre><span class="comment">// routes/index.js</span>
+<span class="keyword">const</span> <span class="function">express</span> = <span class="function">require</span>(<span class="string">'express'</span>);
+<span class="keyword">const</span> router = express.<span class="function">Router</span>();
+
+<span class="comment">// Home page</span>
+router.<span class="function">get</span>(<span class="string">'/'</span>, (req, res) => {
+    res.<span class="function">render</span>(<span class="string">'home'</span>, {
+        title: <span class="string">'Priya\'s Restaurant - Authentic Indian Cuisine'</span>,
+        featured: [
+            {
+                name: <span class="string">'Butter Chicken'</span>,
+                description: <span class="string">'Creamy tomato-based curry with tender chicken'</span>,
+                price: <span class="string">'₹350'</span>,
+                image: <span class="string">'/img/butter-chicken.jpg'</span>
+            },
+            {
+                name: <span class="string">'Paneer Tikka'</span>,
+                description: <span class="string">'Marinated cottage cheese grilled to perfection'</span>,
+                price: <span class="string">'₹280'</span>,
+                image: <span class="string">'/img/paneer-tikka.jpg'</span>
+            }
+        ]
+    });
+});
+
+<span class="comment">// Menu page</span>
+router.<span class="function">get</span>(<span class="string">/menu'</span>, (req, res) => {
+    res.<span class="function">render</span>(<span class="string">'menu'</span>, {
+        title: <span class="string">'Menu - Priya\'s Restaurant'</span>,
+        dishes: [
+            {
+                name: <span class="string">'Biryani'</span>,
+                description: <span class="string">'Fragrant basmati rice with aromatic spices'</span>,
+                price: <span class="string">'₹320'</span>,
+                image: <span class="string">'/img/biryani.jpg'</span>
+            },
+            {
+                name: <span class="string">'Masala Dosa'</span>,
+                description: <span class="string">'Crispy rice crepe with spiced potato filling'</span>,
+                price: <span class="string">'₹180'</span>,
+                image: <span class="string">'/img/dosa.jpg'</span>
+            },
+            {
+                name: <span class="string">'Dal Makhani'</span>,
+                description: <span class="string">'Black lentils in rich creamy gravy'</span>,
+                price: <span class="string">'₹240'</span>,
+                image: <span class="string">'/img/dal.jpg'</span>
+            }
+        ],
+        reviews: [
+            {
+                customerName: <span class="string">'Rohan Mehta'</span>,
+                stars: 5,
+                comment: <span class="string">'Best biryani in town!'</span>,
+                date: <span class="string">'Oct 10, 2025'</span>
+            },
+            {
+                customerName: <span class="string">'Kavya Iyer'</span>,
+                stars: 5,
+                comment: <span class="string">'Authentic flavors, reminded me of home!'</span>,
+                date: <span class="string">'Oct 12, 2025'</span>
+            }
+        ]
+    });
+});
+
+<span class="comment">// About page</span>
+router.<span class="function">get</span>(<span class="string">'/about'</span>, (req, res) => {
+    res.<span class="function">render</span>(<span class="string">'about'</span>, {
+        title: <span class="string">'About Us - Priya\'s Restaurant'</span>,
+        team: [
+            {
+                name: <span class="string">'Rajesh Kumar'</span>,
+                role: <span class="string">'Head Chef'</span>,
+                avatar: <span class="string">'/img/rajesh.jpg'</span>,
+                email: <span class="string">'rajesh@priya.com'</span>
+            },
+            {
+                name: <span class="string">'Anjali Sharma'</span>,
+                role: <span class="string">'Restaurant Manager'</span>,
+                avatar: <span class="string">'/img/anjali.jpg'</span>,
+                email: <span class="string">'anjali@priya.com'</span>
+            }
+        ]
+    });
+});
+
+<span class="keyword">module.exports</span> = router;</pre>
+                </div>
+
+                <div id="complete-templates" class="tab-content">
+                    <h3>Complete Template Examples</h3>
+                    <pre><span class="comment">&lt;!-- views/menu.ejs --&gt;</span>
+<span class="tag">&lt;div</span> <span class="attribute">class</span>=<span class="string">"menu-page"</span><span class="tag">&gt;</span>
+    <span class="tag">&lt;h1&gt;</span>Our Delicious Menu<span class="tag">&lt;/h1&gt;</span>
+    <span class="tag">&lt;p&gt;</span>Prepared fresh daily by Chef Rajesh<span class="tag">&lt;/p&gt;</span>
+    
+    <span class="tag">&lt;div</span> <span class="attribute">class</span>=<span class="string">"menu-grid"</span><span class="tag">&gt;</span>
+        <span class="keyword">&lt;% dishes.forEach(dish =&gt; { %&gt;</span>
+            <span class="keyword">&lt;%- include('partials/dish-card', {dish: dish}) %&gt;</span>
+        <span class="keyword">&lt;% }); %&gt;</span>
+    <span class="tag">&lt;/div&gt;</span>
+    
+    <span class="tag">&lt;section</span> <span class="attribute">class</span>=<span class="string">"reviews"</span><span class="tag">&gt;</span>
+        <span class="tag">&lt;h2&gt;</span>What Our Customers Say<span class="tag">&lt;/h2&gt;</span>
+        <span class="keyword">&lt;% reviews.forEach(review =&gt; { %&gt;</span>
+            <span class="keyword">&lt;%- include('partials/review', {review: review}) %&gt;</span>
+        <span class="keyword">&lt;% }); %&gt;</span>
+    <span class="tag">&lt;/section&gt;</span>
+<span class="tag">&lt;/div&gt;</span></pre>
+                </div>
+            </div>
+
+            <!-- Best Practices Section -->
+            <div class="section">
+                <h2>✨ Best Practices & Tips</h2>
+                
+                <div class="key-points">
+                    <h4>📋 Naming Conventions:</h4>
+                    <ul>
+                        <li>Use descriptive names: <code>user-card.ejs</code> not <code>uc.ejs</code></li>
+                        <li>Keep partials in a dedicated <code>partials/</code> folder</li>
+                        <li>Layouts in <code>layouts/</code> folder for organization</li>
+                    </ul>
+                </div>
+
+                <div class="key-points">
+                    <h4>🎯 When to Create a Partial:</h4>
+                    <ul>
+                        <li>Component used in <strong>multiple places</strong></li>
+                        <li>Component has <strong>complex structure</strong> worth isolating</li>
+                        <li>You want to <strong>reuse with different data</strong></li>
+                        <li>Makes the main template <strong>cleaner and more readable</strong></li>
+                    </ul>
+                </div>
+
+                <div class="key-points">
+                    <h4>⚠️ Common Mistakes to Avoid:</h4>
+                    <ul>
+                        <li>Don't create too many tiny partials - balance is key</li>
+                        <li>Avoid deeply nested partials (partials including partials including partials)</li>
+                        <li>Remember: <code>&lt;%- include() %&gt;</code> renders HTML, <code>&lt;%= %&gt;</code> escapes it</li>
+                        <li>Always pass required data to partials to avoid undefined errors</li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabId) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabId).classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>

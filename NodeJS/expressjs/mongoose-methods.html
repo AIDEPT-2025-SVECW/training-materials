@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mongoose Methods & Statics Demo</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 20px;
+        min-height: 100vh;
+      }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+      h1 {
+        color: white;
+        text-align: center;
+        margin-bottom: 30px;
+        font-size: 2.5em;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+      }
+      .intro-section {
+        background: white;
+        padding: 25px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      }
+      .intro-section h2 {
+        color: #667eea;
+        margin-bottom: 15px;
+      }
+      .intro-section p {
+        line-height: 1.6;
+        margin-bottom: 10px;
+        color: #333;
+      }
+      .intro-section ul {
+        margin-left: 20px;
+        line-height: 1.8;
+        color: #555;
+      }
+      .demo-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 25px;
+        margin-bottom: 30px;
+      }
+      .demo-card {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        transition: transform 0.3s ease;
+      }
+      .demo-card:hover {
+        transform: translateY(-5px);
+      }
+      .demo-card h3 {
+        color: #667eea;
+        margin-bottom: 15px;
+        font-size: 1.5em;
+        border-bottom: 3px solid #667eea;
+        padding-bottom: 10px;
+      }
+      .code-block {
+        background: #1e1e1e;
+        color: #d4d4d4;
+        padding: 15px;
+        border-radius: 8px;
+        font-family: "Courier New", monospace;
+        font-size: 0.9em;
+        margin: 15px 0;
+        overflow-x: auto;
+        line-height: 1.6;
+      }
+      .keyword {
+        color: #569cd6;
+      }
+      .string {
+        color: #ce9178;
+      }
+      .function {
+        color: #dcdcaa;
+      }
+      .comment {
+        color: #6a9955;
+      }
+      .property {
+        color: #9cdcfe;
+      }
+      button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 12px 25px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1em;
+        font-weight: bold;
+        margin-top: 10px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      }
+      button:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+      }
+      .output {
+        background: #f0f4f8;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 15px;
+        border-left: 4px solid #667eea;
+        min-height: 50px;
+        font-family: monospace;
+        white-space: pre-wrap;
+      }
+      .badge {
+        display: inline-block;
+        background: #764ba2;
+        color: white;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.85em;
+        margin-bottom: 10px;
+        font-weight: bold;
+      }
+      .explanation {
+        background: #fff8e1;
+        padding: 12px;
+        border-radius: 8px;
+        margin: 10px 0;
+        border-left: 4px solid #ffa726;
+        font-size: 0.95em;
+        line-height: 1.5;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🍃 Mongoose Methods & Statics Interactive Demo</h1>
+
+      <div class="intro-section">
+        <h2>What is Mongoose?</h2>
+        <p>
+          <strong>Mongoose</strong> is an Object Data Modeling (ODM) library for
+          MongoDB and Node.js. Think of it as a bridge between your Node.js
+          application and MongoDB database.
+        </p>
+
+        <h3 style="color: #764ba2; margin-top: 20px">
+          Why do we need Mongoose?
+        </h3>
+        <ul>
+          <li>
+            <strong>Schema Definition:</strong> MongoDB is schema-less, but
+            Mongoose lets you define structure for your data
+          </li>
+          <li>
+            <strong>Validation:</strong> Built-in validation for data before
+            saving to database
+          </li>
+          <li>
+            <strong>Type Casting:</strong> Automatically converts data to
+            correct types
+          </li>
+          <li>
+            <strong>Query Building:</strong> Easier and more readable query
+            syntax
+          </li>
+          <li>
+            <strong>Middleware Support:</strong> Run code before/after certain
+            operations
+          </li>
+          <li>
+            <strong>Custom Methods:</strong> Add your own helper methods to
+            models (which we'll demonstrate!)
+          </li>
+        </ul>
+      </div>
+
+      <div class="demo-grid">
+        <!-- Instance Methods Demo -->
+        <div class="demo-card">
+          <span class="badge">Instance Methods</span>
+          <h3>Instance Methods</h3>
+          <p style="margin-bottom: 10px">
+            Methods that work on individual documents (instances). Called on a
+            specific student object.
+          </p>
+
+          <pre class="code-block">
+<span class="comment">// Schema Definition</span>
+<span class="keyword">const</span> studentSchema = <span class="keyword">new</span> Schema({
+  <span class="property">name</span>: String,
+  <span class="property">marks</span>: [Number]
+});
+
+<span class="comment">// Instance Method</span>
+studentSchema.<span class="property">methods</span>.<span class="function">calculateAverage</span> = <span class="keyword">function</span>() {
+  <span class="keyword">const</span> sum = <span class="keyword">this</span>.<span class="property">marks</span>.<span class="function">reduce</span>((a,b) => a+b, 0);
+  <span class="keyword">return</span> sum / <span class="keyword">this</span>.<span class="property">marks</span>.<span class="property">length</span>;
+};
+
+<span class="comment">// Usage</span>
+<span class="keyword">const</span> priya = <span class="keyword">await</span> Student.<span class="function">findOne</span>({name: <span class="string">'Priya'</span>});
+priya.<span class="function">calculateAverage</span>(); <span class="comment">// Called on instance</span>
+                </pre>
+
+          <div class="explanation">
+            💡 Use <strong>instance methods</strong> when you need to perform
+            operations on a specific document's data, like calculating values or
+            formatting output.
+          </div>
+
+          <button onclick="demoInstanceMethod()">
+            Run Instance Method Demo
+          </button>
+          <div class="output" id="instanceOutput">
+            Click the button to see instance method in action...
+          </div>
+        </div>
+
+        <!-- Static Methods Demo -->
+        <div class="demo-card">
+          <span class="badge">Static Methods</span>
+          <h3>Static Methods</h3>
+          <p style="margin-bottom: 10px">
+            Methods that work on the entire Model/Collection. Called directly on
+            the Student Model.
+          </p>
+
+          <pre class="code-block">
+<span class="comment">// Static Method</span>
+studentSchema.<span class="property">statics</span>.<span class="function">findToppers</span> = <span class="keyword">function</span>(minAvg) {
+  <span class="keyword">return this</span>.<span class="function">find</span>({
+    <span class="property">averageMarks</span>: { $gte: minAvg }
+  }).<span class="function">sort</span>({ averageMarks: -1 });
+};
+
+<span class="comment">// Usage</span>
+<span class="keyword">const</span> toppers = <span class="keyword">await</span> Student.<span class="function">findToppers</span>(85);
+<span class="comment">// Called on Model itself, not instance</span>
+                </pre>
+
+          <div class="explanation">
+            💡 Use <strong>static methods</strong> for operations that affect
+            multiple documents or the entire collection, like finding, counting,
+            or bulk operations.
+          </div>
+
+          <button onclick="demoStaticMethod()">Run Static Method Demo</button>
+          <div class="output" id="staticOutput">
+            Click the button to see static method in action...
+          </div>
+        </div>
+
+        <!-- Query Helpers Demo -->
+        <div class="demo-card">
+          <span class="badge">Query Helpers</span>
+          <h3>Query Helpers</h3>
+          <p style="margin-bottom: 10px">
+            Chainable query modifiers. Extend Mongoose's query building
+            capabilities.
+          </p>
+
+          <pre class="code-block">
+<span class="comment">// Query Helper</span>
+studentSchema.<span class="property">query</span>.<span class="function">byCity</span> = <span class="keyword">function</span>(city) {
+  <span class="keyword">return this</span>.<span class="function">where</span>({ city: city });
+};
+
+studentSchema.<span class="property">query</span>.<span class="function">passed</span> = <span class="keyword">function</span>() {
+  <span class="keyword">return this</span>.<span class="function">where</span>({ <span class="property">averageMarks</span>: { $gte: 40 } });
+};
+
+<span class="comment">// Usage - Chain multiple helpers!</span>
+<span class="keyword">const</span> students = <span class="keyword">await</span> Student
+  .<span class="function">find</span>()
+  .<span class="function">byCity</span>(<span class="string">'Mumbai'</span>)
+  .<span class="function">passed</span>()
+  .<span class="function">sort</span>({ name: 1 });
+                </pre>
+
+          <div class="explanation">
+            💡 Use <strong>query helpers</strong> to create reusable, chainable
+            query filters. They make your code more readable and maintainable.
+          </div>
+
+          <button onclick="demoQueryHelper()">Run Query Helper Demo</button>
+          <div class="output" id="queryOutput">
+            Click the button to see query helper in action...
+          </div>
+        </div>
+      </div>
+
+      <div class="intro-section">
+        <h2>🎯 Quick Comparison</h2>
+        <table style="width: 100%; border-collapse: collapse; margin-top: 15px">
+          <tr style="background: #667eea; color: white">
+            <th style="padding: 12px; text-align: left">Type</th>
+            <th style="padding: 12px; text-align: left">Called On</th>
+            <th style="padding: 12px; text-align: left">Use Case</th>
+          </tr>
+          <tr style="background: #f5f5f5">
+            <td style="padding: 12px"><strong>Instance Methods</strong></td>
+            <td style="padding: 12px">Document instance</td>
+            <td style="padding: 12px">Operations on single document</td>
+          </tr>
+          <tr>
+            <td style="padding: 12px"><strong>Static Methods</strong></td>
+            <td style="padding: 12px">Model itself</td>
+            <td style="padding: 12px">Operations on collection</td>
+          </tr>
+          <tr style="background: #f5f5f5">
+            <td style="padding: 12px"><strong>Query Helpers</strong></td>
+            <td style="padding: 12px">Query chain</td>
+            <td style="padding: 12px">Reusable query filters</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <script>
+      // Simulated student data
+      const students = [
+        {
+          name: "Priya Sharma",
+          marks: [85, 90, 88, 92],
+          city: "Mumbai",
+          id: 1,
+        },
+        { name: "Rahul Verma", marks: [78, 82, 80, 85], city: "Delhi", id: 2 },
+        {
+          name: "Ananya Patel",
+          marks: [92, 95, 90, 94],
+          city: "Mumbai",
+          id: 3,
+        },
+        {
+          name: "Arjun Kumar",
+          marks: [65, 70, 68, 72],
+          city: "Bangalore",
+          id: 4,
+        },
+        { name: "Sneha Reddy", marks: [88, 85, 90, 87], city: "Mumbai", id: 5 },
+      ];
+
+      function demoInstanceMethod() {
+        const output = document.getElementById("instanceOutput");
+        const priya = students[0];
+
+        // Simulate instance method
+        const calculateAverage = function (student) {
+          const sum = student.marks.reduce((a, b) => a + b, 0);
+          return (sum / student.marks.length).toFixed(2);
+        };
+
+        const avg = calculateAverage(priya);
+
+        output.innerHTML = `
+<strong>Instance Method Demo:</strong>
+
+Student: ${priya.name}
+Marks: [${priya.marks.join(", ")}]
+
+Calling: priya.calculateAverage()
+
+Result: ${avg}%
+
+✅ This method works on ONE specific student document.
+✅ Uses 'this' to access the document's data.
+✅ Perfect for calculations on individual records.
+            `;
+      }
+
+      function demoStaticMethod() {
+        const output = document.getElementById("staticOutput");
+
+        // Simulate static method
+        const findToppers = function (minAvg) {
+          return students
+            .filter((student) => {
+              const avg =
+                student.marks.reduce((a, b) => a + b, 0) / student.marks.length;
+              return avg >= minAvg;
+            })
+            .sort((a, b) => {
+              const avgA = a.marks.reduce((x, y) => x + y, 0) / a.marks.length;
+              const avgB = b.marks.reduce((x, y) => x + y, 0) / b.marks.length;
+              return avgB - avgA;
+            });
+        };
+
+        const toppers = findToppers(85);
+
+        let result = `<strong>Static Method Demo:</strong>\n\n`;
+        result += `Calling: Student.findToppers(85)\n\n`;
+        result += `Toppers with average >= 85%:\n\n`;
+
+        toppers.forEach((student) => {
+          const avg = (
+            student.marks.reduce((a, b) => a + b, 0) / student.marks.length
+          ).toFixed(2);
+          result += `• ${student.name} - ${avg}%\n`;
+        });
+
+        result += `\n✅ This method works on the ENTIRE collection.`;
+        result += `\n✅ Called directly on the Model, not an instance.`;
+        result += `\n✅ Perfect for finding, filtering multiple documents.`;
+
+        output.innerHTML = result;
+      }
+
+      function demoQueryHelper() {
+        const output = document.getElementById("queryOutput");
+
+        // Simulate query helpers
+        const byCity = function (data, city) {
+          return data.filter((s) => s.city === city);
+        };
+
+        const passed = function (data) {
+          return data.filter((student) => {
+            const avg =
+              student.marks.reduce((a, b) => a + b, 0) / student.marks.length;
+            return avg >= 40;
+          });
+        };
+
+        // Chain the queries
+        let result = byCity(students, "Mumbai");
+        result = passed(result);
+        result.sort((a, b) => a.name.localeCompare(b.name));
+
+        let outputText = `<strong>Query Helper Demo:</strong>\n\n`;
+        outputText += `Query Chain:\n`;
+        outputText += `Student.find()\n`;
+        outputText += `  .byCity('Mumbai')\n`;
+        outputText += `  .passed()\n`;
+        outputText += `  .sort({ name: 1 })\n\n`;
+        outputText += `Results (Passed students from Mumbai):\n\n`;
+
+        result.forEach((student) => {
+          const avg = (
+            student.marks.reduce((a, b) => a + b, 0) / student.marks.length
+          ).toFixed(2);
+          outputText += `• ${student.name} - ${avg}%\n`;
+        });
+
+        outputText += `\n✅ Query helpers are CHAINABLE.`;
+        outputText += `\n✅ Makes complex queries readable.`;
+        outputText += `\n✅ Reusable across your application.`;
+
+        output.innerHTML = outputText;
+      }
+    </script>
+  </body>
+</html>

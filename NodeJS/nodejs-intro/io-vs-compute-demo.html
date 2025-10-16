@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IO-Heavy vs Compute-Heavy Applications</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        
+        .explanation {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border-left: 5px solid #667eea;
+        }
+        
+        .explanation h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.8em;
+        }
+        
+        .explanation h3 {
+            color: #764ba2;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 1.3em;
+        }
+        
+        .analogy {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .analogy strong {
+            color: #856404;
+        }
+        
+        .demo-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 30px;
+        }
+        
+        .demo-card {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .demo-card h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+            text-align: center;
+        }
+        
+        button {
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        
+        .io-button {
+            background: #28a745;
+            color: white;
+        }
+        
+        .io-button:hover {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(40,167,69,0.3);
+        }
+        
+        .compute-button {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .compute-button:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(220,53,69,0.3);
+        }
+        
+        .output {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            min-height: 150px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            border: 2px solid #dee2e6;
+            margin-top: 15px;
+            overflow-y: auto;
+            max-height: 300px;
+        }
+        
+        .log-entry {
+            padding: 5px;
+            margin: 3px 0;
+            border-radius: 4px;
+        }
+        
+        .log-start {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .log-wait {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .log-complete {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .log-compute {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .spinner {
+            display: none;
+            text-align: center;
+            margin: 10px 0;
+        }
+        
+        .spinner.active {
+            display: block;
+        }
+        
+        .spinner::after {
+            content: "⏳";
+            font-size: 24px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        pre {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .key-differences {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .diff-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #dee2e6;
+        }
+        
+        .diff-card h4 {
+            margin-bottom: 10px;
+            color: #667eea;
+        }
+        
+        .diff-card.compute h4 {
+            color: #dc3545;
+        }
+        
+        @media (max-width: 768px) {
+            .demo-section, .key-differences {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 IO-Heavy vs Compute-Heavy Applications</h1>
+        
+        <div class="explanation">
+            <h2>What's the Difference?</h2>
+            
+            <h3>📥 IO-Heavy Applications (Input/Output)</h3>
+            <p><strong>Definition:</strong> Applications that spend most of their time waiting for external operations like reading files, making network requests, database queries, or user input.</p>
+            
+            <div class="analogy">
+                <strong>🍕 Analogy:</strong> Imagine you're a pizza delivery driver. Most of your time is spent <em>waiting</em> - waiting at traffic lights, waiting for the customer to answer the door, waiting for payment. You're not physically exhausted because you're not doing heavy work; you're just waiting a lot. That's IO-heavy!
+            </div>
+            
+            <p><strong>Characteristics:</strong></p>
+            <ul style="margin-left: 25px; margin-top: 10px;">
+                <li>CPU is mostly idle, waiting for data</li>
+                <li>Bottleneck is external systems (network, disk, database)</li>
+                <li>Can handle many operations concurrently</li>
+                <li>Benefits from async/await patterns</li>
+                <li>Examples: Web servers, API calls, file uploads, database queries</li>
+            </ul>
+            
+            <h3>⚙️ Compute-Heavy Applications</h3>
+            <p><strong>Definition:</strong> Applications that spend most of their time performing intensive calculations, data processing, or complex algorithms.</p>
+            
+            <div class="analogy">
+                <strong>🏋️ Analogy:</strong> Imagine you're doing intense mathematical calculations in your head - solving complex equations non-stop. Your brain is working at full capacity, crunching numbers continuously. There's no waiting involved; you're constantly processing. That's compute-heavy!
+            </div>
+            
+            <p><strong>Characteristics:</strong></p>
+            <ul style="margin-left: 25px; margin-top: 10px;">
+                <li>CPU is constantly busy processing</li>
+                <li>Bottleneck is CPU speed and power</li>
+                <li>Can block the main thread</li>
+                <li>Benefits from parallel processing or worker threads</li>
+                <li>Examples: Video encoding, cryptography, machine learning, complex simulations</li>
+            </ul>
+        </div>
+        
+        <div class="explanation">
+            <h2>🔑 Key Differences</h2>
+            <div class="key-differences">
+                <div class="diff-card">
+                    <h4>📥 IO-Heavy</h4>
+                    <ul style="margin-left: 20px;">
+                        <li>Waiting time dominates</li>
+                        <li>Low CPU usage</li>
+                        <li>High latency due to external factors</li>
+                        <li>Easy to run concurrently</li>
+                        <li>Node.js excels here</li>
+                    </ul>
+                </div>
+                <div class="diff-card compute">
+                    <h4>⚙️ Compute-Heavy</h4>
+                    <ul style="margin-left: 20px;">
+                        <li>Processing time dominates</li>
+                        <li>High CPU usage</li>
+                        <li>Latency depends on CPU power</li>
+                        <li>Can block event loop</li>
+                        <li>Needs worker threads/optimization</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="explanation">
+            <h2>💻 Interactive Demonstrations</h2>
+            <p>Click the buttons below to see real examples of each type. Watch how they behave differently!</p>
+        </div>
+        
+        <div class="demo-section">
+            <div class="demo-card">
+                <h3>📥 IO-Heavy Example</h3>
+                <p style="margin-bottom: 15px;">Simulating multiple API calls. Notice how they can all "wait" simultaneously without blocking each other!</p>
+                <button class="io-button" onclick="runIOHeavyDemo()">Run IO-Heavy Demo</button>
+                <div class="spinner" id="ioSpinner"></div>
+                <div class="output" id="ioOutput"></div>
+            </div>
+            
+            <div class="demo-card">
+                <h3>⚙️ Compute-Heavy Example</h3>
+                <p style="margin-bottom: 15px;">Calculating prime numbers. Notice how the browser might feel sluggish because the CPU is working hard!</p>
+                <button class="compute-button" onclick="runComputeHeavyDemo()">Run Compute-Heavy Demo</button>
+                <div class="spinner" id="computeSpinner"></div>
+                <div class="output" id="computeOutput"></div>
+            </div>
+        </div>
+        
+        <div class="explanation" style="margin-top: 30px;">
+            <h2>📝 Code Examples</h2>
+            
+            <h3>IO-Heavy Code Pattern:</h3>
+<pre>
+// Multiple API calls running concurrently
+async function fetchUserData() {
+    console.log('Starting API calls...');
+    
+    // All three start simultaneously
+    const [users, posts, comments] = await Promise.all([
+        fetch('/api/users'),    // Waiting for network
+        fetch('/api/posts'),    // Waiting for network
+        fetch('/api/comments')  // Waiting for network
+    ]);
+    
+    // CPU was idle during the waiting!
+    return { users, posts, comments };
+}
+
+// The waiting happens externally, CPU can do other things
+</pre>
+            
+            <h3>Compute-Heavy Code Pattern:</h3>
+<pre>
+// Prime number calculation - CPU intensive
+function findPrimes(max) {
+    console.log('Starting computation...');
+    const primes = [];
+    
+    // CPU is constantly working here
+    for (let num = 2; num <= max; num++) {
+        let isPrime = true;
+        
+        // Nested loop = lots of computation
+        for (let i = 2; i <= Math.sqrt(num); i++) {
+            if (num % i === 0) {
+                isPrime = false;
+                break;
+            }
+        }
+        
+        if (isPrime) primes.push(num);
+    }
+    
+    // CPU was maxed out the entire time!
+    return primes;
+}
+</pre>
+        </div>
+        
+        <div class="explanation">
+            <h2>🎯 When to Use Each Approach</h2>
+            
+            <h3>Use IO-Heavy Patterns When:</h3>
+            <ul style="margin-left: 25px; margin-top: 10px;">
+                <li>Building web servers or REST APIs</li>
+                <li>Working with databases</li>
+                <li>Making external API calls</li>
+                <li>Reading/writing files</li>
+                <li>Handling user input/events</li>
+            </ul>
+            
+            <h3>Use Compute-Heavy Patterns When:</h3>
+            <ul style="margin-left: 25px; margin-top: 10px;">
+                <li>Processing images or videos</li>
+                <li>Running complex algorithms</li>
+                <li>Performing data analysis</li>
+                <li>Cryptography operations</li>
+                <li>Machine learning inference</li>
+            </ul>
+            
+            <div class="analogy" style="margin-top: 20px;">
+                <strong>💡 Pro Tip:</strong> In JavaScript, use <code>async/await</code> for IO-heavy operations and consider Web Workers or breaking up tasks for compute-heavy operations to avoid blocking the UI!
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // IO-Heavy Demo - Simulates multiple API calls
+        async function runIOHeavyDemo() {
+            const output = document.getElementById('ioOutput');
+            const spinner = document.getElementById('ioSpinner');
+            output.innerHTML = '';
+            spinner.classList.add('active');
+            
+            function log(message, type = 'start') {
+                const entry = document.createElement('div');
+                entry.className = `log-entry log-${type}`;
+                entry.textContent = `${new Date().toLocaleTimeString()}: ${message}`;
+                output.appendChild(entry);
+                output.scrollTop = output.scrollHeight;
+            }
+            
+            // Simulate API call
+            function simulateAPICall(name, delay) {
+                return new Promise(resolve => {
+                    log(`📡 ${name} - Request sent`, 'start');
+                    setTimeout(() => {
+                        log(`✅ ${name} - Response received (waited ${delay}ms)`, 'complete');
+                        resolve({ name, delay });
+                    }, delay);
+                });
+            }
+            
+            log('🚀 Starting IO-Heavy operations...', 'start');
+            log('⚡ All requests sent simultaneously!', 'wait');
+            
+            const startTime = Date.now();
+            
+            // All three API calls start at the same time!
+            const results = await Promise.all([
+                simulateAPICall('User API', 1000),
+                simulateAPICall('Posts API', 1500),
+                simulateAPICall('Comments API', 800)
+            ]);
+            
+            const totalTime = Date.now() - startTime;
+            
+            log(`🎉 All operations complete in ${totalTime}ms`, 'complete');
+            log(`💡 Notice: Total time ≈ longest wait (1500ms), not sum!`, 'complete');
+            spinner.classList.remove('active');
+        }
+        
+        // Compute-Heavy Demo - Calculates prime numbers
+        function runComputeHeavyDemo() {
+            const output = document.getElementById('computeOutput');
+            const spinner = document.getElementById('computeSpinner');
+            output.innerHTML = '';
+            spinner.classList.add('active');
+            
+            function log(message, type = 'compute') {
+                const entry = document.createElement('div');
+                entry.className = `log-entry log-${type}`;
+                entry.textContent = `${new Date().toLocaleTimeString()}: ${message}`;
+                output.appendChild(entry);
+                output.scrollTop = output.scrollHeight;
+            }
+            
+            function isPrime(num) {
+                if (num < 2) return false;
+                for (let i = 2; i <= Math.sqrt(num); i++) {
+                    if (num % i === 0) return false;
+                }
+                return true;
+            }
+            
+            log('🚀 Starting Compute-Heavy operation...', 'start');
+            log('⚙️ CPU is now working hard!', 'compute');
+            
+            const startTime = Date.now();
+            const max = 100000;
+            
+            // Use setTimeout to allow UI update before heavy computation
+            setTimeout(() => {
+                const primes = [];
+                
+                // This loop blocks the main thread!
+                for (let num = 2; num <= max; num++) {
+                    if (isPrime(num)) {
+                        primes.push(num);
+                    }
+                    
+                    // Log progress every 20000 numbers
+                    if (num % 20000 === 0) {
+                        log(`🔢 Processed ${num}/${max} numbers...`, 'compute');
+                    }
+                }
+                
+                const totalTime = Date.now() - startTime;
+                
+                log(`✅ Found ${primes.length} prime numbers`, 'complete');
+                log(`⏱️ Computation took ${totalTime}ms`, 'complete');
+                log(`🔥 CPU was busy 100% of this time!`, 'complete');
+                log(`First 10 primes: ${primes.slice(0, 10).join(', ')}`, 'complete');
+                
+                spinner.classList.remove('active');
+            }, 100);
+        }
+    </script>
+</body>
+</html>

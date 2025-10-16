@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Node.js Package Management Guide</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 20px;
+        min-height: 100vh;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+      }
+
+      header {
+        background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+        color: white;
+        padding: 40px;
+        text-align: center;
+      }
+
+      header h1 {
+        font-size: 2.5em;
+        margin-bottom: 10px;
+      }
+
+      header p {
+        font-size: 1.2em;
+        opacity: 0.9;
+      }
+
+      .content {
+        padding: 40px;
+      }
+
+      .section {
+        margin-bottom: 40px;
+        padding: 30px;
+        background: #f7fafc;
+        border-radius: 15px;
+        border-left: 5px solid #667eea;
+      }
+
+      .section h2 {
+        color: #2d3748;
+        margin-bottom: 20px;
+        font-size: 1.8em;
+      }
+
+      .analogy {
+        background: #fff5e6;
+        padding: 20px;
+        border-radius: 10px;
+        border-left: 4px solid #ff9800;
+        margin: 20px 0;
+      }
+
+      .analogy h3 {
+        color: #e65100;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .analogy p {
+        color: #5d4037;
+        line-height: 1.6;
+      }
+
+      pre {
+        background: #1e1e1e;
+        color: #d4d4d4;
+        padding: 20px;
+        border-radius: 10px;
+        overflow-x: auto;
+        margin: 15px 0;
+        font-family: "Courier New", monospace;
+        line-height: 1.5;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .command {
+        color: #4ec9b0;
+      }
+
+      .string {
+        color: #ce9178;
+      }
+
+      .comment {
+        color: #6a9955;
+      }
+
+      .tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+      }
+
+      .tab {
+        padding: 12px 24px;
+        background: #e2e8f0;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1em;
+        transition: all 0.3s;
+        font-weight: 600;
+      }
+
+      .tab:hover {
+        background: #cbd5e0;
+        transform: translateY(-2px);
+      }
+
+      .tab.active {
+        background: #667eea;
+        color: white;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+      }
+
+      .tab-content {
+        display: none;
+        animation: fadeIn 0.5s;
+      }
+
+      .tab-content.active {
+        display: block;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .info-box {
+        background: #e6f7ff;
+        padding: 20px;
+        border-radius: 10px;
+        border-left: 4px solid #1890ff;
+        margin: 20px 0;
+      }
+
+      .info-box h4 {
+        color: #0050b3;
+        margin-bottom: 10px;
+      }
+
+      .info-box p {
+        color: #003a8c;
+        line-height: 1.6;
+      }
+
+      .warning-box {
+        background: #fff4e6;
+        padding: 20px;
+        border-radius: 10px;
+        border-left: 4px solid #fa8c16;
+        margin: 20px 0;
+      }
+
+      .warning-box h4 {
+        color: #d46b08;
+        margin-bottom: 10px;
+      }
+
+      ul {
+        margin-left: 20px;
+        margin-top: 10px;
+      }
+
+      li {
+        margin: 8px 0;
+        line-height: 1.6;
+      }
+
+      .interactive-demo {
+        background: white;
+        padding: 25px;
+        border-radius: 10px;
+        margin: 20px 0;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .demo-button {
+        background: #667eea;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1em;
+        margin: 5px;
+        transition: all 0.3s;
+      }
+
+      .demo-button:hover {
+        background: #5568d3;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+      }
+
+      .output {
+        background: #f5f5f5;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 15px;
+        min-height: 50px;
+        font-family: monospace;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>📦 Node.js Package Management</h1>
+        <p>Master npm, package.json, and dependency management</p>
+      </header>
+
+      <div class="content">
+        <!-- Introduction Section -->
+        <div class="section">
+          <h2>🎯 What is Package Management?</h2>
+          <p style="margin-bottom: 20px; line-height: 1.8">
+            Package management in Node.js is the process of installing,
+            updating, configuring, and removing external libraries (packages)
+            that add functionality to your projects.
+          </p>
+
+          <div class="analogy">
+            <h3>🏗️ Real-World Analogy</h3>
+            <p>
+              Think of building a house. You could make every brick, window, and
+              door yourself, but that would take forever! Instead, you order
+              pre-made materials from suppliers.
+              <strong>npm (Node Package Manager)</strong> is like a massive
+              hardware store where developers can get pre-built "materials"
+              (packages) to build their applications faster.
+            </p>
+          </div>
+        </div>
+
+        <!-- NPM Basics Section -->
+        <div class="section">
+          <h2>📚 Understanding npm (Node Package Manager)</h2>
+
+          <div class="info-box">
+            <h4>What is npm?</h4>
+            <p>
+              npm is the default package manager for Node.js. It consists of:
+            </p>
+            <ul>
+              <li>
+                <strong>The npm registry</strong> - A public database of
+                JavaScript packages
+              </li>
+              <li>
+                <strong>The npm CLI</strong> - A command-line tool to interact
+                with the registry
+              </li>
+            </ul>
+          </div>
+
+          <h3 style="margin-top: 30px; margin-bottom: 15px">Installing npm</h3>
+          <p style="margin-bottom: 15px">
+            npm comes bundled with Node.js, so installing Node.js automatically
+            installs npm.
+          </p>
+
+          <pre><span class="comment"># Check if Node.js is installed</span>
+<span class="command">node --version</span>
+
+<span class="comment"># Check if npm is installed</span>
+<span class="command">npm --version</span>
+
+<span class="comment"># Update npm to latest version</span>
+<span class="command">npm install -g npm@latest</span></pre>
+        </div>
+
+        <!-- Package.json Section -->
+        <div class="section">
+          <h2>📄 The package.json File</h2>
+
+          <div class="analogy">
+            <h3>📋 Analogy: Recipe Card</h3>
+            <p>
+              <strong>package.json</strong> is like a recipe card for your
+              project. It lists all the "ingredients" (dependencies) your
+              project needs, instructions on how to "cook" it (scripts), and
+              metadata about the dish (project name, version, description).
+            </p>
+          </div>
+
+          <h3 style="margin-top: 30px; margin-bottom: 15px">
+            Creating a package.json
+          </h3>
+
+          <pre><span class="comment"># Interactive setup (asks questions)</span>
+<span class="command">npm init</span>
+
+<span class="comment"># Quick setup with defaults</span>
+<span class="command">npm init -y</span></pre>
+
+          <h3 style="margin-top: 30px; margin-bottom: 15px">
+            Example package.json Structure
+          </h3>
+
+          <pre>{
+  <span class="string">"name"</span>: <span class="string">"my-awesome-project"</span>,
+  <span class="string">"version"</span>: <span class="string">"1.0.0"</span>,
+  <span class="string">"description"</span>: <span class="string">"A sample Node.js project"</span>,
+  <span class="string">"main"</span>: <span class="string">"index.js"</span>,
+  <span class="string">"scripts"</span>: {
+    <span class="string">"start"</span>: <span class="string">"node index.js"</span>,
+    <span class="string">"test"</span>: <span class="string">"jest"</span>,
+    <span class="string">"dev"</span>: <span class="string">"nodemon index.js"</span>
+  },
+  <span class="string">"dependencies"</span>: {
+    <span class="string">"express"</span>: <span class="string">"^4.18.2"</span>,
+    <span class="string">"lodash"</span>: <span class="string">"^4.17.21"</span>
+  },
+  <span class="string">"devDependencies"</span>: {
+    <span class="string">"nodemon"</span>: <span class="string">"^2.0.20"</span>,
+    <span class="string">"jest"</span>: <span class="string">"^29.0.0"</span>
+  }
+}</pre>
+        </div>
+
+        <!-- Installing Packages Section -->
+        <div class="section">
+          <h2>⬇️ Installing Packages</h2>
+
+          <div class="tabs">
+            <button class="tab active" onclick="showTab('install-basic')">
+              Basic Install
+            </button>
+            <button class="tab" onclick="showTab('install-types')">
+              Dependency Types
+            </button>
+            <button class="tab" onclick="showTab('install-versions')">
+              Version Control
+            </button>
+          </div>
+
+          <div id="install-basic" class="tab-content active">
+            <h3 style="margin-bottom: 15px">Installing Packages</h3>
+
+            <pre><span class="comment"># Install a single package (saves to dependencies)</span>
+<span class="command">npm install express</span>
+<span class="comment"># OR shorthand</span>
+<span class="command">npm i express</span>
+
+<span class="comment"># Install multiple packages</span>
+<span class="command">npm install express mongoose dotenv</span>
+
+<span class="comment"># Install all packages from package.json</span>
+<span class="command">npm install</span>
+
+<span class="comment"># Install globally (available system-wide)</span>
+<span class="command">npm install -g nodemon</span></pre>
+
+            <div class="analogy">
+              <h3>🎒 Analogy: Packing for a Trip</h3>
+              <p>
+                Installing packages locally is like packing items in your
+                suitcase for a specific trip. Installing globally is like buying
+                items that stay in your home and can be used for any trip.
+              </p>
+            </div>
+          </div>
+
+          <div id="install-types" class="tab-content">
+            <h3 style="margin-bottom: 15px">Dependency Types</h3>
+
+            <pre><span class="comment"># Production dependencies (needed to run your app)</span>
+<span class="command">npm install --save express</span>
+<span class="comment"># Shorthand (--save is default)</span>
+<span class="command">npm install express</span>
+
+<span class="comment"># Development dependencies (only needed during development)</span>
+<span class="command">npm install --save-dev jest nodemon</span>
+<span class="comment"># Shorthand</span>
+<span class="command">npm install -D jest nodemon</span>
+
+<span class="comment"># Optional dependencies (nice to have, but not critical)</span>
+<span class="command">npm install --save-optional fsevents</span></pre>
+
+            <div class="info-box">
+              <h4>When to use each type?</h4>
+              <ul>
+                <li>
+                  <strong>dependencies:</strong> Libraries your app needs to run
+                  (express, react, lodash)
+                </li>
+                <li>
+                  <strong>devDependencies:</strong> Tools for
+                  development/testing (jest, eslint, webpack)
+                </li>
+                <li>
+                  <strong>optionalDependencies:</strong> Platform-specific
+                  enhancements that aren't required
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div id="install-versions" class="tab-content">
+            <h3 style="margin-bottom: 15px">Version Control</h3>
+
+            <pre><span class="comment"># Install specific version</span>
+<span class="command">npm install express@4.18.2</span>
+
+<span class="comment"># Install latest version</span>
+<span class="command">npm install express@latest</span>
+
+<span class="comment"># Install version range</span>
+<span class="command">npm install express@">=4.0.0 <5.0.0"</span></pre>
+
+            <h4 style="margin-top: 25px; margin-bottom: 15px">
+              Understanding Version Numbers (Semantic Versioning)
+            </h4>
+
+            <pre><span class="string">"express": "^4.18.2"</span>
+             │  │  │
+             │  │  └─ PATCH (bug fixes)
+             │  └──── MINOR (new features, backwards compatible)
+             └─────── MAJOR (breaking changes)</pre>
+
+            <div class="info-box">
+              <h4>Version Symbols</h4>
+              <ul>
+                <li>
+                  <strong>^4.18.2</strong> - Compatible with 4.x.x (allows minor
+                  & patch updates)
+                </li>
+                <li>
+                  <strong>~4.18.2</strong> - Compatible with 4.18.x (allows only
+                  patch updates)
+                </li>
+                <li><strong>4.18.2</strong> - Exact version only</li>
+                <li><strong>*</strong> - Any version (not recommended)</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Managing Packages Section -->
+        <div class="section">
+          <h2>🔧 Managing Packages</h2>
+
+          <h3 style="margin-bottom: 15px">Updating Packages</h3>
+
+          <pre><span class="comment"># Check for outdated packages</span>
+<span class="command">npm outdated</span>
+
+<span class="comment"># Update a specific package</span>
+<span class="command">npm update express</span>
+
+<span class="comment"># Update all packages</span>
+<span class="command">npm update</span>
+
+<span class="comment"># Update to latest version (ignoring version constraints)</span>
+<span class="command">npm install express@latest</span></pre>
+
+          <h3 style="margin-top: 30px; margin-bottom: 15px">
+            Uninstalling Packages
+          </h3>
+
+          <pre><span class="comment"># Uninstall a package</span>
+<span class="command">npm uninstall express</span>
+<span class="comment"># OR shorthand</span>
+<span class="command">npm un express</span>
+
+<span class="comment"># Uninstall dev dependency</span>
+<span class="command">npm uninstall --save-dev jest</span>
+
+<span class="comment"># Uninstall global package</span>
+<span class="command">npm uninstall -g nodemon</span></pre>
+
+          <h3 style="margin-top: 30px; margin-bottom: 15px">
+            Listing Packages
+          </h3>
+
+          <pre><span class="comment"># List installed packages</span>
+<span class="command">npm list</span>
+
+<span class="comment"># List only top-level packages</span>
+<span class="command">npm list --depth=0</span>
+
+<span class="comment"># List global packages</span>
+<span class="command">npm list -g --depth=0</span>
+
+<span class="comment"># View package info</span>
+<span class="command">npm view express</span></pre>
+        </div>
+
+        <!-- NPM vs NPX Section -->
+        <div class="section">
+          <h2>⚔️ NPM vs NPX</h2>
+
+          <div class="analogy">
+            <h3>🧠 Analogy: Owning vs Borrowing Tools</h3>
+            <p>
+              Imagine you need a tool to fix something at home.
+              <strong>npm</strong> is like <em>buying and keeping</em> that tool
+              in your toolbox 🧰, while <strong>npx</strong> is like
+              <em>borrowing it just for one job</em> and returning it afterward
+              🔧.
+            </p>
+          </div>
+
+          <h3 style="margin-bottom: 15px">1️⃣ What is NPM?</h3>
+          <p>
+            <strong>npm (Node Package Manager)</strong> installs and manages
+            packages for your project. It downloads the code into your local
+            <code>node_modules</code> folder and records it in
+            <code>package.json</code>.
+          </p>
+
+          <pre><span class="comment"># Install a package permanently into your project</span>
+<span class="command">npm install express</span>
+
+<span class="comment"># Install a package globally (available everywhere)</span>
+<span class="command">npm install -g nodemon</span></pre>
+
+          <div class="info-box">
+            <h4>🧩 npm in short:</h4>
+            <ul>
+              <li>Installs and saves packages to your project</li>
+              <li>
+                Maintains <code>package.json</code> and
+                <code>node_modules</code>
+              </li>
+              <li>Used for project dependencies</li>
+            </ul>
+          </div>
+
+          <h3 style="margin-top: 30px; margin-bottom: 15px">2️⃣ What is NPX?</h3>
+          <p>
+            <strong>npx</strong> comes with npm (since v5.2+) and lets you
+            <strong
+              >run Node.js packages without installing them permanently</strong
+            >. It’s commonly used for one-time commands or project generators.
+          </p>
+
+          <pre><span class="comment"># Run create-react-app temporarily (without installing it globally)</span>
+<span class="command">npx create-react-app my-app</span>
+
+<span class="comment"># Run eslint directly without installing</span>
+<span class="command">npx eslint .</span></pre>
+
+          <div class="info-box">
+            <h4>⚙️ npx in short:</h4>
+            <ul>
+              <li>Executes packages directly from the npm registry</li>
+              <li>Does not permanently install the package</li>
+              <li>Great for scaffolding or CLI utilities</li>
+            </ul>
+          </div>
+
+          <div class="warning-box">
+            <h4>⚠️ Key Differences</h4>
+            <ul>
+              <li>
+                <strong>npm install</strong> → installs a package (stores it in
+                <code>node_modules</code>)
+              </li>
+              <li>
+                <strong>npx</strong> → runs a package directly, no permanent
+                installation
+              </li>
+              <li>
+                <strong>npm</strong> → good for dependencies you’ll reuse often
+              </li>
+              <li>
+                <strong>npx</strong> → good for one-time or temporary tasks
+              </li>
+            </ul>
+          </div>
+
+          <div class="interactive-demo">
+            <h3 style="margin-bottom: 15px">🎮 Interactive Comparison</h3>
+            <button class="demo-button" onclick="showNpmNpx('npm')">
+              Run npm install
+            </button>
+            <button class="demo-button" onclick="showNpmNpx('npx')">
+              Run npx create-app
+            </button>
+            <div id="npmNpxOutput" class="output">
+              Click a button to see what happens...
+            </div>
+          </div>
+        </div>
+
+        <script>
+          function showNpmNpx(type) {
+            const out = document.getElementById("npmNpxOutput");
+            if (type === "npm") {
+              out.innerHTML = `
+                <div style="color: #22c55e;">📦 Running: npm install express</div>
+                <div>Downloading express...</div>
+                <div>Added 50 packages to ./node_modules</div>
+                <div style="margin-top:10px;">✅ Installed permanently and listed in package.json</div>
+            `;
+            } else {
+              out.innerHTML = `
+                <div style="color: #3b82f6;">⚙️ Running: npx create-react-app myApp</div>
+                <div>Downloading temporary CLI...</div>
+                <div>Creating new project folder...</div>
+                <div style="margin-top:10px;">✅ Ran once — no permanent installation</div>
+            `;
+            }
+          }
+        </script>
+
+        <!-- Package-lock.json Section -->
+        <div class="section">
+          <h2>🔒 Understanding package-lock.json</h2>
+
+          <div class="analogy">
+            <h3>🎯 Analogy: Taking a Snapshot</h3>
+            <p>
+              If <strong>package.json</strong> is like a shopping list with
+              items like "milk" and "bread",
+              <strong>package-lock.json</strong> is like taking a photo of the
+              exact products you bought - the specific brand, store, and batch
+              number. This ensures everyone on your team gets the
+              <em>exact same</em> items, not just similar ones.
+            </p>
+          </div>
+
+          <div class="info-box">
+            <h4>What is package-lock.json?</h4>
+            <p>
+              It's an automatically generated file that locks down the exact
+              versions of all packages (including nested dependencies) that were
+              installed. This ensures consistency across different environments
+              and team members.
+            </p>
+            <ul>
+              <li>Records the exact version of every installed package</li>
+              <li>Maps the entire dependency tree</li>
+              <li>Should be committed to version control</li>
+              <li>Ensures reproducible builds</li>
+            </ul>
+          </div>
+
+          <div class="warning-box">
+            <h4>⚠️ Important Notes</h4>
+            <ul>
+              <li>Never manually edit package-lock.json</li>
+              <li>Always commit it to your repository</li>
+              <li>
+                If you see conflicts, delete it and run
+                <code>npm install</code> again
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- node_modules Section -->
+        <div class="section">
+          <h2>📁 The node_modules Folder</h2>
+
+          <div class="analogy">
+            <h3>📚 Analogy: Library</h3>
+            <p>
+              <strong>node_modules</strong> is like a personal library that npm
+              builds for your project. It contains all the books (packages) you
+              need, plus all the books that those books reference. It can get
+              huge, but you don't need to share it with others - they can build
+              their own library from your package.json "library card catalog".
+            </p>
+          </div>
+
+          <div class="info-box">
+            <h4>Key Points about node_modules</h4>
+            <ul>
+              <li>Contains all installed packages and their dependencies</li>
+              <li>Can be very large (often gigabytes)</li>
+              <li>
+                Should be added to .gitignore (never commit to version control)
+              </li>
+              <li>Can be recreated anytime with <code>npm install</code></li>
+              <li>Each project has its own node_modules folder</li>
+            </ul>
+          </div>
+
+          <h3 style="margin-top: 30px; margin-bottom: 15px">
+            Cleaning node_modules
+          </h3>
+
+          <pre><span class="comment"># Remove node_modules and reinstall</span>
+<span class="command">rm -rf node_modules</span>
+<span class="command">npm install</span>
+
+<span class="comment"># Clean npm cache (if having issues)</span>
+<span class="command">npm cache clean --force</span></pre>
+        </div>
+
+        <!-- NPM Scripts Section -->
+        <div class="section">
+          <h2>⚙️ NPM Scripts</h2>
+
+          <div class="analogy">
+            <h3>🎮 Analogy: Shortcut Keys</h3>
+            <p>
+              NPM scripts are like creating keyboard shortcuts for complex
+              commands. Instead of typing
+              <code
+                >node ./src/server/index.js --port 3000 --env development</code
+              >
+              every time, you create a shortcut: <code>npm start</code>.
+            </p>
+          </div>
+
+          <h3 style="margin-bottom: 15px">Common NPM Scripts</h3>
+
+          <pre>{
+  <span class="string">"scripts"</span>: {
+    <span class="comment">// Start the application</span>
+    <span class="string">"start"</span>: <span class="string">"node index.js"</span>,
+    
+    <span class="comment">// Development with auto-restart</span>
+    <span class="string">"dev"</span>: <span class="string">"nodemon index.js"</span>,
+    
+    <span class="comment">// Run tests</span>
+    <span class="string">"test"</span>: <span class="string">"jest"</span>,
+    
+    <span class="comment">// Build for production</span>
+    <span class="string">"build"</span>: <span class="string">"webpack --mode production"</span>,
+    
+    <span class="comment">// Linting</span>
+    <span class="string">"lint"</span>: <span class="string">"eslint ."</span>,
+    
+    <span class="comment">// Run multiple commands</span>
+    <span class="string">"prepare"</span>: <span class="string">"npm run build && npm run test"</span>
+  }
+}</pre>
+
+          <h3 style="margin-top: 30px; margin-bottom: 15px">Running Scripts</h3>
+
+          <pre><span class="comment"># Standard scripts (no 'run' needed)</span>
+<span class="command">npm start</span>
+<span class="command">npm test</span>
+
+<span class="comment"># Custom scripts (need 'run')</span>
+<span class="command">npm run dev</span>
+<span class="command">npm run build</span>
+<span class="command">npm run lint</span></pre>
+        </div>
+
+        <!-- Interactive Demo Section -->
+        <div class="section">
+          <h2>🎮 Interactive Demo</h2>
+          <p style="margin-bottom: 20px">
+            Click the buttons to see simulated package management commands in
+            action!
+          </p>
+
+          <div class="interactive-demo">
+            <h3 style="margin-bottom: 15px">Package Manager Simulator</h3>
+            <button class="demo-button" onclick="simulateInstall()">
+              npm install express
+            </button>
+            <button class="demo-button" onclick="simulateList()">
+              npm list --depth=0
+            </button>
+            <button class="demo-button" onclick="simulateUpdate()">
+              npm update
+            </button>
+            <button class="demo-button" onclick="simulateUninstall()">
+              npm uninstall express
+            </button>
+            <button class="demo-button" onclick="clearOutput()">
+              Clear Output
+            </button>
+
+            <div id="demo-output" class="output">Ready to run commands...</div>
+          </div>
+        </div>
+
+        <!-- Best Practices Section -->
+        <div class="section">
+          <h2>✅ Best Practices</h2>
+
+          <ul style="line-height: 2; margin-left: 20px">
+            <li>
+              <strong>Always commit package.json and package-lock.json</strong>
+              to version control
+            </li>
+            <li>
+              <strong>Never commit node_modules</strong> - add it to .gitignore
+            </li>
+            <li>
+              <strong>Use semantic versioning</strong> carefully (^, ~, or exact
+              versions)
+            </li>
+            <li>
+              <strong>Regularly update</strong> packages for security patches
+            </li>
+            <li><strong>Use npm audit</strong> to check for vulnerabilities</li>
+            <li>
+              <strong>Keep devDependencies separate</strong> from production
+              dependencies
+            </li>
+            <li><strong>Document custom scripts</strong> in your README</li>
+            <li>
+              <strong>Use .npmrc</strong> file for project-specific npm
+              configuration
+            </li>
+          </ul>
+
+          <h3 style="margin-top: 30px; margin-bottom: 15px">
+            Security Commands
+          </h3>
+
+          <pre><span class="comment"># Check for security vulnerabilities</span>
+<span class="command">npm audit</span>
+
+<span class="comment"># Automatically fix vulnerabilities</span>
+<span class="command">npm audit fix</span>
+
+<span class="comment"># Force fix (may introduce breaking changes)</span>
+<span class="command">npm audit fix --force</span></pre>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function showTab(tabId) {
+        // Hide all tab contents
+        const contents = document.querySelectorAll(".tab-content");
+        contents.forEach((content) => content.classList.remove("active"));
+
+        // Remove active class from all tabs
+        const tabs = document.querySelectorAll(".tab");
+        tabs.forEach((tab) => tab.classList.remove("active"));
+
+        // Show selected tab content
+        document.getElementById(tabId).classList.add("active");
+
+        // Add active class to clicked tab
+        event.target.classList.add("active");
+      }
+
+      const packages = {
+        express: { installed: false, version: "4.18.2" },
+        lodash: { installed: false, version: "4.17.21" },
+        mongoose: { installed: false, version: "7.0.3" },
+      };
+
+      function simulateInstall() {
+        const output = document.getElementById("demo-output");
+        packages.express.installed = true;
+        output.innerHTML = `
+                <div style="color: #22c55e;">✓ Installing express@${packages.express.version}</div>
+                <div>+ express@${packages.express.version}</div>
+                <div>added 50 packages, and audited 51 packages in 2s</div>
+                <div style="margin-top: 10px;">Package installed successfully!</div>
+            `;
+      }
+
+      function simulateList() {
+        const output = document.getElementById("demo-output");
+        let list = "my-project@1.0.0\n";
+        for (const [name, data] of Object.entries(packages)) {
+          if (data.installed) {
+            list += `├── ${name}@${data.version}\n`;
+          }
+        }
+        if (list === "my-project@1.0.0\n") {
+          list += "└── (empty - no packages installed)";
+        }
+        output.innerHTML = `<pre style="margin: 0; background: transparent; padding: 0;">${list}</pre>`;
+      }
+
+      function simulateUpdate() {
+        const output = document.getElementById("demo-output");
+        output.innerHTML = `
+                <div style="color: #3b82f6;">Checking for updates...</div>
+                <div style="color: #22c55e;">✓ All packages are up to date!</div>
+                <div style="margin-top: 10px;">Updated 0 packages in 1.2s</div>
+            `;
+      }
+
+      function simulateUninstall() {
+        const output = document.getElementById("demo-output");
+        if (packages.express.installed) {
+          packages.express.installed = false;
+          output.innerHTML = `
+                    <div style="color: #ef4444;">- Removing express@${packages.express.version}</div>
+                    <div>removed 50 packages in 1s</div>
+                    <div style="margin-top: 10px;">Package uninstalled successfully!</div>
+                `;
+        } else {
+          output.innerHTML = `
+                    <div style="color: #f59e0b;">⚠ Package 'express' not found</div>
+                    <div>Install it first using 'npm install express'</div>
+                `;
+        }
+      }
+
+      function clearOutput() {
+        document.getElementById("demo-output").innerHTML =
+          "Ready to run commands...";
+      }
+    </script>
+  </body>
+</html>

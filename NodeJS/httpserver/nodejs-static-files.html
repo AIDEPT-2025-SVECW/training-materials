@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Serving Static Files with Node.js</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+            padding: 30px;
+            background: #f7fafc;
+            border-radius: 10px;
+            border-left: 5px solid #667eea;
+        }
+        
+        .section h2 {
+            color: #2d3748;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+        
+        .analogy {
+            background: #fff5e6;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #ff9800;
+            margin: 20px 0;
+        }
+        
+        .analogy h3 {
+            color: #e65100;
+            margin-bottom: 10px;
+        }
+        
+        pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            margin: 15px 0;
+        }
+        
+        .keyword { color: #c792ea; }
+        .string { color: #c3e88d; }
+        .function { color: #82aaff; }
+        .comment { color: #546e7a; }
+        .number { color: #f78c6c; }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .tab {
+            padding: 12px 24px;
+            background: #e2e8f0;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+        
+        .tab:hover {
+            background: #cbd5e0;
+            transform: translateY(-2px);
+        }
+        
+        .tab.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .highlight {
+            background: #fef3c7;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: 600;
+        }
+        
+        .note {
+            background: #e0f2fe;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #0284c7;
+            margin: 15px 0;
+        }
+        
+        .note strong {
+            color: #0369a1;
+        }
+        
+        ul {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+        
+        li {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 Serving Static Files with Node.js</h1>
+            <p>Master the art of delivering files like HTML, CSS, JS, and images to browsers</p>
+        </header>
+        
+        <div class="content">
+            <!-- Introduction Section -->
+            <div class="section">
+                <h2>📚 What Are Static Files?</h2>
+                <p>Static files are files that <span class="highlight">don't change</span> when served to different users. They're delivered exactly as stored on the server:</p>
+                <ul>
+                    <li><strong>HTML files</strong> - Your web pages</li>
+                    <li><strong>CSS files</strong> - Styling and design</li>
+                    <li><strong>JavaScript files</strong> - Client-side logic</li>
+                    <li><strong>Images</strong> (PNG, JPG, SVG) - Visual content</li>
+                    <li><strong>Fonts, Videos, PDFs</strong> - Other media</li>
+                </ul>
+                
+                <div class="analogy">
+                    <h3>🎯 Real-World Analogy: The Library</h3>
+                    <p>Think of Node.js as a <strong>librarian</strong> and your server as a <strong>library</strong>. When someone (a browser) asks for a book (a file), the librarian finds it on the shelf (file system) and hands it over unchanged. The librarian doesn't rewrite the book for each reader—everyone gets the same content!</p>
+                </div>
+            </div>
+            
+            <!-- Methods Section -->
+            <div class="section">
+                <h2>🛠️ Methods to Serve Static Files</h2>
+                
+                <div class="tabs">
+                    <button class="tab active" onclick="switchTab('basic')">Basic HTTP Module</button>
+                    <button class="tab" onclick="switchTab('fs')">Using fs Module</button>
+                    <button class="tab" onclick="switchTab('express')">Express.js (Easiest)</button>
+                </div>
+                
+                <!-- Basic HTTP Tab -->
+                <div id="basic" class="tab-content active">
+                    <h3>Method 1: Basic HTTP Server</h3>
+                    <p>The most fundamental way—manually reading and serving files.</p>
+                    
+                    <pre><span class="keyword">const</span> http = <span class="function">require</span>(<span class="string">'http'</span>);
+<span class="keyword">const</span> fs = <span class="function">require</span>(<span class="string">'fs'</span>);
+<span class="keyword">const</span> path = <span class="function">require</span>(<span class="string">'path'</span>);
+
+<span class="keyword">const</span> server = http.<span class="function">createServer</span>((req, res) => {
+    <span class="comment">// Construct file path</span>
+    <span class="keyword">let</span> filePath = path.<span class="function">join</span>(__dirname, <span class="string">'public'</span>, req.url === <span class="string">'/'</span> ? <span class="string">'index.html'</span> : req.url);
+    
+    <span class="comment">// Get file extension</span>
+    <span class="keyword">const</span> extname = path.<span class="function">extname</span>(filePath);
+    
+    <span class="comment">// Set content type based on file extension</span>
+    <span class="keyword">let</span> contentType = <span class="string">'text/html'</span>;
+    <span class="keyword">switch</span> (extname) {
+        <span class="keyword">case</span> <span class="string">'.css'</span>: contentType = <span class="string">'text/css'</span>; <span class="keyword">break</span>;
+        <span class="keyword">case</span> <span class="string">'.js'</span>: contentType = <span class="string">'text/javascript'</span>; <span class="keyword">break</span>;
+        <span class="keyword">case</span> <span class="string">'.json'</span>: contentType = <span class="string">'application/json'</span>; <span class="keyword">break</span>;
+        <span class="keyword">case</span> <span class="string">'.png'</span>: contentType = <span class="string">'image/png'</span>; <span class="keyword">break</span>;
+        <span class="keyword">case</span> <span class="string">'.jpg'</span>: contentType = <span class="string">'image/jpg'</span>; <span class="keyword">break</span>;
+    }
+    
+    <span class="comment">// Read and serve the file</span>
+    fs.<span class="function">readFile</span>(filePath, (err, content) => {
+        <span class="keyword">if</span> (err) {
+            <span class="keyword">if</span> (err.code === <span class="string">'ENOENT'</span>) {
+                <span class="comment">// File not found</span>
+                res.<span class="function">writeHead</span>(<span class="number">404</span>, { <span class="string">'Content-Type'</span>: <span class="string">'text/html'</span> });
+                res.<span class="function">end</span>(<span class="string">'&lt;h1&gt;404 - File Not Found&lt;/h1&gt;'</span>);
+            }
+        } <span class="keyword">else</span> {
+            <span class="comment">// Success!</span>
+            res.<span class="function">writeHead</span>(<span class="number">200</span>, { <span class="string">'Content-Type'</span>: contentType });
+            res.<span class="function">end</span>(content);
+        }
+    });
+});
+
+server.<span class="function">listen</span>(<span class="number">3000</span>, () => console.<span class="function">log</span>(<span class="string">'Server running on port 3000'</span>));</pre>
+                    
+                    <div class="note">
+                        <strong>Key Concepts:</strong>
+                        <ul>
+                            <li><strong>Content-Type header</strong>: Tells the browser what type of file it's receiving</li>
+                            <li><strong>fs.readFile()</strong>: Reads the entire file into memory</li>
+                            <li><strong>Error handling</strong>: Important for 404 errors</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- FS Module Tab -->
+                <div id="fs" class="tab-content">
+                    <h3>Method 2: Using fs.createReadStream (Better Performance)</h3>
+                    <p>For larger files, streaming is more efficient than reading the entire file at once.</p>
+                    
+                    <pre><span class="keyword">const</span> http = <span class="function">require</span>(<span class="string">'http'</span>);
+<span class="keyword">const</span> fs = <span class="function">require</span>(<span class="string">'fs'</span>);
+<span class="keyword">const</span> path = <span class="function">require</span>(<span class="string">'path'</span>);
+
+<span class="keyword">const</span> server = http.<span class="function">createServer</span>((req, res) => {
+    <span class="keyword">const</span> filePath = path.<span class="function">join</span>(__dirname, <span class="string">'public'</span>, req.url === <span class="string">'/'</span> ? <span class="string">'index.html'</span> : req.url);
+    
+    <span class="comment">// Check if file exists</span>
+    fs.<span class="function">access</span>(filePath, fs.constants.F_OK, (err) => {
+        <span class="keyword">if</span> (err) {
+            res.<span class="function">writeHead</span>(<span class="number">404</span>);
+            res.<span class="function">end</span>(<span class="string">'File not found'</span>);
+            <span class="keyword">return</span>;
+        }
+        
+        <span class="comment">// Create a read stream - sends data in chunks</span>
+        <span class="keyword">const</span> readStream = fs.<span class="function">createReadStream</span>(filePath);
+        
+        res.<span class="function">writeHead</span>(<span class="number">200</span>);
+        
+        <span class="comment">// Pipe the file directly to the response</span>
+        readStream.<span class="function">pipe</span>(res);
+        
+        <span class="comment">// Handle stream errors</span>
+        readStream.<span class="function">on</span>(<span class="string">'error'</span>, (error) => {
+            res.<span class="function">writeHead</span>(<span class="number">500</span>);
+            res.<span class="function">end</span>(<span class="string">'Server error'</span>);
+        });
+    });
+});
+
+server.<span class="function">listen</span>(<span class="number">3000</span>);</pre>
+                    
+                    <div class="analogy">
+                        <h3>💧 Streaming Analogy: The Water Pipe</h3>
+                        <p>Instead of filling a huge bucket (memory) with all the water (file data) before pouring it out, streaming is like connecting a pipe directly from the source to the destination. Water flows continuously in small amounts—much more efficient for large volumes!</p>
+                    </div>
+                </div>
+                
+                <!-- Express Tab -->
+                <div id="express" class="tab-content">
+                    <h3>Method 3: Express.js (Recommended for Production)</h3>
+                    <p>Express provides a simple, one-line solution with built-in optimizations.</p>
+                    
+                    <pre><span class="comment">// First install: npm install express</span>
+
+<span class="keyword">const</span> express = <span class="function">require</span>(<span class="string">'express'</span>);
+<span class="keyword">const</span> path = <span class="function">require</span>(<span class="string">'path'</span>);
+
+<span class="keyword">const</span> app = <span class="function">express</span>();
+
+<span class="comment">// Magic line! Serves all files in 'public' directory</span>
+app.<span class="function">use</span>(express.<span class="function">static</span>(path.<span class="function">join</span>(__dirname, <span class="string">'public'</span>)));
+
+<span class="comment">// Optional: Set cache control headers</span>
+app.<span class="function">use</span>(express.<span class="function">static</span>(<span class="string">'public'</span>, {
+    maxAge: <span class="string">'1d'</span>,  <span class="comment">// Cache for 1 day</span>
+    etag: <span class="keyword">true</span>,     <span class="comment">// Enable ETag for caching</span>
+    index: <span class="string">'index.html'</span>  <span class="comment">// Default file</span>
+}));
+
+<span class="comment">// Fallback route for SPA (Single Page Applications)</span>
+app.<span class="function">get</span>(<span class="string">'*'</span>, (req, res) => {
+    res.<span class="function">sendFile</span>(path.<span class="function">join</span>(__dirname, <span class="string">'public'</span>, <span class="string">'index.html'</span>));
+});
+
+app.<span class="function">listen</span>(<span class="number">3000</span>, () => {
+    console.<span class="function">log</span>(<span class="string">'Express server running on http://localhost:3000'</span>);
+});</pre>
+                    
+                    <div class="note">
+                        <strong>Why Express is Better:</strong>
+                        <ul>
+                            <li>✅ Automatic content-type detection</li>
+                            <li>✅ Built-in error handling</li>
+                            <li>✅ Caching headers management</li>
+                            <li>✅ Range requests for video streaming</li>
+                            <li>✅ ETag support for efficient caching</li>
+                            <li>✅ Security features like path traversal prevention</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Project Structure Section -->
+            <div class="section">
+                <h2>📁 Typical Project Structure</h2>
+                <pre>my-project/
+│
+├── server.js          <span class="comment">// Your Node.js server file</span>
+├── package.json       <span class="comment">// Project dependencies</span>
+│
+└── public/            <span class="comment">// Static files directory</span>
+    ├── index.html
+    ├── about.html
+    │
+    ├── css/
+    │   └── style.css
+    │
+    ├── js/
+    │   └── app.js
+    │
+    └── images/
+        ├── logo.png
+        └── banner.jpg</pre>
+                
+                <p><strong>How it works:</strong> When a browser requests <code>http://localhost:3000/css/style.css</code>, Node.js serves the file from <code>public/css/style.css</code></p>
+            </div>
+            
+            <!-- Best Practices Section -->
+            <div class="section">
+                <h2>⚡ Best Practices & Tips</h2>
+                
+                <h3>1. Always Use Path Module</h3>
+                <pre><span class="comment">// ❌ BAD - Can cause issues on different operating systems</span>
+<span class="keyword">const</span> filePath = __dirname + <span class="string">'/public/'</span> + req.url;
+
+<span class="comment">// ✅ GOOD - Cross-platform compatible</span>
+<span class="keyword">const</span> filePath = path.<span class="function">join</span>(__dirname, <span class="string">'public'</span>, req.url);</pre>
+                
+                <h3>2. Set Proper MIME Types</h3>
+                <p>MIME types tell the browser how to handle the file:</p>
+                <pre><span class="keyword">const</span> mimeTypes = {
+    <span class="string">'.html'</span>: <span class="string">'text/html'</span>,
+    <span class="string">'.css'</span>: <span class="string">'text/css'</span>,
+    <span class="string">'.js'</span>: <span class="string">'text/javascript'</span>,
+    <span class="string">'.json'</span>: <span class="string">'application/json'</span>,
+    <span class="string">'.png'</span>: <span class="string">'image/png'</span>,
+    <span class="string">'.jpg'</span>: <span class="string">'image/jpeg'</span>,
+    <span class="string">'.gif'</span>: <span class="string">'image/gif'</span>,
+    <span class="string">'.svg'</span>: <span class="string">'image/svg+xml'</span>,
+    <span class="string">'.ico'</span>: <span class="string">'image/x-icon'</span>,
+    <span class="string">'.pdf'</span>: <span class="string">'application/pdf'</span>
+};</pre>
+                
+                <h3>3. Implement Caching</h3>
+                <pre><span class="comment">// Tell browsers to cache static files for 1 week</span>
+res.<span class="function">setHeader</span>(<span class="string">'Cache-Control'</span>, <span class="string">'public, max-age=604800'</span>);</pre>
+                
+                <h3>4. Security: Prevent Directory Traversal</h3>
+                <pre><span class="comment">// ❌ DANGEROUS - Could access files outside public directory</span>
+<span class="comment">// URL: ../../../etc/passwd</span>
+
+<span class="comment">// ✅ SAFE - Validate paths</span>
+<span class="keyword">const</span> safePath = path.<span class="function">normalize</span>(filePath).<span class="function">replace</span>(<span class="keyword">/..</span>/g, <span class="string">''</span>);
+<span class="keyword">if</span> (!safePath.<span class="function">startsWith</span>(__dirname)) {
+    res.<span class="function">writeHead</span>(<span class="number">403</span>);
+    res.<span class="function">end</span>(<span class="string">'Forbidden'</span>);
+}</pre>
+            </div>
+            
+            <!-- Summary Section -->
+            <div class="section">
+                <h2>🎓 Summary</h2>
+                <p><strong>Serving static files in Node.js means:</strong></p>
+                <ul>
+                    <li>Reading files from your server's file system</li>
+                    <li>Sending them to the browser with the correct content type</li>
+                    <li>Handling errors gracefully (404, 500, etc.)</li>
+                    <li>Optimizing delivery with caching and streaming</li>
+                </ul>
+                
+                <div class="analogy">
+                    <h3>🏪 The Complete Picture: Running a Store</h3>
+                    <p><strong>Node.js Server</strong> = Store Owner<br>
+                    <strong>Static Files</strong> = Products on shelves<br>
+                    <strong>Browser Request</strong> = Customer asking for a product<br>
+                    <strong>Content-Type</strong> = Product label (so customer knows what it is)<br>
+                    <strong>Express.static()</strong> = Automated checkout system (makes everything easier!)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function switchTab(tabId) {
+            // Hide all tab contents
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => content.classList.remove('active'));
+            
+            // Remove active class from all tabs
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Show selected tab content
+            document.getElementById(tabId).classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>

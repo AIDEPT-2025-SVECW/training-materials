@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Node.js OS Module Demo</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            border-left: 5px solid #3498db;
+        }
+        
+        .section h2 {
+            color: #2c3e50;
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .analogy-box {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            border-left: 4px solid #17a2b8;
+            position: relative;
+        }
+        
+        .analogy-box::before {
+            content: "💡";
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 1.5rem;
+        }
+        
+        .analogy-box h3 {
+            color: #17a2b8;
+            margin-bottom: 10px;
+        }
+        
+        pre {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin: 15px 0;
+            border: 1px solid #333;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .method-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            border: 1px solid #dee2e6;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .method-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .method-card h3 {
+            color: #495057;
+            margin-bottom: 10px;
+            font-size: 1.3rem;
+        }
+        
+        .demo-button {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+        
+        .demo-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+        
+        .output {
+            background: #263238;
+            color: #4fc3f7;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-family: 'Consolas', monospace;
+            border-left: 4px solid #4fc3f7;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            color: #856404;
+        }
+        
+        .tab-container {
+            display: flex;
+            border-bottom: 2px solid #dee2e6;
+            margin-bottom: 20px;
+        }
+        
+        .tab {
+            padding: 12px 25px;
+            background: #f8f9fa;
+            border: none;
+            cursor: pointer;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            margin-right: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .tab.active {
+            background: #3498db;
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .highlight {
+            background: linear-gradient(120deg, #a8e6cf 0%, #dcedc8 100%);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🖥️ Node.js OS Module</h1>
+            <p>Exploring System Information with Interactive Examples</p>
+        </div>
+        
+        <div class="content">
+            <div class="section">
+                <h2>📖 What is the OS Module?</h2>
+                <p>The Node.js <span class="highlight">OS module</span> is like having a friendly interpreter who can tell you everything about the computer your Node.js application is running on. Just like how you might ask someone "What kind of phone do you have?" or "How much battery do you have left?", the OS module lets your code ask the computer similar questions.</p>
+                
+                <div class="analogy-box">
+                    <h3>Real-World Analogy</h3>
+                    <p>Imagine the OS module as a <strong>computer health inspector</strong>. Just like a health inspector can tell you about a restaurant's kitchen conditions, staff, and equipment, the OS module can tell you about your computer's operating system, memory, CPU, and other vital statistics. It's your application's way of understanding its environment!</p>
+                </div>
+                
+                <pre>// Basic import of OS module
+const os = require('os');
+
+// The OS module is built into Node.js
+// No need to install it separately!</pre>
+                
+                <div class="warning">
+                    <strong>⚠️ Browser Limitation:</strong> Since we're running this demo in a browser, we can't actually use the real Node.js OS module. Instead, we'll simulate its functionality to show you how it works!
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>🛠️ Key OS Module Methods</h2>
+                
+                <div class="tab-container">
+                    <button class="tab active" onclick="switchTab('basic')">Basic Info</button>
+                    <button class="tab" onclick="switchTab('memory')">Memory & CPU</button>
+                    <button class="tab" onclick="switchTab('network')">Network & User</button>
+                    <button class="tab" onclick="switchTab('paths')">Paths & Platform</button>
+                </div>
+                
+                <div id="basic" class="tab-content active">
+                    <div class="method-card">
+                        <h3>os.platform() - Operating System Type</h3>
+                        <p>This method tells you what type of operating system is running, like asking "Are you Windows, Mac, or Linux?"</p>
+                        <pre>const os = require('os');
+
+console.log('Platform:', os.platform());
+// Possible outputs: 'win32', 'darwin', 'linux', 'freebsd', etc.</pre>
+                        <button class="demo-button" onclick="demoMethod('platform')">Try os.platform()</button>
+                        <div id="output-platform" class="output" style="display:none;"></div>
+                    </div>
+                    
+                    <div class="method-card">
+                        <h3>os.arch() - CPU Architecture</h3>
+                        <p>Tells you the CPU architecture, like asking "Are you built for 32-bit or 64-bit processors?"</p>
+                        <pre>console.log('Architecture:', os.arch());
+// Common outputs: 'x64', 'arm', 'arm64', 'ia32'</pre>
+                        <button class="demo-button" onclick="demoMethod('arch')">Try os.arch()</button>
+                        <div id="output-arch" class="output" style="display:none;"></div>
+                    </div>
+                    
+                    <div class="method-card">
+                        <h3>os.release() - OS Version</h3>
+                        <p>Gets the operating system release version, like asking "What version are you running?"</p>
+                        <pre>console.log('OS Release:', os.release());
+// Example output: '10.0.19041' (Windows 10)</pre>
+                        <button class="demo-button" onclick="demoMethod('release')">Try os.release()</button>
+                        <div id="output-release" class="output" style="display:none;"></div>
+                    </div>
+                </div>
+                
+                <div id="memory" class="tab-content">
+                    <div class="method-card">
+                        <h3>os.totalmem() - Total Memory</h3>
+                        <p>Returns total system memory in bytes. Think of it as asking "How much RAM does this computer have in total?"</p>
+                        <pre>const totalMemory = os.totalmem();
+console.log('Total Memory:', Math.round(totalMemory / 1024 / 1024 / 1024), 'GB');
+// Converts bytes to gigabytes for easier reading</pre>
+                        <button class="demo-button" onclick="demoMethod('totalmem')">Try os.totalmem()</button>
+                        <div id="output-totalmem" class="output" style="display:none;"></div>
+                    </div>
+                    
+                    <div class="method-card">
+                        <h3>os.freemem() - Available Memory</h3>
+                        <p>Shows how much memory is currently available, like checking "How much RAM is free right now?"</p>
+                        <pre>const freeMemory = os.freemem();
+const totalMemory = os.totalmem();
+const usedPercent = ((totalMemory - freeMemory) / totalMemory * 100).toFixed(1);
+
+console.log('Free Memory:', Math.round(freeMemory / 1024 / 1024), 'MB');
+console.log('Memory Usage:', usedPercent + '%');</pre>
+                        <button class="demo-button" onclick="demoMethod('freemem')">Try os.freemem()</button>
+                        <div id="output-freemem" class="output" style="display:none;"></div>
+                    </div>
+                    
+                    <div class="method-card">
+                        <h3>os.cpus() - CPU Information</h3>
+                        <p>Returns detailed information about each CPU core, like getting a full report card for your processor.</p>
+                        <pre>const cpus = os.cpus();
+console.log('Number of CPU cores:', cpus.length);
+console.log('First CPU details:', {
+    model: cpus[0].model,
+    speed: cpus[0].speed + ' MHz'
+});</pre>
+                        <button class="demo-button" onclick="demoMethod('cpus')">Try os.cpus()</button>
+                        <div id="output-cpus" class="output" style="display:none;"></div>
+                    </div>
+                </div>
+                
+                <div id="network" class="tab-content">
+                    <div class="method-card">
+                        <h3>os.networkInterfaces() - Network Adapters</h3>
+                        <p>Lists all network interfaces, like asking "What are all the ways this computer can connect to networks?"</p>
+                        <pre>const interfaces = os.networkInterfaces();
+Object.keys(interfaces).forEach(name => {
+    console.log(`Interface: ${name}`);
+    interfaces[name].forEach(info => {
+        if (info.family === 'IPv4' && !info.internal) {
+            console.log(`  IP Address: ${info.address}`);
+        }
+    });
+});</pre>
+                        <button class="demo-button" onclick="demoMethod('networkInterfaces')">Try os.networkInterfaces()</button>
+                        <div id="output-networkInterfaces" class="output" style="display:none;"></div>
+                    </div>
+                    
+                    <div class="method-card">
+                        <h3>os.userInfo() - Current User</h3>
+                        <p>Gets information about the currently logged-in user, like asking "Who is using this computer right now?"</p>
+                        <pre>const userInfo = os.userInfo();
+console.log('Current user:', {
+    username: userInfo.username,
+    homedir: userInfo.homedir,
+    shell: userInfo.shell
+});</pre>
+                        <button class="demo-button" onclick="demoMethod('userInfo')">Try os.userInfo()</button>
+                        <div id="output-userInfo" class="output" style="display:none;"></div>
+                    </div>
+                    
+                    <div class="method-card">
+                        <h3>os.hostname() - Computer Name</h3>
+                        <p>Returns the hostname of the computer, like asking "What's this computer's name on the network?"</p>
+                        <pre>console.log('Hostname:', os.hostname());
+// Example output: 'MyComputer' or 'server-01'</pre>
+                        <button class="demo-button" onclick="demoMethod('hostname')">Try os.hostname()</button>
+                        <div id="output-hostname" class="output" style="display:none;"></div>
+                    </div>
+                </div>
+                
+                <div id="paths" class="tab-content">
+                    <div class="method-card">
+                        <h3>os.homedir() - Home Directory</h3>
+                        <p>Returns the path to the current user's home directory, like asking "Where is my personal folder?"</p>
+                        <pre>console.log('Home directory:', os.homedir());
+// Windows: 'C:\\Users\\username'
+// macOS/Linux: '/home/username' or '/Users/username'</pre>
+                        <button class="demo-button" onclick="demoMethod('homedir')">Try os.homedir()</button>
+                        <div id="output-homedir" class="output" style="display:none;"></div>
+                    </div>
+                    
+                    <div class="method-card">
+                        <h3>os.tmpdir() - Temporary Directory</h3>
+                        <p>Gets the path to the temporary directory, like asking "Where should I put files that I only need briefly?"</p>
+                        <pre>console.log('Temp directory:', os.tmpdir());
+// Windows: 'C:\\Users\\username\\AppData\\Local\\Temp'
+// macOS/Linux: '/tmp'</pre>
+                        <button class="demo-button" onclick="demoMethod('tmpdir')">Try os.tmpdir()</button>
+                        <div id="output-tmpdir" class="output" style="display:none;"></div>
+                    </div>
+                    
+                    <div class="method-card">
+                        <h3>os.uptime() - System Uptime</h3>
+                        <p>Returns how long the system has been running in seconds, like asking "How long since you were last restarted?"</p>
+                        <pre>const uptime = os.uptime();
+const days = Math.floor(uptime / 86400);
+const hours = Math.floor((uptime % 86400) / 3600);
+const minutes = Math.floor((uptime % 3600) / 60);
+
+console.log(`Uptime: ${days}d ${hours}h ${minutes}m`);</pre>
+                        <button class="demo-button" onclick="demoMethod('uptime')">Try os.uptime()</button>
+                        <div id="output-uptime" class="output" style="display:none;"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>🎯 Practical Use Cases</h2>
+                <div class="method-card">
+                    <h3>System Monitoring Application</h3>
+                    <p>Create a simple system monitor that checks various system metrics:</p>
+                    <pre>const os = require('os');
+
+function getSystemStatus() {
+    const totalMem = os.totalmem();
+    const freeMem = os.freemem();
+    const usedMem = totalMem - freeMem;
+    
+    return {
+        platform: os.platform(),
+        architecture: os.arch(),
+        hostname: os.hostname(),
+        uptime: formatUptime(os.uptime()),
+        memory: {
+            total: formatBytes(totalMem),
+            used: formatBytes(usedMem),
+            free: formatBytes(freeMem),
+            usagePercent: ((usedMem / totalMem) * 100).toFixed(1)
+        },
+        cpus: os.cpus().length,
+        loadAverage: os.loadavg() // Unix-like systems only
+    };
+}
+
+function formatBytes(bytes) {
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    if (bytes === 0) return '0 B';
+    const i = Math.floor(Math.log(bytes) / Math.log(1024));
+    return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
+}
+
+function formatUptime(seconds) {
+    const days = Math.floor(seconds / 86400);
+    const hours = Math.floor((seconds % 86400) / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    return `${days}d ${hours}h ${minutes}m`;
+}
+
+// Usage
+console.log(getSystemStatus());</pre>
+                    <button class="demo-button" onclick="demoSystemStatus()">Run System Monitor</button>
+                    <div id="output-system" class="output" style="display:none;"></div>
+                </div>
+                
+                <div class="method-card">
+                    <h3>Cross-Platform Path Handling</h3>
+                    <p>Use OS module to handle paths correctly across different operating systems:</p>
+                    <pre>const os = require('os');
+const path = require('path');
+
+function getConfigPath() {
+    const platform = os.platform();
+    const homedir = os.homedir();
+    
+    switch(platform) {
+        case 'win32':
+            return path.join(homedir, 'AppData', 'Local', 'MyApp');
+        case 'darwin':
+            return path.join(homedir, 'Library', 'Application Support', 'MyApp');
+        default: // Linux and others
+            return path.join(homedir, '.config', 'MyApp');
+    }
+}
+
+console.log('Config directory:', getConfigPath());</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simulated OS data for browser demo
+        const simulatedOS = {
+            platform: 'Browser Environment (simulated)',
+            arch: navigator.platform || 'unknown',
+            release: navigator.userAgent,
+            hostname: 'demo-computer',
+            totalmem: 8 * 1024 * 1024 * 1024, // 8GB simulated
+            freemem: 3.2 * 1024 * 1024 * 1024, // 3.2GB free simulated
+            homedir: '/home/user',
+            tmpdir: '/tmp',
+            uptime: Math.floor(Date.now() / 1000) - (5 * 24 * 60 * 60), // 5 days ago
+            cpus: [
+                { model: 'Browser Virtual CPU', speed: 2400 },
+                { model: 'Browser Virtual CPU', speed: 2400 },
+                { model: 'Browser Virtual CPU', speed: 2400 },
+                { model: 'Browser Virtual CPU', speed: 2400 }
+            ],
+            userInfo: {
+                username: 'demo-user',
+                homedir: '/home/demo-user',
+                shell: '/bin/bash'
+            },
+            networkInterfaces: {
+                'WiFi': [
+                    { address: '192.168.1.100', family: 'IPv4', internal: false },
+                    { address: '::1', family: 'IPv6', internal: true }
+                ],
+                'Ethernet': [
+                    { address: '10.0.0.50', family: 'IPv4', internal: false }
+                ]
+            }
+        };
+
+        function switchTab(tabName) {
+            // Remove active class from all tabs and content
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            // Add active class to clicked tab and corresponding content
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        function demoMethod(method) {
+            const outputDiv = document.getElementById(`output-${method}`);
+            let result;
+            
+            switch(method) {
+                case 'platform':
+                    result = `Platform: ${simulatedOS.platform}`;
+                    break;
+                case 'arch':
+                    result = `Architecture: ${simulatedOS.arch}`;
+                    break;
+                case 'release':
+                    result = `OS Release: Browser Demo Version`;
+                    break;
+                case 'totalmem':
+                    const totalGB = Math.round(simulatedOS.totalmem / 1024 / 1024 / 1024);
+                    result = `Total Memory: ${totalGB} GB (${simulatedOS.totalmem.toLocaleString()} bytes)`;
+                    break;
+                case 'freemem':
+                    const freeMB = Math.round(simulatedOS.freemem / 1024 / 1024);
+                    const usedPercent = ((simulatedOS.totalmem - simulatedOS.freemem) / simulatedOS.totalmem * 100).toFixed(1);
+                    result = `Free Memory: ${freeMB} MB\nMemory Usage: ${usedPercent}%`;
+                    break;
+                case 'cpus':
+                    result = `Number of CPU cores: ${simulatedOS.cpus.length}\nFirst CPU: ${simulatedOS.cpus[0].model} @ ${simulatedOS.cpus[0].speed} MHz`;
+                    break;
+                case 'networkInterfaces':
+                    result = 'Network Interfaces:\n';
+                    Object.keys(simulatedOS.networkInterfaces).forEach(name => {
+                        result += `\n${name}:\n`;
+                        simulatedOS.networkInterfaces[name].forEach(info => {
+                            if (info.family === 'IPv4') {
+                                result += `  IP: ${info.address} (IPv4)\n`;
+                            }
+                        });
+                    });
+                    break;
+                case 'userInfo':
+                    result = `Username: ${simulatedOS.userInfo.username}\nHome Directory: ${simulatedOS.userInfo.homedir}\nShell: ${simulatedOS.userInfo.shell}`;
+                    break;
+                case 'hostname':
+                    result = `Hostname: ${simulatedOS.hostname}`;
+                    break;
+                case 'homedir':
+                    result = `Home Directory: ${simulatedOS.homedir}`;
+                    break;
+                case 'tmpdir':
+                    result = `Temporary Directory: ${simulatedOS.tmpdir}`;
+                    break;
+                case 'uptime':
+                    const uptime = Date.now() / 1000 - simulatedOS.uptime;
+                    const days = Math.floor(uptime / 86400);
+                    const hours = Math.floor((uptime % 86400) / 3600);
+                    const minutes = Math.floor((uptime % 3600) / 60);
+                    result = `System Uptime: ${days}d ${hours}h ${minutes}m\n(${Math.floor(uptime)} seconds)`;
+                    break;
+            }
+            
+            outputDiv.textContent = result;
+            outputDiv.style.display = 'block';
+        }
+
+        function demoSystemStatus() {
+            const outputDiv = document.getElementById('output-system');
+            const totalMem = simulatedOS.totalmem;
+            const freeMem = simulatedOS.freemem;
+            const usedMem = totalMem - freeMem;
+            
+            const systemStatus = {
+                platform: simulatedOS.platform,
+                architecture: simulatedOS.arch,
+                hostname: simulatedOS.hostname,
+                memory: {
+                    total: formatBytes(totalMem),
+                    used: formatBytes(usedMem),
+                    free: formatBytes(freeMem),
+                    usagePercent: ((usedMem / totalMem) * 100).toFixed(1) + '%'
+                },
+                cpus: simulatedOS.cpus.length,
+                uptime: formatUptime(Date.now() / 1000 - simulatedOS.uptime)
+            };
+            
+            outputDiv.textContent = JSON.stringify(systemStatus, null, 2);
+            outputDiv.style.display = 'block';
+        }
+
+        function formatBytes(bytes) {
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            if (bytes === 0) return '0 B';
+            const i = Math.floor(Math.log(bytes) / Math.log(1024));
+            return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        function formatUptime(seconds) {
+            const days = Math.floor(seconds / 86400);
+            const hours = Math.floor((seconds % 86400) / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            return `${days}d ${hours}h ${minutes}m`;
+        }
+    </script>
+</body>
+</html>

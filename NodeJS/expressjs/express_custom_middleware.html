@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Express.js Custom Middleware Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+            padding: 25px;
+            background: #f7fafc;
+            border-radius: 12px;
+            border-left: 5px solid #667eea;
+        }
+        
+        .section h2 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-size: 1.8em;
+        }
+        
+        .section h3 {
+            color: #4a5568;
+            margin: 20px 0 10px 0;
+            font-size: 1.3em;
+        }
+        
+        .analogy {
+            background: #fff5e6;
+            border-left: 4px solid #ff9800;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        
+        .analogy strong {
+            color: #e65100;
+            font-size: 1.1em;
+        }
+        
+        pre {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+            line-height: 1.6;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        
+        .keyword { color: #569cd6; }
+        .string { color: #ce9178; }
+        .comment { color: #6a9955; }
+        .function { color: #dcdcaa; }
+        .variable { color: #9cdcfe; }
+        
+        .interactive-section {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin: 20px 0;
+        }
+        
+        .middleware-chain {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            margin: 30px 0;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .middleware-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            min-width: 150px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            transition: transform 0.3s;
+        }
+        
+        .middleware-box:hover {
+            transform: translateY(-5px);
+        }
+        
+        .arrow {
+            font-size: 2em;
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1em;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            margin: 10px 5px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        }
+        
+        #output {
+            background: #1e1e1e;
+            color: #4ec9b0;
+            padding: 20px;
+            border-radius: 8px;
+            min-height: 100px;
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+        }
+        
+        .flow-diagram {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 6px;
+        }
+        
+        .warning-box {
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Express.js Custom Middleware</h1>
+            <p>Learn how to create and use custom middleware in Express.js</p>
+        </div>
+        
+        <div class="content">
+            <!-- What is Middleware Section -->
+            <div class="section">
+                <h2>📚 What is Middleware?</h2>
+                <p>Middleware functions are functions that have access to the <strong>request object (req)</strong>, the <strong>response object (res)</strong>, and the <strong>next middleware function</strong> in the application's request-response cycle.</p>
+                
+                <div class="analogy">
+                    <strong>🎯 Analogy:</strong>
+                    <p>Think of middleware like security checkpoints at an airport. When you travel, you go through multiple checkpoints:</p>
+                    <ul style="margin-top: 10px; padding-left: 20px;">
+                        <li><strong>Check-in Counter:</strong> Verify your ticket (Authentication middleware)</li>
+                        <li><strong>Security Scanner:</strong> Check your luggage (Validation middleware)</li>
+                        <li><strong>Passport Control:</strong> Verify your identity (Authorization middleware)</li>
+                        <li><strong>Gate:</strong> Final check before boarding (Route handler)</li>
+                    </ul>
+                    <p style="margin-top: 10px;">Each checkpoint can either let you pass to the next one (<code>next()</code>) or stop you from proceeding.</p>
+                </div>
+            </div>
+
+            <!-- Middleware Structure Section -->
+            <div class="section">
+                <h2>🏗️ Middleware Structure</h2>
+                <p>A basic middleware function has three parameters:</p>
+                
+                <pre><span class="keyword">const</span> <span class="function">myMiddleware</span> = (<span class="variable">req</span>, <span class="variable">res</span>, <span class="variable">next</span>) => {
+    <span class="comment">// req: The request object - contains info about the HTTP request</span>
+    <span class="comment">// res: The response object - used to send response back to client</span>
+    <span class="comment">// next: Function to pass control to the next middleware</span>
+    
+    <span class="comment">// Do something with request or response</span>
+    <span class="variable">console</span>.<span class="function">log</span>(<span class="string">'Middleware executed!'</span>);
+    
+    <span class="comment">// IMPORTANT: Call next() to pass control to next middleware</span>
+    <span class="function">next</span>();
+};</pre>
+
+                <div class="info-box">
+                    <strong>💡 Key Points:</strong>
+                    <ul style="margin-top: 10px; padding-left: 20px;">
+                        <li><code>req</code> - Contains data about the incoming request (body, params, headers, etc.)</li>
+                        <li><code>res</code> - Used to send responses back to the client</li>
+                        <li><code>next()</code> - MUST be called to continue to the next middleware, otherwise the request hangs</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Creating Custom Middleware Section -->
+            <div class="section">
+                <h2>⚙️ Creating Custom Middleware</h2>
+                
+                <h3>1. Simple Logging Middleware</h3>
+                <pre><span class="comment">// Logs every request to the console</span>
+<span class="keyword">const</span> <span class="function">logger</span> = (<span class="variable">req</span>, <span class="variable">res</span>, <span class="variable">next</span>) => {
+    <span class="keyword">const</span> <span class="variable">timestamp</span> = <span class="keyword">new</span> <span class="function">Date</span>().<span class="function">toISOString</span>();
+    <span class="variable">console</span>.<span class="function">log</span>(<span class="string">`[</span><span class="variable">${timestamp}</span><span class="string">] </span><span class="variable">${req.method}</span> <span class="variable">${req.url}</span><span class="string">`</span>);
+    <span class="function">next</span>(); <span class="comment">// Pass control to next middleware</span>
+};
+
+<span class="comment">// Use it in your Express app</span>
+<span class="variable">app</span>.<span class="function">use</span>(<span class="variable">logger</span>);</pre>
+
+                <h3>2. Authentication Middleware</h3>
+                <pre><span class="comment">// Checks if user is authenticated</span>
+<span class="keyword">const</span> <span class="function">requireAuth</span> = (<span class="variable">req</span>, <span class="variable">res</span>, <span class="variable">next</span>) => {
+    <span class="keyword">const</span> <span class="variable">token</span> = <span class="variable">req</span>.<span class="variable">headers</span>.<span class="variable">authorization</span>;
+    
+    <span class="keyword">if</span> (!<span class="variable">token</span>) {
+        <span class="comment">// Stop here and send error response</span>
+        <span class="keyword">return</span> <span class="variable">res</span>.<span class="function">status</span>(<span class="string">401</span>).<span class="function">json</span>({ <span class="variable">error</span>: <span class="string">'No token provided'</span> });
+    }
+    
+    <span class="comment">// Token exists, continue to next middleware</span>
+    <span class="function">next</span>();
+};
+
+<span class="comment">// Use it on specific routes</span>
+<span class="variable">app</span>.<span class="function">get</span>(<span class="string">'/protected'</span>, <span class="variable">requireAuth</span>, (<span class="variable">req</span>, <span class="variable">res</span>) => {
+    <span class="variable">res</span>.<span class="function">json</span>({ <span class="variable">message</span>: <span class="string">'You are authorized!'</span> });
+});</pre>
+
+                <h3>3. Request Validation Middleware</h3>
+                <pre><span class="comment">// Validates request body</span>
+<span class="keyword">const</span> <span class="function">validateUser</span> = (<span class="variable">req</span>, <span class="variable">res</span>, <span class="variable">next</span>) => {
+    <span class="keyword">const</span> { <span class="variable">name</span>, <span class="variable">email</span> } = <span class="variable">req</span>.<span class="variable">body</span>;
+    
+    <span class="keyword">if</span> (!<span class="variable">name</span> || !<span class="variable">email</span>) {
+        <span class="keyword">return</span> <span class="variable">res</span>.<span class="function">status</span>(<span class="string">400</span>).<span class="function">json</span>({ 
+            <span class="variable">error</span>: <span class="string">'Name and email are required'</span> 
+        });
+    }
+    
+    <span class="comment">// Validation passed, continue</span>
+    <span class="function">next</span>();
+};
+
+<span class="variable">app</span>.<span class="function">post</span>(<span class="string">'/users'</span>, <span class="variable">validateUser</span>, (<span class="variable">req</span>, <span class="variable">res</span>) => {
+    <span class="comment">// This only runs if validation passed</span>
+    <span class="variable">res</span>.<span class="function">json</span>({ <span class="variable">message</span>: <span class="string">'User created'</span> });
+});</pre>
+
+                <h3>4. Middleware with Parameters (Middleware Factory)</h3>
+                <pre><span class="comment">// Function that returns middleware with custom config</span>
+<span class="keyword">const</span> <span class="function">checkRole</span> = (<span class="variable">allowedRoles</span>) => {
+    <span class="comment">// This returns the actual middleware function</span>
+    <span class="keyword">return</span> (<span class="variable">req</span>, <span class="variable">res</span>, <span class="variable">next</span>) => {
+        <span class="keyword">const</span> <span class="variable">userRole</span> = <span class="variable">req</span>.<span class="variable">user</span>.<span class="variable">role</span>; <span class="comment">// Assume user is attached to req</span>
+        
+        <span class="keyword">if</span> (<span class="variable">allowedRoles</span>.<span class="function">includes</span>(<span class="variable">userRole</span>)) {
+            <span class="function">next</span>(); <span class="comment">// User has required role</span>
+        } <span class="keyword">else</span> {
+            <span class="variable">res</span>.<span class="function">status</span>(<span class="string">403</span>).<span class="function">json</span>({ <span class="variable">error</span>: <span class="string">'Insufficient permissions'</span> });
+        }
+    };
+};
+
+<span class="comment">// Usage:</span>
+<span class="variable">app</span>.<span class="function">delete</span>(<span class="string">'/users/:id'</span>, <span class="function">checkRole</span>([<span class="string">'admin'</span>, <span class="string">'moderator'</span>]), (<span class="variable">req</span>, <span class="variable">res</span>) => {
+    <span class="variable">res</span>.<span class="function">json</span>({ <span class="variable">message</span>: <span class="string">'User deleted'</span> });
+});</pre>
+            </div>
+
+            <!-- Middleware Flow Section -->
+            <div class="section">
+                <h2>🔄 Middleware Execution Flow</h2>
+                
+                <div class="flow-diagram">
+                    <div class="middleware-chain">
+                        <div class="middleware-box">Request</div>
+                        <div class="arrow">→</div>
+                        <div class="middleware-box">Middleware 1<br>Logger</div>
+                        <div class="arrow">→</div>
+                        <div class="middleware-box">Middleware 2<br>Auth</div>
+                        <div class="arrow">→</div>
+                        <div class="middleware-box">Middleware 3<br>Validate</div>
+                        <div class="arrow">→</div>
+                        <div class="middleware-box">Route Handler</div>
+                        <div class="arrow">→</div>
+                        <div class="middleware-box">Response</div>
+                    </div>
+                </div>
+
+                <pre><span class="comment">// Complete example showing middleware chain</span>
+<span class="keyword">const</span> <span class="variable">express</span> = <span class="function">require</span>(<span class="string">'express'</span>);
+<span class="keyword">const</span> <span class="variable">app</span> = <span class="function">express</span>();
+
+<span class="comment">// Middleware 1: Global logger (runs for ALL routes)</span>
+<span class="variable">app</span>.<span class="function">use</span>((<span class="variable">req</span>, <span class="variable">res</span>, <span class="variable">next</span>) => {
+    <span class="variable">console</span>.<span class="function">log</span>(<span class="string">'1. Logger middleware'</span>);
+    <span class="function">next</span>(); <span class="comment">// Continue to next middleware</span>
+});
+
+<span class="comment">// Middleware 2: Parse JSON body (runs for ALL routes)</span>
+<span class="variable">app</span>.<span class="function">use</span>(<span class="variable">express</span>.<span class="function">json</span>());
+
+<span class="comment">// Middleware 3: Custom auth (only for this route)</span>
+<span class="keyword">const</span> <span class="function">authMiddleware</span> = (<span class="variable">req</span>, <span class="variable">res</span>, <span class="variable">next</span>) => {
+    <span class="variable">console</span>.<span class="function">log</span>(<span class="string">'2. Auth middleware'</span>);
+    <span class="function">next</span>();
+};
+
+<span class="comment">// Route with middleware chain</span>
+<span class="variable">app</span>.<span class="function">post</span>(<span class="string">'/api/data'</span>, <span class="variable">authMiddleware</span>, (<span class="variable">req</span>, <span class="variable">res</span>) => {
+    <span class="variable">console</span>.<span class="function">log</span>(<span class="string">'3. Route handler'</span>);
+    <span class="variable">res</span>.<span class="function">json</span>({ <span class="variable">message</span>: <span class="string">'Success'</span> });
+});</pre>
+            </div>
+
+            <!-- Error Handling Middleware -->
+            <div class="section">
+                <h2>⚠️ Error Handling Middleware</h2>
+                <p>Error handling middleware has <strong>4 parameters</strong> instead of 3:</p>
+                
+                <pre><span class="comment">// Error handling middleware - MUST have 4 parameters</span>
+<span class="keyword">const</span> <span class="function">errorHandler</span> = (<span class="variable">err</span>, <span class="variable">req</span>, <span class="variable">res</span>, <span class="variable">next</span>) => {
+    <span class="variable">console</span>.<span class="function">error</span>(<span class="string">'Error occurred:'</span>, <span class="variable">err</span>.<span class="variable">message</span>);
+    
+    <span class="variable">res</span>.<span class="function">status</span>(<span class="variable">err</span>.<span class="variable">statusCode</span> || <span class="string">500</span>).<span class="function">json</span>({
+        <span class="variable">error</span>: <span class="variable">err</span>.<span class="variable">message</span> || <span class="string">'Internal Server Error'</span>
+    });
+};
+
+<span class="comment">// Use it AFTER all other middleware and routes</span>
+<span class="variable">app</span>.<span class="function">use</span>(<span class="variable">errorHandler</span>);
+
+<span class="comment">// Trigger error in route:</span>
+<span class="variable">app</span>.<span class="function">get</span>(<span class="string">'/error'</span>, (<span class="variable">req</span>, <span class="variable">res</span>, <span class="variable">next</span>) => {
+    <span class="keyword">const</span> <span class="variable">error</span> = <span class="keyword">new</span> <span class="function">Error</span>(<span class="string">'Something went wrong!'</span>);
+    <span class="variable">error</span>.<span class="variable">statusCode</span> = <span class="string">400</span>;
+    <span class="function">next</span>(<span class="variable">error</span>); <span class="comment">// Pass error to error handler</span>
+});</pre>
+
+                <div class="warning-box">
+                    <strong>⚠️ Important:</strong> Error handling middleware must be defined LAST, after all other middleware and routes, so it can catch errors from anywhere in your application.
+                </div>
+            </div>
+
+            <!-- Interactive Demo Section -->
+            <div class="section">
+                <h2>🎮 Interactive Demo</h2>
+                <div class="interactive-section">
+                    <p><strong>Simulate a request going through middleware chain:</strong></p>
+                    <button onclick="simulateRequest(true)">✅ Send Valid Request</button>
+                    <button onclick="simulateRequest(false)">❌ Send Invalid Request</button>
+                    <button onclick="clearOutput()">🗑️ Clear Output</button>
+                    <div id="output"></div>
+                </div>
+            </div>
+
+            <!-- Best Practices Section -->
+            <div class="section">
+                <h2>✅ Best Practices</h2>
+                <ul style="padding-left: 25px; line-height: 2;">
+                    <li><strong>Always call next():</strong> Unless you're ending the request (sending a response), always call next() to continue the chain</li>
+                    <li><strong>Order matters:</strong> Middleware executes in the order it's defined. Put global middleware (like body parsers) before route-specific ones</li>
+                    <li><strong>Error handling last:</strong> Define error handling middleware after all other middleware and routes</li>
+                    <li><strong>Keep it focused:</strong> Each middleware should have a single, clear purpose</li>
+                    <li><strong>Use middleware factories:</strong> For reusable middleware with configuration</li>
+                    <li><strong>Don't modify req/res carelessly:</strong> Be intentional about what you add or change</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const output = document.getElementById('output');
+        
+        function log(message, color = '#4ec9b0') {
+            const timestamp = new Date().toLocaleTimeString();
+            output.innerHTML += `<span style="color: ${color}">[${timestamp}] ${message}</span>\n`;
+            output.scrollTop = output.scrollHeight;
+        }
+        
+        function simulateRequest(isValid) {
+            clearOutput();
+            log('🚀 REQUEST INITIATED', '#ffd700');
+            log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', '#666');
+            
+            setTimeout(() => {
+                log('✓ Middleware 1: Logger - Logging request details', '#4ec9b0');
+                log('  → Method: POST, URL: /api/users', '#999');
+            }, 500);
+            
+            setTimeout(() => {
+                log('✓ Middleware 2: Body Parser - Parsing JSON body', '#4ec9b0');
+                log('  → Body parsed successfully', '#999');
+            }, 1000);
+            
+            setTimeout(() => {
+                log('✓ Middleware 3: Authentication - Checking token', '#4ec9b0');
+                if (isValid) {
+                    log('  → Token found and valid', '#999');
+                } else {
+                    log('  ✗ Token missing or invalid', '#ff6b6b');
+                    log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', '#666');
+                    log('❌ REQUEST BLOCKED: Authentication failed', '#ff6b6b');
+                    log('Response: 401 Unauthorized', '#ff6b6b');
+                    return;
+                }
+            }, 1500);
+            
+            if (isValid) {
+                setTimeout(() => {
+                    log('✓ Middleware 4: Validation - Validating request data', '#4ec9b0');
+                    log('  → All required fields present', '#999');
+                }, 2000);
+                
+                setTimeout(() => {
+                    log('✓ Route Handler: Processing request', '#4ec9b0');
+                    log('  → User created successfully', '#999');
+                }, 2500);
+                
+                setTimeout(() => {
+                    log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', '#666');
+                    log('✅ REQUEST COMPLETED SUCCESSFULLY', '#00ff00');
+                    log('Response: 200 OK - { "message": "User created" }', '#00ff00');
+                }, 3000);
+            }
+        }
+        
+        function clearOutput() {
+            output.innerHTML = '';
+        }
+        
+        // Welcome message
+        log('👋 Welcome to Express.js Middleware Demo!', '#ffd700');
+        log('Click a button above to simulate requests flowing through middleware.', '#4ec9b0');
+        log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n', '#666');
+    </script>
+</body>
+</html>

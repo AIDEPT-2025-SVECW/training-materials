@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Node.js File System (fs) Module Demo</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #4a5568;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #718096;
+            margin-bottom: 30px;
+            font-style: italic;
+        }
+        
+        .analogy-box {
+            background: linear-gradient(135deg, #ffeaa7, #fdcb6e);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 5px solid #e17055;
+        }
+        
+        .concept-section {
+            margin: 30px 0;
+            padding: 25px;
+            background: #f8fafc;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .method-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .method-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+        
+        .method-title {
+            color: #2d3748;
+            font-size: 1.3em;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .method-icon {
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        pre {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.4;
+            margin: 15px 0;
+            border: 1px solid #4a5568;
+        }
+        
+        .output {
+            background: #1a202c;
+            color: #68d391;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            min-height: 40px;
+            font-family: monospace;
+            border: 2px solid #2d3748;
+        }
+        
+        .error {
+            color: #fc8181;
+        }
+        
+        .success {
+            color: #68d391;
+        }
+        
+        .warning {
+            color: #f6e05e;
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        
+        .tab {
+            background: none;
+            border: none;
+            padding: 15px 25px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .tab.active {
+            border-bottom-color: #667eea;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .file-system {
+            background: #edf2f7;
+            border: 2px dashed #a0aec0;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            text-align: center;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .highlight {
+            background: #fef5e7;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗂️ Node.js File System (fs) Module</h1>
+        <p class="subtitle">Interactive demonstration of file system operations</p>
+        
+        <div class="analogy-box">
+            <h3>🏠 Real-World Analogy</h3>
+            <p><strong>Think of the File System as your house's filing cabinet:</strong></p>
+            <ul>
+                <li><strong>Files</strong> are like documents in folders</li>
+                <li><strong>Directories</strong> are like drawer compartments</li>
+                <li><strong>Reading files</strong> is like opening a document to read it</li>
+                <li><strong>Writing files</strong> is like writing on a document and saving it</li>
+                <li><strong>Creating directories</strong> is like adding new compartments to your filing cabinet</li>
+            </ul>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('basic')">Basic Operations</button>
+            <button class="tab" onclick="showTab('async')">Async vs Sync</button>
+            <button class="tab" onclick="showTab('streams')">Streams</button>
+            <button class="tab" onclick="showTab('advanced')">Advanced</button>
+        </div>
+
+        <div id="basic" class="tab-content active">
+            <div class="concept-section">
+                <h2>📁 Basic File Operations</h2>
+                
+                <div class="method-card">
+                    <div class="method-title">
+                        <span class="method-icon">📖</span>
+                        Reading Files - fs.readFile()
+                    </div>
+                    <p>Like opening a book to read its contents. The computer opens the file and brings all its content into memory.</p>
+                    
+<pre>
+const fs = require('fs');
+
+// Asynchronous read
+fs.readFile('example.txt', 'utf8', (err, data) => {
+    if (err) {
+        console.error('Error reading file:', err);
+        return;
+    }
+    console.log('File content:', data);
+});
+
+// Synchronous read
+try {
+    const data = fs.readFileSync('example.txt', 'utf8');
+    console.log('File content:', data);
+} catch (err) {
+    console.error('Error reading file:', err);
+}
+</pre>
+                    
+                    <button onclick="simulateReadFile()">Try Reading a File</button>
+                    <div id="read-output" class="output"></div>
+                </div>
+
+                <div class="method-card">
+                    <div class="method-title">
+                        <span class="method-icon">✍️</span>
+                        Writing Files - fs.writeFile()
+                    </div>
+                    <p>Like writing on a blank paper or completely replacing the content of an existing document.</p>
+                    
+<pre>
+const fs = require('fs');
+
+// Write to file (overwrites existing content)
+const content = 'Hello, World! This is new content.';
+
+fs.writeFile('example.txt', content, 'utf8', (err) => {
+    if (err) {
+        console.error('Error writing file:', err);
+        return;
+    }
+    console.log('File written successfully!');
+});
+
+// Synchronous write
+try {
+    fs.writeFileSync('example.txt', content, 'utf8');
+    console.log('File written successfully!');
+} catch (err) {
+    console.error('Error writing file:', err);
+}
+</pre>
+                    
+                    <button onclick="simulateWriteFile()">Try Writing a File</button>
+                    <div id="write-output" class="output"></div>
+                </div>
+
+                <div class="method-card">
+                    <div class="method-title">
+                        <span class="method-icon">➕</span>
+                        Appending to Files - fs.appendFile()
+                    </div>
+                    <p>Like adding new pages to the end of an existing book without removing the old content.</p>
+                    
+<pre>
+const fs = require('fs');
+
+// Append to file
+const additionalContent = '\nThis is appended content.';
+
+fs.appendFile('example.txt', additionalContent, 'utf8', (err) => {
+    if (err) {
+        console.error('Error appending to file:', err);
+        return;
+    }
+    console.log('Content appended successfully!');
+});
+</pre>
+                    
+                    <button onclick="simulateAppendFile()">Try Appending to File</button>
+                    <div id="append-output" class="output"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="async" class="tab-content">
+            <div class="concept-section">
+                <h2>⚡ Asynchronous vs Synchronous Operations</h2>
+                
+                <div class="analogy-box">
+                    <h3>🍽️ Restaurant Analogy</h3>
+                    <p><strong>Synchronous (Sync):</strong> Like a single-person kitchen where the chef must complete one order entirely before starting the next. Everything happens in sequence.</p>
+                    <p><strong>Asynchronous (Async):</strong> Like a restaurant kitchen with multiple chefs working on different orders simultaneously. Tasks can be started and completed in different orders.</p>
+                </div>
+
+                <div class="method-card">
+                    <div class="method-title">
+                        <span class="method-icon">⏳</span>
+                        Synchronous Operations
+                    </div>
+                    <p>Blocking operations that wait for completion before moving to the next line.</p>
+                    
+<pre>
+const fs = require('fs');
+
+console.log('Start');
+
+// This blocks until file is read
+try {
+    const data = fs.readFileSync('file1.txt', 'utf8');
+    console.log('File 1:', data);
+} catch (err) {
+    console.error('Error:', err.message);
+}
+
+// This only runs AFTER the above completes
+try {
+    const data2 = fs.readFileSync('file2.txt', 'utf8');
+    console.log('File 2:', data2);
+} catch (err) {
+    console.error('Error:', err.message);
+}
+
+console.log('End');
+</pre>
+                    
+                    <button onclick="demonstrateSync()">Demonstrate Sync Operations</button>
+                    <div id="sync-output" class="output"></div>
+                </div>
+
+                <div class="method-card">
+                    <div class="method-title">
+                        <span class="method-icon">🚀</span>
+                        Asynchronous Operations
+                    </div>
+                    <p>Non-blocking operations that allow other code to run while waiting for file operations to complete.</p>
+                    
+<pre>
+const fs = require('fs');
+
+console.log('Start');
+
+// These operations start immediately but complete later
+fs.readFile('file1.txt', 'utf8', (err, data) => {
+    if (err) {
+        console.error('Error reading file1:', err.message);
+    } else {
+        console.log('File 1:', data);
+    }
+});
+
+fs.readFile('file2.txt', 'utf8', (err, data) => {
+    if (err) {
+        console.error('Error reading file2:', err.message);
+    } else {
+        console.log('File 2:', data);
+    }
+});
+
+console.log('End'); // This runs immediately!
+</pre>
+                    
+                    <button onclick="demonstrateAsync()">Demonstrate Async Operations</button>
+                    <div id="async-output" class="output"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="streams" class="tab-content">
+            <div class="concept-section">
+                <h2>🌊 File Streams</h2>
+                
+                <div class="analogy-box">
+                    <h3>🚰 Water Pipe Analogy</h3>
+                    <p><strong>Streams are like water pipes:</strong> Instead of filling a giant bucket with all the water at once (loading entire file), streams let water flow through pipes piece by piece. This is much more memory-efficient for large files!</p>
+                </div>
+
+                <div class="method-card">
+                    <div class="method-title">
+                        <span class="method-icon">📥</span>
+                        Reading Streams
+                    </div>
+                    <p>Process large files piece by piece without loading everything into memory at once.</p>
+                    
+<pre>
+const fs = require('fs');
+
+// Create a readable stream
+const readStream = fs.createReadStream('large-file.txt', {
+    encoding: 'utf8',
+    highWaterMark: 16 * 1024 // 16KB chunks
+});
+
+readStream.on('data', (chunk) => {
+    console.log('Received chunk:', chunk.length, 'characters');
+    // Process chunk here
+});
+
+readStream.on('end', () => {
+    console.log('Finished reading file');
+});
+
+readStream.on('error', (err) => {
+    console.error('Error reading stream:', err);
+});
+</pre>
+                    
+                    <button onclick="simulateReadStream()">Simulate Read Stream</button>
+                    <div id="read-stream-output" class="output"></div>
+                </div>
+
+                <div class="method-card">
+                    <div class="method-title">
+                        <span class="method-icon">📤</span>
+                        Writing Streams
+                    </div>
+                    <p>Write data to files piece by piece, useful for generating large files or continuous data.</p>
+                    
+<pre>
+const fs = require('fs');
+
+// Create a writable stream
+const writeStream = fs.createWriteStream('output.txt');
+
+// Write data in chunks
+writeStream.write('First chunk of data\n');
+writeStream.write('Second chunk of data\n');
+writeStream.write('Third chunk of data\n');
+
+// End the stream
+writeStream.end();
+
+writeStream.on('finish', () => {
+    console.log('Writing finished');
+});
+
+writeStream.on('error', (err) => {
+    console.error('Error writing stream:', err);
+});
+</pre>
+                    
+                    <button onclick="simulateWriteStream()">Simulate Write Stream</button>
+                    <div id="write-stream-output" class="output"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="advanced" class="tab-content">
+            <div class="concept-section">
+                <h2>🔧 Advanced File System Operations</h2>
+
+                <div class="method-card">
+                    <div class="method-title">
+                        <span class="method-icon">📊</span>
+                        File Statistics - fs.stat()
+                    </div>
+                    <p>Get detailed information about files and directories, like checking a file's ID card.</p>
+                    
+<pre>
+const fs = require('fs');
+
+fs.stat('example.txt', (err, stats) => {
+    if (err) {
+        console.error('Error getting file stats:', err);
+        return;
+    }
+    
+    console.log('File Statistics:');
+    console.log('Size:', stats.size, 'bytes');
+    console.log('Is File:', stats.isFile());
+    console.log('Is Directory:', stats.isDirectory());
+    console.log('Created:', stats.birthtime);
+    console.log('Modified:', stats.mtime);
+    console.log('Accessed:', stats.atime);
+});
+</pre>
+                    
+                    <button onclick="simulateFileStat()">Get File Statistics</button>
+                    <div id="stat-output" class="output"></div>
+                </div>
+
+                <div class="method-card">
+                    <div class="method-title">
+                        <span class="method-icon">📁</span>
+                        Directory Operations
+                    </div>
+                    <p>Create, read, and manage directories - like organizing your filing cabinet.</p>
+                    
+<pre>
+const fs = require('fs');
+const path = require('path');
+
+// Create directory
+fs.mkdir('new-folder', { recursive: true }, (err) => {
+    if (err) {
+        console.error('Error creating directory:', err);
+    } else {
+        console.log('Directory created successfully');
+    }
+});
+
+// Read directory contents
+fs.readdir('.', (err, files) => {
+    if (err) {
+        console.error('Error reading directory:', err);
+    } else {
+        console.log('Directory contents:', files);
+    }
+});
+
+// Remove directory
+fs.rmdir('old-folder', (err) => {
+    if (err) {
+        console.error('Error removing directory:', err);
+    } else {
+        console.log('Directory removed successfully');
+    }
+});
+</pre>
+                    
+                    <button onclick="simulateDirectoryOps()">Try Directory Operations</button>
+                    <div id="directory-output" class="output"></div>
+                </div>
+
+                <div class="method-card">
+                    <div class="method-title">
+                        <span class="method-icon">🔍</span>
+                        File Watching - fs.watch()
+                    </div>
+                    <p>Monitor files and directories for changes, like having a security guard watch your files.</p>
+                    
+<pre>
+const fs = require('fs');
+
+// Watch for file changes
+const watcher = fs.watch('example.txt', (eventType, filename) => {
+    if (filename) {
+        console.log(\`File \${filename} was \${eventType}d\`);
+    }
+});
+
+// Watch for directory changes
+const dirWatcher = fs.watch('.', (eventType, filename) => {
+    if (filename) {
+        console.log(\`Directory change: \${filename} was \${eventType}d\`);
+    }
+});
+
+// Stop watching after 30 seconds
+setTimeout(() => {
+    watcher.close();
+    dirWatcher.close();
+    console.log('Stopped watching files');
+}, 30000);
+</pre>
+                    
+                    <button onclick="simulateFileWatch()">Start File Watching</button>
+                    <div id="watch-output" class="output"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="file-system">
+            <div>
+                <h3>📂 Simulated File System</h3>
+                <div id="file-system-display">
+                    <p>Virtual files will appear here as you perform operations...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simulated file system
+        let virtualFS = {
+            'example.txt': 'Hello, World! This is the original content.',
+            'large-file.txt': 'This is a large file with lots of content. '.repeat(50),
+            'file1.txt': 'Content of file 1',
+            'file2.txt': 'Content of file 2'
+        };
+
+        let watchers = [];
+
+        function showTab(tabName) {
+            // Hide all tab contents
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => content.classList.remove('active'));
+            
+            // Remove active class from all tabs
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function updateFileSystemDisplay() {
+            const display = document.getElementById('file-system-display');
+            const files = Object.keys(virtualFS);
+            if (files.length === 0) {
+                display.innerHTML = '<p>No files in virtual file system</p>';
+            } else {
+                display.innerHTML = '<h4>Virtual Files:</h4>' + 
+                    files.map(file => 
+                        `<div style="margin: 5px 0; padding: 5px; background: white; border-radius: 3px;">
+                            <strong>${file}</strong>: ${virtualFS[file].substring(0, 50)}${virtualFS[file].length > 50 ? '...' : ''}
+                        </div>`
+                    ).join('');
+            }
+        }
+
+        function simulateReadFile() {
+            const output = document.getElementById('read-output');
+            output.innerHTML = '<span class="success">✓ Reading file "example.txt"...</span>';
+            
+            setTimeout(() => {
+                if (virtualFS['example.txt']) {
+                    output.innerHTML += `<br><span class="success">File content: "${virtualFS['example.txt']}"</span>`;
+                } else {
+                    output.innerHTML += '<br><span class="error">✗ Error: File not found</span>';
+                }
+                updateFileSystemDisplay();
+            }, 1000);
+        }
+
+        function simulateWriteFile() {
+            const output = document.getElementById('write-output');
+            const newContent = 'This is newly written content! Generated at ' + new Date().toLocaleTimeString();
+            
+            output.innerHTML = '<span class="warning">⚡ Writing to file "example.txt"...</span>';
+            
+            setTimeout(() => {
+                virtualFS['example.txt'] = newContent;
+                output.innerHTML += '<br><span class="success">✓ File written successfully!</span>';
+                output.innerHTML += `<br><span class="success">New content: "${newContent}"</span>`;
+                updateFileSystemDisplay();
+            }, 800);
+        }
+
+        function simulateAppendFile() {
+            const output = document.getElementById('append-output');
+            const appendContent = ' [APPENDED at ' + new Date().toLocaleTimeString() + ']';
+            
+            output.innerHTML = '<span class="warning">⚡ Appending to file "example.txt"...</span>';
+            
+            setTimeout(() => {
+                if (virtualFS['example.txt']) {
+                    virtualFS['example.txt'] += appendContent;
+                    output.innerHTML += '<br><span class="success">✓ Content appended successfully!</span>';
+                    output.innerHTML += `<br><span class="success">Updated content: "${virtualFS['example.txt']}"</span>`;
+                } else {
+                    virtualFS['example.txt'] = appendContent;
+                    output.innerHTML += '<br><span class="success">✓ New file created with appended content!</span>';
+                }
+                updateFileSystemDisplay();
+            }, 800);
+        }
+
+        function demonstrateSync() {
+            const output = document.getElementById('sync-output');
+            let log = '';
+            
+            log += '<span class="success">Start</span><br>';
+            output.innerHTML = log;
+            
+            setTimeout(() => {
+                log += '<span class="warning">⏳ Reading file1.txt (BLOCKING)...</span><br>';
+                output.innerHTML = log;
+                
+                setTimeout(() => {
+                    log += `<span class="success">File 1: "${virtualFS['file1.txt']}"</span><br>`;
+                    output.innerHTML = log;
+                    
+                    setTimeout(() => {
+                        log += '<span class="warning">⏳ Reading file2.txt (BLOCKING)...</span><br>';
+                        output.innerHTML = log;
+                        
+                        setTimeout(() => {
+                            log += `<span class="success">File 2: "${virtualFS['file2.txt']}"</span><br>`;
+                            log += '<span class="success">End</span><br>';
+                            log += '<br><span class="highlight">Notice: Each operation waits for the previous one to complete!</span>';
+                            output.innerHTML = log;
+                        }, 1000);
+                    }, 500);
+                }, 1000);
+            }, 500);
+        }
+
+        function demonstrateAsync() {
+            const output = document.getElementById('async-output');
+            let log = '';
+            
+            log += '<span class="success">Start</span><br>';
+            log += '<span class="success">End (runs immediately!)</span><br>';
+            log += '<span class="warning">⚡ Reading file1.txt (NON-BLOCKING)...</span><br>';
+            log += '<span class="warning">⚡ Reading file2.txt (NON-BLOCKING)...</span><br>';
+            output.innerHTML = log;
+            
+            // Simulate async operations completing at different times
+            setTimeout(() => {
+                log += `<span class="success">File 2: "${virtualFS['file2.txt']}" (completed first!)</span><br>`;
+                output.innerHTML = log;
+            }, 800);
+            
+            setTimeout(() => {
+                log += `<span class="success">File 1: "${virtualFS['file1.txt']}" (completed second!)</span><br>`;
+                log += '<br><span class="highlight">Notice: Operations can complete in any order!</span>';
+                output.innerHTML = log;
+            }, 1200);
+        }
+
+        function simulateReadStream() {
+            const output = document.getElementById('read-stream-output');
+            const content = virtualFS['large-file.txt'];
+            const chunkSize = 50;
+            let currentPos = 0;
+            
+            output.innerHTML = '<span class="success">🌊 Starting read stream...</span><br>';
+            
+            const processChunk = () => {
+                if (currentPos < content.length) {
+                    const chunk = content.substring(currentPos, currentPos + chunkSize);
+                    output.innerHTML += `<span class="warning">📦 Received chunk: ${chunk.length} characters</span><br>`;
+                    currentPos += chunkSize;
+                    
+                    setTimeout(processChunk, 300);
+                } else {
+                    output.innerHTML += '<span class="success">✓ Finished reading file</span><br>';
+                    output.innerHTML += '<br><span class="highlight">Memory efficient: Processed file in small chunks!</span>';
+                }
+            };
+            
+            setTimeout(processChunk, 500);
+        }
+
+        function simulateWriteStream() {
+            const output = document.getElementById('write-stream-output');
+            const chunks = ['First chunk of data', 'Second chunk of data', 'Third chunk of data'];
+            let chunkIndex = 0;
+            
+            output.innerHTML = '<span class="success">🌊 Creating write stream...</span><br>';
+            virtualFS['output.txt'] = '';
+            
+            const writeChunk = () => {
+                if (chunkIndex < chunks.length) {
+                    const chunk = chunks[chunkIndex];
+                    output.innerHTML += `<span class="warning">✍️ Writing chunk: "${chunk}"</span><br>`;
+                    virtualFS['output.txt'] += chunk + '\n';
+                    chunkIndex++;
+                    
+                    setTimeout(writeChunk, 500);
+                } else {
+                    output.innerHTML += '<span class="success">✓ Writing finished</span><br>';
+                    output.innerHTML += `<span class="success">Final content: "${virtualFS['output.txt']}"</span><br>`;
+                    updateFileSystemDisplay();
+                }
+            };
+            
+            setTimeout(writeChunk, 500);
+        }
+
+        function simulateFileStat() {
+            const output = document.getElementById('stat-output');
+            output.innerHTML = '<span class="warning">📊 Getting file statistics...</span><br>';
+            
+            setTimeout(() => {
+                const file = virtualFS['example.txt'];
+                if (file) {
+                    const stats = {
+                        size: file.length,
+                        isFile: true,
+                        isDirectory: false,
+                        created: new Date(Date.now() - 86400000).toISOString(),
+                        modified: new Date(Date.now() - 3600000).toISOString(),
+                        accessed: new Date().toISOString()
+                    };
+                    
+                    output.innerHTML += '<span class="success">File Statistics:</span><br>';
+                    output.innerHTML += `<span class="success">Size: ${stats.size} bytes</span><br>`;
+                    output.innerHTML += `<span class="success">Is File: ${stats.isFile}</span><br>`;
+                    output.innerHTML += `<span class="success">Is Directory: ${stats.isDirectory}</span><br>`;
+                    output.innerHTML += `<span class="success">Created: ${stats.created}</span><br>`;
+                    output.innerHTML += `<span class="success">Modified: ${stats.modified}</span><br>`;
+                    output.innerHTML += `<span class="success">Accessed: ${stats.accessed}</span><br>`;
+                } else {
+                    output.innerHTML += '<span class="error">✗ Error: File not found</span>';
+                }
+            }, 800);
+        }
+
+        function simulateDirectoryOps() {
+            const output = document.getElementById('directory-output');
+            output.innerHTML = '<span class="warning">📁 Creating directory "new-folder"...</span><br>';
+            
+            setTimeout(() => {
+                output.innerHTML += '<span class="success">✓ Directory created successfully</span><br>';
+                output.innerHTML += '<span class="warning">📖 Reading current directory...</span><br>';
+                
+                setTimeout(() => {
+                    const files = Object.keys(virtualFS);
+                    output.innerHTML += `<span class="success">Directory contents: ${files.join(', ')}</span><br>`;
+                    output.innerHTML += '<span class="warning">🗑️ Removing directory "old-folder"...</span><br>';
+                    
+                    setTimeout(() => {
+                        output.innerHTML += '<span class="success">✓ Directory operations completed</span><br>';
+                        output.innerHTML += '<br><span class="highlight">Directories help organize your files efficiently!</span>';
+                    }, 1000);
+                }, 800);
+            }, 800);
+        }
+
+        function simulateFileWatch() {
+            const output = document.getElementById('watch-output');
+            output.innerHTML = '<span class="success">👁️ Starting file watcher for "example.txt"...</span><br>';
+            
+            let watchCount = 0;
+            const maxWatches = 5;
+            
+            const watchInterval = setInterval(() => {
+                if (watchCount < maxWatches) {
+                    const events = ['modified', 'accessed', 'renamed'];
+                    const randomEvent = events[Math.floor(Math.random() * events.length)];
+                    output.innerHTML += `<span class="warning">🔍 File "example.txt" was ${randomEvent}</span><br>`;
+                    watchCount++;
+                } else {
+                    clearInterval(watchInterval);
+                    output.innerHTML += '<span class="success">✓ Stopped watching files</span><br>';
+                    output.innerHTML += '<br><span class="highlight">File watching helps you react to changes in real-time!</span>';
+                }
+            }, 1500);
+        }
+
+        // Initialize file system display
+        updateFileSystemDisplay();
+
+        // Add some interactive features
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add hover effects to method cards
+            const methodCards = document.querySelectorAll('.method-card');
+            methodCards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.borderLeft = '4px solid #667eea';
+                });
+                card.addEventListener('mouseleave', function() {
+                    this.style.borderLeft = 'none';
+                });
+            });
+        });
+    </script>
+</body>
+</html>

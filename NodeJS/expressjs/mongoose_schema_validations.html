@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mongoose Schema Validation Deep Dive</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+            padding: 30px;
+            background: #f7fafc;
+            border-radius: 15px;
+            border-left: 5px solid #667eea;
+        }
+        
+        .section h2 {
+            color: #2d3748;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+        
+        .section h3 {
+            color: #4a5568;
+            margin: 20px 0 15px 0;
+            font-size: 1.3em;
+        }
+        
+        .section p {
+            line-height: 1.8;
+            color: #4a5568;
+            margin-bottom: 15px;
+        }
+        
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+        
+        .highlight {
+            background: #fef5e7;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: #d97706;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .tab-btn {
+            padding: 12px 24px;
+            border: none;
+            background: #cbd5e0;
+            color: #2d3748;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+        
+        .tab-btn:hover {
+            background: #a0aec0;
+            transform: translateY(-2px);
+        }
+        
+        .tab-btn.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .validation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .validation-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #e2e8f0;
+            transition: all 0.3s;
+        }
+        
+        .validation-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+            transform: translateY(-5px);
+        }
+        
+        .validation-card h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        
+        .example-box {
+            background: #e6fffa;
+            border-left: 4px solid #38b2ac;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        
+        .warning-box {
+            background: #fff5f5;
+            border-left: 4px solid #fc8181;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        
+        ul {
+            margin-left: 20px;
+            line-height: 1.8;
+            color: #4a5568;
+        }
+        
+        ul li {
+            margin-bottom: 8px;
+        }
+        
+        .keyword {
+            color: #c678dd;
+            font-weight: bold;
+        }
+        
+        .string {
+            color: #98c379;
+        }
+        
+        .comment {
+            color: #5c6370;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍃 Mongoose Schema Validation</h1>
+            <p>Deep Dive into Schema Creation & Validation with Express.js</p>
+        </div>
+        
+        <div class="content">
+            <div class="section">
+                <h2>What is Mongoose?</h2>
+                <p>Mongoose is an <span class="highlight">Object Data Modeling (ODM) library</span> for MongoDB and Node.js. Think of it as a bridge between your Node.js application and MongoDB database.</p>
+                
+                <h3>Why Do We Need Mongoose?</h3>
+                <ul>
+                    <li><strong>Schema Structure:</strong> MongoDB is schema-less, but in real applications, we need structure. Mongoose provides schema definitions.</li>
+                    <li><strong>Validation:</strong> Automatically validates data before saving to database, preventing bad data.</li>
+                    <li><strong>Type Casting:</strong> Converts data to correct types automatically.</li>
+                    <li><strong>Relationships:</strong> Easier to manage relationships between collections.</li>
+                    <li><strong>Middleware:</strong> Hooks to run code before/after certain operations.</li>
+                    <li><strong>Query Building:</strong> Cleaner and more intuitive query syntax.</li>
+                </ul>
+                
+                <div class="example-box">
+                    <strong>Analogy:</strong> If MongoDB is like a flexible notebook where you can write anything anywhere, Mongoose is like a structured form with specific fields, rules, and validations.
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Interactive Schema Examples</h2>
+                
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="showTab('basic')">Basic Schema</button>
+                    <button class="tab-btn" onclick="showTab('validation')">Validation Types</button>
+                    <button class="tab-btn" onclick="showTab('advanced')">Advanced Features</button>
+                    <button class="tab-btn" onclick="showTab('complete')">Complete Example</button>
+                </div>
+
+                <div id="basic" class="tab-content active">
+                    <h3>Basic Schema Structure</h3>
+                    <p>Let's start with a simple user schema:</p>
+                    
+                    <pre class="code-block">
+<span class="keyword">const</span> mongoose = <span class="keyword">require</span>(<span class="string">'mongoose'</span>);
+
+<span class="comment">// Define Schema</span>
+<span class="keyword">const</span> userSchema = <span class="keyword">new</span> mongoose.Schema({
+    name: String,
+    email: String,
+    age: Number,
+    isActive: Boolean,
+    createdAt: Date
+});
+
+<span class="comment">// Create Model</span>
+<span class="keyword">const</span> User = mongoose.model(<span class="string">'User'</span>, userSchema);
+
+<span class="comment">// Export for use in routes</span>
+module.exports = User;
+                    </pre>
+
+                    <div class="example-box">
+                        <strong>Note:</strong> The model name 'User' will create a collection called 'users' (lowercase and pluralized) in MongoDB.
+                    </div>
+                </div>
+
+                <div id="validation" class="tab-content">
+                    <h3>Schema Validation Types</h3>
+                    
+                    <div class="validation-grid">
+                        <div class="validation-card">
+                            <h4>Required</h4>
+                            <p>Ensures field must be present</p>
+                            <pre class="code-block">
+name: {
+    type: String,
+    required: true
+}
+<span class="comment">// OR with custom error</span>
+name: {
+    type: String,
+    required: [true, <span class="string">'Name is required'</span>]
+}
+                            </pre>
+                        </div>
+
+                        <div class="validation-card">
+                            <h4>Unique</h4>
+                            <p>Ensures no duplicate values</p>
+                            <pre class="code-block">
+email: {
+    type: String,
+    unique: true,
+    required: true
+}
+                            </pre>
+                        </div>
+
+                        <div class="validation-card">
+                            <h4>Min/Max Length</h4>
+                            <p>String length constraints</p>
+                            <pre class="code-block">
+password: {
+    type: String,
+    minlength: [8, <span class="string">'Min 8 chars'</span>],
+    maxlength: 128
+}
+                            </pre>
+                        </div>
+
+                        <div class="validation-card">
+                            <h4>Min/Max Value</h4>
+                            <p>Number range constraints</p>
+                            <pre class="code-block">
+age: {
+    type: Number,
+    min: [18, <span class="string">'Must be 18+'</span>],
+    max: [100, <span class="string">'Invalid age'</span>]
+}
+                            </pre>
+                        </div>
+
+                        <div class="validation-card">
+                            <h4>Enum</h4>
+                            <p>Allow only specific values</p>
+                            <pre class="code-block">
+role: {
+    type: String,
+    enum: [<span class="string">'user'</span>, <span class="string">'admin'</span>, <span class="string">'moderator'</span>],
+    default: <span class="string">'user'</span>
+}
+                            </pre>
+                        </div>
+
+                        <div class="validation-card">
+                            <h4>Match (Regex)</h4>
+                            <p>Pattern matching validation</p>
+                            <pre class="code-block">
+phone: {
+    type: String,
+    match: [
+        /^[6-9]\d{9}$/,
+        <span class="string">'Invalid phone'</span>
+    ]
+}
+                            </pre>
+                        </div>
+
+                        <div class="validation-card">
+                            <h4>Custom Validator</h4>
+                            <p>Write your own validation logic</p>
+                            <pre class="code-block">
+email: {
+    type: String,
+    validate: {
+        validator: <span class="keyword">function</span>(v) {
+            <span class="keyword">return</span> /\S+@\S+\.\S+/.test(v);
+        },
+        message: <span class="string">'Invalid email'</span>
+    }
+}
+                            </pre>
+                        </div>
+
+                        <div class="validation-card">
+                            <h4>Lowercase/Uppercase</h4>
+                            <p>Transform string case</p>
+                            <pre class="code-block">
+email: {
+    type: String,
+    lowercase: true,
+    trim: true
+}
+                            </p>
+                        </div>
+
+                        <div class="validation-card">
+                            <h4>Trim</h4>
+                            <p>Remove whitespace</p>
+                            <pre class="code-block">
+name: {
+    type: String,
+    trim: true
+}
+                            </pre>
+                        </div>
+
+                        <div class="validation-card">
+                            <h4>Default Values</h4>
+                            <p>Set default if not provided</p>
+                            <pre class="code-block">
+isActive: {
+    type: Boolean,
+    default: true
+}
+createdAt: {
+    type: Date,
+    default: Date.now
+}
+                            </pre>
+                        </div>
+
+                        <div class="validation-card">
+                            <h4>Immutable</h4>
+                            <p>Cannot be changed after creation</p>
+                            <pre class="code-block">
+userId: {
+    type: String,
+    immutable: true,
+    required: true
+}
+                            </pre>
+                        </div>
+
+                        <div class="validation-card">
+                            <h4>Select</h4>
+                            <p>Include/exclude in queries</p>
+                            <pre class="code-block">
+password: {
+    type: String,
+    select: false <span class="comment">// Hidden by default</span>
+}
+                            </pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="advanced" class="tab-content">
+                    <h3>Advanced Schema Features</h3>
+                    
+                    <h4>Nested Objects</h4>
+                    <pre class="code-block">
+<span class="keyword">const</span> studentSchema = <span class="keyword">new</span> mongoose.Schema({
+    name: {
+        firstName: { type: String, required: true },
+        lastName: { type: String, required: true }
+    },
+    address: {
+        street: String,
+        city: String,
+        state: String,
+        pincode: {
+            type: String,
+            match: [/^\d{6}$/, <span class="string">'Invalid pincode'</span>]
+        }
+    }
+});
+                    </pre>
+
+                    <h4>Arrays</h4>
+                    <pre class="code-block">
+<span class="keyword">const</span> courseSchema = <span class="keyword">new</span> mongoose.Schema({
+    courseName: String,
+    students: [String], <span class="comment">// Array of strings</span>
+    tags: {
+        type: [String],
+        validate: {
+            validator: <span class="keyword">function</span>(v) {
+                <span class="keyword">return</span> v.length <= 5;
+            },
+            message: <span class="string">'Maximum 5 tags allowed'</span>
+        }
+    },
+    grades: [{
+        subject: String,
+        marks: { 
+            type: Number, 
+            min: 0, 
+            max: 100 
+        }
+    }]
+});
+</pre>
+
+                    <h4>References (Population)</h4>
+                    <pre class="code-block">
+<span class="keyword">const</span> orderSchema = <span class="keyword">new</span> mongoose.Schema({
+    customer: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: <span class="string">'User'</span>, <span class="comment">// References User model</span>
+        required: true
+    },
+    products: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: <span class="string">'Product'</span>
+    }]
+});
+
+<span class="comment">// Usage in route:</span>
+<span class="keyword">const</span> order = <span class="keyword">await</span> Order.findById(id).populate(<span class="string">'customer'</span>).populate(<span class="string">'products'</span>);
+                    </pre>
+
+                    <h4>Virtual Properties</h4>
+                    <pre class="code-block">
+<span class="keyword">const</span> studentSchema = <span class="keyword">new</span> mongoose.Schema({
+    firstName: String,
+    lastName: String
+});
+
+<span class="comment">// Virtual property (not stored in DB)</span>
+studentSchema.virtual(<span class="string">'fullName'</span>).get(<span class="keyword">function</span>() {
+    <span class="keyword">return</span> `${<span class="keyword">this</span>.firstName} ${<span class="keyword">this</span>.lastName}`;
+});
+
+<span class="comment">// Enable virtuals in JSON output</span>
+studentSchema.set(<span class="string">'toJSON'</span>, { virtuals: true });
+                    </pre>
+
+                    <h4>Middleware (Hooks)</h4>
+                    <pre class="code-block">
+<span class="keyword">const</span> bcrypt = <span class="keyword">require</span>(<span class="string">'bcrypt'</span>);
+
+<span class="comment">// Pre-save hook - runs before saving</span>
+userSchema.pre(<span class="string">'save'</span>, <span class="keyword">async function</span>(next) {
+    <span class="keyword">if</span> (!<span class="keyword">this</span>.isModified(<span class="string">'password'</span>)) <span class="keyword">return</span> next();
+    
+    <span class="keyword">this</span>.password = <span class="keyword">await</span> bcrypt.hash(<span class="keyword">this</span>.password, 10);
+    next();
+});
+
+<span class="comment">// Post-save hook - runs after saving</span>
+userSchema.post(<span class="string">'save'</span>, <span class="keyword">function</span>(doc, next) {
+    console.log(`User ${doc.name} was saved`);
+    next();
+});
+                    </pre>
+
+                    <h4>Instance Methods</h4>
+                    <pre class="code-block">
+<span class="comment">// Custom method on documents</span>
+userSchema.methods.comparePassword = <span class="keyword">async function</span>(candidatePassword) {
+    <span class="keyword">return await</span> bcrypt.compare(candidatePassword, <span class="keyword">this</span>.password);
+};
+
+<span class="comment">// Usage:</span>
+<span class="keyword">const</span> user = <span class="keyword">await</span> User.findOne({ email });
+<span class="keyword">const</span> isMatch = <span class="keyword">await</span> user.comparePassword(password);
+                    </pre>
+
+                    <h4>Static Methods</h4>
+                    <pre class="code-block">
+<span class="comment">// Custom method on Model</span>
+userSchema.statics.findByEmail = <span class="keyword">function</span>(email) {
+    <span class="keyword">return this</span>.findOne({ email: email.toLowerCase() });
+};
+
+<span class="comment">// Usage:</span>
+<span class="keyword">const</span> user = <span class="keyword">await</span> User.findByEmail(<span class="string">'rajesh@example.com'</span>);
+                    </pre>
+                </div>
+
+                <div id="complete" class="tab-content">
+                    <h3>Complete Real-World Example</h3>
+                    <p>Student Management System with all validations</p>
+                    
+                    <pre class="code-block">
+<span class="keyword">const</span> mongoose = <span class="keyword">require</span>(<span class="string">'mongoose'</span>);
+
+<span class="comment">// Student Schema with comprehensive validations</span>
+<span class="keyword">const</span> studentSchema = <span class="keyword">new</span> mongoose.Schema({
+    <span class="comment">// Basic Information</span>
+    rollNumber: {
+        type: String,
+        required: [true, <span class="string">'Roll number is required'</span>],
+        unique: true,
+        uppercase: true,
+        trim: true,
+        match: [/^[A-Z]{2}\d{4}$/, <span class="string">'Format: AB1234'</span>]
+    },
+    
+    name: {
+        firstName: {
+            type: String,
+            required: [true, <span class="string">'First name required'</span>],
+            trim: true,
+            minlength: [2, <span class="string">'Min 2 characters'</span>],
+            maxlength: [50, <span class="string">'Max 50 characters'</span>]
+        },
+        lastName: {
+            type: String,
+            required: true,
+            trim: true
+        }
+    },
+    
+    email: {
+        type: String,
+        required: [true, <span class="string">'Email is required'</span>],
+        unique: true,
+        lowercase: true,
+        trim: true,
+        validate: {
+            validator: <span class="keyword">function</span>(v) {
+                <span class="keyword">return</span> /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(v);
+            },
+            message: <span class="string">'Please enter valid email'</span>
+        }
+    },
+    
+    phone: {
+        type: String,
+        required: true,
+        match: [/^[6-9]\d{9}$/, <span class="string">'Invalid Indian mobile number'</span>]
+    },
+    
+    dateOfBirth: {
+        type: Date,
+        required: true,
+        validate: {
+            validator: <span class="keyword">function</span>(v) {
+                <span class="keyword">const</span> age = (Date.now() - v.getTime()) / (1000 * 60 * 60 * 24 * 365);
+                <span class="keyword">return</span> age >= 16 && age <= 100;
+            },
+            message: <span class="string">'Age must be between 16 and 100'</span>
+        }
+    },
+    
+    gender: {
+        type: String,
+        required: true,
+        enum: {
+            values: [<span class="string">'Male'</span>, <span class="string">'Female'</span>, <span class="string">'Other'</span>],
+            message: <span class="string">'{VALUE} is not supported'</span>
+        }
+    },
+    
+    <span class="comment">// Address</span>
+    address: {
+        street: { type: String, required: true },
+        city: { type: String, required: true },
+        state: {
+            type: String,
+            required: true,
+            enum: [<span class="string">'Andhra Pradesh'</span>, <span class="string">'Telangana'</span>, <span class="string">'Karnataka'</span>, <span class="string">'Tamil Nadu'</span>, <span class="string">'Other'</span>]
+        },
+        pincode: {
+            type: String,
+            required: true,
+            match: [/^\d{6}$/, <span class="string">'Pincode must be 6 digits'</span>]
+        }
+    },
+    
+    <span class="comment">// Academic Information</span>
+    course: {
+        type: String,
+        required: true,
+        enum: [<span class="string">'B.Tech'</span>, <span class="string">'M.Tech'</span>, <span class="string">'MBA'</span>, <span class="string">'MCA'</span>]
+    },
+    
+    branch: {
+        type: String,
+        required: true,
+        enum: [<span class="string">'CSE'</span>, <span class="string">'ECE'</span>, <span class="string">'EEE'</span>, <span class="string">'MECH'</span>, <span class="string">'CIVIL'</span>]
+    },
+    
+    semester: {
+        type: Number,
+        required: true,
+        min: [1, <span class="string">'Semester must be at least 1'</span>],
+        max: [8, <span class="string">'Semester cannot exceed 8'</span>]
+    },
+    
+    cgpa: {
+        type: Number,
+        min: [0, <span class="string">'CGPA cannot be negative'</span>],
+        max: [10, <span class="string">'CGPA cannot exceed 10'</span>],
+        default: 0
+    },
+    
+    subjects: [{
+        name: { type: String, required: true },
+        code: { type: String, required: true },
+        credits: { 
+            type: Number, 
+            required: true,
+            min: 1,
+            max: 6
+        }
+    }],
+    
+    attendance: {
+        type: Number,
+        min: [0, <span class="string">'Cannot be negative'</span>],
+        max: [100, <span class="string">'Cannot exceed 100%'</span>],
+        default: 0
+    },
+    
+    <span class="comment">// Additional Fields</span>
+    scholarshipHolder: {
+        type: Boolean,
+        default: false
+    },
+    
+    hostelResident: {
+        type: Boolean,
+        default: false
+    },
+    
+    skills: {
+        type: [String],
+        validate: {
+            validator: <span class="keyword">function</span>(v) {
+                <span class="keyword">return</span> v.length <= 10;
+            },
+            message: <span class="string">'Maximum 10 skills allowed'</span>
+        }
+    },
+    
+    guardianContact: {
+        name: { type: String, required: true },
+        relation: { 
+            type: String, 
+            required: true,
+            enum: [<span class="string">'Father'</span>, <span class="string">'Mother'</span>, <span class="string">'Guardian'</span>]
+        },
+        phone: {
+            type: String,
+            required: true,
+            match: [/^[6-9]\d{9}$/, <span class="string">'Invalid phone'</span>]
+        }
+    },
+    
+    status: {
+        type: String,
+        enum: [<span class="string">'Active'</span>, <span class="string">'Inactive'</span>, <span class="string">'Graduated'</span>, <span class="string">'Suspended'</span>],
+        default: <span class="string">'Active'</span>
+    },
+    
+    admissionDate: {
+        type: Date,
+        default: Date.now,
+        immutable: true
+    }
+    
+}, {
+    timestamps: true <span class="comment">// Adds createdAt and updatedAt automatically</span>
+});
+
+<span class="comment">// Virtual for full name</span>
+studentSchema.virtual(<span class="string">'fullName'</span>).get(<span class="keyword">function</span>() {
+    <span class="keyword">return</span> `${<span class="keyword">this</span>.name.firstName} ${<span class="keyword">this</span>.name.lastName}`;
+});
+
+<span class="comment">// Virtual for age</span>
+studentSchema.virtual(<span class="string">'age'</span>).get(<span class="keyword">function</span>() {
+    <span class="keyword">return</span> Math.floor((Date.now() - <span class="keyword">this</span>.dateOfBirth.getTime()) / (1000 * 60 * 60 * 24 * 365));
+});
+
+<span class="comment">// Instance method to check if eligible for scholarship</span>
+studentSchema.methods.isEligibleForScholarship = <span class="keyword">function</span>() {
+    <span class="keyword">return this</span>.cgpa >= 8.5 && <span class="keyword">this</span>.attendance >= 75;
+};
+
+<span class="comment">// Static method to find students by branch</span>
+studentSchema.statics.findByBranch = <span class="keyword">function</span>(branch) {
+    <span class="keyword">return this</span>.find({ branch: branch, status: <span class="string">'Active'</span> });
+};
+
+<span class="comment">// Pre-save middleware</span>
+studentSchema.pre(<span class="string">'save'</span>, <span class="keyword">function</span>(next) {
+    <span class="comment">// Convert first letter of names to uppercase</span>
+    <span class="keyword">if</span> (<span class="keyword">this</span>.name.firstName) {
+        <span class="keyword">this</span>.name.firstName = <span class="keyword">this</span>.name.firstName.charAt(0).toUpperCase() + 
+                                <span class="keyword">this</span>.name.firstName.slice(1).toLowerCase();
+    }
+    <span class="keyword">if</span> (<span class="keyword">this</span>.name.lastName) {
+        <span class="keyword">this</span>.name.lastName = <span class="keyword">this</span>.name.lastName.charAt(0).toUpperCase() + 
+                               <span class="keyword">this</span>.name.lastName.slice(1).toLowerCase();
+    }
+    next();
+});
+
+<span class="comment">// Index for faster queries</span>
+studentSchema.index({ rollNumber: 1 });
+studentSchema.index({ email: 1 });
+
+<span class="comment">// Create and export model</span>
+<span class="keyword">const</span> Student = mongoose.model(<span class="string">'Student'</span>, studentSchema);
+
+module.exports = Student;
+</pre>
+
+                    <h3>Using the Model in Express Routes</h3>
+                    <pre class="code-block">
+<span class="keyword">const</span> express = <span class="keyword">require</span>(<span class="string">'express'</span>);
+<span class="keyword">const</span> router = express.Router();
+<span class="keyword">const</span> Student = <span class="keyword">require</span>(<span class="string">'./models/Student'</span>);
+
+<span class="comment">// CREATE - Add new student</span>
+router.post(<span class="string">'/students'</span>, <span class="keyword">async</span> (req, res) => {
+    <span class="keyword">try</span> {
+        <span class="keyword">const</span> student = <span class="keyword">new</span> Student(req.body);
+        <span class="keyword">await</span> student.save(); <span class="comment">// Validations run here</span>
+        res.status(201).json({
+            success: true,
+            data: student
+        });
+    } <span class="keyword">catch</span> (error) {
+        <span class="comment">// Mongoose validation errors</span>
+        <span class="keyword">if</span> (error.name === <span class="string">'ValidationError'</span>) {
+            <span class="keyword">const</span> errors = {};
+            Object.keys(error.errors).forEach((key) => {
+                errors[key] = error.errors[key].message;
+            });
+            <span class="keyword">return</span> res.status(400).json({
+                success: false,
+                errors: errors
+            });
+        }
+        
+        <span class="comment">// Duplicate key error (unique constraint)</span>
+        <span class="keyword">if</span> (error.code === 11000) {
+            <span class="keyword">return</span> res.status(400).json({
+                success: false,
+                message: <span class="string">'Student with this email or roll number already exists'</span>
+            });
+        }
+        
+        res.status(500).json({
+            success: false,
+            message: <span class="string">'Server error'</span>
+        });
+    }
+});
+
+<span class="comment">// READ - Get all students</span>
+router.get(<span class="string">'/students'</span>, <span class="keyword">async</span> (req, res) => {
+    <span class="keyword">try</span> {
+        <span class="keyword">const</span> students = <span class="keyword">await</span> Student.find({ status: <span class="string">'Active'</span> })
+            .select(<span class="string">'-__v'</span>) <span class="comment">// Exclude version field</span>
+            .sort({ <span class="string">'name.firstName'</span>: 1 });
+            
+        res.json({
+            success: true,
+            count: students.length,
+            data: students
+        });
+    } <span class="keyword">catch</span> (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
+<span class="comment">// READ - Get student by ID</span>
+router.get(<span class="string">'/students/:id'</span>, <span class="keyword">async</span> (req, res) => {
+    <span class="keyword">try</span> {
+        <span class="keyword">const</span> student = <span class="keyword">await</span> Student.findById(req.params.id);
+        
+        <span class="keyword">if</span> (!student) {
+            <span class="keyword">return</span> res.status(404).json({
+                success: false,
+                message: <span class="string">'Student not found'</span>
+            });
+        }
+        
+        res.json({
+            success: true,
+            data: student,
+            fullName: student.fullName, <span class="comment">// Virtual property</span>
+            age: student.age <span class="comment">// Virtual property</span>
+        });
+    } <span class="keyword">catch</span> (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
+<span class="comment">// UPDATE - Update student</span>
+router.put(<span class="string">'/students/:id'</span>, <span class="keyword">async</span> (req, res) => {
+    <span class="keyword">try</span> {
+        <span class="keyword">const</span> student = <span class="keyword">await</span> Student.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            {
+                new: true, <span class="comment">// Return updated document</span>
+                runValidators: true <span class="comment">// Run validations on update</span>
+            }
+        );
+        
+        <span class="keyword">if</span> (!student) {
+            <span class="keyword">return</span> res.status(404).json({
+                success: false,
+                message: <span class="string">'Student not found'</span>
+            });
+        }
+        
+        res.json({
+            success: true,
+            data: student
+        });
+    } <span class="keyword">catch</span> (error) {
+        <span class="keyword">if</span> (error.name === <span class="string">'ValidationError'</span>) {
+            <span class="keyword">const</span> errors = {};
+            Object.keys(error.errors).forEach((key) => {
+                errors[key] = error.errors[key].message;
+            });
+            <span class="keyword">return</span> res.status(400).json({
+                success: false,
+                errors: errors
+            });
+        }
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
+<span class="comment">// DELETE - Delete student</span>
+router.delete(<span class="string">'/students/:id'</span>, <span class="keyword">async</span> (req, res) => {
+    <span class="keyword">try</span> {
+        <span class="keyword">const</span> student = <span class="keyword">await</span> Student.findByIdAndDelete(req.params.id);
+        
+        <span class="keyword">if</span> (!student) {
+            <span class="keyword">return</span> res.status(404).json({
+                success: false,
+                message: <span class="string">'Student not found'</span>
+            });
+        }
+        
+        res.json({
+            success: true,
+            message: <span class="string">'Student deleted successfully'</span>
+        });
+    } <span class="keyword">catch</span> (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
+<span class="comment">// Custom route - Get students by branch</span>
+router.get(<span class="string">'/students/branch/:branch'</span>, <span class="keyword">async</span> (req, res) => {
+    <span class="keyword">try</span> {
+        <span class="keyword">const</span> students = <span class="keyword">await</span> Student.findByBranch(req.params.branch);
+        res.json({
+            success: true,
+            count: students.length,
+            data: students
+        });
+    } <span class="keyword">catch</span> (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
+module.exports = router;
+                    </pre>
+
+                    <h3>Sample Data for Testing</h3>
+                    <pre class="code-block">
+<span class="comment">// Valid student data</span>
+{
+    <span class="string">"rollNumber"</span>: <span class="string">"CS2401"</span>,
+    <span class="string">"name"</span>: {
+        <span class="string">"firstName"</span>: <span class="string">"Rajesh"</span>,
+        <span class="string">"lastName"</span>: <span class="string">"Kumar"</span>
+    },
+    <span class="string">"email"</span>: <span class="string">"rajesh.kumar@example.com"</span>,
+    <span class="string">"phone"</span>: <span class="string">"9876543210"</span>,
+    <span class="string">"dateOfBirth"</span>: <span class="string">"2003-05-15"</span>,
+    <span class="string">"gender"</span>: <span class="string">"Male"</span>,
+    <span class="string">"address"</span>: {
+        <span class="string">"street"</span>: <span class="string">"MG Road"</span>,
+        <span class="string">"city"</span>: <span class="string">"Vijayawada"</span>,
+        <span class="string">"state"</span>: <span class="string">"Andhra Pradesh"</span>,
+        <span class="string">"pincode"</span>: <span class="string">"520001"</span>
+    },
+    <span class="string">"course"</span>: <span class="string">"B.Tech"</span>,
+    <span class="string">"branch"</span>: <span class="string">"CSE"</span>,
+    <span class="string">"semester"</span>: 6,
+    <span class="string">"cgpa"</span>: 8.7,
+    <span class="string">"subjects"</span>: [
+        { <span class="string">"name"</span>: <span class="string">"Database Systems"</span>, <span class="string">"code"</span>: <span class="string">"CS601"</span>, <span class="string">"credits"</span>: 4 },
+        { <span class="string">"name"</span>: <span class="string">"Web Technologies"</span>, <span class="string">"code"</span>: <span class="string">"CS602"</span>, <span class="string">"credits"</span>: 3 }
+    ],
+    <span class="string">"attendance"</span>: 87,
+    <span class="string">"scholarshipHolder"</span>: true,
+    <span class="string">"hostelResident"</span>: true,
+    <span class="string">"skills"</span>: [<span class="string">"JavaScript"</span>, <span class="string">"Node.js"</span>, <span class="string">"MongoDB"</span>, <span class="string">"React"</span>],
+    <span class="string">"guardianContact"</span>: {
+        <span class="string">"name"</span>: <span class="string">"Ramesh Kumar"</span>,
+        <span class="string">"relation"</span>: <span class="string">"Father"</span>,
+        <span class="string">"phone"</span>: <span class="string">"9123456789"</span>
+    }
+}
+
+<span class="comment">// Another example with different data</span>
+{
+    <span class="string">"rollNumber"</span>: <span class="string">"EC2402"</span>,
+    <span class="string">"name"</span>: {
+        <span class="string">"firstName"</span>: <span class="string">"Priya"</span>,
+        <span class="string">"lastName"</span>: <span class="string">"Sharma"</span>
+    },
+    <span class="string">"email"</span>: <span class="string">"priya.sharma@example.com"</span>,
+    <span class="string">"phone"</span>: <span class="string">"8765432109"</span>,
+    <span class="string">"dateOfBirth"</span>: <span class="string">"2004-08-22"</span>,
+    <span class="string">"gender"</span>: <span class="string">"Female"</span>,
+    <span class="string">"address"</span>: {
+        <span class="string">"street"</span>: <span class="string">"Gandhi Nagar"</span>,
+        <span class="string">"city"</span>: <span class="string">"Hyderabad"</span>,
+        <span class="string">"state"</span>: <span class="string">"Telangana"</span>,
+        <span class="string">"pincode"</span>: <span class="string">"500003"</span>
+    },
+    <span class="string">"course"</span>: <span class="string">"B.Tech"</span>,
+    <span class="string">"branch"</span>: <span class="string">"ECE"</span>,
+    <span class="string">"semester"</span>: 4,
+    <span class="string">"cgpa"</span>: 9.2,
+    <span class="string">"attendance"</span>: 92,
+    <span class="string">"scholarshipHolder"</span>: true,
+    <span class="string">"guardianContact"</span>: {
+        <span class="string">"name"</span>: <span class="string">"Sunita Sharma"</span>,
+        <span class="string">"relation"</span>: <span class="string">"Mother"</span>,
+        <span class="string">"phone"</span>: <span class="string">"9234567890"</span>
+    }
+}
+                    </pre>
+
+                    <div class="warning-box">
+                        <strong>Common Validation Errors:</strong>
+                        <ul>
+                            <li><strong>ValidationError:</strong> When required fields are missing or data doesn't meet validation rules</li>
+                            <li><strong>CastError:</strong> When data type is incorrect (e.g., string for number field)</li>
+                            <li><strong>Duplicate Key Error (E11000):</strong> When unique constraint is violated</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Schema Options & Best Practices</h2>
+                
+                <h3>Timestamps</h3>
+                <pre class="code-block">
+<span class="keyword">const</span> schema = <span class="keyword">new</span> mongoose.Schema({
+    <span class="comment">// fields...</span>
+}, {
+    timestamps: true <span class="comment">// Adds createdAt & updatedAt</span>
+});
+                </pre>
+
+                <h3>Virtuals in JSON</h3>
+                <pre class="code-block">
+schema.set(<span class="string">'toJSON'</span>, {
+    virtuals: true,
+    transform: <span class="keyword">function</span>(doc, ret) {
+        <span class="keyword">delete</span> ret.__v; <span class="comment">// Remove version field</span>
+        <span class="keyword">return</span> ret;
+    }
+});
+                </pre>
+
+                <h3>Indexes for Performance</h3>
+                <pre class="code-block">
+<span class="comment">// Single field index</span>
+schema.index({ email: 1 });
+
+<span class="comment">// Compound index</span>
+schema.index({ branch: 1, semester: 1 });
+
+<span class="comment">// Text index for search</span>
+schema.index({ <span class="string">'name.firstName'</span>: <span class="string">'text'</span>, <span class="string">'name.lastName'</span>: <span class="string">'text'</span> });
+                </pre>
+
+                <h3>Best Practices</h3>
+                <ul>
+                    <li>Always use validations - don't rely on front-end validation alone</li>
+                    <li>Use meaningful error messages for better user experience</li>
+                    <li>Add indexes on fields you frequently query</li>
+                    <li>Use <span class="highlight">select: false</span> for sensitive data like passwords</li>
+                    <li>Implement proper error handling in routes</li>
+                    <li>Use <span class="highlight">lean()</span> for read-only queries to improve performance</li>
+                    <li>Always set <span class="highlight">runValidators: true</span> when using findAndUpdate</li>
+                    <li>Use virtuals for computed properties instead of storing redundant data</li>
+                    <li>Keep schemas organized in separate model files</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h2>Quick Reference Cheat Sheet</h2>
+                
+                <div class="validation-grid">
+                    <div class="validation-card">
+                        <h4>String Validators</h4>
+                        <ul style="font-size: 0.9em;">
+                            <li>required</li>
+                            <li>minlength / maxlength</li>
+                            <li>match (regex)</li>
+                            <li>enum</li>
+                            <li>lowercase / uppercase</li>
+                            <li>trim</li>
+                        </ul>
+                    </div>
+
+                    <div class="validation-card">
+                        <h4>Number Validators</h4>
+                        <ul style="font-size: 0.9em;">
+                            <li>required</li>
+                            <li>min / max</li>
+                            <li>enum</li>
+                        </ul>
+                    </div>
+
+                    <div class="validation-card">
+                        <h4>Date Validators</h4>
+                        <ul style="font-size: 0.9em;">
+                            <li>required</li>
+                            <li>min / max</li>
+                            <li>default: Date.now</li>
+                            <li>immutable</li>
+                        </ul>
+                    </div>
+
+                    <div class="validation-card">
+                        <h4>All Types</h4>
+                        <ul style="font-size: 0.9em;">
+                            <li>required</li>
+                            <li>default</li>
+                            <li>validate (custom)</li>
+                            <li>select</li>
+                            <li>immutable</li>
+                            <li>unique</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabName) {
+            // Hide all tab contents
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => content.classList.remove('active'));
+            
+            // Remove active class from all buttons
+            const buttons = document.querySelectorAll('.tab-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked button
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>
