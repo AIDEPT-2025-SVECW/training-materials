@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JDBC Statement Interfaces - Interactive Demo</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 20px;
+        line-height: 1.6;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      }
+
+      h1 {
+        color: #667eea;
+        text-align: center;
+        margin-bottom: 10px;
+        font-size: 2.2em;
+      }
+
+      .subtitle {
+        text-align: center;
+        color: #666;
+        margin-bottom: 30px;
+        font-style: italic;
+      }
+
+      .interface-section {
+        margin: 30px 0;
+        padding: 20px;
+        border-radius: 8px;
+        background: #f8f9fa;
+        border-left: 5px solid #667eea;
+      }
+
+      .interface-section h2 {
+        color: #333;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .analogy-box {
+        background: #fff3cd;
+        border-left: 4px solid #ffc107;
+        padding: 15px;
+        margin: 15px 0;
+        border-radius: 4px;
+      }
+
+      .analogy-box strong {
+        color: #856404;
+      }
+
+      .code-container {
+        background: #2d2d2d;
+        border-radius: 6px;
+        padding: 15px;
+        margin: 15px 0;
+        overflow-x: auto;
+      }
+
+      pre {
+        margin: 0;
+      }
+
+      code {
+        color: #f8f8f2;
+        font-family: "Courier New", monospace;
+        font-size: 0.9em;
+        line-height: 1.5;
+      }
+
+      .keyword {
+        color: #ff79c6;
+      }
+      .string {
+        color: #50fa7b;
+      }
+      .comment {
+        color: #6272a4;
+      }
+      .method {
+        color: #8be9fd;
+      }
+      .type {
+        color: #bd93f9;
+      }
+
+      .interactive-demo {
+        background: white;
+        border: 2px solid #667eea;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 20px 0;
+      }
+
+      .demo-title {
+        font-weight: bold;
+        color: #667eea;
+        margin-bottom: 15px;
+        font-size: 1.1em;
+      }
+
+      .tab-container {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        border-bottom: 2px solid #e0e0e0;
+      }
+
+      .tab {
+        padding: 10px 20px;
+        cursor: pointer;
+        border: none;
+        background: none;
+        font-size: 1em;
+        color: #666;
+        border-bottom: 3px solid transparent;
+        transition: all 0.3s;
+      }
+
+      .tab:hover {
+        color: #667eea;
+      }
+
+      .tab.active {
+        color: #667eea;
+        border-bottom-color: #667eea;
+        font-weight: bold;
+      }
+
+      .tab-content {
+        display: none;
+      }
+
+      .tab-content.active {
+        display: block;
+        animation: fadeIn 0.3s;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .comparison-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 15px;
+        margin: 20px 0;
+      }
+
+      .comparison-card {
+        background: white;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 15px;
+        transition: transform 0.2s, border-color 0.2s;
+      }
+
+      .comparison-card:hover {
+        transform: translateY(-5px);
+        border-color: #667eea;
+      }
+
+      .comparison-card h4 {
+        color: #667eea;
+        margin-bottom: 10px;
+      }
+
+      .feature-list {
+        list-style: none;
+        padding: 0;
+      }
+
+      .feature-list li {
+        padding: 5px 0;
+        padding-left: 20px;
+        position: relative;
+      }
+
+      .feature-list li:before {
+        content: "✓";
+        position: absolute;
+        left: 0;
+        color: #4caf50;
+        font-weight: bold;
+      }
+
+      .feature-list li.negative:before {
+        content: "✗";
+        color: #f44336;
+      }
+
+      .sql-injection-demo {
+        background: #ffebee;
+        border: 2px solid #ef5350;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 20px 0;
+      }
+
+      .sql-injection-demo h3 {
+        color: #c62828;
+        margin-bottom: 15px;
+      }
+
+      .input-group {
+        margin: 15px 0;
+      }
+
+      .input-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+      }
+
+      .input-group input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 1em;
+      }
+
+      .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 1em;
+        margin: 5px;
+        transition: all 0.3s;
+      }
+
+      .btn-primary {
+        background: #667eea;
+        color: white;
+      }
+
+      .btn-primary:hover {
+        background: #5568d3;
+      }
+
+      .btn-danger {
+        background: #ef5350;
+        color: white;
+      }
+
+      .btn-danger:hover {
+        background: #e53935;
+      }
+
+      .btn-success {
+        background: #4caf50;
+        color: white;
+      }
+
+      .btn-success:hover {
+        background: #43a047;
+      }
+
+      .result-box {
+        background: #f5f5f5;
+        border-left: 4px solid #667eea;
+        padding: 15px;
+        margin-top: 15px;
+        border-radius: 4px;
+        font-family: monospace;
+        white-space: pre-wrap;
+      }
+
+      .danger-result {
+        border-left-color: #ef5350;
+        background: #ffebee;
+      }
+
+      .success-result {
+        border-left-color: #4caf50;
+        background: #e8f5e9;
+      }
+
+      .instructor-notes {
+        margin-top: 40px;
+        border-top: 2px solid #e0e0e0;
+        padding-top: 20px;
+      }
+
+      .collapsible {
+        background: #667eea;
+        color: white;
+        cursor: pointer;
+        padding: 15px;
+        border: none;
+        border-radius: 6px;
+        text-align: left;
+        font-size: 1.1em;
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .collapsible:hover {
+        background: #5568d3;
+      }
+
+      .collapsible-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease-out;
+        background: #f8f9fa;
+        border-radius: 0 0 6px 6px;
+      }
+
+      .collapsible-content.open {
+        max-height: 1000px;
+        padding: 20px;
+      }
+
+      .quiz-option {
+        background: white;
+        border: 2px solid #e0e0e0;
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .quiz-option:hover {
+        border-color: #667eea;
+        background: #f8f9fa;
+      }
+
+      .quiz-option.correct {
+        border-color: #4caf50;
+        background: #e8f5e9;
+      }
+
+      .quiz-option.incorrect {
+        border-color: #ef5350;
+        background: #ffebee;
+      }
+
+      .highlight-box {
+        background: #e3f2fd;
+        border-left: 4px solid #2196f3;
+        padding: 15px;
+        margin: 15px 0;
+        border-radius: 4px;
+      }
+
+      .highlight-box strong {
+        color: #1976d2;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🎯 Deep Dive into JDBC Statement Interfaces</h1>
+      <p class="subtitle">
+        Understanding Statement, PreparedStatement, and CallableStatement
+      </p>
+
+      <!-- Quick Overview -->
+      <div class="interactive-demo">
+        <div class="demo-title">🔍 Quick Comparison - Click to Explore!</div>
+        <div class="tab-container">
+          <button class="tab active" onclick="showTab('overview')">
+            Overview
+          </button>
+          <button class="tab" onclick="showTab('when-to-use')">
+            When to Use?
+          </button>
+          <button class="tab" onclick="showTab('performance')">
+            Performance
+          </button>
+        </div>
+
+        <div id="overview" class="tab-content active">
+          <div class="comparison-grid">
+            <div class="comparison-card">
+              <h4>Statement</h4>
+              <ul class="feature-list">
+                <li>Basic SQL execution</li>
+                <li>No parameters</li>
+                <li>Compiled every time</li>
+                <li class="negative">SQL injection risk</li>
+                <li class="negative">Slower performance</li>
+              </ul>
+            </div>
+            <div class="comparison-card">
+              <h4>PreparedStatement</h4>
+              <ul class="feature-list">
+                <li>Parameterized queries</li>
+                <li>Precompiled SQL</li>
+                <li>SQL injection safe</li>
+                <li>Better performance</li>
+                <li>Type-safe parameters</li>
+              </ul>
+            </div>
+            <div class="comparison-card">
+              <h4>CallableStatement</h4>
+              <ul class="feature-list">
+                <li>Stored procedures</li>
+                <li>IN/OUT parameters</li>
+                <li>Return values</li>
+                <li>Database functions</li>
+                <li>Complex logic</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div id="when-to-use" class="tab-content">
+          <div class="highlight-box">
+            <strong>Statement:</strong> Use only for static queries with no user
+            input (rare cases). Example:
+            <code>SELECT * FROM config WHERE type='system'</code>
+          </div>
+          <div class="highlight-box">
+            <strong>PreparedStatement:</strong> Use for all queries with user
+            input or repeated execution. This is your default choice! Example:
+            Login forms, search queries, CRUD operations.
+          </div>
+          <div class="highlight-box">
+            <strong>CallableStatement:</strong> Use when calling stored
+            procedures or database functions. Example: Complex business logic
+            stored in the database, batch processing routines.
+          </div>
+        </div>
+
+        <div id="performance" class="tab-content">
+          <h3>Execution Speed Comparison</h3>
+          <p style="margin: 15px 0">For 1000 executions of the same query:</p>
+          <div style="background: white; padding: 20px; border-radius: 8px">
+            <div style="margin: 10px 0">
+              <strong>Statement:</strong>
+              <div
+                style="
+                  background: #ef5350;
+                  height: 30px;
+                  width: 100%;
+                  border-radius: 4px;
+                  color: white;
+                  display: flex;
+                  align-items: center;
+                  padding: 0 10px;
+                "
+              >
+                1000ms - Compiles every time
+              </div>
+            </div>
+            <div style="margin: 10px 0">
+              <strong>PreparedStatement:</strong>
+              <div
+                style="
+                  background: #4caf50;
+                  height: 30px;
+                  width: 40%;
+                  border-radius: 4px;
+                  color: white;
+                  display: flex;
+                  align-items: center;
+                  padding: 0 10px;
+                "
+              >
+                400ms - Precompiled
+              </div>
+            </div>
+            <div style="margin: 10px 0">
+              <strong>CallableStatement:</strong>
+              <div
+                style="
+                  background: #2196f3;
+                  height: 30px;
+                  width: 30%;
+                  border-radius: 4px;
+                  color: white;
+                  display: flex;
+                  align-items: center;
+                  padding: 0 10px;
+                "
+              >
+                300ms - DB optimized
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Statement Interface -->
+      <div class="interface-section">
+        <h2>1️⃣ Statement Interface</h2>
+
+        <div class="analogy-box">
+          <strong>💡 Analogy:</strong> Like writing a letter by hand every
+          single time, even if you're sending the same message to different
+          people. You have to rewrite everything from scratch!
+        </div>
+
+        <h3>Basic Usage:</h3>
+        <div class="code-container">
+          <pre><code><span class="comment">// Create a Statement object</span>
+<span class="type">Statement</span> stmt = connection.<span class="method">createStatement</span>();
+
+<span class="comment">// Execute a query</span>
+<span class="type">String</span> sql = <span class="string">"SELECT * FROM students WHERE age > 18"</span>;
+<span class="type">ResultSet</span> rs = stmt.<span class="method">executeQuery</span>(sql);
+
+<span class="comment">// Process results</span>
+<span class="keyword">while</span> (rs.<span class="method">next</span>()) {
+    <span class="type">System</span>.out.<span class="method">println</span>(rs.<span class="method">getString</span>(<span class="string">"name"</span>));
+}
+
+<span class="comment">// Execute updates</span>
+<span class="keyword">int</span> rows = stmt.<span class="method">executeUpdate</span>(<span class="string">"DELETE FROM students WHERE id = 101"</span>);
+</code></pre>
+        </div>
+
+        <div class="highlight-box">
+          <strong>⚠️ Major Problem:</strong> Vulnerable to SQL injection
+          attacks! Never use Statement with user input.
+        </div>
+      </div>
+
+      <!-- SQL Injection Demo -->
+      <div class="sql-injection-demo">
+        <h3>🚨 SQL Injection Vulnerability Demo</h3>
+        <p>Try entering: <code>' OR '1'='1</code> in the username field</p>
+
+        <div class="input-group">
+          <label>Username:</label>
+          <input type="text" id="username" placeholder="Enter username" />
+        </div>
+
+        <div class="input-group">
+          <label>Password:</label>
+          <input type="text" id="password" placeholder="Enter password" />
+        </div>
+
+        <button class="btn btn-danger" onclick="demonstrateInjection()">
+          Try with Statement (Vulnerable)
+        </button>
+        <button class="btn btn-success" onclick="demonstrateSafe()">
+          Try with PreparedStatement (Safe)
+        </button>
+
+        <div id="injection-result"></div>
+      </div>
+
+      <!-- PreparedStatement Interface -->
+      <div class="interface-section" style="border-left-color: #4caf50">
+        <h2>2️⃣ PreparedStatement Interface ⭐ (Recommended!)</h2>
+
+        <div class="analogy-box">
+          <strong>💡 Analogy:</strong> Like using a template letter with blank
+          spaces. You create the template once, then just fill in the blanks
+          each time. Much faster and safer!
+        </div>
+
+        <h3>Parameter Binding:</h3>
+        <div class="code-container">
+          <pre><code><span class="comment">// Create PreparedStatement with placeholders (?)</span>
+<span class="type">String</span> sql = <span class="string">"SELECT * FROM students WHERE name = ? AND age > ?"</span>;
+<span class="type">PreparedStatement</span> pstmt = connection.<span class="method">prepareStatement</span>(sql);
+
+<span class="comment">// Bind parameters (index starts at 1)</span>
+pstmt.<span class="method">setString</span>(1, <span class="string">"John Doe"</span>);  <span class="comment">// First ?</span>
+pstmt.<span class="method">setInt</span>(2, 18);          <span class="comment">// Second ?</span>
+
+<span class="comment">// Execute the query</span>
+<span class="type">ResultSet</span> rs = pstmt.<span class="method">executeQuery</span>();
+
+<span class="comment">// INSERT example</span>
+<span class="type">String</span> insertSQL = <span class="string">"INSERT INTO students (name, age, grade) VALUES (?, ?, ?)"</span>;
+<span class="type">PreparedStatement</span> insertStmt = connection.<span class="method">prepareStatement</span>(insertSQL);
+insertStmt.<span class="method">setString</span>(1, <span class="string">"Alice"</span>);
+insertStmt.<span class="method">setInt</span>(2, 20);
+insertStmt.<span class="method">setString</span>(3, <span class="string">"A"</span>);
+<span class="keyword">int</span> rowsInserted = insertStmt.<span class="method">executeUpdate</span>();
+</code></pre>
+        </div>
+
+        <h3>Common Setter Methods:</h3>
+        <div class="interactive-demo">
+          <div class="comparison-grid">
+            <div class="comparison-card">
+              <h4>Numeric Types</h4>
+              <code>setInt(index, value)</code><br />
+              <code>setLong(index, value)</code><br />
+              <code>setDouble(index, value)</code><br />
+              <code>setFloat(index, value)</code>
+            </div>
+            <div class="comparison-card">
+              <h4>Text & Binary</h4>
+              <code>setString(index, value)</code><br />
+              <code>setBytes(index, value)</code><br />
+              <code>setBlob(index, value)</code><br />
+              <code>setClob(index, value)</code>
+            </div>
+            <div class="comparison-card">
+              <h4>Date & Time</h4>
+              <code>setDate(index, value)</code><br />
+              <code>setTime(index, value)</code><br />
+              <code>setTimestamp(index, value)</code>
+            </div>
+          </div>
+        </div>
+
+        <div class="highlight-box">
+          <strong>✨ Why PreparedStatement is Better:</strong>
+          <ul style="margin-top: 10px; margin-left: 20px">
+            <li>
+              <strong>Security:</strong> Prevents SQL injection automatically
+            </li>
+            <li>
+              <strong>Performance:</strong> Precompiled and cached by database
+            </li>
+            <li>
+              <strong>Readability:</strong> Cleaner code with parameter binding
+            </li>
+            <li>
+              <strong>Type Safety:</strong> Automatic type conversion and
+              validation
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- CallableStatement Interface -->
+      <div class="interface-section" style="border-left-color: #2196f3">
+        <h2>3️⃣ CallableStatement Interface</h2>
+
+        <div class="analogy-box">
+          <strong>💡 Analogy:</strong> Like calling a customer service hotline
+          with pre-programmed options. You press buttons (input parameters), and
+          the system gives you results (output parameters). The complex logic is
+          handled on their end!
+        </div>
+
+        <h3>Calling a Stored Procedure:</h3>
+        <div class="code-container">
+          <pre><code><span class="comment">// Stored procedure in database:
+// CREATE PROCEDURE getStudentGrade(IN student_id INT, OUT grade VARCHAR(2))
+// BEGIN
+//     SELECT grade INTO grade FROM students WHERE id = student_id;
+// END</span>
+
+<span class="comment">// Call the stored procedure from Java</span>
+<span class="type">String</span> sql = <span class="string">"{CALL getStudentGrade(?, ?)}"</span>;
+<span class="type">CallableStatement</span> cstmt = connection.<span class="method">prepareCall</span>(sql);
+
+<span class="comment">// Set IN parameter</span>
+cstmt.<span class="method">setInt</span>(1, 12345);  <span class="comment">// student_id</span>
+
+<span class="comment">// Register OUT parameter</span>
+cstmt.<span class="method">registerOutParameter</span>(2, <span class="type">Types</span>.VARCHAR);
+
+<span class="comment">// Execute</span>
+cstmt.<span class="method">execute</span>();
+
+<span class="comment">// Get OUT parameter value</span>
+<span class="type">String</span> grade = cstmt.<span class="method">getString</span>(2);
+<span class="type">System</span>.out.<span class="method">println</span>(<span class="string">"Grade: "</span> + grade);
+</code></pre>
+        </div>
+
+        <h3>Function Call with Return Value:</h3>
+        <div class="code-container">
+          <pre><code><span class="comment">// Database function: CREATE FUNCTION calculateAverage(student_id INT) RETURNS DECIMAL</span>
+
+<span class="comment">// Call function from Java</span>
+<span class="type">String</span> sql = <span class="string">"{? = CALL calculateAverage(?)}"</span>;
+<span class="type">CallableStatement</span> cstmt = connection.<span class="method">prepareCall</span>(sql);
+
+<span class="comment">// Register return value (first parameter)</span>
+cstmt.<span class="method">registerOutParameter</span>(1, <span class="type">Types</span>.DECIMAL);
+
+<span class="comment">// Set IN parameter</span>
+cstmt.<span class="method">setInt</span>(2, 12345);
+
+<span class="comment">// Execute and get result</span>
+cstmt.<span class="method">execute</span>();
+<span class="keyword">double</span> average = cstmt.<span class="method">getDouble</span>(1);
+<span class="type">System</span>.out.<span class="method">println</span>(<span class="string">"Average: "</span> + average);
+</code></pre>
+        </div>
+
+        <div class="highlight-box">
+          <strong>🎯 When to Use CallableStatement:</strong>
+          <ul style="margin-top: 10px; margin-left: 20px">
+            <li>Complex business logic stored in database</li>
+            <li>Need to reuse logic across multiple applications</li>
+            <li>Working with legacy database systems</li>
+            <li>Batch processing and data transformations</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Visual Hierarchy -->
+      <div class="interactive-demo">
+        <div class="demo-title">📊 Interface Hierarchy</div>
+        <div style="text-align: center; padding: 20px">
+          <div
+            style="
+              background: #e3f2fd;
+              padding: 20px;
+              border-radius: 8px;
+              display: inline-block;
+              margin: 10px;
+            "
+          >
+            <strong>Statement</strong><br />
+            <span style="font-size: 0.9em; color: #666">Base interface</span>
+          </div>
+          <div style="font-size: 2em; color: #666">↓</div>
+          <div
+            style="
+              background: #e8f5e9;
+              padding: 20px;
+              border-radius: 8px;
+              display: inline-block;
+              margin: 10px;
+            "
+          >
+            <strong>PreparedStatement</strong><br />
+            <span style="font-size: 0.9em; color: #666">extends Statement</span>
+          </div>
+          <div style="font-size: 2em; color: #666">↓</div>
+          <div
+            style="
+              background: #fff3e0;
+              padding: 20px;
+              border-radius: 8px;
+              display: inline-block;
+              margin: 10px;
+            "
+          >
+            <strong>CallableStatement</strong><br />
+            <span style="font-size: 0.9em; color: #666"
+              >extends PreparedStatement</span
+            >
+          </div>
+        </div>
+        <p style="text-align: center; color: #666; margin-top: 20px">
+          Each child interface inherits all methods from its parent and adds new
+          capabilities!
+        </p>
+      </div>
+
+      <!-- Best Practices -->
+      <div class="interface-section" style="border-left-color: #ff9800">
+        <h2>🏆 Best Practices & Key Takeaways</h2>
+
+        <div class="comparison-grid">
+          <div class="comparison-card">
+            <h4>✅ DO</h4>
+            <ul class="feature-list">
+              <li>Use PreparedStatement by default</li>
+              <li>Always close statements in finally block</li>
+              <li>Reuse PreparedStatement for batch operations</li>
+              <li>Use try-with-resources</li>
+            </ul>
+          </div>
+          <div class="comparison-card">
+            <h4>❌ DON'T</h4>
+            <ul class="feature-list">
+              <li class="negative">Concatenate user input in SQL</li>
+              <li class="negative">Use Statement for dynamic queries</li>
+              <li class="negative">Forget to close resources</li>
+              <li class="negative">Ignore SQL injection risks</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3 style="margin-top: 20px">
+          Modern Java Example (Try-with-Resources):
+        </h3>
+        <div class="code-container">
+          <pre><code><span class="comment">// Automatic resource management - no need for finally block!</span>
+<span class="keyword">try</span> (<span class="type">Connection</span> conn = <span class="type">DriverManager</span>.<span class="method">getConnection</span>(url, user, pass);
+     <span class="type">PreparedStatement</span> pstmt = conn.<span class="method">prepareStatement</span>(<span class="string">"SELECT * FROM students WHERE id = ?"</span>)) {
+    
+    pstmt.<span class="method">setInt</span>(1, studentId);
+    <span class="keyword">try</span> (<span class="type">ResultSet</span> rs = pstmt.<span class="method">executeQuery</span>()) {
+        <span class="keyword">while</span> (rs.<span class="method">next</span>()) {
+            <span class="comment">// Process results</span>
+        }
+    }
+} <span class="keyword">catch</span> (<span class="type">SQLException</span> e) {
+    e.<span class="method">printStackTrace</span>();
+}
+<span class="comment">// All resources automatically closed!</span>
+</code></pre>
+        </div>
+      </div>
+
+      <!-- Instructor Notes -->
+      <div class="instructor-notes">
+        <button class="collapsible" onclick="toggleCollapsible(this)">
+          🧑‍🏫 Instructor Notes
+          <span>▼</span>
+        </button>
+        <div class="collapsible-content">
+          <h3>Teaching Tips:</h3>
+          <ol style="margin-left: 20px; line-height: 1.8">
+            <li>
+              <strong>Demo SQL Injection Live:</strong> Use the interactive demo
+              above to show students how easily SQL injection can bypass
+              authentication. Then show how PreparedStatement prevents it
+              automatically. This "aha moment" is crucial!
+            </li>
+
+            <li>
+              <strong>Performance Comparison:</strong> If possible, run a live
+              benchmark showing 1000 executions of Statement vs
+              PreparedStatement. The 60-70% speed improvement makes a lasting
+              impression.
+            </li>
+
+            <li>
+              <strong>Real-World Scenario:</strong> Explain that
+              CallableStatement is like having your database act as a
+              "mini-application server" - perfect for when you need the database
+              to handle complex logic that multiple apps can share.
+            </li>
+          </ol>
+
+          <h3 style="margin-top: 25px">Quick Quiz:</h3>
+          <p>
+            <strong
+              >Which statement interface should you use for a user login
+              form?</strong
+            >
+          </p>
+          <div class="quiz-option" onclick="checkAnswer(this, false)">
+            A) Statement - because it's the simplest option
+          </div>
+          <div class="quiz-option" onclick="checkAnswer(this, true)">
+            B) PreparedStatement - to prevent SQL injection and improve
+            performance
+          </div>
+          <div class="quiz-option" onclick="checkAnswer(this, false)">
+            C) CallableStatement - because login is a critical operation
+          </div>
+          <div
+            id="quiz-feedback"
+            style="margin-top: 15px; padding: 10px; display: none"
+          ></div>
+
+          <h3 style="margin-top: 25px">Further Reading:</h3>
+          <ul style="margin-left: 20px; line-height: 1.8">
+            <li>Oracle JDBC Documentation - Statement Interfaces</li>
+            <li>OWASP SQL Injection Prevention</li>
+            <li>Database-Specific Stored Procedure Syntax</li>
+            <li>JDBC Performance Tuning Best Practices</li>
+            <li>Batch Processing with PreparedStatement</li>
+          </ul>
+          <h3 style="margin-top: 25px">Common Student Questions:</h3>
+          <div
+            style="
+              background: white;
+              padding: 15px;
+              border-radius: 6px;
+              margin-top: 10px;
+            "
+          >
+            <p><strong>Q: "Can I reuse a PreparedStatement?"</strong></p>
+            <p style="color: #666; margin-left: 20px">
+              A: Yes! That's one of its biggest advantages. Create it once, then
+              call setXxx() and execute() multiple times. Perfect for batch
+              inserts.
+            </p>
+          </div>
+          <div
+            style="
+              background: white;
+              padding: 15px;
+              border-radius: 6px;
+              margin-top: 10px;
+            "
+          >
+            <p>
+              <strong>Q: "Why do parameter indices start at 1, not 0?"</strong>
+            </p>
+            <p style="color: #666; margin-left: 20px">
+              A: JDBC follows SQL convention (1-based indexing), not Java
+              convention (0-based). This is a common gotcha for beginners!
+            </p>
+          </div>
+          <div
+            style="
+              background: white;
+              padding: 15px;
+              border-radius: 6px;
+              margin-top: 10px;
+            "
+          >
+            <p><strong>Q: "When would I actually use Statement?"</strong></p>
+            <p style="color: #666; margin-left: 20px">
+              A: Almost never in production code! Only for completely static
+              queries with zero user input or dynamic content. Even then,
+              PreparedStatement is safer.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div
+        style="
+          text-align: center;
+          margin-top: 30px;
+          padding: 20px;
+          background: #f8f9fa;
+          border-radius: 8px;
+        "
+      >
+        <p style="color: #666">
+          💻 Interactive Demo | Created for Engineering Students
+        </p>
+        <p style="color: #999; font-size: 0.9em">
+          Click tabs, try the SQL injection demo, and explore the code examples!
+        </p>
+      </div>
+    </div>
+
+    <script>
+      // Tab switching functionality
+      function showTab(tabName) {
+        // Hide all tab contents
+        const contents = document.querySelectorAll(".tab-content");
+        contents.forEach((content) => content.classList.remove("active"));
+
+        // Remove active class from all tabs
+        const tabs = document.querySelectorAll(".tab");
+        tabs.forEach((tab) => tab.classList.remove("active"));
+
+        // Show selected tab content
+        document.getElementById(tabName).classList.add("active");
+
+        // Add active class to clicked tab
+        event.target.classList.add("active");
+      }
+
+      // SQL Injection demonstration
+      function demonstrateInjection() {
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
+        const resultDiv = document.getElementById("injection-result");
+
+        // Simulate vulnerable Statement query
+        const vulnerableSQL = `SELECT * FROM users WHERE username = '${username}' AND password = '${password}'`;
+
+        let resultHTML = '<div class="result-box danger-result">';
+        resultHTML += "<strong>🚨 VULNERABLE - Statement Query:</strong>\n\n";
+        resultHTML += vulnerableSQL + "\n\n";
+
+        // Check if SQL injection attempt
+        if (
+          username.includes("'") ||
+          username.toLowerCase().includes(" or ") ||
+          password.includes("'") ||
+          password.toLowerCase().includes(" or ")
+        ) {
+          resultHTML +=
+            '<strong style="color: #c62828;">⚠️ SQL INJECTION DETECTED!</strong>\n';
+          resultHTML += "The query becomes: \n";
+          resultHTML += `SELECT * FROM users WHERE username = '${username}' AND password = '${password}'\n\n`;
+          resultHTML += "If username is: ' OR '1'='1\n";
+          resultHTML += "The WHERE clause becomes TRUE for all rows!\n";
+          resultHTML += "Result: AUTHENTICATION BYPASSED! 🔓\n";
+        } else {
+          resultHTML +=
+            "Normal query execution (but still vulnerable to injection!)\n";
+        }
+
+        resultHTML += "</div>";
+        resultDiv.innerHTML = resultHTML;
+      }
+
+      function demonstrateSafe() {
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
+        const resultDiv = document.getElementById("injection-result");
+
+        let resultHTML = '<div class="result-box success-result">';
+        resultHTML += "<strong>✅ SAFE - PreparedStatement Query:</strong>\n\n";
+        resultHTML +=
+          "SQL: SELECT * FROM users WHERE username = ? AND password = ?\n\n";
+        resultHTML += "Parameters:\n";
+        resultHTML += `  [1] username = "${username}"\n`;
+        resultHTML += `  [2] password = "${password}"\n\n`;
+
+        if (username.includes("'") || username.toLowerCase().includes(" or ")) {
+          resultHTML +=
+            '<strong style="color: #2e7d32;">🛡️ INJECTION ATTEMPT BLOCKED!</strong>\n';
+          resultHTML +=
+            "PreparedStatement treats the entire input as a STRING value.\n";
+          resultHTML +=
+            "The SQL syntax characters are escaped automatically.\n";
+          resultHTML +=
+            'Database searches for username literally: "' + username + '"\n';
+          resultHTML += "Result: No user found. Login fails safely. ✅\n";
+        } else {
+          resultHTML += "PreparedStatement safely binds parameters.\n";
+          resultHTML += "No SQL injection possible!\n";
+        }
+
+        resultHTML += "</div>";
+        resultDiv.innerHTML = resultHTML;
+      }
+
+      // Collapsible functionality
+      function toggleCollapsible(button) {
+        const content = button.nextElementSibling;
+        const arrow = button.querySelector("span");
+
+        if (content.classList.contains("open")) {
+          content.classList.remove("open");
+          arrow.textContent = "▼";
+        } else {
+          content.classList.add("open");
+          arrow.textContent = "▲";
+        }
+      }
+
+      // Quiz functionality
+      function checkAnswer(option, isCorrect) {
+        // Remove previous selections
+        const options = document.querySelectorAll(".quiz-option");
+        options.forEach((opt) => {
+          opt.classList.remove("correct", "incorrect");
+        });
+
+        // Mark selected answer
+        if (isCorrect) {
+          option.classList.add("correct");
+          showFeedback(
+            "✅ Correct! PreparedStatement is the right choice because it prevents SQL injection attacks by using parameterized queries, and it offers better performance through precompilation. Always use PreparedStatement when handling user input!",
+            true
+          );
+        } else {
+          option.classList.add("incorrect");
+          showFeedback(
+            "❌ Not quite. While Statement and CallableStatement have their uses, PreparedStatement is the best choice for user login forms because it prevents SQL injection and provides better performance.",
+            false
+          );
+        }
+      }
+
+      function showFeedback(message, isCorrect) {
+        const feedback = document.getElementById("quiz-feedback");
+        feedback.style.display = "block";
+        feedback.style.background = isCorrect ? "#e8f5e9" : "#ffebee";
+        feedback.style.borderLeft = isCorrect
+          ? "4px solid #4caf50"
+          : "4px solid #ef5350";
+        feedback.style.padding = "15px";
+        feedback.style.borderRadius = "4px";
+        feedback.style.marginTop = "15px";
+        feedback.innerHTML = message;
+      }
+
+      // Add some sample malicious input hints
+      document.addEventListener("DOMContentLoaded", function () {
+        const usernameInput = document.getElementById("username");
+        const passwordInput = document.getElementById("password");
+
+        // Add placeholder hints
+        usernameInput.placeholder = "Try: ' OR '1'='1";
+        passwordInput.placeholder = "Try: ' OR '1'='1";
+
+        // Add helpful tooltip on focus
+        usernameInput.addEventListener("focus", function () {
+          if (this.value === "") {
+            setTimeout(() => {
+              if (this.value === "") {
+                this.value = "' OR '1'='1";
+                this.select();
+              }
+            }, 100);
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ResultSet & ResultSetMetaData Deep Dive</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .section {
+            margin-bottom: 50px;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 5px solid #667eea;
+        }
+        
+        .section h2 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 2em;
+        }
+        
+        .section h3 {
+            color: #34495e;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+        
+        .concept {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .analogy {
+            background: #fff3e0;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #ff9800;
+        }
+        
+        .analogy::before {
+            content: "💡 Analogy: ";
+            font-weight: bold;
+            color: #f57c00;
+        }
+        
+        .demo-box {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 20px 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .demo-box h4 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        
+        pre {
+            background: #263238;
+            color: #aed581;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+        
+        code {
+            font-family: 'Courier New', monospace;
+        }
+        
+        .comment {
+            color: #757575;
+        }
+        
+        .keyword {
+            color: #c792ea;
+        }
+        
+        .string {
+            color: #c3e88d;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            margin: 10px 5px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 15px 0;
+        }
+        
+        .table-demo {
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        th {
+            background: #667eea;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        tr:hover {
+            background: #f5f5f5;
+        }
+        
+        .cursor-pointer {
+            background: #ffeb3b;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .output {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            min-height: 50px;
+            font-family: monospace;
+            border: 2px solid #ddd;
+        }
+        
+        .instructor-notes {
+            background: #e8f5e9;
+            padding: 25px;
+            border-radius: 10px;
+            margin-top: 30px;
+            border-left: 5px solid #4caf50;
+        }
+        
+        .collapsible {
+            cursor: pointer;
+            padding: 15px;
+            background: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            width: 100%;
+            text-align: left;
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        
+        .collapsible:hover {
+            background: #45a049;
+        }
+        
+        .collapsible-content {
+            display: none;
+            padding: 15px;
+        }
+        
+        .collapsible-content.active {
+            display: block;
+        }
+        
+        .quiz {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .quiz-option {
+            padding: 10px;
+            margin: 8px 0;
+            background: #f5f5f5;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .quiz-option:hover {
+            background: #e0e0e0;
+        }
+        
+        .quiz-option.correct {
+            background: #c8e6c9;
+            border: 2px solid #4caf50;
+        }
+        
+        .quiz-option.incorrect {
+            background: #ffcdd2;
+            border: 2px solid #f44336;
+        }
+        
+        input[type="text"] {
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+            width: 200px;
+        }
+        
+        .highlight {
+            background: #ffeb3b;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        
+        .method-card {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .method-card h5 {
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎯 ResultSet & ResultSetMetaData</h1>
+            <p>Advanced JDBC: Navigating Query Results Like a Pro</p>
+        </header>
+        
+        <div class="content">
+            <!-- ResultSet Section -->
+            <div class="section">
+                <h2>📊 ResultSet Deep Dive</h2>
+                
+                <div class="concept">
+                    <strong>Concept:</strong> ResultSet is a table of data returned by a database query, with a cursor that points to one row at a time for data retrieval.
+                </div>
+                
+                <div class="analogy">
+                    Think of ResultSet as a <strong>music playlist</strong>. You can't see all songs at once—you have a cursor (▶️ play button) pointing to the current song. You can move forward (next()), backward (previous()), or jump to a specific track (absolute()). The playlist itself has properties: is it read-only? Can you skip around freely?
+                </div>
+                
+                <h3>Understanding the Cursor</h3>
+                <div class="concept">
+                    <strong>The Cursor:</strong> An internal pointer that indicates which row you're currently reading. It starts <em>before</em> the first row and moves with methods like next().
+                </div>
+                
+                <div class="demo-box">
+                    <h4>🎮 Interactive Cursor Demo</h4>
+                    <p>Watch the cursor move through a sample ResultSet:</p>
+                    
+                    <div class="table-demo">
+                        <table id="cursorTable">
+                            <thead>
+                                <tr>
+                                    <th>Position</th>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Salary</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr id="before-first">
+                                    <td colspan="4" style="text-align: center; font-style: italic;">
+                                        <span class="cursor-pointer">→ CURSOR (Before First Row)</span>
+                                    </td>
+                                </tr>
+                                <tr id="row1">
+                                    <td>Row 1</td>
+                                    <td>101</td>
+                                    <td>Alice</td>
+                                    <td>$75,000</td>
+                                </tr>
+                                <tr id="row2">
+                                    <td>Row 2</td>
+                                    <td>102</td>
+                                    <td>Bob</td>
+                                    <td>$82,000</td>
+                                </tr>
+                                <tr id="row3">
+                                    <td>Row 3</td>
+                                    <td>103</td>
+                                    <td>Charlie</td>
+                                    <td>$90,000</td>
+                                </tr>
+                                <tr id="after-last" style="display: none;">
+                                    <td colspan="4" style="text-align: center; font-style: italic;">
+                                        <span class="cursor-pointer">→ CURSOR (After Last Row)</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="controls">
+                        <button onclick="moveNext()">rs.next()</button>
+                        <button onclick="movePrevious()">rs.previous()</button>
+                        <button onclick="moveFirst()">rs.first()</button>
+                        <button onclick="moveLast()">rs.last()</button>
+                        <button onclick="moveAbsolute()">rs.absolute(2)</button>
+                        <button onclick="resetCursor()">Reset</button>
+                    </div>
+                    
+                    <div class="output" id="cursorOutput">
+                        Click a button to move the cursor and retrieve data!
+                    </div>
+                </div>
+                
+                <h3>ResultSet Types</h3>
+                
+                <div class="method-card">
+                    <h5>TYPE_FORWARD_ONLY</h5>
+                    <p>Cursor moves forward only (next()). Most efficient, default type.</p>
+                </div>
+                
+                <div class="method-card">
+                    <h5>TYPE_SCROLL_INSENSITIVE</h5>
+                    <p>Scrollable in both directions, but doesn't reflect database changes during iteration.</p>
+                </div>
+                
+                <div class="method-card">
+                    <h5>TYPE_SCROLL_SENSITIVE</h5>
+                    <p>Scrollable and reflects live database changes (not widely supported).</p>
+                </div>
+                
+                <div class="demo-box">
+                    <h4>📝 Code Example: Creating Different ResultSet Types</h4>
+<pre><code><span class="comment">// Forward-only (default)</span>
+Statement stmt = conn.createStatement();
+ResultSet rs = stmt.executeQuery(<span class="string">"SELECT * FROM employees"</span>);
+
+<span class="comment">// Scrollable + Read-Only</span>
+Statement stmt2 = conn.createStatement(
+    ResultSet.TYPE_SCROLL_INSENSITIVE,
+    ResultSet.CONCUR_READ_ONLY
+);
+ResultSet rs2 = stmt2.executeQuery(<span class="string">"SELECT * FROM employees"</span>);
+
+<span class="comment">// Scrollable + Updatable</span>
+Statement stmt3 = conn.createStatement(
+    ResultSet.TYPE_SCROLL_SENSITIVE,
+    ResultSet.CONCUR_UPDATABLE
+);
+ResultSet rs3 = stmt3.executeQuery(<span class="string">"SELECT * FROM employees"</span>);
+</code></pre>
+                </div>
+                
+                <h3>Essential ResultSet Methods</h3>
+                
+                <div class="demo-box">
+                    <h4>🔧 Method Explorer</h4>
+                    <p>Click on a method to see its usage:</p>
+                    
+                    <div class="controls">
+                        <button onclick="showMethod('next')">next()</button>
+                        <button onclick="showMethod('getString')">getString()</button>
+                        <button onclick="showMethod('getInt')">getInt()</button>
+                        <button onclick="showMethod('wasNull')">wasNull()</button>
+                        <button onclick="showMethod('updateRow')">updateRow()</button>
+                        <button onclick="showMethod('deleteRow')">deleteRow()</button>
+                    </div>
+                    
+                    <div class="output" id="methodOutput">
+                        Select a method to explore...
+                    </div>
+                </div>
+                
+                <div class="demo-box">
+                    <h4>💻 Complete ResultSet Example</h4>
+<pre><code><span class="comment">// Typical ResultSet iteration pattern</span>
+<span class="keyword">try</span> (Statement stmt = conn.createStatement();
+     ResultSet rs = stmt.executeQuery(<span class="string">"SELECT id, name, salary FROM employees"</span>)) {
+    
+    <span class="comment">// Loop through all rows</span>
+    <span class="keyword">while</span> (rs.next()) {
+        <span class="comment">// Retrieve by column index (starts at 1, not 0!)</span>
+        <span class="keyword">int</span> id = rs.getInt(1);
+        
+        <span class="comment">// Retrieve by column name (preferred for readability)</span>
+        String name = rs.getString(<span class="string">"name"</span>);
+        <span class="keyword">double</span> salary = rs.getDouble(<span class="string">"salary"</span>);
+        
+        <span class="comment">// Check for NULL values</span>
+        <span class="keyword">if</span> (rs.wasNull()) {
+            System.out.println(<span class="string">"Salary was NULL"</span>);
+        }
+        
+        System.out.println(id + <span class="string">": "</span> + name + <span class="string">" - $"</span> + salary);
+    }
+} <span class="keyword">catch</span> (SQLException e) {
+    e.printStackTrace();
+}
+</code></pre>
+                </div>
+                
+                <div class="demo-box">
+                    <h4>✏️ Updatable ResultSet Example</h4>
+<pre><code><span class="comment">// Create an updatable ResultSet</span>
+Statement stmt = conn.createStatement(
+    ResultSet.TYPE_SCROLL_INSENSITIVE,
+    ResultSet.CONCUR_UPDATABLE
+);
+ResultSet rs = stmt.executeQuery(<span class="string">"SELECT id, name, salary FROM employees WHERE id = 101"</span>);
+
+<span class="keyword">if</span> (rs.next()) {
+    <span class="comment">// Update the salary column</span>
+    rs.updateDouble(<span class="string">"salary"</span>, 80000.00);
+    
+    <span class="comment">// Commit the change to database</span>
+    rs.updateRow();
+    
+    System.out.println(<span class="string">"Salary updated!"</span>);
+}
+
+<span class="comment">// Insert a new row</span>
+rs.moveToInsertRow();
+rs.updateInt(<span class="string">"id"</span>, 104);
+rs.updateString(<span class="string">"name"</span>, <span class="string">"David"</span>);
+rs.updateDouble(<span class="string">"salary"</span>, 70000.00);
+rs.insertRow();
+rs.moveToCurrentRow();
+</code></pre>
+                </div>
+            </div>
+            
+            <!-- ResultSetMetaData Section -->
+            <div class="section">
+                <h2>🔍 ResultSetMetaData Deep Dive</h2>
+                
+                <div class="concept">
+                    <strong>Concept:</strong> ResultSetMetaData provides information <em>about</em> the ResultSet structure—column names, types, sizes, and table info—without accessing the actual data.
+                </div>
+                
+                <div class="analogy">
+                    If ResultSet is a <strong>book's content</strong>, then ResultSetMetaData is the <strong>book's index/table of contents</strong>. It tells you: "Chapter 1 starts on page 5, has 20 pages, and is titled 'Introduction'" without you having to read the actual chapter. It's metadata about the structure, not the data itself.
+                </div>
+                
+                <div class="demo-box">
+                    <h4>🎯 Interactive MetaData Explorer</h4>
+                    <p>Explore what metadata you can extract from a ResultSet:</p>
+                    
+                    <div class="table-demo">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Column Index</th>
+                                    <th>Column Name</th>
+                                    <th>Data Type</th>
+                                    <th>Size</th>
+                                    <th>Nullable?</th>
+                                </tr>
+                            </thead>
+                            <tbody id="metadataTable">
+                                <tr>
+                                    <td>1</td>
+                                    <td>id</td>
+                                    <td>INTEGER</td>
+                                    <td>10</td>
+                                    <td>NO</td>
+                                </tr>
+                                <tr>
+                                    <td>2</td>
+                                    <td>name</td>
+                                    <td>VARCHAR</td>
+                                    <td>50</td>
+                                    <td>NO</td>
+                                </tr>
+                                <tr>
+                                    <td>3</td>
+                                    <td>salary</td>
+                                    <td>DOUBLE</td>
+                                    <td>15</td>
+                                    <td>YES</td>
+                                </tr>
+                                <tr>
+                                    <td>4</td>
+                                    <td>hire_date</td>
+                                    <td>DATE</td>
+                                    <td>10</td>
+                                    <td>YES</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="controls">
+                        <button onclick="showMetadata('count')">Get Column Count</button>
+                        <button onclick="showMetadata('names')">Get All Column Names</button>
+                        <button onclick="showMetadata('types')">Get All Data Types</button>
+                        <button onclick="showMetadata('table')">Get Table Name</button>
+                    </div>
+                    
+                    <div class="output" id="metadataOutput">
+                        Click a button to extract metadata information!
+                    </div>
+                </div>
+                
+                <h3>Key ResultSetMetaData Methods</h3>
+                
+                <div class="method-card">
+                    <h5>getColumnCount()</h5>
+                    <p>Returns the total number of columns in the ResultSet.</p>
+                </div>
+                
+                <div class="method-card">
+                    <h5>getColumnName(int column)</h5>
+                    <p>Returns the name of the specified column (1-indexed).</p>
+                </div>
+                
+                <div class="method-card">
+                    <h5>getColumnType(int column)</h5>
+                    <p>Returns the SQL type code (from java.sql.Types) for the column.</p>
+                </div>
+                
+                <div class="method-card">
+                    <h5>getColumnTypeName(int column)</h5>
+                    <p>Returns the database-specific type name (e.g., "VARCHAR", "INTEGER").</p>
+                </div>
+                
+                <div class="method-card">
+                    <h5>isNullable(int column)</h5>
+                    <p>Returns whether the column can contain NULL values.</p>
+                </div>
+                
+                <div class="method-card">
+                    <h5>getTableName(int column)</h5>
+                    <p>Returns the table name that this column originates from.</p>
+                </div>
+                
+                <div class="demo-box">
+                    <h4>💻 Complete MetaData Example</h4>
+<pre><code><span class="comment">// Get metadata from ResultSet</span>
+ResultSet rs = stmt.executeQuery(<span class="string">"SELECT * FROM employees"</span>);
+ResultSetMetaData metaData = rs.getMetaData();
+
+<span class="comment">// Get column count</span>
+<span class="keyword">int</span> columnCount = metaData.getColumnCount();
+System.out.println(<span class="string">"Total columns: "</span> + columnCount);
+
+<span class="comment">// Loop through all columns and print metadata</span>
+<span class="keyword">for</span> (<span class="keyword">int</span> i = 1; i <= columnCount; i++) {
+    String columnName = metaData.getColumnName(i);
+    String columnType = metaData.getColumnTypeName(i);
+    <span class="keyword">int</span> columnSize = metaData.getColumnDisplaySize(i);
+    <span class="keyword">boolean</span> isNullable = metaData.isNullable(i) == ResultSetMetaData.columnNullable;
+    
+    System.out.println(<span class="string">"Column "</span> + i + <span class="string">": "</span>);
+    System.out.println(<span class="string">"  Name: "</span> + columnName);
+    System.out.println(<span class="string">"  Type: "</span> + columnType);
+    System.out.println(<span class="string">"  Size: "</span> + columnSize);
+    System.out.println(<span class="string">"  Nullable: "</span> + isNullable);
+}
+</code></pre>
+                </div>
+                
+                <div class="demo-box">
+                    <h4>🎨 Practical Use Case: Dynamic Table Generator</h4>
+<pre><code><span class="comment">// Create an HTML table dynamically from ANY query</span>
+<span class="keyword">public</span> <span class="keyword">static</span> String generateHTMLTable(ResultSet rs) <span class="keyword">throws</span> SQLException {
+    StringBuilder html = <span class="keyword">new</span> StringBuilder();
+    ResultSetMetaData metaData = rs.getMetaData();
+    <span class="keyword">int</span> columnCount = metaData.getColumnCount();
+    
+    <span class="comment">// Start table</span>
+    html.append(<span class="string">"&lt;table border='1'&gt;"</span>);
+    
+    <span class="comment">// Create header row using metadata</span>
+    html.append(<span class="string">"&lt;tr&gt;"</span>);
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = 1; i <= columnCount; i++) {
+        html.append(<span class="string">"&lt;th&gt;"</span>).append(metaData.getColumnName(i)).append(<span class="string">"&lt;/th&gt;"</span>);
+    }
+    html.append(<span class="string">"&lt;/tr&gt;"</span>);
+    
+    <span class="comment">// Create data rows</span>
+    <span class="keyword">while</span> (rs.next()) {
+        html.append(<span class="string">"&lt;tr&gt;"</span>);
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = 1; i <= columnCount; i++) {
+            html.append(<span class="string">"&lt;td&gt;"</span>).append(rs.getString(i)).append(<span class="string">"&lt;/td&gt;"</span>);
+        }
+        html.append(<span class="string">"&lt;/tr&gt;"</span>);
+    }
+    
+    html.append(<span class="string">"&lt;/table&gt;"</span>);
+    <span class="keyword">return</span> html.toString();
+}
+</code></pre>
+                    <p style="margin-top: 15px;"><strong>Why is this powerful?</strong> You can generate tables for ANY query without knowing the structure beforehand!</p>
+                </div>
+            </div>
+            
+            <!-- Instructor Notes -->
+            <div class="instructor-notes">
+                <button class="collapsible" onclick="toggleInstructor()">
+                    🧑‍🏫 Instructor Notes (Click to Expand)
+                </button>
+                <div class="collapsible-content" id="instructorContent">
+                    <h3>Teaching Tips</h3>
+                    <ol>
+                        <li><strong>Emphasize the Cursor Position:</strong> Many students forget that the cursor starts BEFORE the first row. Use the interactive demo to show this visually. Remind them that <code>rs.next()</code> must be called before accessing the first row.</li>
+                        
+                        <li><strong>ResultSet Type Gotcha:</strong> Most students will use TYPE_FORWARD_ONLY without realizing it. Show them when they actually NEED scrollable ResultSets (data grids, pagination, navigation). Mention that forward-only is more efficient for large datasets.</li>
+                        
+                        <li><strong>MetaData Real-World Use:</strong> Connect ResultSetMetaData to real applications—dynamic report generators, CSV exporters, database migration tools, and ORM frameworks. This makes it more than just "nice to know" theory.</li>
+                    </ol>
+                    
+                    <div class="quiz">
+                        <h3>📝 Quick Quiz</h3>
+                        <p><strong>Question:</strong> You execute a query that returns 100 rows. You want to display rows 50-60 on page 5 of a web interface. Which ResultSet type should you use?</p>
+                        
+                        <div class="quiz-option" onclick="checkAnswer(this, false)">
+                            A) TYPE_FORWARD_ONLY with CONCUR_READ_ONLY
+                        </div>
+                        <div class="quiz-option" onclick="checkAnswer(this, true)">
+                            B) TYPE_SCROLL_INSENSITIVE with CONCUR_READ_ONLY
+                        </div>
+                        <div class="quiz-option" onclick="checkAnswer(this, false)">
+                            C) TYPE_SCROLL_SENSITIVE with CONCUR_UPDATABLE
+                        </div>
+                        <div class="quiz-option" onclick="checkAnswer(this, false)">
+                            D) Default ResultSet (no parameters)
+                        </div>
+                        
+                        <div class="output" id="quizFeedback" style="margin-top: 15px; display: none;">
+                        </div>
+                    </div>
+                    
+                    <h3>📚 Further Reading</h3>
+                    <ul>
+                        <li>Oracle JDBC Documentation - ResultSet Interface</li>
+                        <li>Effective Java Database Programming with JDBC</li>
+                        <li>Understanding JDBC Performance Optimization</li>
+                        <li>Advanced ResultSet Techniques and Best Practices</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Cursor position tracking
+        let cursorPosition = 0; // 0 = before first, 1-3 = rows, 4 = after last
+        const sampleData = [
+            {id: 101, name: 'Alice', salary: '$75,000'},
+            {id: 102, name: 'Bob', salary: '$82,000'},
+            {id: 103, name: 'Charlie', salary: '$90,000'}
+        ];
+        
+        function updateCursorDisplay() {
+            // Clear all cursor indicators
+            document.querySelectorAll('.cursor-pointer').forEach(el => {
+                el.style.display = 'none';
+            });
+            
+            // Reset all row backgrounds
+            for (let i = 1; i <= 3; i++) {
+                document.getElementById('row' + i).style.background = '';
+            }
+            
+            // Show appropriate cursor position
+            if (cursorPosition === 0) {
+                document.getElementById('before-first').style.display = 'table-row';
+                document.getElementById('after-last').style.display = 'none';
+            } else if (cursorPosition === 4) {
+                document.getElementById('before-first').style.display = 'none';
+                document.getElementById('after-last').style.display = 'table-row';
+            } else {
+                // Cursor on a specific row
+                document.getElementById('before-first').style.display = 'none';
+                document.getElementById('after-last').style.display = 'none';
+                document.getElementById('row' + cursorPosition).style.background = '#fff9c4';
+            }
+        }
+        
+        function moveNext() {
+            const output = document.getElementById('cursorOutput');
+            if (cursorPosition < 4) {
+                cursorPosition++;
+                if (cursorPosition <= 3) {
+                    const data = sampleData[cursorPosition - 1];
+                    output.innerHTML = `<strong>rs.next() returned: true</strong><br>
+                        Current Row: ${cursorPosition}<br>
+                        ID: ${data.id}<br>
+                        Name: ${data.name}<br>
+                        Salary: ${data.salary}`;
+                } else {
+                    output.innerHTML = `<strong>rs.next() returned: false</strong><br>
+                        No more rows! Cursor is after the last row.`;
+                }
+            } else {
+                output.innerHTML = `<strong>rs.next() returned: false</strong><br>
+                    Already past the last row!`;
+            }
+            updateCursorDisplay();
+        }
+        
+        function movePrevious() {
+            const output = document.getElementById('cursorOutput');
+            if (cursorPosition > 0) {
+                cursorPosition--;
+                if (cursorPosition === 0) {
+                    output.innerHTML = `<strong>rs.previous() returned: false</strong><br>
+                        Moved before the first row.`;
+                } else {
+                    const data = sampleData[cursorPosition - 1];
+                    output.innerHTML = `<strong>rs.previous() returned: true</strong><br>
+                        Current Row: ${cursorPosition}<br>
+                        ID: ${data.id}<br>
+                        Name: ${data.name}<br>
+                        Salary: ${data.salary}`;
+                }
+            } else {
+                output.innerHTML = `<strong>rs.previous() returned: false</strong><br>
+                    Already before the first row!`;
+            }
+            updateCursorDisplay();
+        }
+        
+        function moveFirst() {
+            cursorPosition = 1;
+            const data = sampleData[0];
+            const output = document.getElementById('cursorOutput');
+            output.innerHTML = `<strong>rs.first() returned: true</strong><br>
+                Moved to first row<br>
+                ID: ${data.id}<br>
+                Name: ${data.name}<br>
+                Salary: ${data.salary}`;
+            updateCursorDisplay();
+        }
+        
+        function moveLast() {
+            cursorPosition = 3;
+            const data = sampleData[2];
+            const output = document.getElementById('cursorOutput');
+            output.innerHTML = `<strong>rs.last() returned: true</strong><br>
+                Moved to last row<br>
+                ID: ${data.id}<br>
+                Name: ${data.name}<br>
+                Salary: ${data.salary}`;
+            updateCursorDisplay();
+        }
+        
+        function moveAbsolute() {
+            cursorPosition = 2;
+            const data = sampleData[1];
+            const output = document.getElementById('cursorOutput');
+            output.innerHTML = `<strong>rs.absolute(2) returned: true</strong><br>
+                Moved to row 2<br>
+                ID: ${data.id}<br>
+                Name: ${data.name}<br>
+                Salary: ${data.salary}`;
+            updateCursorDisplay();
+        }
+        
+        function resetCursor() {
+            cursorPosition = 0;
+            const output = document.getElementById('cursorOutput');
+            output.innerHTML = 'Cursor reset to before first row. Click rs.next() to access data.';
+            updateCursorDisplay();
+        }
+        
+        // Method examples
+        function showMethod(methodName) {
+            const output = document.getElementById('methodOutput');
+            const examples = {
+                'next': `<strong>boolean next()</strong><br><br>
+                    Moves cursor to the next row. Returns true if valid row, false if no more rows.<br><br>
+                    <code>while (rs.next()) {<br>
+                    &nbsp;&nbsp;// Process each row<br>
+                    }</code><br><br>
+                    <em>💡 Always call next() before reading first row!</em>`,
+                
+                'getString': `<strong>String getString(int columnIndex / String columnName)</strong><br><br>
+                    Retrieves the value of a column as a String.<br><br>
+                    <code>String name = rs.getString("name");<br>
+                    String id = rs.getString(1); // column index</code><br><br>
+                    <em>💡 Column indices start at 1, not 0!</em>`,
+                
+                'getInt': `<strong>int getInt(int columnIndex / String columnName)</strong><br><br>
+                    Retrieves the value of a column as an int.<br><br>
+                    <code>int age = rs.getInt("age");<br>
+                    int id = rs.getInt(1);</code><br><br>
+                    <em>💡 Use appropriate getter for each data type: getDouble(), getDate(), etc.</em>`,
+                
+                'wasNull': `<strong>boolean wasNull()</strong><br><br>
+                    Checks if the last column read was NULL.<br><br>
+                    <code>double salary = rs.getDouble("salary");<br>
+                    if (rs.wasNull()) {<br>
+                    &nbsp;&nbsp;System.out.println("Salary is NULL");<br>
+                    }</code><br><br>
+                    <em>💡 Must be called immediately after getting a value!</em>`,
+                
+                'updateRow': `<strong>void updateRow()</strong><br><br>
+                    Updates the current row in the database with new values.<br><br>
+                    <code>rs.updateDouble("salary", 85000.00);<br>
+                    rs.updateRow(); // Commits to database</code><br><br>
+                    <em>💡 Requires CONCUR_UPDATABLE ResultSet!</em>`,
+                
+                'deleteRow': `<strong>void deleteRow()</strong><br><br>
+                    Deletes the current row from the database.<br><br>
+                    <code>if (rs.next()) {<br>
+                    &nbsp;&nbsp;rs.deleteRow(); // Removes current row<br>
+                    }</code><br><br>
+                    <em>💡 Also requires CONCUR_UPDATABLE ResultSet!</em>`
+            };
+            
+            output.innerHTML = examples[methodName] || 'Method not found';
+        }
+        
+        // Metadata examples
+        function showMetadata(action) {
+            const output = document.getElementById('metadataOutput');
+            const examples = {
+                'count': `<strong>metaData.getColumnCount()</strong><br><br>
+                    Result: <span class="highlight">4 columns</span><br><br>
+                    This tells you how many columns are in the ResultSet without manually counting.`,
+                
+                'names': `<strong>Loop through all columns</strong><br><br>
+                    Column Names:<br>
+                    <span class="highlight">1: id</span><br>
+                    <span class="highlight">2: name</span><br>
+                    <span class="highlight">3: salary</span><br>
+                    <span class="highlight">4: hire_date</span><br><br>
+                    <code>for (int i = 1; i <= metaData.getColumnCount(); i++) {<br>
+                    &nbsp;&nbsp;System.out.println(metaData.getColumnName(i));<br>
+                    }</code>`,
+                
+                'types': `<strong>Data types of all columns</strong><br><br>
+                    <span class="highlight">id: INTEGER (SQL type code: 4)</span><br>
+                    <span class="highlight">name: VARCHAR (SQL type code: 12)</span><br>
+                    <span class="highlight">salary: DOUBLE (SQL type code: 8)</span><br>
+                    <span class="highlight">hire_date: DATE (SQL type code: 91)</span><br><br>
+                    <em>Use java.sql.Types constants to check type codes</em>`,
+                
+                'table': `<strong>metaData.getTableName(1)</strong><br><br>
+                    Result: <span class="highlight">employees</span><br><br>
+                    This tells you which table the column comes from. Useful for JOIN queries with multiple tables.`
+            };
+            
+            output.innerHTML = examples[action] || 'Action not found';
+        }
+        
+        // Instructor notes toggle
+        function toggleInstructor() {
+            const content = document.getElementById('instructorContent');
+            content.classList.toggle('active');
+        }
+        
+        // Quiz functionality
+        function checkAnswer(element, isCorrect) {
+            // Remove previous selections
+            document.querySelectorAll('.quiz-option').forEach(opt => {
+                opt.classList.remove('correct', 'incorrect');
+            });
+            
+            const feedback = document.getElementById('quizFeedback');
+            
+            if (isCorrect) {
+                element.classList.add('correct');
+                feedback.innerHTML = `<strong style="color: #4caf50;">✓ Correct!</strong><br>
+                    TYPE_SCROLL_INSENSITIVE allows you to use absolute(), relative(), or first()/last() 
+                    methods to navigate to specific rows. FORWARD_ONLY would require you to iterate through 
+                    all 50 rows to reach the desired position. CONCUR_READ_ONLY is sufficient since we're 
+                    just displaying data, not updating it.`;
+                feedback.style.background = '#c8e6c9';
+            } else {
+                element.classList.add('incorrect');
+                feedback.innerHTML = `<strong style="color: #f44336;">✗ Incorrect</strong><br>
+                    Think about whether you need to jump to row 50 directly. Can FORWARD_ONLY do that? 
+                    Do you need UPDATABLE concurrency for just displaying data?`;
+                feedback.style.background = '#ffcdd2';
+            }
+            
+            feedback.style.display = 'block';
+        }
+        
+        // Initialize cursor display
+        updateCursorDisplay();
+    </script>
+</body>
+</html>
