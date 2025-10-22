@@ -1,0 +1,1363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Introduction to JavaFX - Interactive Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 50px;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 5px solid #667eea;
+        }
+
+        .section h2 {
+            color: #1e3c72;
+            margin-bottom: 15px;
+            font-size: 1.8em;
+        }
+
+        .concept {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #2196f3;
+        }
+
+        .analogy {
+            background: #fff3e0;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #ff9800;
+        }
+
+        .analogy::before {
+            content: "💡 Analogy: ";
+            font-weight: bold;
+            color: #f57c00;
+        }
+
+        .interactive-demo {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 20px 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border: 2px solid #667eea;
+        }
+
+        .interactive-demo h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        pre {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-size: 0.9em;
+        }
+
+        code {
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        .keyword { color: #c678dd; }
+        .string { color: #98c379; }
+        .comment { color: #5c6370; font-style: italic; }
+        .class-name { color: #e5c07b; }
+        .method { color: #61afef; }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin: 10px 5px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .stage-canvas {
+            border: 3px solid #667eea;
+            background: #f5f5f5;
+            margin: 15px 0;
+            min-height: 200px;
+            border-radius: 8px;
+            padding: 20px;
+            position: relative;
+        }
+
+        .fx-node {
+            display: inline-block;
+            padding: 15px 25px;
+            margin: 10px;
+            background: linear-gradient(135deg, #42a5f5 0%, #478ed1 100%);
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .fx-node:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        }
+
+        .scene-container {
+            background: white;
+            border: 2px dashed #667eea;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            min-height: 150px;
+        }
+
+        input[type="text"], input[type="number"], select {
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+            margin: 5px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .controls {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f0f0f0;
+            border-radius: 8px;
+        }
+
+        .instructor-notes {
+            background: #fff9c4;
+            border: 2px solid #fbc02d;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+
+        .instructor-notes summary {
+            cursor: pointer;
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #f57f17;
+            padding: 10px;
+        }
+
+        .quiz {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .quiz-option {
+            display: block;
+            padding: 10px;
+            margin: 8px 0;
+            background: #f5f5f5;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .quiz-option:hover {
+            background: #e0e0e0;
+        }
+
+        .quiz-option input {
+            margin-right: 10px;
+        }
+
+        .correct {
+            background: #c8e6c9 !important;
+            border: 2px solid #4caf50;
+        }
+
+        .incorrect {
+            background: #ffcdd2 !important;
+            border: 2px solid #f44336;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .comparison-table th {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            text-align: left;
+        }
+
+        .comparison-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .comparison-table tr:hover {
+            background: #f5f5f5;
+        }
+
+        .lifecycle-diagram {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .lifecycle-step {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            text-align: center;
+            margin: 10px;
+            min-width: 150px;
+            border: 3px solid #667eea;
+            transition: all 0.3s;
+        }
+
+        .lifecycle-step:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        }
+
+        .arrow {
+            font-size: 2em;
+            color: #667eea;
+            margin: 0 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎨 Introduction to JavaFX</h1>
+            <p>Building Rich Client Applications with Modern UI Framework</p>
+        </header>
+
+        <div class="content">
+            <!-- Section 1: What is JavaFX -->
+            <div class="section">
+                <h2>1. What is JavaFX?</h2>
+                
+                <div class="concept">
+                    <strong>Concept:</strong> JavaFX is a modern Java framework for building rich, desktop applications with sophisticated UIs, replacing the older Swing framework with better graphics, CSS styling, and FXML support.
+                </div>
+
+                <div class="analogy">
+                    Think of JavaFX as the "React.js for desktop applications" - just like React gives you components and a virtual DOM for web apps, JavaFX gives you nodes and a scene graph for desktop apps. Your UI is a tree of components!
+                </div>
+
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Feature</th>
+                            <th>Swing (Old)</th>
+                            <th>JavaFX (Modern)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>UI Design</strong></td>
+                            <td>Code-based only</td>
+                            <td>Code + FXML (like HTML)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Styling</strong></td>
+                            <td>Java code styling</td>
+                            <td>CSS styling support</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Graphics</strong></td>
+                            <td>Basic 2D</td>
+                            <td>Advanced 2D + 3D + Effects</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Multimedia</strong></td>
+                            <td>Limited</td>
+                            <td>Built-in audio/video support</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Animation</strong></td>
+                            <td>Manual timer-based</td>
+                            <td>Built-in animation API</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <pre><code><span class="comment">// Basic JavaFX Application Structure</span>
+<span class="keyword">import</span> javafx.application.Application;
+<span class="keyword">import</span> javafx.scene.Scene;
+<span class="keyword">import</span> javafx.scene.control.Button;
+<span class="keyword">import</span> javafx.scene.layout.StackPane;
+<span class="keyword">import</span> javafx.stage.Stage;
+
+<span class="keyword">public class</span> <span class="class-name">HelloJavaFX</span> <span class="keyword">extends</span> <span class="class-name">Application</span> {
+    
+    <span class="keyword">@Override</span>
+    <span class="keyword">public void</span> <span class="method">start</span>(Stage primaryStage) {
+        <span class="comment">// Create a button - this is a Node</span>
+        Button btn = <span class="keyword">new</span> Button(<span class="string">"नमस्ते JavaFX!"</span>);
+        btn.setOnAction(e -> System.out.println(<span class="string">"Button clicked!"</span>));
+        
+        <span class="comment">// Create a layout - also a Node</span>
+        StackPane root = <span class="keyword">new</span> StackPane();
+        root.getChildren().add(btn);
+        
+        <span class="comment">// Create a Scene - contains the node tree</span>
+        Scene scene = <span class="keyword">new</span> Scene(root, 300, 250);
+        
+        <span class="comment">// Set up the Stage - your application window</span>
+        primaryStage.setTitle(<span class="string">"My First JavaFX App"</span>);
+        primaryStage.setScene(scene);
+        primaryStage.show();
+    }
+    
+    <span class="keyword">public static void</span> <span class="method">main</span>(String[] args) {
+        launch(args);
+    }
+}</code></pre>
+            </div>
+
+            <!-- Section 2: Core Architecture -->
+            <div class="section">
+                <h2>2. Core Architecture: Stage → Scene → LayOut → Nodes</h2>
+                
+                <div class="concept">
+  <strong>Concept:</strong> JavaFX follows a theatrical hierarchy: an <strong>Application</strong> opens a <strong>Stage</strong> (the window). The Stage shows a <strong>Scene</strong> (the content area). Inside a Scene you place a <strong>Layout</strong> (VBox, HBox, GridPane, BorderPane, etc.) which manages positioning. The Layout then contains the actual <strong>Nodes</strong> (buttons, labels, text fields, images) — every visible thing in JavaFX is a Node arranged by a Layout in the Scene graph.
+</div>
+
+<div class="analogy">
+  Imagine a film production: the <strong>Stage</strong> is the studio building, the <strong>Scene</strong> is the set built for a particular shot, the <strong>Layout</strong> is the floor plan or stage manager who positions furniture and actors, and the <strong>Nodes</strong> are the actors, props and lights. Change the Layout (floor plan) and the same actors/props (Nodes) will be arranged differently within the Scene — just like switching from a sitting arrangement to a standing formation on set.
+</div>
+
+
+                <div class="interactive-demo">
+                    <h3>🎬 Interactive: Build Your Scene Graph</h3>
+                    <p>Click buttons to add nodes to your scene. Watch how the scene graph builds!</p>
+                    
+                    <div class="controls">
+                        <button onclick="addButton()">Add Button</button>
+                        <button onclick="addLabel()">Add Label</button>
+                        <button onclick="addTextField()">Add Text Field</button>
+                        <button onclick="clearScene()">Clear Scene</button>
+                    </div>
+
+                    <div class="stage-canvas" id="stage">
+                        <div class="scene-container" id="scene">
+                            <p style="color: #999; text-align: center;">Your Scene is Empty - Add some Nodes!</p>
+                        </div>
+                    </div>
+
+                    <div id="nodeCount" style="margin-top: 15px; padding: 10px; background: #e3f2fd; border-radius: 5px;">
+                        <strong>Scene Graph:</strong> <span id="count">0</span> nodes
+                    </div>
+                </div>
+
+                <div class="lifecycle-diagram">
+                    <div class="lifecycle-step">
+                        <strong>1. Application</strong><br>
+                        extends Application
+                    </div>
+                    <div class="arrow">→</div>
+                    <div class="lifecycle-step">
+                        <strong>2. Stage</strong><br>
+                        Your Window
+                    </div>
+                    <div class="arrow">→</div>
+                    <div class="lifecycle-step">
+                        <strong>3. Scene</strong><br>
+                        Content Container
+                    </div>
+                    <div class="arrow">→</div>
+                    <div class="lifecycle-step">
+                        <strong>4. Layout</strong><br>
+                        Template to Arrange Nodes
+                    </div>
+                    <div class="arrow">→</div>
+                    <div class="lifecycle-step">
+                        <strong>5. Nodes</strong><br>
+                        UI Elements
+                    </div>
+                </div>
+
+                <pre><code><span class="comment">// Understanding the Hierarchy</span>
+<span class="keyword">public void</span> <span class="method">start</span>(Stage stage) {
+    <span class="comment">// STAGE - The top-level window</span>
+    stage.setTitle(<span class="string">"Mumbai Local Train Schedule"</span>);
+    
+    <span class="comment">// SCENE - Container for your UI tree</span>
+    VBox root = <span class="keyword">new</span> VBox(10); <span class="comment">// Root Node (a layout)</span>
+    Scene scene = <span class="keyword">new</span> Scene(root, 400, 300);
+    
+    <span class="comment">// NODES - Your UI elements (children of root)</span>
+    Label header = <span class="keyword">new</span> Label(<span class="string">"Western Line Trains"</span>);
+    Button refreshBtn = <span class="keyword">new</span> Button(<span class="string">"Refresh Schedule"</span>);
+    ListView&lt;String&gt; trainList = <span class="keyword">new</span> ListView&lt;&gt;();
+    
+    <span class="comment">// Build the Scene Graph (tree structure)</span>
+    root.getChildren().addAll(header, refreshBtn, trainList);
+    
+    <span class="comment">// Connect Scene to Stage</span>
+    stage.setScene(scene);
+    stage.show(); <span class="comment">// Display everything!</span>
+}</code></pre>
+            </div>
+
+            <!-- Section 3: Application Lifecycle -->
+            <div class="section">
+                <h2>3. JavaFX Application Lifecycle</h2>
+                
+                <div class="concept">
+                    <strong>Concept:</strong> JavaFX apps follow a specific lifecycle: init() → start() → stop(). The framework calls these methods automatically, and you override them to control your application's behavior.
+                </div>
+
+                <div class="analogy">
+                    Think of it like a restaurant's daily routine: <strong>init()</strong> is morning prep (chopping vegetables, preparing ingredients), <strong>start()</strong> is opening the doors for customers, and <strong>stop()</strong> is closing time cleanup (washing dishes, locking up).
+                </div>
+
+                <div class="interactive-demo">
+                    <h3>🔄 Interactive: Application Lifecycle Simulator</h3>
+                    <p>Click through the lifecycle phases and see what happens at each stage!</p>
+                    
+                    <div class="controls">
+                        <button onclick="runInit()">1. Run init()</button>
+                        <button onclick="runStart()">2. Run start()</button>
+                        <button onclick="runStop()">3. Run stop()</button>
+                        <button onclick="resetLifecycle()">Reset</button>
+                    </div>
+
+                    <div id="lifecycleOutput" style="background: white; padding: 20px; border-radius: 8px; margin-top: 15px; min-height: 150px; border: 2px solid #667eea;">
+                        <div style="color: #999; text-align: center;">Click buttons above to simulate lifecycle phases</div>
+                    </div>
+                </div>
+
+                <pre><code><span class="comment">// Complete Application Lifecycle Example</span>
+<span class="keyword">import</span> javafx.application.Application;
+<span class="keyword">import</span> javafx.stage.Stage;
+
+<span class="keyword">public class</span> <span class="class-name">LifecycleDemo</span> <span class="keyword">extends</span> <span class="class-name">Application</span> {
+    
+    <span class="keyword">private</span> DatabaseConnection db;
+    <span class="keyword">private</span> ConfigLoader config;
+    
+    <span class="comment">// 1. INIT - Called first, before UI is created</span>
+    <span class="comment">//    Use for: Loading config, connecting to DB, heavy initialization</span>
+    <span class="keyword">@Override</span>
+    <span class="keyword">public void</span> <span class="method">init</span>() <span class="keyword">throws</span> Exception {
+        System.out.println(<span class="string">"[INIT] Loading configuration..."</span>);
+        config = <span class="keyword">new</span> ConfigLoader();
+        
+        System.out.println(<span class="string">"[INIT] Connecting to database..."</span>);
+        db = <span class="keyword">new</span> DatabaseConnection();
+        db.connect();
+        
+        <span class="comment">// ⚠️ WARNING: No UI operations here! Stage not ready yet</span>
+    }
+    
+    <span class="comment">// 2. START - Called on JavaFX Application Thread</span>
+    <span class="comment">//    Use for: Creating UI, setting up the Stage and Scene</span>
+    <span class="keyword">@Override</span>
+    <span class="keyword">public void</span> <span class="method">start</span>(Stage primaryStage) {
+        System.out.println(<span class="string">"[START] Building UI..."</span>);
+        
+        Label welcomeMsg = <span class="keyword">new</span> Label(<span class="string">"स्वागत है!"</span>);
+        Button fetchDataBtn = <span class="keyword">new</span> Button(<span class="string">"Fetch Data"</span>);
+        
+        fetchDataBtn.setOnAction(e -> {
+            <span class="comment">// Use data loaded in init()</span>
+            String data = db.fetchData();
+            welcomeMsg.setText(data);
+        });
+        
+        VBox root = <span class="keyword">new</span> VBox(10, welcomeMsg, fetchDataBtn);
+        Scene scene = <span class="keyword">new</span> Scene(root, 400, 300);
+        
+        primaryStage.setTitle(<span class="string">"Lifecycle Demo"</span>);
+        primaryStage.setScene(scene);
+        primaryStage.show();
+        
+        System.out.println(<span class="string">"[START] UI is now visible!"</span>);
+    }
+    
+    <span class="comment">// 3. STOP - Called when application is closing</span>
+    <span class="comment">//    Use for: Cleanup, saving state, closing connections</span>
+    <span class="keyword">@Override</span>
+    <span class="keyword">public void</span> <span class="method">stop</span>() <span class="keyword">throws</span> Exception {
+        System.out.println(<span class="string">"[STOP] Closing database connection..."</span>);
+        db.close();
+        
+        System.out.println(<span class="string">"[STOP] Saving user preferences..."</span>);
+        config.savePreferences();
+        
+        System.out.println(<span class="string">"[STOP] Cleanup complete. Goodbye!"</span>);
+    }
+    
+    <span class="keyword">public static void</span> <span class="method">main</span>(String[] args) {
+        launch(args); <span class="comment">// This triggers init() → start() → stop()</span>
+    }
+}</code></pre>
+            </div>
+
+            <!-- Section 4: Layout Managers -->
+            <div class="section">
+                <h2>4. Layout Managers: Organizing Your UI</h2>
+                
+                <div class="concept">
+                    <strong>Concept:</strong> Layout managers (VBox, HBox, BorderPane, GridPane, etc.) automatically position and size child nodes. They handle responsive design so you don't calculate positions manually.
+                </div>
+
+                <div class="analogy">
+                    Layout managers are like different ways to organize products in a किराना store: <strong>VBox</strong> stacks items vertically (shelves), <strong>HBox</strong> arranges items horizontally (counter display), <strong>GridPane</strong> creates an organized grid (spice rack), and <strong>BorderPane</strong> divides the shop into sections (entrance, main area, billing counter).
+                </div>
+
+                
+
+                <pre><code><span class="comment">// Common Layout Managers in Action</span>
+
+<span class="comment">// 1. VBox - Vertical arrangement</span>
+VBox vbox = <span class="keyword">new</span> VBox(15); <span class="comment">// 15px spacing between nodes</span>
+vbox.setPadding(<span class="keyword">new</span> Insets(20));
+vbox.getChildren().addAll(
+    <span class="keyword">new</span> Label(<span class="string">"Name:"</span>),
+    <span class="keyword">new</span> TextField(),
+    <span class="keyword">new</span> Label(<span class="string">"Email:"</span>),
+    <span class="keyword">new</span> TextField(),
+    <span class="keyword">new</span> Button(<span class="string">"Submit"</span>)
+);
+
+<span class="comment">// 2. HBox - Horizontal arrangement</span>
+HBox toolbar = <span class="keyword">new</span> HBox(10);
+toolbar.setAlignment(Pos.CENTER);
+toolbar.getChildren().addAll(
+    <span class="keyword">new</span> Button(<span class="string">"New"</span>),
+    <span class="keyword">new</span> Button(<span class="string">"Open"</span>),
+    <span class="keyword">new</span> Button(<span class="string">"Save"</span>),
+    <span class="keyword">new</span> Separator(Orientation.VERTICAL),
+    <span class="keyword">new</span> Button(<span class="string">"Cut"</span>),
+    <span class="keyword">new</span> Button(<span class="string">"Copy"</span>)
+);
+
+<span class="comment">// 3. BorderPane - 5 regions (Top, Bottom, Left, Right, Center)</span>
+BorderPane mainLayout = <span class="keyword">new</span> BorderPane();
+mainLayout.setTop(<span class="keyword">new</span> MenuBar()); <span class="comment">// Menu at top</span>
+mainLayout.setLeft(<span class="keyword">new</span> TreeView<>()); <span class="comment">// Sidebar navigation</span>
+mainLayout.setCenter(<span class="keyword">new</span> TextArea()); <span class="comment">// Main content</span>
+mainLayout.setBottom(<span class="keyword">new</span> Label(<span class="string">"Status: Ready"</span>)); <span class="comment">// Status bar</span>
+
+<span class="comment">// 4. GridPane - 2D grid layout (like Excel)</span>
+GridPane grid = <span class="keyword">new</span> GridPane();
+grid.setHgap(10);
+grid.setVgap(10);
+
+<span class="comment">// Add nodes at specific row,col positions</span>
+grid.add(<span class="keyword">new</span> Label(<span class="string">"Student Name:"</span>), 0, 0);
+grid.add(<span class="keyword">new</span> TextField(), 1, 0);
+grid.add(<span class="keyword">new</span> Label(<span class="string">"Roll Number:"</span>), 0, 1);
+grid.add(<span class="keyword">new</span> TextField(), 1, 1);
+grid.add(<span class="keyword">new</span> Label(<span class="string">"Branch:"</span>), 0, 2);
+grid.add(<span class="keyword">new</span> ComboBox<>(), 1, 2);
+
+<span class="comment">// Span multiple columns for submit button</span>
+Button submitBtn = <span class="keyword">new</span> Button(<span class="string">"Submit Form"</span>);
+grid.add(submitBtn, 0, 3, 2, 1); <span class="comment">// colspan=2, rowspan=1</span></code></pre>
+            </div>
+
+            <!-- Section 5: Event Handling -->
+            <div class="section">
+                <h2>5. Event Handling in JavaFX</h2>
+                
+                <div class="concept">
+                    <strong>Concept:</strong> JavaFX uses an event-driven model where user actions (clicks, key presses) fire events that your code handles through event handlers or lambda expressions.
+                </div>
+
+                <div class="analogy">
+                    Event handling is like a doorbell system: When someone presses the button (event), the bell rings (event fired), and you decide what to do (event handler) - maybe open the door, check the peephole, or ignore it completely. You can have multiple doorbells in your house, each triggering different actions!
+                </div>
+
+                <div class="interactive-demo">
+                    <h3>🎯 Interactive: Event Handler Playground</h3>
+                    <p>Try different events and see them in action!</p>
+                    
+                    <div class="controls">
+                        <button id="clickBtn" onclick="handleButtonClick()">Click Me!</button>
+                        <button id="hoverBtn" onmouseenter="handleHover()" onmouseleave="handleHoverExit()">Hover Over Me</button>
+                        <input type="text" id="typeInput" placeholder="Type something..." oninput="handleTyping()" style="width: 200px;">
+                    </div>
+
+                    <div id="eventLog" style="background: #282c34; color: #abb2bf; padding: 15px; border-radius: 8px; margin-top: 15px; min-height: 150px; font-family: monospace; overflow-y: auto; max-height: 250px;">
+                        <div style="color: #98c379;">[Event Log] Waiting for events...</div>
+                    </div>
+                </div>
+
+                <pre><code><span class="comment">// Different Ways to Handle Events in JavaFX</span>
+
+<span class="comment">// 1. Using Lambda Expressions (Modern, Recommended)</span>
+Button loginBtn = <span class="keyword">new</span> Button(<span class="string">"Login"</span>);
+loginBtn.setOnAction(e -> {
+    System.out.println(<span class="string">"User attempting login..."</span>);
+    String username = usernameField.getText();
+    authenticateUser(username);
+});
+
+<span class="comment">// 2. Using Method Reference (Clean for simple cases)</span>
+Button logoutBtn = <span class="keyword">new</span> Button(<span class="string">"Logout"</span>);
+logoutBtn.setOnAction(this::handleLogout);
+
+<span class="keyword">private void</span> <span class="method">handleLogout</span>(ActionEvent event) {
+    System.out.println(<span class="string">"Logging out user..."</span>);
+}
+
+<span class="comment">// 3. Using Anonymous Inner Class (Old style, verbose)</span>
+Button oldStyleBtn = <span class="keyword">new</span> Button(<span class="string">"Old Style"</span>);
+oldStyleBtn.setOnAction(<span class="keyword">new</span> EventHandler&lt;ActionEvent&gt;() {
+    <span class="keyword">@Override</span>
+    <span class="keyword">public void</span> handle(ActionEvent event) {
+        System.out.println(<span class="string">"This works but is verbose!"</span>);
+    }
+});
+
+<span class="comment">// 4. Multiple Event Types on Same Node</span>
+TextField searchField = <span class="keyword">new</span> TextField();
+
+<span class="comment">// Key pressed event</span>
+searchField.setOnKeyPressed(e -> {
+    <span class="keyword">if</span> (e.getCode() == KeyCode.ENTER) {
+        performSearch(searchField.getText());
+    }
+});
+
+<span class="comment">// Text changed event</span>
+searchField.textProperty().addListener((obs, oldVal, newVal) -> {
+    System.out.println(<span class="string">"Search text changed: "</span> + newVal);
+    suggestResults(newVal);
+});
+
+<span class="comment">// Mouse events</span>
+searchField.setOnMouseEntered(e -> 
+    searchField.setStyle(<span class="string">"-fx-border-color: blue;"</span>)
+);
+searchField.setOnMouseExited(e -> 
+    searchField.setStyle(<span class="string">"-fx-border-color: gray;"</span>)
+);
+
+<span class="comment">// 5. Event Bubbling Example (Event travels up the scene graph)</span>
+VBox parent = <span class="keyword">new</span> VBox();
+Button child = <span class="keyword">new</span> Button(<span class="string">"Child Button"</span>);
+parent.getChildren().add(child);
+
+<span class="comment">// Add event filter to parent (catches events first)</span>
+parent.addEventFilter(MouseEvent.MOUSE_CLICKED, e -> {
+    System.out.println(<span class="string">"Parent intercepted click!"</span>);
+    <span class="comment">// e.consume(); // Uncomment to stop event from reaching child</span>
+});
+
+<span class="comment">// Add event handler to child</span>
+child.setOnMouseClicked(e -> {
+    System.out.println(<span class="string">"Child button clicked!"</span>);
+});</code></pre>
+            </div>
+
+            <!-- Section 6: CSS Styling -->
+            <div class="section">
+                <h2>6. CSS Styling in JavaFX</h2>
+                
+                <div class="concept">
+                    <strong>Concept:</strong> JavaFX supports CSS styling just like web pages! You can style nodes using inline styles, style classes, or external CSS files with JavaFX-specific properties (prefixed with -fx-).
+                </div>
+
+                <div class="analogy">
+                    CSS in JavaFX is like choosing outfits for your app: You can dress each element individually (inline styles), create dress codes for groups (style classes like "formal-button" or "header-text"), or have a wardrobe catalog (external CSS file) that everyone in your app follows!
+                </div>
+
+                <div class="interactive-demo">
+                    <h3>🎨 Interactive: CSS Styling Demo</h3>
+                    <p>Customize the button style using CSS properties!</p>
+                    
+                    <div class="controls">
+                        <label>Background Color:</label>
+                        <input type="color" id="bgColor" value="#667eea" onchange="updateButtonStyle()">
+                        
+                        <label>Font Size:</label>
+                        <input type="number" id="fontSize" value="16" min="10" max="40" onchange="updateButtonStyle()">px
+                        
+                        <label>Border Radius:</label>
+                        <input type="number" id="borderRadius" value="5" min="0" max="50" onchange="updateButtonStyle()">px
+                        
+                        <button onclick="resetButtonStyle()">Reset Style</button>
+                    </div>
+
+                    <div style="text-align: center; margin: 20px 0;">
+                        <button id="styledButton" style="background: #667eea; color: white; border: none; padding: 15px 30px; font-size: 16px; border-radius: 5px; cursor: pointer;">
+                            Styled Button Preview
+                        </button>
+                    </div>
+
+                    <div style="background: #282c34; color: #abb2bf; padding: 15px; border-radius: 8px; margin-top: 15px; font-family: monospace;">
+                        <div style="color: #5c6370;">/* Generated JavaFX CSS */</div>
+                        <div id="generatedCSS" style="color: #98c379;"></div>
+                    </div>
+                </div>
+
+                <pre><code><span class="comment">// Three Ways to Apply CSS in JavaFX</span>
+
+<span class="comment">// 1. INLINE STYLE (Quick and specific)</span>
+Button dangerBtn = <span class="keyword">new</span> Button(<span class="string">"Delete Account"</span>);
+dangerBtn.setStyle(
+    <span class="string">"-fx-background-color: #e74c3c; "</span> +
+    <span class="string">"-fx-text-fill: white; "</span> +
+    <span class="string">"-fx-font-size: 14px; "</span> +
+    <span class="string">"-fx-padding: 10px 20px; "</span> +
+    <span class="string">"-fx-border-radius: 5px; "</span> +
+    <span class="string">"-fx-background-radius: 5px;"</span>
+);
+
+<span class="comment">// 2. STYLE CLASS (Reusable, recommended)</span>
+Button primaryBtn = <span class="keyword">new</span> Button(<span class="string">"Submit"</span>);
+primaryBtn.getStyleClass().add(<span class="string">"primary-button"</span>);
+
+Button secondaryBtn = <span class="keyword">new</span> Button(<span class="string">"Cancel"</span>);
+secondaryBtn.getStyleClass().add(<span class="string">"secondary-button"</span>);
+
+<span class="comment">// 3. EXTERNAL CSS FILE (Best practice for large apps)</span>
+Scene scene = <span class="keyword">new</span> Scene(root, 800, 600);
+scene.getStylesheets().add(
+    getClass().getResource(<span class="string">"styles.css"</span>).toExternalForm()
+);
+
+<span class="comment">/* 
+ * styles.css file content:
+ * 
+ * .primary-button {
+ *     -fx-background-color: linear-gradient(to bottom, #667eea, #764ba2);
+ *     -fx-text-fill: white;
+ *     -fx-font-size: 16px;
+ *     -fx-padding: 12px 24px;
+ *     -fx-background-radius: 25px;
+ *     -fx-cursor: hand;
+ * }
+ * 
+ * .primary-button:hover {
+ *     -fx-background-color: linear-gradient(to bottom, #764ba2, #667eea);
+ *     -fx-scale-x: 1.05;
+ *     -fx-scale-y: 1.05;
+ * }
+ * 
+ * .secondary-button {
+ *     -fx-background-color: transparent;
+ *     -fx-text-fill: #667eea;
+ *     -fx-border-color: #667eea;
+ *     -fx-border-width: 2px;
+ *     -fx-border-radius: 5px;
+ *     -fx-background-radius: 5px;
+ *     -fx-padding: 10px 20px;
+ * }
+ */
+
+<span class="comment">// PSEUDO-CLASSES (for dynamic states)</span>
+<span class="comment">// JavaFX supports: :hover, :pressed, :focused, :disabled, etc.</span>
+
+<span class="comment">// Common CSS Properties in JavaFX:</span>
+<span class="comment">// -fx-background-color     → Background color</span>
+<span class="comment">// -fx-text-fill            → Text color</span>
+<span class="comment">// -fx-font-size            → Font size</span>
+<span class="comment">// -fx-font-family          → Font family</span>
+<span class="comment">// -fx-padding              → Padding</span>
+<span class="comment">// -fx-border-color         → Border color</span>
+<span class="comment">// -fx-border-width         → Border width</span>
+<span class="comment">// -fx-background-radius    → Rounded corners</span>
+<span class="comment">// -fx-effect               → Shadow, glow effects</span></code></pre>
+            </div>
+
+            <!-- Section 7: FXML -->
+            <div class="section">
+                <h2>7. FXML: Declarative UI Design</h2>
+                
+                <div class="concept">
+                    <strong>Concept:</strong> FXML is an XML-based language for defining JavaFX UIs declaratively (like HTML for web), separating UI design from logic. You design in FXML, control behavior in Java using Controllers.
+                </div>
+
+                <div class="analogy">
+                    FXML is to JavaFX what a blueprint is to construction: The <strong>FXML file</strong> is the architectural blueprint showing where everything goes, and the <strong>Controller class</strong> is the construction crew that makes everything actually work. Designers create FXML, developers write controllers - perfect separation!
+                </div>
+
+                <pre><code><span class="comment">&lt;!-- sample.fxml - The UI Design --&gt;</span>
+<span class="keyword">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span>
+
+<span class="keyword">&lt;?import</span> javafx.scene.control.*<span class="keyword">?&gt;</span>
+<span class="keyword">&lt;?import</span> javafx.scene.layout.*<span class="keyword">?&gt;</span>
+<span class="keyword">&lt;?import</span> javafx.geometry.Insets<span class="keyword">?&gt;</span>
+
+<span class="comment">&lt;!-- fx:controller links FXML to Java Controller --&gt;</span>
+&lt;VBox xmlns:fx=<span class="string">"http://javafx.com/fxml"</span>
+      fx:controller=<span class="string">"com.example.SampleController"</span>
+      spacing=<span class="string">"15"</span> padding=<span class="string">"20"</span>&gt;
+    
+    &lt;Label text=<span class="string">"Student Registration Form"</span> 
+           style=<span class="string">"-fx-font-size: 20px; -fx-font-weight: bold;"</span>/&gt;
+    
+    <span class="comment">&lt;!-- fx:id links to Java field in Controller --&gt;</span>
+    &lt;Label text=<span class="string">"Name:"</span>/&gt;
+    &lt;TextField fx:id=<span class="string">"nameField"</span> promptText=<span class="string">"Enter your name"</span>/&gt;
+    
+    &lt;Label text=<span class="string">"Roll Number:"</span>/&gt;
+    &lt;TextField fx:id=<span class="string">"rollField"</span> promptText=<span class="string">"Enter roll number"</span>/&gt;
+    
+    &lt;Label text=<span class="string">"Branch:"</span>/&gt;
+    &lt;ComboBox fx:id=<span class="string">"branchCombo"</span>&gt;
+        &lt;items&gt;
+            &lt;FXCollections fx:factory=<span class="string">"observableArrayList"</span>&gt;
+                &lt;String fx:value=<span class="string">"Computer Science"</span>/&gt;
+                &lt;String fx:value=<span class="string">"Electronics"</span>/&gt;
+                &lt;String fx:value=<span class="string">"Mechanical"</span>/&gt;
+            &lt;/FXCollections&gt;
+        &lt;/items&gt;
+    &lt;/ComboBox&gt;
+    
+    <span class="comment">&lt;!-- onAction links to Java method in Controller --&gt;</span>
+    &lt;Button text=<span class="string">"Register Student"</span> 
+            onAction=<span class="string">"#handleRegister"</span>
+            styleClass=<span class="string">"primary-button"</span>/&gt;
+    
+    &lt;Label fx:id=<span class="string">"statusLabel"</span> 
+           style=<span class="string">"-fx-text-fill: green;"</span>/&gt;
+    
+&lt;/VBox&gt;</code></pre>
+
+                <pre><code><span class="comment">// SampleController.java - The Logic</span>
+<span class="keyword">package</span> com.example;
+
+<span class="keyword">import</span> javafx.fxml.FXML;
+<span class="keyword">import</span> javafx.scene.control.*;
+
+<span class="keyword">public class</span> <span class="class-name">SampleController</span> {
+    
+    <span class="comment">// @FXML annotation links to fx:id in FXML</span>
+    <span class="keyword">@FXML</span>
+    <span class="keyword">private</span> TextField nameField;
+    
+    <span class="keyword">@FXML</span>
+    <span class="keyword">private</span> TextField rollField;
+    
+    <span class="keyword">@FXML</span>
+    <span class="keyword">private</span> ComboBox&lt;String&gt; branchCombo;
+    
+    <span class="keyword">@FXML</span>
+    <span class="keyword">private</span> Label statusLabel;
+    
+    <span class="comment">// initialize() is called after FXML is loaded</span>
+    <span class="keyword">@FXML</span>
+    <span class="keyword">private void</span> <span class="method">initialize</span>() {
+        System.out.println(<span class="string">"Controller initialized!"</span>);
+        branchCombo.setValue(<span class="string">"Computer Science"</span>); <span class="comment">// Set default</span>
+    }
+    
+    <span class="comment">// Method linked to button's onAction in FXML</span>
+    <span class="keyword">@FXML</span>
+    <span class="keyword">private void</span> <span class="method">handleRegister</span>() {
+        String name = nameField.getText();
+        String roll = rollField.getText();
+        String branch = branchCombo.getValue();
+        
+        <span class="keyword">if</span> (name.isEmpty() || roll.isEmpty()) {
+            statusLabel.setText(<span class="string">"Please fill all fields!"</span>);
+            statusLabel.setStyle(<span class="string">"-fx-text-fill: red;"</span>);
+            <span class="keyword">return</span>;
+        }
+        
+        <span class="comment">// Process registration...</span>
+        statusLabel.setText(<span class="string">"✓ Registration Successful!"</span>);
+        statusLabel.setStyle(<span class="string">"-fx-text-fill: green;"</span>);
+        
+        <span class="comment">// Clear form</span>
+        nameField.clear();
+        rollField.clear();
+    }
+}</code></pre>
+
+                <pre><code><span class="comment">// Main.java - Loading FXML</span>
+<span class="keyword">import</span> javafx.application.Application;
+<span class="keyword">import</span> javafx.fxml.FXMLLoader;
+<span class="keyword">import</span> javafx.scene.Parent;
+<span class="keyword">import</span> javafx.scene.Scene;
+<span class="keyword">import</span> javafx.stage.Stage;
+
+<span class="keyword">public class</span> <span class="class-name">Main</span> <span class="keyword">extends</span> <span class="class-name">Application</span> {
+    
+    <span class="keyword">@Override</span>
+    <span class="keyword">public void</span> <span class="method">start</span>(Stage primaryStage) <span class="keyword">throws</span> Exception {
+        <span class="comment">// Load FXML file</span>
+        FXMLLoader loader = <span class="keyword">new</span> FXMLLoader(
+            getClass().getResource(<span class="string">"sample.fxml"</span>)
+        );
+        Parent root = loader.load();
+        
+        <span class="comment">// Access controller if needed</span>
+        SampleController controller = loader.getController();
+        
+        Scene scene = <span class="keyword">new</span> Scene(root, 400, 500);
+        scene.getStylesheets().add(<span class="string">"styles.css"</span>);
+        
+        primaryStage.setTitle(<span class="string">"FXML Demo"</span>);
+        primaryStage.setScene(scene);
+        primaryStage.show();
+    }
+    
+    <span class="keyword">public static void</span> <span class="method">main</span>(String[] args) {
+        launch(args);
+    }
+}</code></pre>
+            </div>
+
+            <!-- Instructor Notes -->
+            <details class="instructor-notes">
+                <summary>🧑‍🏫 Instructor Notes</summary>
+                
+                <h3>Teaching Tips:</h3>
+                <ol style="margin: 15px 0; padding-left: 25px;">
+                    <li><strong>Start with the Theater Metaphor:</strong> Always begin by drawing the Stage → Scene → Nodes hierarchy on the board. This visual metaphor helps students understand the architecture immediately. Show a Bollywood movie set photo if possible!</li>
+                    
+                    <li><strong>Live Coding Session:</strong> Start with a "Hello World" JavaFX app and build it live. Let students see compilation and runtime in action. Common mistake: forgetting to extend Application class - demonstrate the error!</li>
+                    
+                    <li><strong>Compare with Swing:</strong> If students have seen Swing before, create a side-by-side comparison showing the same UI in both frameworks. Highlight JavaFX advantages: CSS styling, FXML separation, better graphics, modern API.</li>
+                </ol>
+
+                <h3>Common Student Mistakes to Watch For:</h3>
+                <ul style="margin: 15px 0; padding-left: 25px;">
+                    <li>Forgetting to call <code>stage.show()</code> - UI is built but nothing appears!</li>
+                    <li>Trying to update UI from background threads (causes IllegalStateException)</li>
+                    <li>Not understanding the difference between Scene and Stage</li>
+                    <li>Confusing CSS web properties with JavaFX's <code>-fx-</code> prefixed properties</li>
+                    <li>In FXML: mismatched fx:id names with @FXML fields in Controller</li>
+                </ul>
+
+                <div class="quiz">
+                    <h3>Quick Quiz Question:</h3>
+                    <p><strong>Which lifecycle method should you use to load configuration files and establish database connections BEFORE the UI is created?</strong></p>
+                    
+                    <label class="quiz-option">
+                        <input type="radio" name="quiz" value="a" onchange="checkAnswer('a')">
+                        A) start() method
+                    </label>
+                    
+                    <label class="quiz-option">
+                        <input type="radio" name="quiz" value="b" onchange="checkAnswer('b')">
+                        B) init() method ✓
+                    </label>
+                    
+                    <label class="quiz-option">
+                        <input type="radio" name="quiz" value="c" onchange="checkAnswer('c')">
+                        C) stop() method
+                    </label>
+                    
+                    <label class="quiz-option">
+                        <input type="radio" name="quiz" value="d" onchange="checkAnswer('d')">
+                        D) main() method
+                    </label>
+                    
+                    <div id="quizFeedback" style="margin-top: 15px; padding: 10px; border-radius: 5px; display: none;"></div>
+                </div>
+
+                <h3>Further Reading:</h3>
+                <ul style="margin: 15px 0; padding-left: 25px;">
+                    <li>Official Oracle JavaFX Documentation</li>
+                    <li>JavaFX CSS Reference Guide</li>
+                    <li>"Pro JavaFX 9" by Johan Vos et al.</li>
+                    <li>Scene Builder Tool for Visual FXML Design</li>
+                    <li>JavaFX Properties and Bindings (Advanced Topic)</li>
+                </ul>
+
+                <h3>Hands-On Exercise Suggestion:</h3>
+                <p style="margin: 15px 0; padding: 15px; background: white; border-radius: 5px;">
+                    <strong>Mini Project:</strong> Build a "Student Grade Calculator" app with:<br>
+                    • Text fields for 5 subject marks<br>
+                    • Calculate button using event handling<br>
+                    • Display total, average, and grade using different labels<br>
+                    • Style with CSS (passing grade = green, failing = red)<br>
+                    • Optional: Convert to FXML + Controller architecture
+                </p>
+            </details>
+        </div>
+    </div>
+
+    <script>
+        // Global variables for interactive demos
+        let nodeCounter = 0;
+        let layoutNodes = 0;
+        let eventCounter = 0;
+        let lifecyclePhase = 0;
+
+        // Scene Graph Demo
+        function addButton() {
+            nodeCounter++;
+            const scene = document.getElementById('scene');
+            if (scene.querySelector('p')) scene.innerHTML = '';
+            
+            const btn = document.createElement('div');
+            btn.className = 'fx-node';
+            btn.textContent = `Button ${nodeCounter}`;
+            btn.onclick = () => alert(`Button ${nodeCounter} clicked!`);
+            scene.appendChild(btn);
+            
+            updateNodeCount();
+            logEvent(`Added Button ${nodeCounter} to Scene Graph`);
+        }
+
+        function addLabel() {
+            nodeCounter++;
+            const scene = document.getElementById('scene');
+            if (scene.querySelector('p')) scene.innerHTML = '';
+            
+            const label = document.createElement('div');
+            label.className = 'fx-node';
+            label.style.background = 'linear-gradient(135deg, #66bb6a 0%, #43a047 100%)';
+            label.textContent = `Label ${nodeCounter}`;
+            scene.appendChild(label);
+            
+            updateNodeCount();
+            logEvent(`Added Label ${nodeCounter} to Scene Graph`);
+        }
+
+        function addTextField() {
+            nodeCounter++;
+            const scene = document.getElementById('scene');
+            if (scene.querySelector('p')) scene.innerHTML = '';
+            
+            const field = document.createElement('input');
+            field.type = 'text';
+            field.className = 'fx-node';
+            field.style.background = 'linear-gradient(135deg, #ffa726 0%, #fb8c00 100%)';
+            field.placeholder = `TextField ${nodeCounter}`;
+            scene.appendChild(field);
+            
+            updateNodeCount();
+            logEvent(`Added TextField ${nodeCounter} to Scene Graph`);
+        }
+
+        function clearScene() {
+            document.getElementById('scene').innerHTML = '<p style="color: #999; text-align: center;">Your Scene is Empty - Add some Nodes!</p>';
+            nodeCounter = 0;
+            updateNodeCount();
+            logEvent('Scene cleared - all nodes removed');
+        }
+
+        function updateNodeCount() {
+            document.getElementById('count').textContent = nodeCounter;
+        }
+
+        // Lifecycle Demo
+        function runInit() {
+            if (lifecyclePhase >= 1) {
+                alert('init() has already been called!');
+                return;
+            }
+            lifecyclePhase = 1;
+            const output = document.getElementById('lifecycleOutput');
+            output.innerHTML = `
+                <div style="color: #61afef; margin-bottom: 10px;">[INIT] Starting initialization...</div>
+                <div style="color: #98c379;">✓ Loading configuration files</div>
+                <div style="color: #98c379;">✓ Establishing database connection</div>
+                <div style="color: #98c379;">✓ Loading resources</div>
+                <div style="color: #e5c07b; margin-top: 10px;">⚠️ UI not available yet - no Stage or Scene</div>
+                <div style="color: #abb2bf; margin-top: 10px;">Ready for start() phase...</div>
+            `;
+        }
+
+        function runStart() {
+            if (lifecyclePhase < 1) {
+                alert('You must run init() first!');
+                return;
+            }
+            if (lifecyclePhase >= 2) {
+                alert('start() has already been called!');
+                return;
+            }
+            lifecyclePhase = 2;
+            const output = document.getElementById('lifecycleOutput');
+            output.innerHTML += `
+                <div style="color: #61afef; margin-top: 15px; border-top: 1px solid #444; padding-top: 10px;">[START] Building user interface...</div>
+                <div style="color: #98c379;">✓ Creating Stage (window)</div>
+                <div style="color: #98c379;">✓ Building Scene with nodes</div>
+                <div style="color: #98c379;">✓ Applying CSS styles</div>
+                <div style="color: #98c379;">✓ Setting up event handlers</div>
+                <div style="color: #98c379;">✓ Calling stage.show()</div>
+                <div style="color: #abb2bf; margin-top: 10px;">🎉 Application is now visible and running!</div>
+            `;
+        }
+
+        function runStop() {
+            if (lifecyclePhase < 2) {
+                alert('Application must be started first!');
+                return;
+            }
+            if (lifecyclePhase >= 3) {
+                alert('stop() has already been called!');
+                return;
+            }
+            lifecyclePhase = 3;
+            const output = document.getElementById('lifecycleOutput');
+            output.innerHTML += `
+                <div style="color: #61afef; margin-top: 15px; border-top: 1px solid #444; padding-top: 10px;">[STOP] Application closing...</div>
+                <div style="color: #98c379;">✓ Saving user preferences</div>
+                <div style="color: #98c379;">✓ Closing database connections</div>
+                <div style="color: #98c379;">✓ Releasing resources</div>
+                <div style="color: #98c379;">✓ Cleanup complete</div>
+                <div style="color: #abb2bf; margin-top: 10px;">👋 Application terminated gracefully</div>
+            `;
+        }
+
+        function resetLifecycle() {
+            lifecyclePhase = 0;
+            document.getElementById('lifecycleOutput').innerHTML = '<div style="color: #999; text-align: center;">Click buttons above to simulate lifecycle phases</div>';
+        }
+
+        // Layout Manager Demo
+        function changeLayout() {
+            const layout = document.getElementById('layoutSelect').value;
+            const demo = document.getElementById('layoutDemo');
+            const layoutInfo = document.getElementById('layoutInfo');
+            
+            layoutNodes = 0;
+            demo.innerHTML = '';
+            
+            let desc = '';
+            switch(layout) {
+                case 'vbox':
+                    desc = 'Arranges nodes vertically, one below another';
+                    document.getElementById('currentLayout').textContent = 'VBox';
+                    break;
+                case 'hbox':
+                    desc = 'Arranges nodes horizontally, side by side';
+                    document.getElementById('currentLayout').textContent = 'HBox';
+                    break;
+                case 'grid':
+                    desc = 'Arranges nodes in a 2D grid (rows and columns)';
+                    document.getElementById('currentLayout').textContent = 'GridPane';
+                    break;
+                case 'border':
+                    desc = 'Divides space into 5 regions: Top, Bottom, Left, Right, Center';
+                    document.getElementById('currentLayout').textContent = 'BorderPane';
+                    break;
+            }
+            document.getElementById('layoutDesc').textContent = desc;
+        }
+
+        function addLayoutNode() {
+            const layout = document.getElementById('layoutSelect').value;
+            const demo = document.getElementById('layoutDemo');
+            layoutNodes++;
+            
+            const node = document.createElement('div');
+            node.className = 'fx-node';
+            node.textContent = `Node ${layoutNodes}`;
+            node.style.margin = '5px';
+            
+            if (layout === 'vbox') {
+                demo.style.display = 'flex';
+                demo.style.flexDirection = 'column';
+                demo.style.alignItems = 'flex-start';
+            } else if (layout === 'hbox') {
+                demo.style.display = 'flex';
+                demo.style.flexDirection = 'row';
+                demo.style.flexWrap = 'wrap';
+            } else if (layout === 'grid') {
+                demo.style.display = 'grid';
+                demo.style.gridTemplateColumns = 'repeat(3, 1fr)';
+                demo.style.gap = '10px';
+            } else if (layout === 'border') {
+                if (layoutNodes === 1) {
+                    node.textContent = 'Top';
+                    node.style.width = '100%';
+                } else if (layoutNodes === 2) {
+                    node.textContent = 'Left';
+                    node.style.display = 'inline-block';
+                } else if (layoutNodes === 3) {
+                    node.textContent = 'Center';
+                    node.style.flexGrow = '1';
+                } else if (layoutNodes === 4) {
+                    node.textContent = 'Right';
+                    node.style.display = 'inline-block';
+                } else if (layoutNodes === 5) {
+                    node.textContent = 'Bottom';
+                    node.style.width = '100%';
+                }
+                demo.style.display = 'flex';
+                demo.style.flexWrap = 'wrap';
+            }
+            
+            demo.appendChild(node);
+        }
+
+        // Event Handling Demo
+        function logEvent(message) {
+            eventCounter++;
+            const log = document.getElementById('eventLog');
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.innerHTML = `<span style="color: #5c6370;">[${timestamp}]</span> <span style="color: #61afef;">#${eventCounter}</span> ${message}`;
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function handleButtonClick() {
+            const btn = document.getElementById('clickBtn');
+            btn.style.transform = 'scale(0.95)';
+            setTimeout(() => btn.style.transform = 'scale(1)', 100);
+            logEvent('<span style="color: #98c379;">ActionEvent fired: Button clicked!</span>');
+        }
+
+        function handleHover() {
+            const btn = document.getElementById('hoverBtn');
+            btn.style.background = 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)';
+            logEvent('<span style="color: #e5c07b;">MouseEntered event: Cursor entered button area</span>');
+        }
+
+        function handleHoverExit() {
+            const btn = document.getElementById('hoverBtn');
+            btn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+            logEvent('<span style="color: #e5c07b;">MouseExited event: Cursor left button area</span>');
+        }
+
+        function handleTyping() {
+            const input = document.getElementById('typeInput');
+            logEvent(`<span style="color: #c678dd;">KeyEvent: Text changed to "${input.value}"</span>`);
+        }
+
+        // CSS Styling Demo
+        function updateButtonStyle() {
+            const bgColor = document.getElementById('bgColor').value;
+            const fontSize = document.getElementById('fontSize').value;
+            const borderRadius = document.getElementById('borderRadius').value;
+            
+            const btn = document.getElementById('styledButton');
+            btn.style.background = bgColor;
+            btn.style.fontSize = fontSize + 'px';
+            btn.style.borderRadius = borderRadius + 'px';
+            
+            // Update generated CSS display
+            const cssCode = `.my-button {
+    -fx-background-color: ${bgColor};
+    -fx-font-size: ${fontSize}px;
+    -fx-background-radius: ${borderRadius}px;
+    -fx-padding: 15px 30px;
+    -fx-text-fill: white;
+}`;
+            
+            document.getElementById('generatedCSS').textContent = cssCode;
+        }
+
+        function resetButtonStyle() {
+            document.getElementById('bgColor').value = '#667eea';
+            document.getElementById('fontSize').value = '16';
+            document.getElementById('borderRadius').value = '5';
+            updateButtonStyle();
+        }
+
+        // Quiz functionality
+        function checkAnswer(answer) {
+            const feedback = document.getElementById('quizFeedback');
+            feedback.style.display = 'block';
+            
+            const options = document.querySelectorAll('.quiz-option');
+            options.forEach(opt => {
+                opt.classList.remove('correct', 'incorrect');
+            });
+            
+            if (answer === 'b') {
+                feedback.innerHTML = '<strong style="color: #4caf50;">✓ Correct!</strong> The init() method is called before the UI is created, making it perfect for loading configurations and establishing connections that don\'t require UI components.';
+                feedback.style.background = '#c8e6c9';
+                feedback.style.border = '2px solid #4caf50';
+                document.querySelector(`input[value="${answer}"]`).parentElement.classList.add('correct');
+            } else {
+                feedback.innerHTML = '<strong style="color: #f44336;">✗ Incorrect.</strong> The correct answer is <strong>B) init() method</strong>. The init() method runs before start() and is specifically designed for initialization tasks that don\'t involve the UI. start() is too late (UI is being built), stop() is for cleanup, and main() just launches the application.';
+                feedback.style.background = '#ffcdd2';
+                feedback.style.border = '2px solid #f44336';
+                document.querySelector(`input[value="${answer}"]`).parentElement.classList.add('incorrect');
+                document.querySelector(`input[value="b"]`).parentElement.classList.add('correct');
+            }
+        }
+
+        // Initialize demos
+        changeLayout();
+        updateButtonStyle();
+        logEvent('<span style="color: #98c379;">Event system initialized. Interact with controls above!</span>');
+    </script>
+</body>
+</html>

@@ -1,0 +1,1921 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JavaFX Stage and Scene Deep Dive</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 20px;
+        line-height: 1.6;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+      }
+
+      header {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        color: white;
+        padding: 30px;
+        text-align: center;
+      }
+
+      header h1 {
+        font-size: 2.5em;
+        margin-bottom: 10px;
+      }
+
+      header p {
+        font-size: 1.1em;
+        opacity: 0.9;
+      }
+
+      .content {
+        padding: 40px;
+      }
+
+      .section {
+        margin-bottom: 50px;
+        padding: 30px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        border-left: 5px solid #667eea;
+      }
+
+      .section h2 {
+        color: #1e3c72;
+        margin-bottom: 15px;
+        font-size: 1.8em;
+      }
+
+      .section h3 {
+        color: #2a5298;
+        margin-top: 25px;
+        margin-bottom: 10px;
+        font-size: 1.3em;
+      }
+
+      .analogy {
+        background: #fff3cd;
+        border-left: 4px solid #ffc107;
+        padding: 15px;
+        margin: 20px 0;
+        border-radius: 5px;
+      }
+
+      .analogy::before {
+        content: "💡 Analogy: ";
+        font-weight: bold;
+        color: #856404;
+      }
+
+      .analogy strong {
+        color: #2a5d9f;
+      }
+      .analogy em {
+        color: #555;
+      }
+
+      .demo-box {
+        background: white;
+        border: 2px solid #667eea;
+        border-radius: 10px;
+        padding: 25px;
+        margin: 20px 0;
+      }
+
+      .demo-box h4 {
+        color: #667eea;
+        margin-bottom: 15px;
+        font-size: 1.2em;
+      }
+
+      .theater-stage {
+        position: relative;
+        width: 100%;
+        height: 400px;
+        background: #2c3e50;
+        border-radius: 10px;
+        overflow: hidden;
+        margin: 20px 0;
+        box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+      }
+
+      .stage-frame {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        right: 20px;
+        bottom: 20px;
+        border: 3px solid #e74c3c;
+        background: #34495e;
+        border-radius: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+      }
+
+      .scene-content {
+        width: 80%;
+        height: 80%;
+        background: linear-gradient(135deg, #3498db, #2ecc71);
+        border-radius: 5px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5em;
+        transition: all 0.3s ease;
+        padding: 20px;
+      }
+
+      .controls {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin: 20px 0;
+      }
+
+      button {
+        background: #667eea;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 1em;
+        transition: all 0.3s ease;
+        font-weight: 600;
+      }
+
+      button:hover {
+        background: #764ba2;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      }
+
+      button:active {
+        transform: translateY(0);
+      }
+
+      input[type="number"],
+      input[type="text"],
+      select {
+        padding: 10px;
+        border: 2px solid #ddd;
+        border-radius: 5px;
+        font-size: 1em;
+        width: 150px;
+      }
+
+      pre {
+        background: #282c34;
+        color: #abb2bf;
+        padding: 20px;
+        border-radius: 8px;
+        overflow-x: auto;
+        margin: 15px 0;
+        font-size: 0.9em;
+        line-height: 1.5;
+      }
+
+      code {
+        font-family: "Courier New", monospace;
+      }
+
+      .keyword {
+        color: #c678dd;
+      }
+      .class-name {
+        color: #e5c07b;
+      }
+      .method {
+        color: #61afef;
+      }
+      .string {
+        color: #98c379;
+      }
+      .comment {
+        color: #5c6370;
+        font-style: italic;
+      }
+
+      .comparison-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+      }
+
+      .comparison-table th {
+        background: #667eea;
+        color: white;
+        padding: 15px;
+        text-align: left;
+      }
+
+      .comparison-table td {
+        padding: 15px;
+        border-bottom: 1px solid #ddd;
+      }
+
+      .comparison-table tr:hover {
+        background: #f0f0f0;
+      }
+
+      .instructor-notes {
+        background: #d1ecf1;
+        border: 2px solid #0c5460;
+        border-radius: 10px;
+        padding: 20px;
+        margin-top: 40px;
+      }
+
+      .instructor-notes h3 {
+        color: #0c5460;
+        cursor: pointer;
+        user-select: none;
+      }
+
+      .instructor-notes h3::before {
+        content: "▶ ";
+        display: inline-block;
+        transition: transform 0.3s;
+      }
+
+      .instructor-notes h3.expanded::before {
+        transform: rotate(90deg);
+      }
+
+      .instructor-content {
+        display: none;
+        margin-top: 15px;
+      }
+
+      .instructor-content.visible {
+        display: block;
+      }
+
+      .quiz {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        margin-top: 15px;
+      }
+
+      .quiz-option {
+        display: block;
+        padding: 10px;
+        margin: 8px 0;
+        background: #f8f9fa;
+        border: 2px solid transparent;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+
+      .quiz-option:hover {
+        background: #e9ecef;
+        border-color: #667eea;
+      }
+
+      .quiz-option.correct {
+        background: #d4edda;
+        border-color: #28a745;
+      }
+
+      .quiz-option.incorrect {
+        background: #f8d7da;
+        border-color: #dc3545;
+      }
+
+      .stage-info {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 10px;
+        border-radius: 5px;
+        font-size: 0.9em;
+      }
+
+      .scene-switcher {
+        display: flex;
+        gap: 10px;
+        margin: 20px 0;
+        flex-wrap: wrap;
+      }
+
+      .scene-preview {
+        width: 150px;
+        height: 100px;
+        border: 3px solid #ddd;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+      }
+
+      .scene-preview:hover {
+        transform: scale(1.05);
+        border-color: #667eea;
+      }
+
+      .scene-preview.active {
+        border-color: #28a745;
+        box-shadow: 0 0 10px rgba(40, 167, 69, 0.5);
+      }
+
+      .highlight {
+        background: #ffffcc;
+        padding: 2px 5px;
+        border-radius: 3px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>🎭 JavaFX Stage and Scene Deep Dive</h1>
+        <p>
+          Interactive demonstrations for mastering the theater of JavaFX
+          applications
+        </p>
+      </header>
+
+      <div class="content">
+        <!-- Introduction Section -->
+        <div class="section">
+          <h2>🎪 Understanding Stage and Scene</h2>
+          <p>
+            <strong>Conceptual Summary:</strong> In JavaFX, the
+            <span class="highlight">Stage</span> is the top-level container (the
+            window), while the <span class="highlight">Scene</span> holds the
+            actual content (UI components). Multiple scenes can be created but
+            only one can be displayed on a stage at a time.
+          </p>
+
+          <div class="analogy">
+            Imagine a grand theater stage 🎭. The <strong>Stage</strong> is like
+            the entire auditorium — it’s the physical space where performances
+            happen, complete with lights and curtains. The
+            <strong>Scene</strong> is the particular setup or act being
+            performed — today it might be a palace scene, tomorrow it could be a
+            forest scene. The stage itself never changes, but the
+            <em>scene displayed on it</em> can be switched anytime to tell a new
+            story. That’s exactly how JavaFX works — the
+            <strong>Stage</strong> is your main window, and the
+            <strong>Scene</strong> is the content you show inside it!
+          </div>
+
+          <h3>📊 Stage vs Scene: Key Differences</h3>
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>Aspect</th>
+                <th>Stage</th>
+                <th>Scene</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Definition</strong></td>
+                <td>Top-level container (window)</td>
+                <td>Container for UI content</td>
+              </tr>
+              <tr>
+                <td><strong>Hierarchy</strong></td>
+                <td>Created by JavaFX platform</td>
+                <td>Created by developer</td>
+              </tr>
+              <tr>
+                <td><strong>Count</strong></td>
+                <td>One per window</td>
+                <td>Many can exist, one displayed</td>
+              </tr>
+              <tr>
+                <td><strong>Properties</strong></td>
+                <td>Title, size, resizable, modality</td>
+                <td>Root node, dimensions, stylesheets</td>
+              </tr>
+              <tr>
+                <td><strong>Lifecycle</strong></td>
+                <td>Managed by OS window manager</td>
+                <td>Lightweight, quick to switch</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Interactive Demo 1: Stage Properties -->
+        <div class="section">
+          <h2>🎬 Demo 1: Stage Properties in Action</h2>
+          <p>
+            <strong>Concept:</strong> The Stage controls window-level properties
+            like title, dimensions, and decorations.
+          </p>
+
+          <div class="demo-box">
+            <h4>🎮 Interactive Stage Controller</h4>
+            <p>
+              Modify stage properties and see the changes reflected in
+              real-time:
+            </p>
+
+            <div class="theater-stage" id="stageDemo">
+              <div class="stage-info" id="stageInfo">
+                Stage: "My JavaFX App"<br />
+                Size: 600x400<br />
+                Resizable: Yes
+              </div>
+              <div class="stage-frame" id="stageFrame">
+                <div class="scene-content" id="sceneContent">
+                  <div>🎭 Stage Window</div>
+                  <div style="font-size: 0.8em; margin-top: 10px">
+                    This represents your application window
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="controls">
+              <input
+                type="text"
+                id="stageTitle"
+                placeholder="Stage Title"
+                value="My JavaFX App"
+              />
+              <button onclick="updateStageTitle()">Set Title</button>
+              <input
+                type="number"
+                id="stageWidth"
+                placeholder="Width"
+                value="600"
+                min="300"
+                max="800"
+              />
+              <input
+                type="number"
+                id="stageHeight"
+                placeholder="Height"
+                value="400"
+                min="200"
+                max="500"
+              />
+              <button onclick="updateStageDimensions()">Resize Stage</button>
+              <button onclick="toggleFullscreen()">Toggle Fullscreen</button>
+              <button onclick="toggleResizable()">Toggle Resizable</button>
+            </div>
+          </div>
+
+          <h3>💻 Java Code Example: Basic Stage Setup</h3>
+          <pre><code><span class="keyword">public class</span> <span class="class-name">StageDemo</span> <span class="keyword">extends</span> <span class="class-name">Application</span> {
+    
+    <span class="comment">// Main entry point for JavaFX application</span>
+    <span class="keyword">@Override</span>
+    <span class="keyword">public void</span> <span class="method">start</span>(<span class="class-name">Stage</span> primaryStage) {
+        <span class="comment">// Set stage title (appears in window title bar)</span>
+        primaryStage.<span class="method">setTitle</span>(<span class="string">"Railway Reservation System"</span>);
+        
+        <span class="comment">// Configure stage dimensions</span>
+        primaryStage.<span class="method">setWidth</span>(800);
+        primaryStage.<span class="method">setHeight</span>(600);
+        
+        <span class="comment">// Control window resizability</span>
+        primaryStage.<span class="method">setResizable</span>(<span class="keyword">true</span>);
+        
+        <span class="comment">// Set minimum size constraints</span>
+        primaryStage.<span class="method">setMinWidth</span>(400);
+        primaryStage.<span class="method">setMinHeight</span>(300);
+        
+        <span class="comment">// Make stage visible</span>
+        primaryStage.<span class="method">show</span>();
+    }
+    
+    <span class="keyword">public static void</span> <span class="method">main</span>(<span class="class-name">String</span>[] args) {
+        <span class="method">launch</span>(args);
+    }
+}</code></pre>
+
+          <h3>🔍 Advanced Stage Properties</h3>
+          <pre><code><span class="comment">// Stage modality - blocks interaction with other windows</span>
+<span class="class-name">Stage</span> dialog = <span class="keyword">new</span> <span class="class-name">Stage</span>();
+dialog.<span class="method">initModality</span>(<span class="class-name">Modality</span>.APPLICATION_MODAL);
+dialog.<span class="method">initOwner</span>(primaryStage);
+
+<span class="comment">// Stage style - controls window decorations</span>
+dialog.<span class="method">initStyle</span>(<span class="class-name">StageStyle</span>.UTILITY);  <span class="comment">// No minimize/maximize</span>
+<span class="comment">// Options: DECORATED, UNDECORATED, TRANSPARENT, UNIFIED, UTILITY</span>
+
+<span class="comment">// Fullscreen mode</span>
+primaryStage.<span class="method">setFullScreen</span>(<span class="keyword">true</span>);
+primaryStage.<span class="method">setFullScreenExitHint</span>(<span class="string">"Press ESC to exit fullscreen"</span>);
+
+<span class="comment">// Always on top</span>
+primaryStage.<span class="method">setAlwaysOnTop</span>(<span class="keyword">true</span>);
+
+<span class="comment">// Icon for window</span>
+primaryStage.<span class="method">getIcons</span>().<span class="method">add</span>(<span class="keyword">new</span> <span class="class-name">Image</span>(<span class="string">"app-icon.png"</span>));</code></pre>
+        </div>
+
+        <!-- Interactive Demo 2: Scene Switching -->
+        <div class="section">
+          <h2>🎞️ Demo 2: Scene Switching</h2>
+          <p>
+            <strong>Concept:</strong> A Stage can display different Scenes, each
+            with unique content and layout. Scene switching is instantaneous.
+          </p>
+
+          <div class="analogy">
+            Imagine a Bharatanatyam performance. The
+            <strong>Stage</strong> (rangamanch) is the physical platform.
+            Different <strong>Scenes</strong> represent different acts -
+            Alarippu, Jatiswaram, Varnam. The stage remains constant, but the
+            performance content changes completely between acts. Similarly, in
+            JavaFX, you keep the same window but swap the entire UI content.
+          </div>
+
+          <div class="demo-box">
+            <h4>🎮 Interactive Scene Switcher</h4>
+            <p>Click on different scenes to switch the content on the stage:</p>
+
+            <div class="scene-switcher">
+              <div
+                class="scene-preview active"
+                style="background: linear-gradient(135deg, #3498db, #2ecc71)"
+                onclick="switchScene(1)"
+              >
+                Scene 1<br />Login
+              </div>
+              <div
+                class="scene-preview"
+                style="background: linear-gradient(135deg, #e74c3c, #f39c12)"
+                onclick="switchScene(2)"
+              >
+                Scene 2<br />Dashboard
+              </div>
+              <div
+                class="scene-preview"
+                style="background: linear-gradient(135deg, #9b59b6, #3498db)"
+                onclick="switchScene(3)"
+              >
+                Scene 3<br />Settings
+              </div>
+            </div>
+
+            <div class="theater-stage" id="sceneDemo">
+              <div class="stage-frame">
+                <div
+                  class="scene-content"
+                  id="currentScene"
+                  style="background: linear-gradient(135deg, #3498db, #2ecc71)"
+                >
+                  <div style="font-size: 2em">🔐</div>
+                  <div style="font-size: 1.5em; margin-top: 10px">
+                    Login Scene
+                  </div>
+                  <div style="font-size: 0.9em; margin-top: 10px">
+                    Username and Password form
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button onclick="demonstrateSceneSwitching()">
+              Auto-Demonstrate Scene Switching
+            </button>
+          </div>
+
+          <h3>💻 Java Code Example: Creating and Switching Scenes</h3>
+          <pre><code><span class="keyword">public class</span> <span class="class-name">MultiSceneApp</span> <span class="keyword">extends</span> <span class="class-name">Application</span> {
+    
+    <span class="keyword">private</span> <span class="class-name">Stage</span> primaryStage;
+    <span class="keyword">private</span> <span class="class-name">Scene</span> loginScene, dashboardScene, settingsScene;
+    
+    <span class="keyword">@Override</span>
+    <span class="keyword">public void</span> <span class="method">start</span>(<span class="class-name">Stage</span> stage) {
+        <span class="keyword">this</span>.primaryStage = stage;
+        
+        <span class="comment">// Create Scene 1: Login</span>
+        <span class="class-name">VBox</span> loginLayout = <span class="keyword">new</span> <span class="class-name">VBox</span>(10);
+        loginLayout.<span class="method">setAlignment</span>(<span class="class-name">Pos</span>.CENTER);
+        <span class="class-name">TextField</span> username = <span class="keyword">new</span> <span class="class-name">TextField</span>();
+        <span class="class-name">PasswordField</span> password = <span class="keyword">new</span> <span class="class-name">PasswordField</span>();
+        <span class="class-name">Button</span> loginBtn = <span class="keyword">new</span> <span class="class-name">Button</span>(<span class="string">"Login"</span>);
+        loginBtn.<span class="method">setOnAction</span>(e -> <span class="method">showDashboard</span>());
+        loginLayout.<span class="method">getChildren</span>().<span class="method">addAll</span>(username, password, loginBtn);
+        loginScene = <span class="keyword">new</span> <span class="class-name">Scene</span>(loginLayout, 600, 400);
+        
+        <span class="comment">// Create Scene 2: Dashboard</span>
+        <span class="class-name">BorderPane</span> dashLayout = <span class="keyword">new</span> <span class="class-name">BorderPane</span>();
+        <span class="class-name">Label</span> welcomeLabel = <span class="keyword">new</span> <span class="class-name">Label</span>(<span class="string">"Welcome to Dashboard!"</span>);
+        <span class="class-name">Button</span> settingsBtn = <span class="keyword">new</span> <span class="class-name">Button</span>(<span class="string">"Go to Settings"</span>);
+        settingsBtn.<span class="method">setOnAction</span>(e -> <span class="method">showSettings</span>());
+        dashLayout.<span class="method">setCenter</span>(welcomeLabel);
+        dashLayout.<span class="method">setBottom</span>(settingsBtn);
+        dashboardScene = <span class="keyword">new</span> <span class="class-name">Scene</span>(dashLayout, 600, 400);
+        
+        <span class="comment">// Create Scene 3: Settings</span>
+        <span class="class-name">VBox</span> settingsLayout = <span class="keyword">new</span> <span class="class-name">VBox</span>(15);
+        <span class="class-name">CheckBox</span> notifications = <span class="keyword">new</span> <span class="class-name">CheckBox</span>(<span class="string">"Enable Notifications"</span>);
+        <span class="class-name">Button</span> backBtn = <span class="keyword">new</span> <span class="class-name">Button</span>(<span class="string">"Back to Dashboard"</span>);
+        backBtn.<span class="method">setOnAction</span>(e -> <span class="method">showDashboard</span>());
+        settingsLayout.<span class="method">getChildren</span>().<span class="method">addAll</span>(notifications, backBtn);
+        settingsScene = <span class="keyword">new</span> <span class="class-name">Scene</span>(settingsLayout, 600, 400);
+        
+        <span class="comment">// Start with login scene</span>
+        primaryStage.<span class="method">setTitle</span>(<span class="string">"Multi-Scene Application"</span>);
+        primaryStage.<span class="method">setScene</span>(loginScene);
+        primaryStage.<span class="method">show</span>();
+    }
+    
+    <span class="keyword">private void</span> <span class="method">showDashboard</span>() {
+        primaryStage.<span class="method">setScene</span>(dashboardScene);
+    }
+    
+    <span class="keyword">private void</span> <span class="method">showSettings</span>() {
+        primaryStage.<span class="method">setScene</span>(settingsScene);
+    }
+}</code></pre>
+        </div>
+
+        <!-- Interactive Demo 3: Scene Graph -->
+        <div class="section">
+          <h2>🌳 Demo 3: Scene Graph Hierarchy</h2>
+          <p>
+            <strong>Concept:</strong> A Scene contains a root node, which forms
+            the top of a hierarchical scene graph. All UI components are
+            organized in this tree structure.
+          </p>
+
+          <div class="analogy">
+            Think of the Indian railway system hierarchy: The
+            <strong>Scene</strong> is like the Railway Zone (e.g., South Central
+            Railway). The <strong>Root Node</strong> is the Zonal Headquarters
+            in Secunderabad. Below that are Divisions (like containers - VBox,
+            HBox), then Stations (individual controls - Button, Label), and
+            finally Platforms and Tracks (nested elements). Every component has
+            a clear parent-child relationship!
+          </div>
+
+          <div class="demo-box">
+            <h4>🎮 Interactive Scene Graph Builder</h4>
+            <p>Build a scene graph and see the hierarchy:</p>
+
+            <div
+              id="sceneGraphViz"
+              style="
+                background: white;
+                border: 2px solid #667eea;
+                border-radius: 10px;
+                padding: 20px;
+                margin: 20px 0;
+              "
+            >
+              <div
+                style="
+                  text-align: center;
+                  font-weight: bold;
+                  color: #667eea;
+                  margin-bottom: 20px;
+                "
+              >
+                Scene
+              </div>
+              <div style="text-align: center">
+                <div
+                  id="rootNode"
+                  style="
+                    display: inline-block;
+                    padding: 15px;
+                    background: #3498db;
+                    color: white;
+                    border-radius: 8px;
+                    margin-bottom: 20px;
+                  "
+                >
+                  Root: BorderPane
+                  <div
+                    id="childNodes"
+                    style="
+                      margin-top: 15px;
+                      display: flex;
+                      gap: 10px;
+                      justify-content: center;
+                      flex-wrap: wrap;
+                    "
+                  >
+                    <div
+                      style="
+                        padding: 10px;
+                        background: #2ecc71;
+                        border-radius: 5px;
+                        font-size: 0.9em;
+                      "
+                    >
+                      Top: MenuBar
+                    </div>
+                    <div
+                      style="
+                        padding: 10px;
+                        background: #e74c3c;
+                        border-radius: 5px;
+                        font-size: 0.9em;
+                      "
+                    >
+                      Center: VBox
+                    </div>
+                    <div
+                      style="
+                        padding: 10px;
+                        background: #f39c12;
+                        border-radius: 5px;
+                        font-size: 0.9em;
+                      "
+                    >
+                      Bottom: HBox
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="controls">
+              <select id="nodeType">
+                <option value="VBox">VBox</option>
+                <option value="HBox">HBox</option>
+                <option value="BorderPane">BorderPane</option>
+                <option value="StackPane">StackPane</option>
+                <option value="GridPane">GridPane</option>
+              </select>
+              <button onclick="changeRootNode()">Change Root Node</button>
+              <button onclick="addChildNode()">Add Child Node</button>
+              <button onclick="resetSceneGraph()">Reset</button>
+            </div>
+          </div>
+
+          <h3>💻 Java Code Example: Scene Graph Construction</h3>
+          <pre><code><span class="comment">// Creating a complex scene graph</span>
+<span class="keyword">public</span> <span class="class-name">Scene</span> <span class="method">createComplexScene</span>() {
+    
+    <span class="comment">// Root node: BorderPane (divides into 5 regions)</span>
+    <span class="class-name">BorderPane</span> root = <span class="keyword">new</span> <span class="class-name">BorderPane</span>();
+    
+    <span class="comment">// Top: Menu bar</span>
+    <span class="class-name">MenuBar</span> menuBar = <span class="keyword">new</span> <span class="class-name">MenuBar</span>();
+    <span class="class-name">Menu</span> fileMenu = <span class="keyword">new</span> <span class="class-name">Menu</span>(<span class="string">"File"</span>);
+    <span class="class-name">MenuItem</span> openItem = <span class="keyword">new</span> <span class="class-name">MenuItem</span>(<span class="string">"Open"</span>);
+    fileMenu.<span class="method">getItems</span>().<span class="method">add</span>(openItem);
+    menuBar.<span class="method">getMenus</span>().<span class="method">add</span>(fileMenu);
+    root.<span class="method">setTop</span>(menuBar);
+    
+    <span class="comment">// Center: VBox with multiple controls</span>
+    <span class="class-name">VBox</span> centerContent = <span class="keyword">new</span> <span class="class-name">VBox</span>(10);
+    centerContent.<span class="method">setPadding</span>(<span class="keyword">new</span> <span class="class-name">Insets</span>(15));
+    
+    <span class="class-name">Label</span> titleLabel = <span class="keyword">new</span> <span class="class-name">Label</span>(<span class="string">"Customer Registration"</span>);
+    titleLabel.<span class="method">setStyle</span>(<span class="string">"-fx-font-size: 18px; -fx-font-weight: bold;"</span>);
+    
+    <span class="class-name">TextField</span> nameField = <span class="keyword">new</span> <span class="class-name">TextField</span>();
+    nameField.<span class="method">setPromptText</span>(<span class="string">"Enter your name"</span>);
+    
+    <span class="class-name">ComboBox</span>&lt;<span class="class-name">String</span>&gt; cityCombo = <span class="keyword">new</span> <span class="class-name">ComboBox</span>&lt;&gt;();
+    cityCombo.<span class="method">getItems</span>().<span class="method">addAll</span>(<span class="string">"Mumbai"</span>, <span class="string">"Delhi"</span>, <span class="string">"Bangalore"</span>);
+    
+    centerContent.<span class="method">getChildren</span>().<span class="method">addAll</span>(titleLabel, nameField, cityCombo);
+    root.<span class="method">setCenter</span>(centerContent);
+    
+    <span class="comment">// Bottom: HBox with buttons</span>
+    <span class="class-name">HBox</span> buttonBox = <span class="keyword">new</span> <span class="class-name">HBox</span>(10);
+    buttonBox.<span class="method">setAlignment</span>(<span class="class-name">Pos</span>.CENTER_RIGHT);
+    buttonBox.<span class="method">setPadding</span>(<span class="keyword">new</span> <span class="class-name">Insets</span>(10));
+    
+    <span class="class-name">Button</span> submitBtn = <span class="keyword">new</span> <span class="class-name">Button</span>(<span class="string">"Submit"</span>);
+    <span class="class-name">Button</span> cancelBtn = <span class="keyword">new</span> <span class="class-name">Button</span>(<span class="string">"Cancel"</span>);
+    buttonBox.<span class="method">getChildren</span>().<span class="method">addAll</span>(submitBtn, cancelBtn);
+    root.<span class="method">setBottom</span>(buttonBox);
+    
+    <span class="comment">// Create scene with root node</span>
+    <span class="class-name">Scene</span> scene = <span class="keyword">new</span> <span class="class-name">Scene</span>(root, 600, 400);
+    
+    <span class="keyword">return</span> scene;
+}</code></pre>
+
+          <h3>🔗 Scene Graph Traversal and Manipulation</h3>
+          <pre><code><span class="comment">// Accessing and modifying the scene graph at runtime</span>
+<span class="keyword">public void</span> <span class="method">manipulateSceneGraph</span>(<span class="class-name">Scene</span> scene) {
+    
+    <span class="comment">// Get the root node</span>
+    <span class="class-name">Parent</span> root = scene.<span class="method">getRoot</span>();
+    
+    <span class="comment">// Find a specific node by ID</span>
+    <span class="class-name">Node</span> submitButton = scene.<span class="method">lookup</span>(<span class="string">"#submitBtn"</span>);
+    
+    <span class="comment">// Iterate through all child nodes</span>
+    <span class="keyword">if</span> (root <span class="keyword">instanceof</span> <span class="class-name">Pane</span>) {
+        <span class="class-name">Pane</span> pane = (<span class="class-name">Pane</span>) root;
+        <span class="keyword">for</span> (<span class="class-name">Node</span> child : pane.<span class="method">getChildren</span>()) {
+            <span class="class-name">System</span>.out.<span class="method">println</span>(<span class="string">"Child: "</span> + child.<span class="method">getClass</span>().<span class="method">getSimpleName</span>());
+        }
+    }
+    
+    <span class="comment">// Dynamically add nodes to the graph</span>
+    <span class="keyword">if</span> (root <span class="keyword">instanceof</span> <span class="class-name">VBox</span>) {
+        <span class="class-name">VBox</span> vbox = (<span class="class-name">VBox</span>) root;
+        <span class="class-name">Button</span> newButton = <span class="keyword">new</span> <span class="class-name">Button</span>(<span class="string">"Dynamically Added"</span>);
+        vbox.<span class="method">getChildren</span>().<span class="method">add</span>(newButton);
+    }
+    
+    <span class="comment">// Remove nodes from the graph</span>
+    <span class="keyword">if</span> (root <span class="keyword">instanceof</span> <span class="class-name">Pane</span>) {
+        <span class="class-name">Pane</span> pane = (<span class="class-name">Pane</span>) root;
+        pane.<span class="method">getChildren</span>().<span class="method">remove</span>(0); <span class="comment">// Remove first child</span>
+    }
+}</code></pre>
+        </div>
+
+        <!-- Interactive Demo 4: Stage Lifecycle -->
+        <div class="section">
+          <h2>⏰ Demo 4: Stage Lifecycle and Events</h2>
+          <p>
+            <strong>Concept:</strong> Stages have lifecycle events (showing,
+            hiding, closing) that you can intercept and handle.
+          </p>
+
+          <div class="demo-box">
+            <h4>🎮 Stage Lifecycle Monitor</h4>
+            <p>Trigger different stage lifecycle events:</p>
+
+            <div
+              id="lifecycleLog"
+              style="
+                background: #282c34;
+                color: #abb2bf;
+                padding: 15px;
+                border-radius: 8px;
+                min-height: 150px;
+                font-family: monospace;
+                font-size: 0.9em;
+                margin: 20px 0;
+                overflow-y: auto;
+                max-height: 300px;
+              "
+            >
+              <div>[INIT] Stage created and ready</div>
+            </div>
+
+            <div class="controls">
+              <button onclick="simulateShow()">Show Stage</button>
+              <button onclick="simulateHide()">Hide Stage</button>
+              <button onclick="simulateClose()">Close Request</button>
+              <button onclick="simulateFocus()">Focus Changed</button>
+              <button onclick="clearLog()">Clear Log</button>
+            </div>
+          </div>
+
+          <h3>💻 Java Code Example: Handling Stage Events</h3>
+          <pre><code><span class="keyword">public void</span> <span class="method">setupStageEvents</span>(<span class="class-name">Stage</span> stage) {
+    
+    <span class="comment">// Event fired when stage is about to be shown</span>
+    stage.<span class="method">setOnShowing</span>(event -> {
+        <span class="class-name">System</span>.out.<span class="method">println</span>(<span class="string">"Stage is about to show"</span>);
+        <span class="comment">// Load data, initialize resources</span>
+    });
+    
+    <span class="comment">// Event fired after stage is shown</span>
+    stage.<span class="method">setOnShown</span>(event -> {
+        <span class="class-name">System</span>.out.<span class="method">println</span>(<span class="string">"Stage is now visible"</span>);
+        <span class="comment">// Start animations, play sounds</span>
+    });
+    
+    <span class="comment">// Event fired when user requests to close (X button)</span>
+    stage.<span class="method">setOnCloseRequest</span>(event -> {
+        <span class="class-name">System</span>.out.<span class="method">println</span>(<span class="string">"Close request received"</span>);
+        
+        <span class="comment">// Show confirmation dialog</span>
+        <span class="class-name">Alert</span> alert = <span class="keyword">new</span> <span class="class-name">Alert</span>(<span class="class-name">Alert.AlertType</span>.CONFIRMATION);
+        alert.<span class="method">setTitle</span>(<span class="string">"Confirm Exit"</span>);
+        alert.<span class="method">setContentText</span>(<span class="string">"Do you want to save before closing?"</span>);
+        
+        <span class="class-name">Optional</span>&lt;<span class="class-name">ButtonType</span>&gt; result = alert.<span class="method">showAndWait</span>();
+        <span class="keyword">if</span> (result.<span class="method">get</span>() == <span class="class-name">ButtonType</span>.OK) {
+            <span class="comment">// Save data</span>
+            <span class="method">saveData</span>();
+        } <span class="keyword">else</span> {
+            <span class="comment">// Cancel the close operation</span>
+            event.<span class="method">consume</span>();
+        }
+    });
+    
+    <span class="comment">// Event fired when stage is about to hide</span>
+    stage.<span class="method">setOnHiding</span>(event -> {
+        <span class="class-name">System</span>.out.<span class="method">println</span>(<span class="string">"Stage is about to hide"</span>);
+        <span class="comment">// Pause operations, save state</span>
+    });
+    
+    <span class="comment">// Event fired after stage is hidden</span>
+    stage.<span class="method">setOnHidden</span>(event -> {
+        <span class="class-name">System</span>.out.<span class="method">println</span>(<span class="string">"Stage is now hidden"</span>);
+        <span class="comment">// Release resources</span>
+    });
+    
+    <span class="comment">// Track focus changes</span>
+    stage.<span class="method">focusedProperty</span>().<span class="method">addListener</span>((obs, wasFocused, isNowFocused) -> {
+        <span class="keyword">if</span> (isNowFocused) {
+            <span class="class-name">System</span>.out.<span class="method">println</span>(<span class="string">"Stage gained focus"</span>);
+        } <span class="keyword">else</span> {
+            <span class="class-name">System</span>.out.<span class="method">println</span>(<span class="string">"Stage lost focus"</span>);
+        }
+    });
+}
+
+<span class="keyword">private void</span> <span class="method">saveData</span>() {
+    <span class="comment">// Implementation for saving data</span>
+    <span class="class-name">System</span>.out.<span class="method">println</span>(<span class="string">"Data saved successfully!"</span>);
+}</code></pre>
+        </div>
+
+        <!-- Interactive Demo 5: Multiple Stages -->
+        <div class="section">
+          <h2>🪟 Demo 5: Working with Multiple Stages</h2>
+          <p>
+            <strong>Concept:</strong> JavaFX applications can create multiple
+            Stage instances for dialogs, secondary windows, and modal
+            interactions.
+          </p>
+
+          <div class="analogy">
+            Think of a bank branch in Chennai. The
+            <strong>Primary Stage</strong> is the main banking hall where most
+            transactions happen. <strong>Secondary Stages</strong> are like the
+            manager's cabin (for private discussions), the locker room
+            (restricted access), or the ATM kiosk (independent operation). Each
+            has its own purpose and can operate independently or be tied to the
+            main hall through modality!
+          </div>
+
+          <div class="demo-box">
+            <h4>🎮 Multiple Stage Manager</h4>
+            <p>Create and manage multiple windows:</p>
+
+            <div
+              style="
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 15px;
+                margin: 20px 0;
+              "
+            >
+              <div
+                style="
+                  border: 2px solid #667eea;
+                  border-radius: 8px;
+                  padding: 15px;
+                  background: white;
+                "
+              >
+                <strong>Primary Stage</strong>
+                <div style="color: #666; font-size: 0.9em; margin: 10px 0">
+                  Main Application Window
+                </div>
+                <button
+                  onclick="showPrimaryInfo()"
+                  style="width: 100%; padding: 8px"
+                >
+                  Show Info
+                </button>
+              </div>
+              <div
+                style="
+                  border: 2px solid #2ecc71;
+                  border-radius: 8px;
+                  padding: 15px;
+                  background: white;
+                "
+              >
+                <strong>Modal Dialog</strong>
+                <div style="color: #666; font-size: 0.9em; margin: 10px 0">
+                  Blocks other windows
+                </div>
+                <button
+                  onclick="openModalDialog()"
+                  style="width: 100%; padding: 8px"
+                >
+                  Open Modal
+                </button>
+              </div>
+              <div
+                style="
+                  border: 2px solid #e74c3c;
+                  border-radius: 8px;
+                  padding: 15px;
+                  background: white;
+                "
+              >
+                <strong>Secondary Window</strong>
+                <div style="color: #666; font-size: 0.9em; margin: 10px 0">
+                  Independent window
+                </div>
+                <button
+                  onclick="openSecondaryWindow()"
+                  style="width: 100%; padding: 8px"
+                >
+                  Open Window
+                </button>
+              </div>
+            </div>
+
+            <div
+              id="stageStatus"
+              style="
+                background: #e8f5e9;
+                border: 2px solid #4caf50;
+                border-radius: 8px;
+                padding: 15px;
+                margin-top: 15px;
+              "
+            >
+              <strong>Status:</strong>
+              <span id="statusText">Ready - No secondary stages open</span>
+            </div>
+          </div>
+
+          <h3>💻 Java Code Example: Creating Multiple Stages</h3>
+          <pre><code><span class="keyword">public class</span> <span class="class-name">MultiStageApp</span> <span class="keyword">extends</span> <span class="class-name">Application</span> {
+    
+    <span class="keyword">private</span> <span class="class-name">Stage</span> primaryStage;
+    
+    <span class="keyword">@Override</span>
+    <span class="keyword">public void</span> <span class="method">start</span>(<span class="class-name">Stage</span> primaryStage) {
+        <span class="keyword">this</span>.primaryStage = primaryStage;
+        
+        <span class="comment">// Setup primary stage</span>
+        <span class="class-name">VBox</span> layout = <span class="keyword">new</span> <span class="class-name">VBox</span>(15);
+        layout.<span class="method">setPadding</span>(<span class="keyword">new</span> <span class="class-name">Insets</span>(20));
+        
+        <span class="class-name">Button</span> openModalBtn = <span class="keyword">new</span> <span class="class-name">Button</span>(<span class="string">"Open Modal Dialog"</span>);
+        openModalBtn.<span class="method">setOnAction</span>(e -> <span class="method">openModalDialog</span>());
+        
+        <span class="class-name">Button</span> openSecondaryBtn = <span class="keyword">new</span> <span class="class-name">Button</span>(<span class="string">"Open Secondary Window"</span>);
+        openSecondaryBtn.<span class="method">setOnAction</span>(e -> <span class="method">openSecondaryWindow</span>());
+        
+        layout.<span class="method">getChildren</span>().<span class="method">addAll</span>(openModalBtn, openSecondaryBtn);
+        
+        <span class="class-name">Scene</span> scene = <span class="keyword">new</span> <span class="class-name">Scene</span>(layout, 400, 300);
+        primaryStage.<span class="method">setTitle</span>(<span class="string">"Primary Window"</span>);
+        primaryStage.<span class="method">setScene</span>(scene);
+        primaryStage.<span class="method">show</span>();
+    }
+    
+    <span class="comment">// Create a modal dialog that blocks interaction with primary stage</span>
+    <span class="keyword">private void</span> <span class="method">openModalDialog</span>() {
+        <span class="class-name">Stage</span> dialog = <span class="keyword">new</span> <span class="class-name">Stage</span>();
+        
+        <span class="comment">// Set modality - blocks all other windows</span>
+        dialog.<span class="method">initModality</span>(<span class="class-name">Modality</span>.APPLICATION_MODAL);
+        
+        <span class="comment">// Set owner - this dialog belongs to primaryStage</span>
+        dialog.<span class="method">initOwner</span>(primaryStage);
+        
+        <span class="comment">// Configure dialog style</span>
+        dialog.<span class="method">initStyle</span>(<span class="class-name">StageStyle</span>.UTILITY);
+        dialog.<span class="method">setTitle</span>(<span class="string">"Confirmation Dialog"</span>);
+        
+        <span class="class-name">VBox</span> dialogLayout = <span class="keyword">new</span> <span class="class-name">VBox</span>(20);
+        dialogLayout.<span class="method">setAlignment</span>(<span class="class-name">Pos</span>.CENTER);
+        dialogLayout.<span class="method">setPadding</span>(<span class="keyword">new</span> <span class="class-name">Insets</span>(20));
+        
+        <span class="class-name">Label</span> message = <span class="keyword">new</span> <span class="class-name">Label</span>(<span class="string">"This is a modal dialog.\nYou cannot interact with the main window!"</span>);
+        message.<span class="method">setTextAlignment</span>(<span class="class-name">TextAlignment</span>.CENTER);
+        
+        <span class="class-name">Button</span> closeBtn = <span class="keyword">new</span> <span class="class-name">Button</span>(<span class="string">"Close Dialog"</span>);
+        closeBtn.<span class="method">setOnAction</span>(e -> dialog.<span class="method">close</span>());
+        
+        dialogLayout.<span class="method">getChildren</span>().<span class="method">addAll</span>(message, closeBtn);
+        
+        <span class="class-name">Scene</span> dialogScene = <span class="keyword">new</span> <span class="class-name">Scene</span>(dialogLayout, 300, 150);
+        dialog.<span class="method">setScene</span>(dialogScene);
+        
+        <span class="comment">// showAndWait() blocks until dialog is closed</span>
+        dialog.<span class="method">showAndWait</span>();
+    }
+    
+    <span class="comment">// Create an independent secondary window</span>
+    <span class="keyword">private void</span> <span class="method">openSecondaryWindow</span>() {
+        <span class="class-name">Stage</span> secondaryStage = <span class="keyword">new</span> <span class="class-name">Stage</span>();
+        
+        <span class="comment">// No modality - can interact with both windows</span>
+        secondaryStage.<span class="method">setTitle</span>(<span class="string">"Secondary Window"</span>);
+        
+        <span class="class-name">BorderPane</span> layout = <span class="keyword">new</span> <span class="class-name">BorderPane</span>();
+        <span class="class-name">Label</span> label = <span class="keyword">new</span> <span class="class-name">Label</span>(<span class="string">"This is an independent window"</span>);
+        <span class="class-name">BorderPane</span>.<span class="method">setAlignment</span>(label, <span class="class-name">Pos</span>.CENTER);
+        layout.<span class="method">setCenter</span>(label);
+        
+        <span class="class-name">Button</span> closeBtn = <span class="keyword">new</span> <span class="class-name">Button</span>(<span class="string">"Close"</span>);
+        closeBtn.<span class="method">setOnAction</span>(e -> secondaryStage.<span class="method">close</span>());
+        <span class="class-name">BorderPane</span>.<span class="method">setAlignment</span>(closeBtn, <span class="class-name">Pos</span>.CENTER);
+        <span class="class-name">BorderPane</span>.<span class="method">setMargin</span>(closeBtn, <span class="keyword">new</span> <span class="class-name">Insets</span>(10));
+        layout.<span class="method">setBottom</span>(closeBtn);
+        
+        <span class="class-name">Scene</span> scene = <span class="keyword">new</span> <span class="class-name">Scene</span>(layout, 400, 250);
+        secondaryStage.<span class="method">setScene</span>(scene);
+        
+        <span class="comment">// show() is non-blocking - both windows are interactive</span>
+        secondaryStage.<span class="method">show</span>();
+    }
+}</code></pre>
+
+          <h3>🔐 Stage Modality Types</h3>
+          <pre><code><span class="comment">// NONE: Window is not modal (default)</span>
+dialog.<span class="method">initModality</span>(<span class="class-name">Modality</span>.NONE);
+<span class="comment">// User can interact with all windows</span>
+
+<span class="comment">// WINDOW_MODAL: Blocks only the owner window</span>
+dialog.<span class="method">initModality</span>(<span class="class-name">Modality</span>.WINDOW_MODAL);
+dialog.<span class="method">initOwner</span>(primaryStage);
+<span class="comment">// Blocks primaryStage but other windows remain interactive</span>
+
+<span class="comment">// APPLICATION_MODAL: Blocks all windows in the application</span>
+dialog.<span class="method">initModality</span>(<span class="class-name">Modality</span>.APPLICATION_MODAL);
+<span class="comment">// User must close this dialog before interacting with any window</span></code></pre>
+        </div>
+
+        <!-- Advanced Concepts -->
+        <div class="section">
+          <h2>🚀 Advanced Stage and Scene Concepts</h2>
+
+          <h3>1️⃣ CSS Styling for Scenes</h3>
+          <pre><code><span class="comment">// Apply external stylesheet to scene</span>
+scene.<span class="method">getStylesheets</span>().<span class="method">add</span>(<span class="string">"styles.css"</span>);
+
+<span class="comment">// Apply multiple stylesheets</span>
+scene.<span class="method">getStylesheets</span>().<span class="method">addAll</span>(
+    <span class="string">"base-theme.css"</span>,
+    <span class="string">"custom-components.css"</span>
+);
+
+<span class="comment">// Inline styling on root node</span>
+root.<span class="method">setStyle</span>(<span class="string">"-fx-background-color: linear-gradient(to bottom, #3498db, #2ecc71);"</span>);</code></pre>
+
+          <h3>2️⃣ Scene Cursor and Fill</h3>
+          <pre><code><span class="comment">// Change mouse cursor for entire scene</span>
+scene.<span class="method">setCursor</span>(<span class="class-name">Cursor</span>.HAND);
+<span class="comment">// Options: DEFAULT, HAND, WAIT, CROSSHAIR, TEXT, MOVE, etc.</span>
+
+<span class="comment">// Set scene background fill</span>
+scene.<span class="method">setFill</span>(<span class="class-name">Color</span>.LIGHTGRAY);
+scene.<span class="method">setFill</span>(<span class="class-name">Color</span>.<span class="method">rgb</span>(52, 152, 219, 0.8)); <span class="comment">// With alpha</span></code></pre>
+
+          <h3>3️⃣ Stage Positioning and Screen Management</h3>
+          <pre><code><span class="comment">// Position stage at specific coordinates</span>
+stage.<span class="method">setX</span>(100);
+stage.<span class="method">setY</span>(50);
+
+<span class="comment">// Center stage on screen</span>
+stage.<span class="method">centerOnScreen</span>();
+
+<span class="comment">// Get screen information</span>
+<span class="class-name">Screen</span> primaryScreen = <span class="class-name">Screen</span>.<span class="method">getPrimary</span>();
+<span class="class-name">Rectangle2D</span> bounds = primaryScreen.<span class="method">getVisualBounds</span>();
+
+<span class="comment">// Position on specific screen (multi-monitor setup)</span>
+<span class="class-name">ObservableList</span>&lt;<span class="class-name">Screen</span>&gt; screens = <span class="class-name">Screen</span>.<span class="method">getScreens</span>();
+<span class="keyword">if</span> (screens.<span class="method">size</span>() > 1) {
+    <span class="class-name">Screen</span> secondScreen = screens.<span class="method">get</span>(1);
+    <span class="class-name">Rectangle2D</span> secondBounds = secondScreen.<span class="method">getVisualBounds</span>();
+    stage.<span class="method">setX</span>(secondBounds.<span class="method">getMinX</span>());
+    stage.<span class="method">setY</span>(secondBounds.<span class="method">getMinY</span>());
+}</code></pre>
+
+          <h3>4️⃣ Scene Properties and Listeners</h3>
+          <pre><code><span class="comment">// Listen to scene dimension changes</span>
+scene.<span class="method">widthProperty</span>().<span class="method">addListener</span>((obs, oldWidth, newWidth) -> {
+    <span class="class-name">System</span>.out.<span class="method">println</span>(<span class="string">"Scene width changed: "</span> + newWidth);
+});
+
+scene.<span class="method">heightProperty</span>().<span class="method">addListener</span>((obs, oldHeight, newHeight) -> {
+    <span class="class-name">System</span>.out.<span class="method">println</span>(<span class="string">"Scene height changed: "</span> + newHeight);
+});
+
+<span class="comment">// Get current dimensions</span>
+<span class="keyword">double</span> width = scene.<span class="method">getWidth</span>();
+<span class="keyword">double</span> height = scene.<span class="method">getHeight</span>();
+
+<span class="comment">// Access stage from scene</span>
+<span class="class-name">Stage</span> currentStage = (<span class="class-name">Stage</span>) scene.<span class="method">getWindow</span>();</code></pre>
+        </div>
+
+        <!-- Practical Example -->
+        <div class="section">
+          <h2>💼 Practical Example: Multi-Scene Navigation System</h2>
+          <p>A real-world example combining all concepts:</p>
+
+          <pre><code><span class="keyword">public class</span> <span class="class-name">NavigationApp</span> <span class="keyword">extends</span> <span class="class-name">Application</span> {
+    
+    <span class="keyword">private</span> <span class="class-name">Stage</span> primaryStage;
+    <span class="keyword">private</span> <span class="class-name">Map</span>&lt;<span class="class-name">String</span>, <span class="class-name">Scene</span>&gt; sceneCache = <span class="keyword">new</span> <span class="class-name">HashMap</span>&lt;&gt;();
+    
+    <span class="keyword">@Override</span>
+    <span class="keyword">public void</span> <span class="method">start</span>(<span class="class-name">Stage</span> stage) {
+        <span class="keyword">this</span>.primaryStage = stage;
+        
+        <span class="comment">// Configure primary stage</span>
+        primaryStage.<span class="method">setTitle</span>(<span class="string">"IRCTC Booking System"</span>);
+        primaryStage.<span class="method">setMinWidth</span>(800);
+        primaryStage.<span class="method">setMinHeight</span>(600);
+        
+        <span class="comment">// Setup stage close handler</span>
+        primaryStage.<span class="method">setOnCloseRequest</span>(event -> {
+            <span class="keyword">if</span> (!<span class="method">confirmExit</span>()) {
+                event.<span class="method">consume</span>();
+            }
+        });
+        
+        <span class="comment">// Pre-create all scenes</span>
+        sceneCache.<span class="method">put</span>(<span class="string">"login"</span>, <span class="method">createLoginScene</span>());
+        sceneCache.<span class="method">put</span>(<span class="string">"search"</span>, <span class="method">createSearchScene</span>());
+        sceneCache.<span class="method">put</span>(<span class="string">"booking"</span>, <span class="method">createBookingScene</span>());
+        sceneCache.<span class="method">put</span>(<span class="string">"payment"</span>, <span class="method">createPaymentScene</span>());
+        
+        <span class="comment">// Start with login scene</span>
+        <span class="method">navigateTo</span>(<span class="string">"login"</span>);
+        
+        primaryStage.<span class="method">centerOnScreen</span>();
+        primaryStage.<span class="method">show</span>();
+    }
+    
+    <span class="comment">// Navigate between scenes with animation</span>
+    <span class="keyword">private void</span> <span class="method">navigateTo</span>(<span class="class-name">String</span> sceneName) {
+        <span class="class-name">Scene</span> newScene = sceneCache.<span class="method">get</span>(sceneName);
+        <span class="keyword">if</span> (newScene != <span class="keyword">null</span>) {
+            primaryStage.<span class="method">setScene</span>(newScene);
+            primaryStage.<span class="method">setTitle</span>(<span class="string">"IRCTC - "</span> + sceneName.<span class="method">toUpperCase</span>());
+        }
+    }
+    
+    <span class="keyword">private</span> <span class="class-name">Scene</span> <span class="method">createLoginScene</span>() {
+        <span class="class-name">VBox</span> layout = <span class="keyword">new</span> <span class="class-name">VBox</span>(15);
+        layout.<span class="method">setAlignment</span>(<span class="class-name">Pos</span>.CENTER);
+        layout.<span class="method">setPadding</span>(<span class="keyword">new</span> <span class="class-name">Insets</span>(30));
+        
+        <span class="class-name">Label</span> title = <span class="keyword">new</span> <span class="class-name">Label</span>(<span class="string">"🚂 IRCTC Login"</span>);
+        title.<span class="method">setStyle</span>(<span class="string">"-fx-font-size: 24px; -fx-font-weight: bold;"</span>);
+        
+        <span class="class-name">TextField</span> username = <span class="keyword">new</span> <span class="class-name">TextField</span>();
+        username.<span class="method">setPromptText</span>(<span class="string">"Username"</span>);
+        username.<span class="method">setMaxWidth</span>(300);
+        
+        <span class="class-name">PasswordField</span> password = <span class="keyword">new</span> <span class="class-name">PasswordField</span>();
+        password.<span class="method">setPromptText</span>(<span class="string">"Password"</span>);
+        password.<span class="method">setMaxWidth</span>(300);
+        
+        <span class="class-name">Button</span> loginBtn = <span class="keyword">new</span> <span class="class-name">Button</span>(<span class="string">"Login"</span>);
+        loginBtn.<span class="method">setOnAction</span>(e -> <span class="method">navigateTo</span>(<span class="string">"search"</span>));
+        
+        layout.<span class="method">getChildren</span>().<span class="method">addAll</span>(title, username, password, loginBtn);
+        
+        <span class="class-name">Scene</span> scene = <span class="keyword">new</span> <span class="class-name">Scene</span>(layout, 800, 600);
+        scene.<span class="method">getStylesheets</span>().<span class="method">add</span>(<span class="string">"app-theme.css"</span>);
+        <span class="keyword">return</span> scene;
+    }
+    
+    <span class="keyword">private</span> <span class="class-name">Scene</span> <span class="method">createSearchScene</span>() {
+        <span class="class-name">BorderPane</span> layout = <span class="keyword">new</span> <span class="class-name">BorderPane</span>();
+        
+        <span class="comment">// Top: Navigation bar</span>
+        <span class="class-name">HBox</span> navbar = <span class="keyword">new</span> <span class="class-name">HBox</span>(10);
+        navbar.<span class="method">setPadding</span>(<span class="keyword">new</span> <span class="class-name">Insets</span>(10));
+        navbar.<span class="method">setStyle</span>(<span class="string">"-fx-background-color: #2c3e50;"</span>);
+        <span class="class-name">Button</span> backBtn = <span class="keyword">new</span> <span class="class-name">Button</span>(<span class="string">"Logout"</span>);
+        backBtn.<span class="method">setOnAction</span>(e -> <span class="method">navigateTo</span>(<span class="string">"login"</span>));
+        navbar.<span class="method">getChildren</span>().<span class="method">add</span>(backBtn);
+        layout.<span class="method">setTop</span>(navbar);
+        
+        <span class="comment">// Center: Search form</span>
+        <span class="class-name">VBox</span> searchForm = <span class="keyword">new</span> <span class="class-name">VBox</span>(15);
+        searchForm.<span class="method">setAlignment</span>(<span class="class-name">Pos</span>.CENTER);
+        searchForm.<span class="method">setPadding</span>(<span class="keyword">new</span> <span class="class-name">Insets</span>(30));
+        
+        <span class="class-name">ComboBox</span>&lt;<span class="class-name">String</span>&gt; fromStation = <span class="keyword">new</span> <span class="class-name">ComboBox</span>&lt;&gt;();
+        fromStation.<span class="method">getItems</span>().<span class="method">addAll</span>(<span class="string">"Mumbai"</span>, <span class="string">"Delhi"</span>, <span class="string">"Bangalore"</span>, <span class="string">"Chennai"</span>);
+        
+        <span class="class-name">ComboBox</span>&lt;<span class="class-name">String</span>&gt; toStation = <span class="keyword">new</span> <span class="class-name">ComboBox</span>&lt;&gt;();
+        toStation.<span class="method">getItems</span>().<span class="method">addAll</span>(<span class="string">"Mumbai"</span>, <span class="string">"Delhi"</span>, <span class="string">"Bangalore"</span>, <span class="string">"Chennai"</span>);
+        
+        <span class="class-name">Button</span> searchBtn = <span class="keyword">new</span> <span class="class-name">Button</span>(<span class="string">"Search Trains"</span>);
+        searchBtn.<span class="method">setOnAction</span>(e -> <span class="method">navigateTo</span>(<span class="string">"booking"</span>));
+        
+        searchForm.<span class="method">getChildren</span>().<span class="method">addAll</span>(
+            <span class="keyword">new</span> <span class="class-name">Label</span>(<span class="string">"From:"</span>), fromStation,
+            <span class="keyword">new</span> <span class="class-name">Label</span>(<span class="string">"To:"</span>), toStation,
+            searchBtn
+        );
+        layout.<span class="method">setCenter</span>(searchForm);
+        
+        <span class="keyword">return new</span> <span class="class-name">Scene</span>(layout, 800, 600);
+    }
+    
+    <span class="keyword">private</span> <span class="class-name">Scene</span> <span class="method">createBookingScene</span>() {
+        <span class="class-name">VBox</span> layout = <span class="keyword">new</span> <span class="class-name">VBox</span>(20);
+        layout.<span class="method">setAlignment</span>(<span class="class-name">Pos</span>.CENTER);
+        layout.<span class="method">setPadding</span>(<span class="keyword">new</span> <span class="class-name">Insets</span>(30));
+        
+        <span class="class-name">Label</span> title = <span class="keyword">new</span> <span class="class-name">Label</span>(<span class="string">"Available Trains"</span>);
+        title.<span class="method">setStyle</span>(<span class="string">"-fx-font-size: 20px;"</span>);
+        
+        <span class="class-name">Button</span> bookBtn = <span class="keyword">new</span> <span class="class-name">Button</span>(<span class="string">"Book Ticket"</span>);
+        bookBtn.<span class="method">setOnAction</span>(e -> <span class="method">navigateTo</span>(<span class="string">"payment"</span>));
+        
+        <span class="class-name">Button</span> backBtn = <span class="keyword">new</span> <span class="class-name">Button</span>(<span class="string">"Back to Search"</span>);
+        backBtn.<span class="method">setOnAction</span>(e -> <span class="method">navigateTo</span>(<span class="string">"search"</span>));
+        
+        layout.<span class="method">getChildren</span>().<span class="method">addAll</span>(title, bookBtn, backBtn);
+        
+        <span class="keyword">return new</span> <span class="class-name">Scene</span>(layout, 800, 600);
+    }
+    
+    <span class="keyword">private</span> <span class="class-name">Scene</span> <span class="method">createPaymentScene</span>() {
+        <span class="class-name">VBox</span> layout = <span class="keyword">new</span> <span class="class-name">VBox</span>(20);
+        layout.<span class="method">setAlignment</span>(<span class="class-name">Pos</span>.CENTER);
+        
+        <span class="class-name">Label</span> title = <span class="keyword">new</span> <span class="class-name">Label</span>(<span class="string">"💳 Payment Gateway"</span>);
+        title.<span class="method">setStyle</span>(<span class="string">"-fx-font-size: 20px;"</span>);
+        
+        <span class="class-name">Button</span> payBtn = <span class="keyword">new</span> <span class="class-name">Button</span>(<span class="string">"Complete Payment"</span>);
+        payBtn.<span class="method">setOnAction</span>(e -> {
+            <span class="method">showConfirmationDialog</span>();
+            <span class="method">navigateTo</span>(<span class="string">"search"</span>);
+        });
+        
+        layout.<span class="method">getChildren</span>().<span class="method">addAll</span>(title, payBtn);
+        
+        <span class="keyword">return new</span> <span class="class-name">Scene</span>(layout, 800, 600);
+    }
+    
+    <span class="keyword">private void</span> <span class="method">showConfirmationDialog</span>() {
+        <span class="class-name">Stage</span> dialog = <span class="keyword">new</span> <span class="class-name">Stage</span>();
+        dialog.<span class="method">initModality</span>(<span class="class-name">Modality</span>.APPLICATION_MODAL);
+        dialog.<span class="method">initOwner</span>(primaryStage);
+        dialog.<span class="method">setTitle</span>(<span class="string">"Booking Confirmed"</span>);
+        
+        <span class="class-name">VBox</span> content = <span class="keyword">new</span> <span class="class-name">VBox</span>(15);
+        content.<span class="method">setAlignment</span>(<span class="class-name">Pos</span>.CENTER);
+        content.<span class="method">setPadding</span>(<span class="keyword">new</span> <span class="class-name">Insets</span>(20));
+        
+        <span class="class-name">Label</span> msg = <span class="keyword">new</span> <span class="class-name">Label</span>(<span class="string">"✅ Ticket booked successfully!"</span>);
+        <span class="class-name">Button</span> okBtn = <span class="keyword">new</span> <span class="class-name">Button</span>(<span class="string">"OK"</span>);
+        okBtn.<span class="method">setOnAction</span>(e -> dialog.<span class="method">close</span>());
+        
+        content.<span class="method">getChildren</span>().<span class="method">addAll</span>(msg, okBtn);
+        dialog.<span class="method">setScene</span>(<span class="keyword">new</span> <span class="class-name">Scene</span>(content, 300, 150));
+        dialog.<span class="method">showAndWait</span>();
+    }
+    
+    <span class="keyword">private boolean</span> <span class="method">confirmExit</span>() {
+        <span class="class-name">Alert</span> alert = <span class="keyword">new</span> <span class="class-name">Alert</span>(<span class="class-name">Alert.AlertType</span>.CONFIRMATION);
+        alert.<span class="method">setTitle</span>(<span class="string">"Exit Confirmation"</span>);
+        alert.<span class="method">setHeaderText</span>(<span class="string">"Are you sure you want to exit?"</span>);
+        alert.<span class="method">setContentText</span>(<span class="string">"Any unsaved changes will be lost."</span>);
+        
+        <span class="class-name">Optional</span>&lt;<span class="class-name">ButtonType</span>&gt; result = alert.<span class="method">showAndWait</span>();
+        <span class="keyword">return</span> result.<span class="method">isPresent</span>() && result.<span class="method">get</span>() == <span class="class-name">ButtonType</span>.OK;
+    }
+}</code></pre>
+        </div>
+
+        <!-- Instructor Notes Section -->
+        <div class="instructor-notes">
+          <h3 onclick="toggleInstructor()">🧑‍🏫 Instructor Notes</h3>
+          <div class="instructor-content" id="instructorContent">
+            <h4>📚 Teaching Tips:</h4>
+            <ol style="line-height: 2">
+              <li>
+                <strong>Start with the Theater Analogy:</strong> Begin by
+                discussing how a theater (Stage) can show different plays
+                (Scenes). This helps students immediately grasp the
+                relationship. Ask them to think of real examples like PVR
+                Cinemas showing different movies.
+              </li>
+
+              <li>
+                <strong>Live Coding Demonstration:</strong> Create a simple
+                2-scene app live in class. Start with a login scene and a
+                welcome scene. Show how setScene() instantly switches content.
+                Emphasize that the Stage (window) never changes, only what's
+                displayed inside it.
+              </li>
+
+              <li>
+                <strong>Common Student Mistakes to Address:</strong>
+                <ul style="margin-top: 10px">
+                  <li>
+                    Confusing Stage with Scene - Use the "window vs content"
+                    distinction
+                  </li>
+                  <li>
+                    Creating new Stages when they should create new Scenes
+                  </li>
+                  <li>
+                    Forgetting to call stage.show() after setting the scene
+                  </li>
+                  <li>
+                    Not understanding modality - demonstrate APPLICATION_MODAL
+                    vs WINDOW_MODAL with live examples
+                  </li>
+                </ul>
+              </li>
+
+              <li>
+                <strong>Interactive Exercise:</strong> Have students create a
+                3-scene navigation flow (Login → Dashboard → Settings) with
+                proper back navigation. This reinforces scene management
+                concepts.
+              </li>
+            </ol>
+
+            <div class="quiz">
+              <h4>📝 Quiz Question:</h4>
+              <p style="margin: 15px 0">
+                <strong
+                  >You have a JavaFX application with a primary Stage showing a
+                  login Scene. When the user clicks "Forgot Password", you need
+                  to show a dialog that blocks interaction with the login window
+                  until closed. Which approach is correct?</strong
+                >
+              </p>
+
+              <label class="quiz-option" onclick="checkAnswer(this, false)">
+                <input type="radio" name="quiz" />
+                A) Create a new Scene with the forgot password form and use
+                stage.setScene()
+              </label>
+
+              <label class="quiz-option" onclick="checkAnswer(this, true)">
+                <input type="radio" name="quiz" />
+                B) Create a new Stage with
+                initModality(Modality.APPLICATION_MODAL) and call showAndWait()
+              </label>
+
+              <label class="quiz-option" onclick="checkAnswer(this, false)">
+                <input type="radio" name="quiz" />
+                C) Modify the root node of the current Scene to show the forgot
+                password form
+              </label>
+
+              <label class="quiz-option" onclick="checkAnswer(this, false)">
+                <input type="radio" name="quiz" />
+                D) Create a new Stage with initModality(Modality.NONE) and call
+                show()
+              </label>
+
+              <div
+                id="quizFeedback"
+                style="
+                  margin-top: 15px;
+                  padding: 10px;
+                  border-radius: 5px;
+                  display: none;
+                "
+              ></div>
+            </div>
+
+            <h4 style="margin-top: 30px">📖 Further Reading:</h4>
+            <ul style="line-height: 2">
+              <li>
+                Oracle JavaFX Stage Documentation - Understanding window
+                management
+              </li>
+              <li>
+                JavaFX Scene Graph Architecture - Deep dive into node hierarchy
+              </li>
+              <li>JavaFX CSS Reference Guide - Styling scenes and stages</li>
+              <li>
+                Multi-window JavaFX Applications - Best practices for complex
+                UIs
+              </li>
+              <li>
+                JavaFX Lifecycle and Events - Advanced event handling patterns
+              </li>
+            </ul>
+
+            <h4 style="margin-top: 20px">🎯 Key Takeaways to Emphasize:</h4>
+            <ul style="line-height: 2">
+              <li>
+                Stage = Window (OS-managed), Scene = Content (developer-managed)
+              </li>
+              <li>One Stage can display many Scenes, but only one at a time</li>
+              <li>
+                Scene contains a root node that forms the scene graph hierarchy
+              </li>
+              <li>Use multiple Stages for dialogs and secondary windows</li>
+              <li>Modality controls how Stages interact with each other</li>
+              <li>Stage lifecycle events enable clean resource management</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+  // Stage Demo Functions
+  function updateStageTitle() {
+    const title = document.getElementById("stageTitle").value;
+    // Update demo info box
+    document.getElementById(
+      "stageInfo"
+    ).innerHTML = `Stage: "${title}"<br>Size: ${
+      document.getElementById("stageWidth").value
+    }x${document.getElementById("stageHeight").value}<br>Resizable: Yes`;
+    // ALSO update the browser window title - fixes "title not setting correctly"
+    document.title = title || "JavaFX Stage and Scene Deep Dive";
+  }
+
+  function updateStageDimensions() {
+    const width = document.getElementById("stageWidth").value;
+    const height = document.getElementById("stageHeight").value;
+    const frame = document.getElementById("stageFrame");
+
+    // Calculate relative size (simulation)
+    const relativeWidth = Math.min(800, Math.max(300, width));
+    const relativeHeight = Math.min(500, Math.max(200, height));
+
+    frame.style.width = (relativeWidth / 800) * 90 + "%";
+    frame.style.height = (relativeHeight / 500) * 90 + "%";
+
+    document.getElementById("stageInfo").innerHTML = `Stage: "${
+      document.getElementById("stageTitle").value
+    }"<br>Size: ${width}x${height}<br>Resizable: Yes`;
+  }
+
+  let isFullscreen = false;
+  function toggleFullscreen() {
+    const stage = document.getElementById("stageDemo");
+    const frame = document.getElementById("stageFrame");
+    isFullscreen = !isFullscreen;
+
+    if (isFullscreen) {
+      frame.style.top = "5px";
+      frame.style.left = "5px";
+      frame.style.right = "5px";
+      frame.style.bottom = "5px";
+      stage.style.height = "500px";
+    } else {
+      frame.style.top = "20px";
+      frame.style.left = "20px";
+      frame.style.right = "20px";
+      frame.style.bottom = "20px";
+      stage.style.height = "400px";
+    }
+  }
+
+  let isResizable = true;
+  function toggleResizable() {
+    isResizable = !isResizable;
+    const info = document.getElementById("stageInfo");
+    const currentInfo = info.innerHTML.split("<br>");
+    currentInfo[2] = `Resizable: ${isResizable ? "Yes" : "No"}`;
+    info.innerHTML = currentInfo.join("<br>");
+  }
+
+  // Scene Switching Functions
+  let currentSceneIndex = 1;
+  const sceneData = [
+    {
+      bg: "linear-gradient(135deg, #3498db, #2ecc71)",
+      icon: "🔐",
+      title: "Login Scene",
+      desc: "Username and Password form",
+    },
+    {
+      bg: "linear-gradient(135deg, #e74c3c, #f39c12)",
+      icon: "📊",
+      title: "Dashboard Scene",
+      desc: "Main application dashboard",
+    },
+    {
+      bg: "linear-gradient(135deg, #9b59b6, #3498db)",
+      icon: "⚙️",
+      title: "Settings Scene",
+      desc: "User preferences and configuration",
+    },
+  ];
+
+  function switchScene(index) {
+    currentSceneIndex = index;
+    const scene = sceneData[index - 1];
+    const sceneElement = document.getElementById("currentScene");
+
+    sceneElement.style.opacity = "0";
+    setTimeout(() => {
+      sceneElement.style.background = scene.bg;
+      sceneElement.innerHTML = `
+                <div style="font-size: 2em;">${scene.icon}</div>
+                <div style="font-size: 1.5em; margin-top: 10px;">${scene.title}</div>
+                <div style="font-size: 0.9em; margin-top: 10px;">${scene.desc}</div>
+            `;
+      sceneElement.style.opacity = "1";
+    }, 300);
+
+    // Update preview borders
+    document.querySelectorAll(".scene-preview").forEach((preview, idx) => {
+      preview.classList.toggle("active", idx === index - 1);
+    });
+  }
+
+  let demoInterval;
+  function demonstrateSceneSwitching() {
+    let counter = 0;
+    demoInterval = setInterval(() => {
+      counter++;
+      switchScene((counter % 3) + 1);
+      if (counter >= 6) {
+        clearInterval(demoInterval);
+      }
+    }, 1500);
+  }
+
+  // Scene Graph Functions
+  let nodeCount = 3;
+
+  function changeRootNode() {
+    const nodeType = document.getElementById("nodeType").value;
+    const rootNode = document.getElementById("rootNode");
+    let childNodes = document.getElementById("childNodes");
+
+    // If childNodes is missing (defensive), recreate it
+    if (!childNodes) {
+      childNodes = document.createElement("div");
+      childNodes.id = "childNodes";
+      childNodes.style.marginTop = "15px";
+      childNodes.style.display = "flex";
+      childNodes.style.gap = "10px";
+      childNodes.style.justifyContent = "center";
+      childNodes.style.flexWrap = "wrap";
+    }
+
+    // Clear / adjust childNodes styles based on pane type
+    if (nodeType === "VBox") {
+      childNodes.style.display = "flex";
+      childNodes.style.flexDirection = "column";
+      childNodes.style.alignItems = "center";
+      childNodes.style.justifyContent = "flex-start";
+      // update children labels to simple stacked items
+      prepareChildrenForLinear(childNodes, ["Top", "Center", "Bottom"], "VBox");
+    } else if (nodeType === "HBox") {
+      childNodes.style.display = "flex";
+      childNodes.style.flexDirection = "row";
+      childNodes.style.alignItems = "center";
+      childNodes.style.justifyContent = "center";
+      prepareChildrenForLinear(childNodes, ["Left", "Center", "Right"], "HBox");
+    } else if (nodeType === "GridPane") {
+      childNodes.style.display = "grid";
+      childNodes.style.gridTemplateColumns = "repeat(2, minmax(80px, 1fr))";
+      childNodes.style.gridAutoRows = "minmax(40px, auto)";
+      childNodes.style.gap = "10px";
+      populateGrid(childNodes);
+    } else if (nodeType === "StackPane") {
+      // simulate stack: children overlap (use position relative + absolute)
+      childNodes.style.display = "block";
+      childNodes.style.position = "relative";
+      childNodes.style.height = "140px";
+      makeStack(childNodes);
+    } else {
+      // BorderPane (default from original)
+      childNodes.style.display = "flex";
+      childNodes.style.flexDirection = "row";
+      childNodes.style.justifyContent = "center";
+      childNodes.style.flexWrap = "wrap";
+      resetSceneGraph(); // restore the original labeled Top/Center/Bottom
+      return;
+    }
+
+    // Rebuild rootNode content and attach childNodes back
+    rootNode.innerHTML = `Root: ${nodeType}`;
+    // ensure childNodes exists under rootNode
+    rootNode.appendChild(childNodes);
+  }
+
+  // Helper: prepare simple linear children (VBox/HBox)
+  function prepareChildrenForLinear(container, labels, type) {
+    // remove existing children
+    container.innerHTML = "";
+    for (let i = 0; i < 3; i++) {
+      const div = document.createElement("div");
+      div.style.padding = "10px";
+      div.style.background = ["#3498db", "#2ecc71", "#e74c3c"][i % 3];
+      div.style.borderRadius = "5px";
+      div.style.fontSize = "0.9em";
+      div.style.color = "white";
+      div.style.minWidth = "80px";
+      div.style.textAlign = "center";
+      div.textContent = `${labels[i]}${type === "VBox" || type === "HBox" ? "" : ""}`;
+      container.appendChild(div);
+    }
+  }
+
+  // Helper: populate a simple grid for GridPane
+  function populateGrid(container) {
+    container.innerHTML = "";
+    for (let i = 1; i <= 4; i++) {
+      const div = document.createElement("div");
+      div.style.padding = "10px";
+      div.style.background = ["#2ecc71", "#e74c3c", "#f39c12", "#9b59b6"][(i - 1) % 4];
+      div.style.borderRadius = "5px";
+      div.style.fontSize = "0.9em";
+      div.style.color = "white";
+      div.style.textAlign = "center";
+      div.textContent = `Cell ${i}`;
+      container.appendChild(div);
+    }
+  }
+
+  // Helper: stack children for StackPane simulation
+  function makeStack(container) {
+    container.innerHTML = "";
+    container.style.position = "relative";
+    const colors = ["#3498db", "#2ecc71", "#e74c3c"];
+    for (let i = 0; i < 3; i++) {
+      const div = document.createElement("div");
+      div.style.position = "absolute";
+      div.style.top = 10 + i * 10 + "px";
+      div.style.left = 10 + i * 10 + "px";
+      div.style.right = 10 + i * 10 + "px";
+      div.style.bottom = 10 + i * 10 + "px";
+      div.style.background = colors[i % colors.length];
+      div.style.borderRadius = "6px";
+      div.style.color = "white";
+      div.style.display = "flex";
+      div.style.alignItems = "center";
+      div.style.justifyContent = "center";
+      div.style.fontSize = "0.9em";
+      div.textContent = `Layer ${i + 1}`;
+      container.appendChild(div);
+    }
+  }
+
+  function addChildNode() {
+    nodeCount++;
+    const colors = ["#3498db", "#2ecc71", "#e74c3c", "#f39c12", "#9b59b6"];
+    let childNodes = document.getElementById("childNodes");
+    if (!childNodes) {
+      // if childNodes missing, re-create default container
+      childNodes = document.createElement("div");
+      childNodes.id = "childNodes";
+      childNodes.style.marginTop = "15px";
+      childNodes.style.display = "flex";
+      childNodes.style.gap = "10px";
+      childNodes.style.justifyContent = "center";
+      childNodes.style.flexWrap = "wrap";
+      document.getElementById("rootNode").appendChild(childNodes);
+    }
+    const newNode = document.createElement("div");
+    newNode.style.cssText = `padding: 10px; background: ${
+      colors[nodeCount % colors.length]
+    }; border-radius: 5px; font-size: 0.9em; color: white;`;
+    newNode.textContent = `Child ${nodeCount}`;
+    childNodes.appendChild(newNode);
+  }
+
+  function resetSceneGraph() {
+    nodeCount = 3;
+    const rootNode = document.getElementById("rootNode");
+    rootNode.innerHTML = `
+            Root: BorderPane
+            <div id="childNodes" style="margin-top: 15px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                <div style="padding: 10px; background: #2ecc71; border-radius: 5px; font-size: 0.9em;">
+                    Top: MenuBar
+                </div>
+                <div style="padding: 10px; background: #e74c3c; border-radius: 5px; font-size: 0.9em;">
+                    Center: VBox
+                </div>
+                <div style="padding: 10px; background: #f39c12; border-radius: 5px; font-size: 0.9em;">
+                    Bottom: HBox
+                </div>
+            </div>
+        `;
+    // ensure default styles are reset (important if previously changed)
+    const childNodes = document.getElementById("childNodes");
+    if (childNodes) {
+      childNodes.style.display = "flex";
+      childNodes.style.flexDirection = "row";
+      childNodes.style.gap = "10px";
+      childNodes.style.justifyContent = "center";
+      childNodes.style.flexWrap = "wrap";
+      childNodes.style.position = "static";
+      childNodes.style.gridTemplateColumns = "";
+      childNodes.style.height = "";
+    }
+  }
+
+  // Stage Lifecycle Functions
+  function addLog(message, type = "info") {
+    const log = document.getElementById("lifecycleLog");
+    const time = new Date().toLocaleTimeString();
+    const colors = {
+      info: "#61afef",
+      success: "#98c379",
+      warning: "#e5c07b",
+      error: "#e06c75",
+    };
+    log.innerHTML += `<div style="color: ${colors[type]}">[${time}] ${message}</div>`;
+    log.scrollTop = log.scrollHeight;
+  }
+
+  function simulateShow() {
+    addLog("EVENT: onShowing triggered", "warning");
+    setTimeout(
+      () => addLog("EVENT: onShown triggered - Stage is visible", "success"),
+      500
+    );
+  }
+
+  function simulateHide() {
+    addLog("EVENT: onHiding triggered", "warning");
+    setTimeout(
+      () => addLog("EVENT: onHidden triggered - Stage is hidden", "info"),
+      500
+    );
+  }
+
+  function simulateClose() {
+    addLog("EVENT: onCloseRequest triggered", "error");
+    setTimeout(
+      () => addLog("User confirmation: Save changes?", "warning"),
+      300
+    );
+    setTimeout(() => addLog("Close operation completed", "success"), 800);
+  }
+
+  function simulateFocus() {
+    addLog("EVENT: focusedProperty changed", "info");
+    setTimeout(() => addLog("Stage gained focus", "success"), 200);
+  }
+
+  function clearLog() {
+    document.getElementById("lifecycleLog").innerHTML =
+      "<div>[INIT] Stage created and ready</div>";
+  }
+
+  // Multiple Stage Functions
+  function showPrimaryInfo() {
+    document.getElementById("statusText").textContent =
+      "Primary Stage - Main application window (always present)";
+  }
+
+  function openModalDialog() {
+    document.getElementById("statusText").textContent =
+      "Modal Dialog opened - Blocks all other windows until closed";
+    setTimeout(() => {
+      document.getElementById("statusText").textContent =
+        "Modal Dialog closed - Control returned to primary stage";
+    }, 2000);
+  }
+
+  function openSecondaryWindow() {
+    document.getElementById("statusText").textContent =
+      "Secondary Window opened - Independent, non-blocking window";
+    setTimeout(() => {
+      document.getElementById("statusText").textContent =
+        "Both windows are interactive simultaneously";
+    }, 1500);
+  }
+
+  // Instructor Notes Functions
+  function toggleInstructor() {
+    const content = document.getElementById("instructorContent");
+    const header = document.querySelector(".instructor-notes h3");
+    content.classList.toggle("visible");
+    header.classList.toggle("expanded");
+  }
+
+  // Initialize defaults (ensure the browser title initially matches demo)
+  document.addEventListener("DOMContentLoaded", () => {
+    const initialTitle = document.getElementById("stageTitle")?.value || document.title;
+    document.title = initialTitle || "JavaFX Stage and Scene Deep Dive";
+  });
+</script>
+
+  </body>
+</html>

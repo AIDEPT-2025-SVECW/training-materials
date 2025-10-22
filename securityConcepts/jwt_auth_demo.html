@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JWT Authentication Deep Dive - Interactive Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 40px;
+            font-style: italic;
+        }
+        
+        .section {
+            margin: 30px 0;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 5px solid #667eea;
+        }
+        
+        h2 {
+            color: #764ba2;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        h3 {
+            color: #667eea;
+            margin: 20px 0 10px 0;
+        }
+        
+        .concept {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .analogy {
+            background: #fff3e0;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+            border-left: 4px solid #ff9800;
+        }
+        
+        .analogy::before {
+            content: "💡 Analogy: ";
+            font-weight: bold;
+            color: #f57c00;
+        }
+        
+        .interactive-box {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+            margin: 5px;
+        }
+        
+        button:hover {
+            background: #764ba2;
+        }
+        
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: monospace;
+        }
+        
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+        
+        code {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+        }
+        
+        .output {
+            background: #e8f5e9;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+            border-left: 4px solid #4caf50;
+            word-break: break-all;
+        }
+        
+        .error {
+            background: #ffebee;
+            border-left-color: #f44336;
+        }
+        
+        .jwt-parts {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .jwt-part {
+            flex: 1;
+            min-width: 200px;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        
+        .header-part {
+            background: #ffcdd2;
+            border: 2px solid #e57373;
+        }
+        
+        .payload-part {
+            background: #c5e1a5;
+            border: 2px solid #9ccc65;
+        }
+        
+        .signature-part {
+            background: #b3e5fc;
+            border: 2px solid #4fc3f7;
+        }
+        
+        .instructor-notes {
+            background: #fff9c4;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 40px;
+            border: 2px solid #fbc02d;
+        }
+        
+        details {
+            margin: 10px 0;
+        }
+        
+        summary {
+            cursor: pointer;
+            font-weight: bold;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 6px;
+            user-select: none;
+        }
+        
+        summary:hover {
+            background: #e0e0e0;
+        }
+        
+        .quiz {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+        }
+        
+        .quiz-option {
+            padding: 10px;
+            margin: 5px 0;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .quiz-option:hover {
+            background: #f5f5f5;
+            border-color: #667eea;
+        }
+        
+        .correct {
+            background: #c8e6c9 !important;
+            border-color: #4caf50 !important;
+        }
+        
+        .incorrect {
+            background: #ffcdd2 !important;
+            border-color: #f44336 !important;
+        }
+        
+        .flow-diagram {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .flow-step {
+            display: inline-block;
+            padding: 15px 25px;
+            margin: 10px;
+            background: #667eea;
+            color: white;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+        
+        .arrow {
+            display: inline-block;
+            margin: 0 10px;
+            font-size: 24px;
+            color: #764ba2;
+        }
+        
+        .token-display {
+            font-family: monospace;
+            font-size: 12px;
+            word-break: break-all;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 4px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        
+        .highlight-red { color: #e57373; font-weight: bold; }
+        .highlight-green { color: #9ccc65; font-weight: bold; }
+        .highlight-blue { color: #4fc3f7; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 JWT Authentication Deep Dive</h1>
+        <p class="subtitle">Interactive Demonstration for Engineering Students</p>
+        
+        <!-- Section 1: Introduction to JWT -->
+        <div class="section">
+            <h2>📖 Part 1: Introduction to JWT (JSON Web Token)</h2>
+            
+            <div class="concept">
+                <strong>What is JWT?</strong> A compact, URL-safe token format that securely transmits information between parties as a JSON object, digitally signed to verify authenticity.
+            </div>
+            
+            <div class="analogy">
+                Think of JWT like an Aadhaar card for your API requests. Just as your Aadhaar proves your identity without needing to verify with UIDAI every time, a JWT proves a user's authentication without hitting the database repeatedly. It's self-contained and tamper-proof!
+            </div>
+            
+            <h3>🧩 JWT Structure: Three Parts</h3>
+            
+            <div class="jwt-parts">
+                <div class="jwt-part header-part">
+                    <strong>HEADER</strong><br>
+                    Algorithm & Token Type<br>
+                    <code>{"alg":"HS256","typ":"JWT"}</code>
+                </div>
+                <div class="jwt-part payload-part">
+                    <strong>PAYLOAD</strong><br>
+                    User Data & Claims<br>
+                    <code>{"userId":"12345","role":"admin"}</code>
+                </div>
+                <div class="jwt-part signature-part">
+                    <strong>SIGNATURE</strong><br>
+                    Cryptographic Hash<br>
+                    <code>HMACSHA256(base64(header) + "." + base64(payload), secret)</code>
+                </div>
+            </div>
+            
+            <p style="text-align: center; margin: 20px 0;">
+                Final JWT = <span class="highlight-red">header</span>.<span class="highlight-green">payload</span>.<span class="highlight-blue">signature</span>
+            </p>
+            
+            <div class="interactive-box">
+                <h3>🎮 Interactive Demo: Decode a JWT</h3>
+                <p>Paste a JWT token below to see its decoded parts:</p>
+                <textarea id="jwtInput" placeholder="Paste JWT token here (or use the sample below)"></textarea>
+                <button onclick="decodeJWT()">🔍 Decode Token</button>
+                <button onclick="useSampleJWT()">📋 Use Sample JWT</button>
+                
+                <div id="decodeOutput"></div>
+            </div>
+            
+            <h3>💻 Java Code: Creating a JWT</h3>
+            <pre><code>import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
+public class JWTGenerator {
+    private static final String SECRET_KEY = "mySecretKey123!@#";
+    
+    public static String generateToken(String userId, String role) {
+        // Create claims (payload data)
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("userId", userId);
+        claims.put("role", role);
+        claims.put("loginTime", new Date());
+        
+        // Build the JWT
+        return Jwts.builder()
+                .setClaims(claims)                    // Set payload
+                .setSubject(userId)                   // Set subject
+                .setIssuedAt(new Date())              // Token issue time
+                .setExpiration(new Date(System.currentTimeMillis() + 3600000)) // 1 hour
+                .signWith(SignatureAlgorithm.HS256, SECRET_KEY)  // Sign with secret
+                .compact();                           // Build final token
+    }
+    
+    public static void main(String[] args) {
+        String token = generateToken("user_12345", "admin");
+        System.out.println("Generated JWT: " + token);
+        // Output: eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOiJ1c2VyXzEyMzQ1Ii...
+    }
+}</code></pre>
+        </div>
+        
+        <!-- Section 2: Deep Dive - Using JWT for Authentication -->
+        <div class="section">
+            <h2>🚀 Part 2: Deep Dive - Using JWT for Authentication</h2>
+            
+            <div class="concept">
+                <strong>Authentication Flow:</strong> User logs in → Server validates credentials → Server generates JWT → Client stores JWT → Client sends JWT with each request → Server validates JWT without database lookup.
+            </div>
+            
+            <div class="analogy">
+                JWT authentication is like getting a festival wristband at Diwali mela entrance. Once you show your ticket (credentials) and get the wristband (JWT), you can enter any stall without showing your ticket again. The stall vendors (API endpoints) just verify your wristband is genuine and hasn't expired!
+            </div>
+            
+            <h3>🔄 Complete Authentication Flow</h3>
+            
+            <div class="flow-diagram">
+                <div class="flow-step">1. User Login</div>
+                <span class="arrow">→</span>
+                <div class="flow-step">2. Validate Credentials</div>
+                <span class="arrow">→</span>
+                <div class="flow-step">3. Generate JWT</div>
+                <span class="arrow">→</span>
+                <div class="flow-step">4. Return to Client</div>
+                <br><br>
+                <div class="flow-step">5. Store in Client</div>
+                <span class="arrow">→</span>
+                <div class="flow-step">6. Send with Requests</div>
+                <span class="arrow">→</span>
+                <div class="flow-step">7. Verify JWT</div>
+                <span class="arrow">→</span>
+                <div class="flow-step">8. Grant Access</div>
+            </div>
+            
+            <div class="interactive-box">
+                <h3>🎮 Interactive Demo: Simulate JWT Authentication</h3>
+                <p><strong>Step 1: Login (Generate Token)</strong></p>
+                <input type="text" id="username" placeholder="Enter username (e.g., rajesh.kumar)" value="rajesh.kumar">
+                <input type="text" id="userRole" placeholder="Enter role (e.g., admin, user)" value="admin">
+                <button onclick="simulateLogin()">🔑 Login & Generate JWT</button>
+                
+                <div id="loginOutput"></div>
+                
+                <p style="margin-top: 20px;"><strong>Step 2: Make Authenticated Request</strong></p>
+                <button onclick="makeAuthenticatedRequest()">📡 Access Protected Resource</button>
+                <button onclick="makeRequestWithExpiredToken()">⏰ Try Expired Token</button>
+                <button onclick="makeRequestWithTamperedToken()">⚠️ Try Tampered Token</button>
+                
+                <div id="requestOutput"></div>
+            </div>
+            
+            <h3>💻 Java Code: Complete Authentication System</h3>
+            
+            <p><strong>1. JWT Utility Class</strong></p>
+            <pre><code>import io.jsonwebtoken.*;
+import java.util.Date;
+import java.util.function.Function;
+
+public class JWTUtil {
+    private static final String SECRET = "IndianRailwaySecretKey2024!@#";
+    private static final long EXPIRATION_TIME = 3600000; // 1 hour
+    
+    // Generate token for user
+    public String generateToken(String username, String role) {
+        return Jwts.builder()
+                .setSubject(username)
+                .claim("role", role)
+                .claim("loginLocation", "Mumbai")
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+                .signWith(SignatureAlgorithm.HS256, SECRET)
+                .compact();
+    }
+    
+    // Extract username from token
+    public String extractUsername(String token) {
+        return extractClaim(token, Claims::getSubject);
+    }
+    
+    // Extract role from token
+    public String extractRole(String token) {
+        return extractClaim(token, claims -> claims.get("role", String.class));
+    }
+    
+    // Extract expiration date
+    public Date extractExpiration(String token) {
+        return extractClaim(token, Claims::getExpiration);
+    }
+    
+    // Generic method to extract claims
+    private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+        final Claims claims = extractAllClaims(token);
+        return claimsResolver.apply(claims);
+    }
+    
+    // Extract all claims from token
+    private Claims extractAllClaims(String token) {
+        return Jwts.parser()
+                .setSigningKey(SECRET)
+                .parseClaimsJws(token)
+                .getBody();
+    }
+    
+    // Check if token is expired
+    public Boolean isTokenExpired(String token) {
+        return extractExpiration(token).before(new Date());
+    }
+    
+    // Validate token
+    public Boolean validateToken(String token, String username) {
+        final String extractedUsername = extractUsername(token);
+        return (extractedUsername.equals(username) && !isTokenExpired(token));
+    }
+}</code></pre>
+            
+            <p><strong>2. Login Controller (Spring Boot)</strong></p>
+            <pre><code>import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
+@RestController
+@RequestMapping("/api/auth")
+public class AuthController {
+    
+    private JWTUtil jwtUtil = new JWTUtil();
+    private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+        // Step 1: Validate credentials (check database)
+        User user = userRepository.findByUsername(request.getUsername());
+        
+        if (user == null) {
+            return ResponseEntity.status(401)
+                    .body(new ErrorResponse("User not found"));
+        }
+        
+        // Step 2: Verify password
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            return ResponseEntity.status(401)
+                    .body(new ErrorResponse("Invalid credentials"));
+        }
+        
+        // Step 3: Generate JWT token
+        String token = jwtUtil.generateToken(user.getUsername(), user.getRole());
+        
+        // Step 4: Return token to client
+        return ResponseEntity.ok(new AuthResponse(
+            token,
+            "Bearer",
+            user.getUsername(),
+            user.getRole()
+        ));
+    }
+    
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(@RequestHeader("Authorization") String token) {
+        // In JWT, logout is handled client-side by deleting the token
+        // For server-side logout, you'd maintain a blacklist of tokens
+        return ResponseEntity.ok(new MessageResponse("Logged out successfully"));
+    }
+}
+
+// Request/Response classes
+class LoginRequest {
+    private String username;
+    private String password;
+    // getters and setters
+}
+
+class AuthResponse {
+    private String token;
+    private String type;
+    private String username;
+    private String role;
+    // constructor, getters and setters
+}</code></pre>
+            
+            <p><strong>3. JWT Authentication Filter</strong></p>
+            <pre><code>import javax.servlet.*;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
+public class JWTAuthenticationFilter implements Filter {
+    
+    private JWTUtil jwtUtil = new JWTUtil();
+    
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, 
+                        FilterChain chain) throws IOException, ServletException {
+        
+        HttpServletRequest httpRequest = (HttpServletRequest) request;
+        HttpServletResponse httpResponse = (HttpServletResponse) response;
+        
+        // Step 1: Extract token from Authorization header
+        String authHeader = httpRequest.getHeader("Authorization");
+        String token = null;
+        String username = null;
+        
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            token = authHeader.substring(7); // Remove "Bearer " prefix
+            
+            try {
+                // Step 2: Extract username from token
+                username = jwtUtil.extractUsername(token);
+            } catch (ExpiredJwtException e) {
+                httpResponse.sendError(401, "Token expired");
+                return;
+            } catch (SignatureException e) {
+                httpResponse.sendError(401, "Invalid token signature");
+                return;
+            } catch (Exception e) {
+                httpResponse.sendError(401, "Invalid token");
+                return;
+            }
+        }
+        
+        // Step 3: Validate token
+        if (username != null && !jwtUtil.isTokenExpired(token)) {
+            // Token is valid, set user context
+            httpRequest.setAttribute("username", username);
+            httpRequest.setAttribute("role", jwtUtil.extractRole(token));
+            
+            // Continue with the request
+            chain.doFilter(request, response);
+        } else {
+            httpResponse.sendError(401, "Unauthorized - Invalid or expired token");
+        }
+    }
+}</code></pre>
+            
+            <p><strong>4. Protected Controller Example</strong></p>
+            <pre><code>@RestController
+@RequestMapping("/api/bookings")
+public class BookingController {
+    
+    @GetMapping("/my-bookings")
+    public ResponseEntity<?> getMyBookings(HttpServletRequest request) {
+        // Extract user info from request (set by JWT filter)
+        String username = (String) request.getAttribute("username");
+        String role = (String) request.getAttribute("role");
+        
+        // Now you have authenticated user info without database lookup!
+        List<Booking> bookings = bookingService.getBookingsByUser(username);
+        
+        return ResponseEntity.ok(bookings);
+    }
+    
+    @PostMapping("/create")
+    public ResponseEntity<?> createBooking(
+            @RequestBody BookingRequest bookingRequest,
+            HttpServletRequest request) {
+        
+        String username = (String) request.getAttribute("username");
+        
+        // Create booking for authenticated user
+        Booking booking = bookingService.createBooking(username, bookingRequest);
+        
+        return ResponseEntity.ok(booking);
+    }
+    
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> cancelBooking(
+            @PathVariable Long id,
+            HttpServletRequest request) {
+        
+        String username = (String) request.getAttribute("username");
+        String role = (String) request.getAttribute("role");
+        
+        // Check authorization (role-based)
+        if (!role.equals("admin") && !bookingService.isOwner(id, username)) {
+            return ResponseEntity.status(403)
+                    .body(new ErrorResponse("Forbidden - Not authorized"));
+        }
+        
+        bookingService.cancelBooking(id);
+        return ResponseEntity.ok(new MessageResponse("Booking cancelled"));
+    }
+}</code></pre>
+            
+            <h3>🔒 Key Security Considerations</h3>
+            
+            <div class="interactive-box">
+                <h4>Security Best Practices:</h4>
+                <ul style="margin-left: 20px;">
+                    <li><strong>Secret Key:</strong> Use a strong, randomly generated secret key (min 256 bits)</li>
+                    <li><strong>Token Expiration:</strong> Set reasonable expiration times (1 hour for access tokens)</li>
+                    <li><strong>HTTPS Only:</strong> Always transmit JWTs over HTTPS to prevent interception</li>
+                    <li><strong>Sensitive Data:</strong> Never store passwords or credit card info in JWT payload</li>
+                    <li><strong>Token Storage:</strong> Store in httpOnly cookies (not localStorage) to prevent XSS attacks</li>
+                    <li><strong>Refresh Tokens:</strong> Implement refresh tokens for long-lived sessions</li>
+                </ul>
+            </div>
+            
+            <div class="analogy">
+                JWT security is like securing your IRCTC account. The secret key is like your master password - keep it safe! Token expiration is like automatic logout after inactivity. HTTPS is like using secure WiFi instead of public networks. Don't store sensitive info in JWT just like you don't save CVV in payment apps!
+            </div>
+            
+            <h3>💻 Client-Side Usage (JavaScript)</h3>
+            <pre><code>// Login and store token
+async function login(username, password) {
+    const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+    });
+    
+    const data = await response.json();
+    
+    if (response.ok) {
+        // Store token (in httpOnly cookie ideally, or sessionStorage)
+        sessionStorage.setItem('jwtToken', data.token);
+        console.log('Login successful!');
+    }
+}
+
+// Make authenticated request
+async function getMyBookings() {
+    const token = sessionStorage.getItem('jwtToken');
+    
+    const response = await fetch('/api/bookings/my-bookings', {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        }
+    });
+    
+    if (response.ok) {
+        const bookings = await response.json();
+        console.log('My bookings:', bookings);
+    } else if (response.status === 401) {
+        // Token expired or invalid - redirect to login
+        window.location.href = '/login';
+    }
+}
+
+// Logout (client-side)
+function logout() {
+    sessionStorage.removeItem('jwtToken');
+    window.location.href = '/login';
+}</code></pre>
+        </div>
+        
+        <!-- Section 3: JWT vs Session Comparison -->
+        <div class="section">
+            <h2>⚖️ Part 3: JWT vs Session-Based Authentication</h2>
+            
+            <div class="interactive-box">
+                <h3>Quick Comparison</h3>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr style="background: #667eea; color: white;">
+                        <th style="padding: 10px; border: 1px solid #ddd;">Aspect</th>
+                        <th style="padding: 10px; border: 1px solid #ddd;">JWT (Stateless)</th>
+                        <th style="padding: 10px; border: 1px solid #ddd;">Session (Stateful)</th>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #ddd;"><strong>Storage</strong></td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">Client-side (token)</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">Server-side (session store)</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #ddd;"><strong>Scalability</strong></td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">Excellent (no server state)</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">Limited (shared session store needed)</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #ddd;"><strong>Revocation</strong></td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">Difficult (requires blacklist)</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">Easy (delete session)</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #ddd;"><strong>Performance</strong></td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">Fast (no DB lookup)</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">Slower (DB/cache lookup)</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #ddd;"><strong>Mobile Apps</strong></td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">Perfect fit</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">Not ideal</td>
+                    </tr>
+                </table>
+            </div>
+            
+            <div class="analogy">
+                JWT vs Sessions is like Fastag vs Toll booth payment. Fastag (JWT) lets you pass through without stopping - the scanner reads your tag instantly. Traditional toll (Session) requires stopping, verification, and database lookup. Fastag is faster for high traffic but harder to block a stolen tag immediately!
+            </div>
+        </div>
+        
+        <!-- Instructor Notes -->
+        <div class="instructor-notes">
+            <h2>🧑‍🏫 Instructor Notes</h2>
+            
+            <details>
+                <summary>📝 Teaching Tips</summary>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li><strong>Start with the analogy:</strong> Use the Aadhaar card or festival wristband analogy first to make students comfortable with the concept before diving into technical details.</li>
+                    <li><strong>Live demo:</strong> Use the interactive JWT decoder to show real tokens. Emphasize that payload is NOT encrypted - it's only base64 encoded (anyone can decode it!).</li>
+                    <li><strong>Security emphasis:</strong> Stress that the signature prevents tampering but doesn't hide data. This is crucial for students to understand.</li>
+                    <li><strong>Common mistake:</strong> Students often confuse authentication (who you are) with authorization (what you can do). Remind them JWT handles authentication; roles/permissions handle authorization.</li>
+                    <li><strong>Real-world context:</strong> Mention how companies like Swiggy, Zomato, and PhonePe use JWT for their mobile apps because of stateless nature and scalability.</li>
+                </ul>
+            </details>
+            
+            <details>
+                <summary>❓ Quiz Question</summary>
+                <div class="quiz">
+                    <p><strong>Question:</strong> Your Spring Boot application uses JWT authentication. A user complains they got logged out even though their session should be valid. Upon checking, you find their token expired. What's the BEST approach to handle this?</p>
+                    
+                    <div class="quiz-option" onclick="checkAnswer(this, false)">
+                        B) Store tokens in the database so they can be validated on each request
+                    </div>
+                    <div class="quiz-option" onclick="checkAnswer(this, true)">
+                        C) Implement refresh tokens: short-lived access tokens (15 min) with long-lived refresh tokens (7 days) to get new access tokens
+                    </div>
+                    <div class="quiz-option" onclick="checkAnswer(this, false)">
+                        D) Remove token expiration entirely to avoid this issue
+                    </div>
+                    
+                    <div id="quizFeedback"></div>
+                </div>
+            </details>
+            
+            <details>
+                <summary>📚 Further Reading</summary>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>RFC 7519 - JSON Web Token (JWT) Standard</li>
+                    <li>OWASP JWT Security Cheat Sheet</li>
+                    <li>Spring Security JWT Implementation Guide</li>
+                    <li>JWT.io - Online JWT Debugger and Libraries</li>
+                    <li>Comparison: OAuth 2.0 vs JWT Authentication</li>
+                </ul>
+            </details>
+        </div>
+    </div>
+    
+    <script>
+        // Store generated token globally for demo
+        let currentToken = null;
+        
+        // Sample JWT for testing
+        const sampleJWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ1c2VyXzEyMzQ1Iiwicm9sZSI6ImFkbWluIiwibmFtZSI6IlJhamVzaCBLdW1hciIsImVtYWlsIjoicmFqZXNoLmt1bWFyQGV4YW1wbGUuY29tIiwibG9naW5Mb2NhdGlvbiI6Ik11bWJhaSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAzNjAwfQ.8h_XYzQh4YTKvLDFqGqGPjXQDG_xNZYmqXLxCmqJc8g";
+        
+        // Function to decode JWT
+        function decodeJWT() {
+            const token = document.getElementById('jwtInput').value.trim();
+            const output = document.getElementById('decodeOutput');
+            
+            if (!token) {
+                output.innerHTML = '<div class="output error">Please enter a JWT token</div>';
+                return;
+            }
+            
+            try {
+                const parts = token.split('.');
+                
+                if (parts.length !== 3) {
+                    throw new Error('Invalid JWT format - must have 3 parts');
+                }
+                
+                // Decode header and payload (they're base64 encoded)
+                const header = JSON.parse(atob(parts[0]));
+                const payload = JSON.parse(atob(parts[1]));
+                const signature = parts[2];
+                
+                // Check if token is expired
+                let expirationWarning = '';
+                if (payload.exp) {
+                    const expDate = new Date(payload.exp * 1000);
+                    const now = new Date();
+                    const isExpired = expDate < now;
+                    
+                    expirationWarning = isExpired 
+                        ? `<p style="color: #f44336; font-weight: bold;">⚠️ Token EXPIRED on ${expDate.toLocaleString()}</p>`
+                        : `<p style="color: #4caf50; font-weight: bold;">✅ Token valid until ${expDate.toLocaleString()}</p>`;
+                }
+                
+                output.innerHTML = `
+                    <div class="output">
+                        <h4>✅ JWT Decoded Successfully!</h4>
+                        ${expirationWarning}
+                        
+                        <h4 style="color: #e57373; margin-top: 20px;">📋 HEADER (Algorithm & Type)</h4>
+                        <pre style="background: #ffebee; color: #333;">${JSON.stringify(header, null, 2)}</pre>
+                        
+                        <h4 style="color: #9ccc65;">📦 PAYLOAD (User Data & Claims)</h4>
+                        <pre style="background: #f1f8e9; color: #333;">${JSON.stringify(payload, null, 2)}</pre>
+                        
+                        <h4 style="color: #4fc3f7;">🔐 SIGNATURE (Verification Hash)</h4>
+                        <div class="token-display" style="background: #e1f5fe; color: #01579b;">${signature}</div>
+                        
+                        <p style="margin-top: 15px; padding: 10px; background: #fff3e0; border-radius: 4px;">
+                            <strong>🔍 Note:</strong> The payload is NOT encrypted - it's only Base64 encoded! 
+                            Anyone can decode it. The signature ensures it hasn't been tampered with.
+                        </p>
+                    </div>
+                `;
+            } catch (error) {
+                output.innerHTML = `<div class="output error">❌ Error: ${error.message}<br>Make sure you entered a valid JWT token.</div>`;
+            }
+        }
+        
+        // Load sample JWT
+        function useSampleJWT() {
+            document.getElementById('jwtInput').value = sampleJWT;
+            decodeJWT();
+        }
+        
+        // Simulate login and token generation
+        function simulateLogin() {
+            const username = document.getElementById('username').value.trim();
+            const role = document.getElementById('userRole').value.trim();
+            const output = document.getElementById('loginOutput');
+            
+            if (!username || !role) {
+                output.innerHTML = '<div class="output error">Please enter username and role</div>';
+                return;
+            }
+            
+            // Create header
+            const header = {
+                alg: "HS256",
+                typ: "JWT"
+            };
+            
+            // Create payload with current time and 1 hour expiration
+            const now = Math.floor(Date.now() / 1000);
+            const payload = {
+                sub: username,
+                role: role,
+                name: username.replace('.', ' ').replace(/\b\w/g, l => l.toUpperCase()),
+                loginLocation: "Vijayawada",
+                iat: now,
+                exp: now + 3600 // 1 hour from now
+            };
+            
+            // Create fake signature (in real app, this would be cryptographically signed)
+            const headerEncoded = btoa(JSON.stringify(header));
+            const payloadEncoded = btoa(JSON.stringify(payload));
+            const signature = btoa("HMAC-SHA256-SIGNATURE-" + Math.random().toString(36));
+            
+            // Combine to create JWT
+            currentToken = `${headerEncoded}.${payloadEncoded}.${signature}`;
+            
+            const expTime = new Date((now + 3600) * 1000).toLocaleTimeString();
+            
+            output.innerHTML = `
+                <div class="output">
+                    <h4>✅ Login Successful!</h4>
+                    <p><strong>Username:</strong> ${username}</p>
+                    <p><strong>Role:</strong> ${role}</p>
+                    <p><strong>Token expires at:</strong> ${expTime}</p>
+                    
+                    <h4 style="margin-top: 15px;">🎫 Generated JWT Token:</h4>
+                    <div class="token-display">
+                        <span class="highlight-red">${headerEncoded}</span>.<span class="highlight-green">${payloadEncoded}</span>.<span class="highlight-blue">${signature.substring(0, 50)}...</span>
+                    </div>
+                    
+                    <p style="margin-top: 15px; padding: 10px; background: #e8f5e9; border-radius: 4px; border-left: 4px solid #4caf50;">
+                        <strong>💡 In Real Application:</strong> This token would be sent to the client and stored 
+                        (preferably in httpOnly cookie or sessionStorage). Client includes it in Authorization header 
+                        for subsequent requests: <code>Authorization: Bearer {token}</code>
+                    </p>
+                </div>
+            `;
+        }
+        
+        // Simulate authenticated request
+        function makeAuthenticatedRequest() {
+            const output = document.getElementById('requestOutput');
+            
+            if (!currentToken) {
+                output.innerHTML = '<div class="output error">⚠️ No token found. Please login first!</div>';
+                return;
+            }
+            
+            // Decode token to get user info
+            try {
+                const parts = currentToken.split('.');
+                const payload = JSON.parse(atob(parts[1]));
+                
+                // Check expiration
+                const now = Math.floor(Date.now() / 1000);
+                if (payload.exp < now) {
+                    output.innerHTML = `
+                        <div class="output error">
+                            <h4>❌ Authentication Failed</h4>
+                            <p>Token has expired. Please login again.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Simulate successful request
+                output.innerHTML = `
+                    <div class="output">
+                        <h4>✅ Request Successful!</h4>
+                        <p><strong>Endpoint:</strong> GET /api/bookings/my-bookings</p>
+                        <p><strong>Authenticated User:</strong> ${payload.sub}</p>
+                        <p><strong>User Role:</strong> ${payload.role}</p>
+                        
+                        <h4 style="margin-top: 15px;">📊 Response Data:</h4>
+                        <pre style="background: #e8f5e9; color: #333;">{
+  "bookings": [
+    {
+      "id": "BK12345",
+      "trainNumber": "12430",
+      "trainName": "Ndls Lko Ac Sf",
+      "from": "New Delhi",
+      "to": "Lucknow",
+      "date": "2025-10-25",
+      "status": "Confirmed"
+    },
+    {
+      "id": "BK12346",
+      "trainNumber": "12802",
+      "trainName": "Purshottam Exp",
+      "from": "Mumbai",
+      "to": "Vijayawada",
+      "date": "2025-11-02",
+      "status": "Confirmed"
+    }
+  ]
+}</pre>
+                        
+                        <p style="margin-top: 15px; padding: 10px; background: #e3f2fd; border-radius: 4px; border-left: 4px solid #2196f3;">
+                            <strong>🚀 Performance Benefit:</strong> The server verified your identity using the JWT 
+                            without making ANY database query! It simply validated the token signature and checked 
+                            expiration. This is much faster than session-based authentication.
+                        </p>
+                    </div>
+                `;
+            } catch (error) {
+                output.innerHTML = `<div class="output error">❌ Error processing token: ${error.message}</div>`;
+            }
+        }
+        
+        // Simulate request with expired token
+        function makeRequestWithExpiredToken() {
+            const output = document.getElementById('requestOutput');
+            
+            output.innerHTML = `
+                <div class="output error">
+                    <h4>❌ Authentication Failed - Token Expired</h4>
+                    <p><strong>Status Code:</strong> 401 Unauthorized</p>
+                    <p><strong>Error Message:</strong> JWT token has expired</p>
+                    
+                    <h4 style="margin-top: 15px;">🔍 What Happened:</h4>
+                    <ul style="margin-left: 20px;">
+                        <li>Server parsed the JWT and found exp (expiration) claim</li>
+                        <li>Compared expiration time with current server time</li>
+                        <li>Token expired, so request was rejected</li>
+                        <li>Client should prompt user to login again (or use refresh token)</li>
+                    </ul>
+                    
+                    <p style="margin-top: 15px; padding: 10px; background: #fff3e0; border-radius: 4px;">
+                        <strong>💡 Best Practice:</strong> Use short-lived access tokens (15-30 min) with 
+                        long-lived refresh tokens. When access token expires, use refresh token to get 
+                        a new access token without re-login.
+                    </p>
+                </div>
+            `;
+        }
+        
+        // Simulate request with tampered token
+        function makeRequestWithTamperedToken() {
+            const output = document.getElementById('requestOutput');
+            
+            output.innerHTML = `
+                <div class="output error">
+                    <h4>❌ Authentication Failed - Invalid Signature</h4>
+                    <p><strong>Status Code:</strong> 401 Unauthorized</p>
+                    <p><strong>Error Message:</strong> JWT signature verification failed</p>
+                    
+                    <h4 style="margin-top: 15px;">🔍 What Happened:</h4>
+                    <ul style="margin-left: 20px;">
+                        <li>Someone modified the payload (e.g., changed role from "user" to "admin")</li>
+                        <li>Server recalculated the signature using header + payload + secret key</li>
+                        <li>New signature didn't match the signature in the token</li>
+                        <li>Request was rejected immediately</li>
+                    </ul>
+                    
+                    <p style="margin-top: 15px; padding: 10px; background: #ffebee; border-radius: 4px;">
+                        <strong>🔐 Security Guarantee:</strong> This is why JWT is secure! Even though the payload 
+                        is readable (base64 encoded), any modification will break the signature. The attacker 
+                        would need the secret key to create a valid signature, which only the server has.
+                    </p>
+                    
+                    <div style="margin-top: 15px; padding: 15px; background: white; border: 2px solid #f44336; border-radius: 6px;">
+                        <strong style="color: #f44336;">⚠️ Real-World Attack Scenario:</strong>
+                        <p style="margin-top: 10px;">An attacker intercepts a JWT, decodes the payload, and changes:</p>
+                        <pre style="background: #f5f5f5; color: #333; padding: 10px; margin: 10px 0;">{"role": "user"} → {"role": "admin"}</pre>
+                        <p>They re-encode the payload and send the request. But server detects tampering via signature mismatch and rejects it. ✅</p>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Quiz answer checker
+        function checkAnswer(element, isCorrect) {
+            const feedback = document.getElementById('quizFeedback');
+            
+            // Remove previous selections
+            document.querySelectorAll('.quiz-option').forEach(opt => {
+                opt.classList.remove('correct', 'incorrect');
+            });
+            
+            if (isCorrect) {
+                element.classList.add('correct');
+                feedback.innerHTML = `
+                    <div class="output" style="margin-top: 15px;">
+                        <h4>✅ Correct!</h4>
+                        <p><strong>Explanation:</strong> The refresh token pattern is the industry-standard solution. 
+                        Here's why:</p>
+                        <ul style="margin-left: 20px; margin-top: 10px;">
+                            <li><strong>Short access tokens (15-30 min)</strong> minimize the damage if stolen</li>
+                            <li><strong>Long refresh tokens (7-30 days)</strong> stored securely provide good UX</li>
+                            <li>When access token expires, client automatically requests a new one using refresh token</li>
+                            <li>Refresh tokens can be revoked server-side (stored in database/Redis)</li>
+                            <li>User only needs to re-login when refresh token expires</li>
+                        </ul>
+                        <p style="margin-top: 10px;"><strong>Why other options are wrong:</strong></p>
+                        <ul style="margin-left: 20px;">
+                            <li><strong>A:</strong> 24-hour tokens increase security risk if stolen</li>
+                            <li><strong>B:</strong> Defeats the purpose of stateless JWT authentication</li>
+                            <li><strong>D:</strong> Tokens must expire for security - permanent tokens are extremely risky</li>
+                        </ul>
+                    </div>
+                `;
+            } else {
+                element.classList.add('incorrect');
+                feedback.innerHTML = `
+                    <div class="output error" style="margin-top: 15px;">
+                        <h4>❌ Not quite!</h4>
+                        <p>Think about the balance between security and user experience. The correct answer is <strong>Option C</strong>.</p>
+                        <p style="margin-top: 10px;">Hint: What if we could have short-lived tokens for security, 
+                        but also a way to get new tokens without asking users to login repeatedly?</p>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>(this, false)">
+                        A) Increase JWT expiration time to 24 hours to prevent frequent logouts
+                    </div>
+                    <div class="quiz-option" onclick="checkAnswer

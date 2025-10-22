@@ -1,0 +1,1729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaFX Architecture Deep Dive - Interactive Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .section {
+            margin-bottom: 50px;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 5px solid #5a67d8;
+        }
+        
+        .section h2 {
+            color: #5a67d8;
+            margin-bottom: 15px;
+            font-size: 1.8em;
+        }
+        
+        .concept {
+            background: #e6f0ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #3182ce;
+        }
+        
+        .analogy {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .analogy::before {
+            content: "💡 Analogy: ";
+            font-weight: bold;
+            color: #856404;
+        }
+        
+        .interactive-demo {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 2px solid #5a67d8;
+        }
+        
+        .interactive-demo h3 {
+            color: #5a67d8;
+            margin-bottom: 15px;
+        }
+        
+        pre {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-size: 0.9em;
+        }
+        
+        code {
+            font-family: 'Courier New', monospace;
+        }
+        
+        button {
+            background: #5a67d8;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+        
+        button:hover {
+            background: #4c51bf;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(90, 103, 216, 0.3);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .architecture-diagram {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .layer {
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        
+        .layer:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .layer.active {
+            border: 2px solid #5a67d8;
+            box-shadow: 0 0 20px rgba(90, 103, 216, 0.4);
+        }
+        
+        .layer-prism {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .layer-quantum {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+        
+        .layer-glass {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+        
+        .layer-public {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: white;
+        }
+        
+        .layer-details {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 10px;
+            border-left: 4px solid #5a67d8;
+            display: none;
+        }
+        
+        .layer-details.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .graph-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .scene-graph-demo {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .node {
+            padding: 15px;
+            border-radius: 6px;
+            border: 2px solid #5a67d8;
+            background: white;
+            position: relative;
+            transition: all 0.3s;
+        }
+        
+        .node.highlighted {
+            background: #e6f0ff;
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(90, 103, 216, 0.3);
+        }
+        
+        .child-nodes {
+            margin-left: 40px;
+            border-left: 2px dashed #5a67d8;
+            padding-left: 20px;
+        }
+        
+        .instructor-notes {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            margin-top: 30px;
+        }
+        
+        .collapsible {
+            cursor: pointer;
+            padding: 15px;
+            background: #5a67d8;
+            color: white;
+            border-radius: 8px;
+            font-size: 1.2em;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        
+        .collapsible:hover {
+            background: #4c51bf;
+        }
+        
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        
+        .collapsible-content.active {
+            max-height: 2000px;
+        }
+        
+        .quiz {
+            background: #e6f0ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .quiz-option {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 6px;
+            cursor: pointer;
+            border: 2px solid #cbd5e0;
+            transition: all 0.3s;
+        }
+        
+        .quiz-option:hover {
+            background: #f7fafc;
+            border-color: #5a67d8;
+        }
+        
+        .quiz-option.correct {
+            background: #c6f6d5;
+            border-color: #38a169;
+        }
+        
+        .quiz-option.incorrect {
+            background: #fed7d7;
+            border-color: #e53e3e;
+        }
+        
+        .output-box {
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+            border: 1px solid #cbd5e0;
+            min-height: 50px;
+        }
+        
+        .pipeline-visual {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .pipeline-stage {
+            flex: 1;
+            min-width: 150px;
+            padding: 20px;
+            margin: 10px;
+            border-radius: 8px;
+            text-align: center;
+            background: #e6f0ff;
+            border: 2px solid #5a67d8;
+            transition: all 0.3s;
+        }
+        
+        .pipeline-stage.active {
+            background: #5a67d8;
+            color: white;
+            transform: scale(1.1);
+        }
+        
+        .arrow {
+            font-size: 2em;
+            color: #5a67d8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎭 JavaFX Architecture Deep Dive</h1>
+            <p>Understanding the Internal Structure of JavaFX Platform</p>
+        </header>
+        
+        <div class="content">
+            <!-- Introduction -->
+            <div class="section">
+                <h2>🏗️ JavaFX Architecture Overview</h2>
+                <div class="concept">
+                    <p><strong>What is it?</strong> JavaFX architecture is a layered system where each layer handles specific responsibilities - from low-level graphics rendering to high-level UI components.</p>
+                </div>
+                
+                <div class="analogy">
+                    Think of JavaFX architecture like the Indian Railway system. The top layer (Public API) is like the ticket booking interface passengers use. Below it, the Glass Windowing Toolkit is like the station management system. Quantum Toolkit is like the train scheduling and routing system. Finally, Prism is like the actual tracks and engines that make trains move. Each layer has a specific job, and they work together seamlessly!
+                </div>
+                
+                <div class="interactive-demo">
+                    <h3>🔍 Interactive Architecture Explorer</h3>
+                    <p>Click on each layer to explore its role in the JavaFX architecture:</p>
+                    
+                    <div class="architecture-diagram">
+                        <div class="layer layer-public" onclick="toggleLayer('public')">
+                            <strong>Layer 4: JavaFX Public API</strong><br>
+                            Scene Graph, Controls, Media, Web
+                        </div>
+                        <div class="layer-details" id="details-public">
+                            <h4>Public API Layer</h4>
+                            <p><strong>Role:</strong> Provides developer-facing classes and components</p>
+                            <p><strong>Components:</strong> Scene Graph API, UI Controls, CSS, Media API, Web View</p>
+                            <p><strong>Example Classes:</strong> Stage, Scene, Node, Button, TextField, MediaPlayer, WebView</p>
+                            <p><strong>Developer Impact:</strong> This is what you directly interact with in your code!</p>
+                        </div>
+                        
+                        <div class="layer layer-glass" onclick="toggleLayer('glass')">
+                            <strong>Layer 3: Glass Windowing Toolkit</strong><br>
+                            Platform-Specific Window Management
+                        </div>
+                        <div class="layer-details" id="details-glass">
+                            <h4>Glass Windowing Toolkit</h4>
+                            <p><strong>Role:</strong> Manages native operating system windows and events</p>
+                            <p><strong>Handles:</strong> Window creation, Event queue, Native event loop, Timers</p>
+                            <p><strong>Platform Binding:</strong> Communicates with Windows, macOS, or Linux windowing systems</p>
+                            <p><strong>Key Function:</strong> Translates OS-specific events into JavaFX events</p>
+                        </div>
+                        
+                        <div class="layer layer-quantum" onclick="toggleLayer('quantum')">
+                            <strong>Layer 2: Quantum Toolkit</strong><br>
+                            Scene Graph Management & Rendering Pipeline
+                        </div>
+                        <div class="layer-details" id="details-quantum">
+                            <h4>Quantum Toolkit</h4>
+                            <p><strong>Role:</strong> Ties the upper and lower layers together</p>
+                            <p><strong>Responsibilities:</strong></p>
+                            <ul>
+                                <li>Manages scene graph synchronization</li>
+                                <li>Handles event dispatching</li>
+                                <li>Coordinates rendering pipeline</li>
+                                <li>Manages Glass and Prism interaction</li>
+                            </ul>
+                            <p><strong>Key Concept:</strong> Uses pulse-based rendering (60 FPS)</p>
+                        </div>
+                        
+                        <div class="layer layer-prism" onclick="toggleLayer('prism')">
+                            <strong>Layer 1: Prism Graphics Engine</strong><br>
+                            Hardware-Accelerated Rendering
+                        </div>
+                        <div class="layer-details" id="details-prism">
+                            <h4>Prism Graphics Engine</h4>
+                            <p><strong>Role:</strong> Low-level graphics rendering engine</p>
+                            <p><strong>Rendering Pipelines:</strong></p>
+                            <ul>
+                                <li><strong>Direct3D</strong> - Windows hardware acceleration</li>
+                                <li><strong>OpenGL</strong> - macOS and Linux hardware acceleration</li>
+                                <li><strong>Software</strong> - Fallback when GPU unavailable</li>
+                            </ul>
+                            <p><strong>Performance:</strong> Uses GPU for fast, smooth rendering</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Prism Deep Dive -->
+            <div class="section">
+                <h2>🎨 Prism Graphics Engine</h2>
+                <div class="concept">
+                    <p><strong>Core Function:</strong> Prism is the hardware-accelerated graphics rendering engine that converts scene graph nodes into pixels on screen using GPU acceleration.</p>
+                </div>
+                
+                <div class="analogy">
+                    Prism is like a skilled artist with different brushes (rendering pipelines). For Windows canvas (Direct3D brush), for Mac/Linux canvas (OpenGL brush), and when no special tools are available (software brush - just hands!). It always picks the best tool available to paint your UI quickly and beautifully.
+                </div>
+                
+                <div class="interactive-demo">
+                    <h3>🎬 Rendering Pipeline Simulator</h3>
+                    <p>Watch how Prism processes your UI through different stages:</p>
+                    
+                    <button onclick="animatePipeline()">Start Rendering Pipeline</button>
+                    
+                    <div class="pipeline-visual" id="pipeline">
+                        <div class="pipeline-stage" id="stage1">
+                            Scene Graph<br>Traversal
+                        </div>
+                        <span class="arrow">→</span>
+                        <div class="pipeline-stage" id="stage2">
+                            Geometry<br>Processing
+                        </div>
+                        <span class="arrow">→</span>
+                        <div class="pipeline-stage" id="stage3">
+                            Rasterization
+                        </div>
+                        <span class="arrow">→</span>
+                        <div class="pipeline-stage" id="stage4">
+                            GPU<br>Rendering
+                        </div>
+                        <span class="arrow">→</span>
+                        <div class="pipeline-stage" id="stage5">
+                            Screen<br>Display
+                        </div>
+                    </div>
+                    
+                    <div class="output-box" id="pipeline-output">Click "Start Rendering Pipeline" to see the process</div>
+                </div>
+                
+<pre><code>// Prism automatically selects the best rendering pipeline
+// You can check or force a specific pipeline:
+
+// Check current pipeline
+System.out.println(System.getProperty("prism.order"));
+
+// Force software rendering (for testing)
+// Add VM argument: -Dprism.order=sw
+
+// Force OpenGL
+// Add VM argument: -Dprism.order=es2
+
+// Example: Monitoring rendering performance
+public class PrismDemo extends Application {
+    @Override
+    public void start(Stage stage) {
+        // Enable performance logging
+        System.setProperty("prism.verbose", "true");
+        System.setProperty("prism.printallprisms", "true");
+        
+        // Your JavaFX code here
+        Rectangle rect = new Rectangle(200, 200, Color.BLUE);
+        
+        Scene scene = new Scene(new StackPane(rect), 400, 400);
+        stage.setScene(scene);
+        stage.show();
+        
+        // Prism will log which pipeline is being used
+    }
+}</code></pre>
+            </div>
+            
+            <!-- Quantum Toolkit -->
+            <div class="section">
+                <h2>⚛️ Quantum Toolkit</h2>
+                <div class="concept">
+                    <p><strong>Core Function:</strong> Quantum is the middle layer that synchronizes the scene graph with the rendering engine using a pulse-based timing mechanism, ensuring smooth 60 FPS rendering.</p>
+                </div>
+                
+                <div class="analogy">
+                    Quantum is like a film director coordinating a movie shoot. The actors (UI components) perform on set (scene graph), while the director ensures cameras (Prism) capture everything at exactly 24 frames per second. In JavaFX's case, it's 60 pulses per second! The director also makes sure actors respond to cues (events) and everyone stays synchronized.
+                </div>
+                
+                <div class="interactive-demo">
+                    <h3>💓 Pulse-Based Rendering Demo</h3>
+                    <p>Quantum renders your UI in "pulses" - discrete rendering cycles at 60 Hz:</p>
+                    
+                    <button onclick="startPulse()">Start Pulse Simulation</button>
+                    <button onclick="stopPulse()">Stop Pulse</button>
+                    
+                    <div class="output-box" id="pulse-output">Pulse Count: 0 | FPS: 0</div>
+                    
+                    <canvas id="pulseCanvas" width="600" height="150" style="border: 2px solid #5a67d8; border-radius: 8px; background: white; width: 100%; max-width: 600px;"></canvas>
+                </div>
+                
+<pre><code>// Quantum Toolkit manages scene graph synchronization
+// It uses a pulse-based rendering approach
+
+// Example: Understanding Pulse Timing
+public class QuantumPulseDemo extends Application {
+    private int pulseCount = 0;
+    
+    @Override
+    public void start(Stage stage) {
+        Label pulseLabel = new Label("Pulses: 0");
+        
+        // AnimationTimer runs on each pulse
+        AnimationTimer timer = new AnimationTimer() {
+            @Override
+            public void handle(long now) {
+                // This is called on every Quantum pulse (60 times/sec)
+                pulseCount++;
+                pulseLabel.setText("Pulses: " + pulseCount);
+                
+                // Quantum batches all scene graph changes
+                // and renders them together in this pulse
+            }
+        };
+        timer.start();
+        
+        Scene scene = new Scene(new StackPane(pulseLabel), 400, 200);
+        stage.setScene(scene);
+        stage.show();
+    }
+}
+
+// Key Quantum Concepts:
+// 1. Pulse = One rendering cycle (every ~16.67ms for 60 FPS)
+// 2. Scene Graph changes are batched until next pulse
+// 3. Synchronization ensures smooth animation
+// 4. Events are processed between pulses</code></pre>
+            </div>
+            
+            <!-- Glass Windowing Toolkit -->
+            <div class="section">
+                <h2>🪟 Glass Windowing Toolkit</h2>
+                <div class="concept">
+                    <p><strong>Core Function:</strong> Glass provides platform-independent window management by abstracting native OS windowing systems (Windows API, X11, Cocoa) into a unified JavaFX interface.</p>
+                </div>
+                
+                <div class="analogy">
+                    Glass is like a multilingual translator at an international conference. When the Windows OS speaks in "Win32 API", Mac speaks in "Cocoa", and Linux speaks in "X11", Glass translates everything into one common language that JavaFX understands. It also manages the conference schedule (event loop) and tells speakers when it's their turn (event dispatching).
+                </div>
+                
+                <div class="interactive-demo">
+                    <h3>🔔 Event Flow Simulator</h3>
+                    <p>See how Glass captures native OS events and converts them to JavaFX events:</p>
+                    
+                    <button onclick="simulateEvent('mouse')">Simulate Mouse Click</button>
+                    <button onclick="simulateEvent('keyboard')">Simulate Key Press</button>
+                    <button onclick="simulateEvent('window')">Simulate Window Resize</button>
+                    
+                    <div class="output-box" id="event-output">
+                        <strong>Event Flow:</strong><br>
+                        OS Event → Glass → Quantum → Scene Graph → Your Handler
+                    </div>
+                </div>
+                
+<pre><code>// Glass handles platform-specific windowing
+// You rarely interact with Glass directly, but here's what it does:
+
+public class GlassEventDemo extends Application {
+    @Override
+    public void start(Stage stage) {
+        Button btn = new Button("Click Me");
+        
+        // When you click this button:
+        // 1. OS generates native mouse event
+        // 2. Glass captures it from OS event queue
+        // 3. Glass converts to JavaFX MouseEvent
+        // 4. Quantum dispatches to scene graph
+        // 5. Your event handler receives it
+        
+        btn.setOnAction(e -> {
+            System.out.println("Event reached application!");
+            // Glass did all the heavy lifting above
+        });
+        
+        Scene scene = new Scene(new StackPane(btn), 300, 200);
+        stage.setScene(scene);
+        stage.show();
+        
+        // Glass is also managing:
+        // - The native window lifecycle
+        // - Window decorations (title bar, borders)
+        // - Focus management
+        // - Multi-window coordination
+    }
+}
+
+// Glass Platform Abstraction:
+// Windows: Uses Win32 API (CreateWindow, DefWindowProc)
+// macOS: Uses Cocoa (NSWindow, NSView)
+// Linux: Uses X11 or Wayland (XCreateWindow)
+// JavaFX developer: Uses Stage and Scene (platform-independent!)</code></pre>
+            </div>
+            
+            <!-- Scene Graph -->
+            <div class="section">
+                <h2>🌳 Scene Graph Architecture</h2>
+                <div class="concept">
+                    <p><strong>Core Function:</strong> The Scene Graph is a hierarchical tree structure where every UI element is a node, enabling efficient rendering, event handling, and transformation propagation through parent-child relationships.</p>
+                </div>
+                
+                <div class="analogy">
+                    A Scene Graph is like a joint family tree in India. The grandparents (root node - Scene) have children (containers like VBox, HBox), who have their own children (controls like Buttons, Labels). Just like family traits pass from parents to children, CSS styles and transformations flow down the tree. And when you want to find someone, you don't search the entire village - you just follow the family tree branches!
+                </div>
+                
+                <div class="interactive-demo">
+                    <h3>🔍 Interactive Scene Graph Explorer</h3>
+                    <p>Click on nodes to see the parent-child hierarchy in action:</p>
+                    
+                    <div class="scene-graph-demo">
+                        <div class="node" onclick="highlightNode(this, 'scene')" id="node-scene">
+                            <strong>Scene (Root)</strong>
+                            <div class="child-nodes">
+                                <div class="node" onclick="highlightNode(this, 'vbox'); event.stopPropagation();" id="node-vbox">
+                                    <strong>VBox (Parent Container)</strong>
+                                    <div class="child-nodes">
+                                        <div class="node" onclick="highlightNode(this, 'button'); event.stopPropagation();" id="node-button">
+                                            Button (Leaf Node)
+                                        </div>
+                                        <div class="node" onclick="highlightNode(this, 'label'); event.stopPropagation();" id="node-label">
+                                            Label (Leaf Node)
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="output-box" id="scenegraph-output">Click on any node to see its details</div>
+                </div>
+                
+<pre><code>// Scene Graph: Hierarchical structure of UI nodes
+public class SceneGraphDemo extends Application {
+    @Override
+    public void start(Stage stage) {
+        // Root of the scene graph
+        VBox root = new VBox(10);
+        root.setPadding(new Insets(20));
+        
+        // Parent node
+        HBox header = new HBox(15);
+        
+        // Child nodes (leaves)
+        Label title = new Label("महाराष्ट्र Tourism");
+        Button bookBtn = new Button("Book Now");
+        
+        // Building the tree structure
+        header.getChildren().addAll(title, bookBtn);
+        root.getChildren().add(header);
+        
+        // Transformation propagation
+        // When you rotate parent, children rotate too!
+        root.setRotate(5); // All children rotate with parent
+        
+        // Scene is the root of entire graph
+        Scene scene = new Scene(root, 400, 300);
+        
+        // Benefits of Scene Graph:
+        // 1. Hierarchical organization (easy to manage)
+        // 2. Efficient rendering (only changed nodes re-render)
+        // 3. Event bubbling (events travel up the tree)
+        // 4. Transformation inheritance (parent transforms affect children)
+        
+        stage.setScene(scene);
+        stage.show();
+    }
+}
+
+// Scene Graph Traversal for finding nodes:
+Button myButton = (Button) scene.lookup("#myButtonId");
+
+// Or traverse programmatically:
+public void traverseSceneGraph(Parent root) {
+    for (Node node : root.getChildrenUnmodifiable()) {
+        System.out.println(node.getClass().getName());
+        if (node instanceof Parent) {
+            traverseSceneGraph((Parent) node);
+        }
+    }
+}</code></pre>
+            </div>
+            
+            <!-- Threading Model -->
+            <div class="section">
+                <h2>🧵 JavaFX Threading Model</h2>
+                <div class="concept">
+                    <p><strong>Core Function:</strong> JavaFX uses a single-threaded UI model where all scene graph operations must occur on the JavaFX Application Thread, with background threads available for heavy computations.</p>
+                </div>
+                
+                <div class="analogy">
+                    Think of the JavaFX Application Thread like a single railway platform where only one train (UI operation) can board passengers at a time. Background threads are like cargo trains on separate tracks doing heavy work. When cargo is ready, they use Platform.runLater() to request platform time to unload their goods (update UI). This prevents train collisions (race conditions)!
+                </div>
+                
+                <div class="interactive-demo">
+                    <h3>⚡ Thread Demonstration</h3>
+                    <p>See the difference between correct and incorrect threading:</p>
+                    
+                    <button onclick="correctThreading()">✅ Correct Threading</button>
+                    <button onclick="incorrectThreading()">❌ Wrong Threading (Simulated)</button>
+                    
+                    <div class="output-box" id="thread-output">Click a button to see threading in action</div>
+                </div>
+                
+<pre><code>// JavaFX Threading Model
+public class ThreadingDemo extends Application {
+    @Override
+    public void start(Stage stage) {
+        Label statusLabel = new Label("Status: Idle");
+        Button heavyWorkBtn = new Button("Do Heavy Work");
+        
+        heavyWorkBtn.setOnAction(e -> {
+            // ❌ WRONG: Don't do heavy work on JavaFX thread
+            // heavyComputation(); // This will freeze the UI!
+            
+            // ✅ CORRECT: Use background thread
+            Task<String> task = new Task<String>() {
+                @Override
+                protected String call() throws Exception {
+                    // This runs on background thread
+                    updateMessage("Processing...");
+                    
+                    // Simulate heavy computation
+                    Thread.sleep(3000);
+                    
+                    // Simulate database call
+                    String result = fetchDataFromDatabase();
+                    
+                    return result;
+                }
+                
+                @Override
+                protected void succeeded() {
+                    // This runs on JavaFX thread automatically
+                    statusLabel.setText("Result: " + getValue());
+                }
+                
+                @Override
+                protected void failed() {
+                    statusLabel.setText("Error: " + getException().getMessage());
+                }
+            };
+            
+            // Bind progress to UI (thread-safe)
+            statusLabel.textProperty().bind(task.messageProperty());
+            
+            // Start background work
+            new Thread(task).start();
+        });
+        
+        VBox root = new VBox(10, statusLabel, heavyWorkBtn);
+        Scene scene = new Scene(root, 400, 200);
+        stage.setScene(scene);
+        stage.show();
+    }
+    
+    // If you must update UI from background thread:
+    private void updateUIFromBackground(Label label, String text) {
+        // ✅ Use Platform.runLater()
+        Platform.runLater(() -> {
+            label.setText(text);
+            // Now we're safely on JavaFX Application Thread
+        });
+        
+        // ❌ NEVER do this from background thread:
+        // label.setText(text); // Will throw IllegalStateException!
+    }
+    
+    private String fetchDataFromDatabase() {
+        // Simulated DB call
+        return "Data from Database";
+    }
+}
+
+// Key Threading Rules:
+// 1. ALL scene graph operations must be on JavaFX Application Thread
+// 2. Use Task<T> or Service<T> for background work
+// 3. Use Platform.runLater() to update UI from background threads
+// 4. NEVER call Thread.sleep() on JavaFX Application Thread</code></pre>
+            </div>
+            
+            <!-- CSS and Styling Architecture -->
+            <div class="section">
+                <h2>🎨 CSS Architecture & Styling Engine</h2>
+                <div class="concept">
+                    <p><strong>Core Function:</strong> JavaFX CSS engine parses stylesheets, applies cascading rules, and dynamically updates node appearances without recompiling code, similar to web CSS but with JavaFX-specific properties.</p>
+                </div>
+                
+                <div class="analogy">
+                    CSS in JavaFX is like a fashion designer's wardrobe system. You have default outfits (default stylesheets), seasonal collections (external CSS files), and custom tailoring (inline styles). When multiple styles compete, specificity rules decide - just like how a custom-tailored suit (inline style) always wins over ready-made clothes (default styles)!
+                </div>
+                
+                <div class="interactive-demo">
+                    <h3>🎭 CSS Cascade Demo</h3>
+                    <p>See how CSS specificity and cascade work:</p>
+                    
+                    <button onclick="applyCSSLevel('default')">Apply Default Style</button>
+                    <button onclick="applyCSSLevel('stylesheet')">Add Stylesheet Style</button>
+                    <button onclick="applyCSSLevel('inline')">Add Inline Style</button>
+                    <button onclick="applyCSSLevel('reset')">Reset</button>
+                    
+                    <div style="margin: 20px 0; padding: 20px; border: 2px solid #5a67d8; border-radius: 8px; background: white;">
+                        <div id="css-demo-box" style="padding: 20px; text-align: center; border-radius: 6px; background: #e6f0ff; transition: all 0.3s;">
+                            Sample Button
+                        </div>
+                    </div>
+                    
+                    <div class="output-box" id="css-output">Click buttons to see CSS cascade in action</div>
+                </div>
+                
+<pre><code>// JavaFX CSS Architecture
+public class CSSDemo extends Application {
+    @Override
+    public void start(Stage stage) {
+        Button btn = new Button("Styled Button");
+        
+        // 1. Default Stylesheet (lowest priority)
+        // JavaFX provides default styles (modena.css)
+        
+        // 2. External Stylesheet (medium priority)
+        scene.getStylesheets().add("styles.css");
+        // styles.css might contain:
+        // .button {
+        //     -fx-background-color: #3498db;
+        //     -fx-text-fill: white;
+        //     -fx-font-size: 16px;
+        // }
+        
+        // 3. Inline Styles (highest priority)
+        btn.setStyle("-fx-background-color: #e74c3c; -fx-font-weight: bold;");
+        
+        // 4. Style Classes (medium priority, before inline)
+        btn.getStyleClass().add("custom-button");
+        
+        Scene scene = new Scene(new StackPane(btn), 400, 300);
+        stage.setScene(scene);
+        stage.show();
+    }
+}
+
+// CSS Pseudo-classes (dynamic styling)
+.button:hover {
+    -fx-background-color: #2ecc71;
+    -fx-cursor: hand;
+}
+
+.button:pressed {
+    -fx-background-color: #27ae60;
+}
+
+// CSS selectors specificity (high to low):
+// 1. Inline style: node.setStyle()
+// 2. ID selector: #myButton { }
+// 3. Style class: .button { }
+// 4. Type selector: Button { }
+
+// Accessing CSS properties in code:
+String color = btn.getStyle();
+btn.setStyle(color + "; -fx-border-color: red;");
+
+// Loading custom CSS:
+scene.getStylesheets().add(
+    getClass().getResource("/css/custom.css").toExternalForm()
+);</code></pre>
+            </div>
+            
+            <!-- Media and WebView Integration -->
+            <div class="section">
+                <h2>📺 Media & WebView Architecture</h2>
+                <div class="concept">
+                    <p><strong>Core Function:</strong> JavaFX integrates native media playback (using GStreamer) and web rendering (using WebKit) as specialized scene graph nodes, enabling multimedia and HTML content within JavaFX applications.</p>
+                </div>
+                
+                <div class="analogy">
+                    Media and WebView are like special guest performers in a theater (Scene Graph). While regular actors (Buttons, Labels) perform simple acts, these specialists bring movies (MediaView) and web pages (WebView) to the stage. The theater manager (JavaFX) gives them dedicated spaces but integrates them seamlessly with other performances. They use their own equipment (GStreamer, WebKit) but follow the theater's rules!
+                </div>
+                
+<pre><code>// Media Architecture
+public class MediaDemo extends Application {
+    @Override
+    public void start(Stage stage) {
+        // Media architecture uses GStreamer under the hood
+        String mediaUrl = "file:///path/to/bollywood_song.mp4";
+        Media media = new Media(mediaUrl);
+        
+        // MediaPlayer manages playback
+        MediaPlayer mediaPlayer = new MediaPlayer(media);
+        mediaPlayer.setAutoPlay(false);
+        
+        // MediaView is a Node in scene graph
+        MediaView mediaView = new MediaView(mediaPlayer);
+        mediaView.setFitWidth(640);
+        mediaView.setFitHeight(480);
+        
+        Button playBtn = new Button("Play");
+        playBtn.setOnAction(e -> mediaPlayer.play());
+        
+        // Media integrates with scene graph
+        VBox root = new VBox(10, mediaView, playBtn);
+        Scene scene = new Scene(root, 700, 600);
+        stage.setScene(scene);
+        stage.show();
+    }
+}
+
+// WebView Architecture
+public class WebViewDemo extends Application {
+    @Override
+    public void start(Stage stage) {
+        // WebView uses WebKit rendering engine
+        WebView webView = new WebView();
+        WebEngine webEngine = webView.getEngine();
+        
+        // Load web content
+        webEngine.load("https://www.incredibleindia.org");
+        
+        // Or load HTML directly
+        String html = "<html><body>" +
+                     "<h1>Welcome to JavaFX WebView</h1>" +
+                     "<p>Powered by WebKit!</p>" +
+                     "</body></html>";
+        webEngine.loadContent(html);
+        
+        // JavaScript execution
+        webEngine.executeScript("alert('Hello from JavaFX!')");
+        
+        // Bridge between JavaScript and Java
+        webEngine.getLoadWorker().stateProperty().addListener(
+            (obs, old, newState) -> {
+                if (newState == Worker.State.SUCCEEDED) {
+                    // Access DOM
+                    Document doc = webEngine.getDocument();
+                    
+                    // Call JavaScript function
+                    Object result = webEngine.executeScript(
+                        "document.title"
+                    );
+                    System.out.println("Page title: " + result);
+                }
+            }
+        );
+        
+        Scene scene = new Scene(new BorderPane(webView), 800, 600);
+        stage.setScene(scene);
+        stage.show();
+    }
+}
+
+// Architecture Components:
+// Media: Media → MediaPlayer → MediaView (Node)
+//        Uses: GStreamer (native library)
+//        Formats: MP3, MP4, WAV, etc.
+//
+// WebView: WebView (Node) → WebEngine → WebKit
+//          Uses: WebKit rendering engine
+//          Supports: HTML5, CSS3, JavaScript, DOM</code></pre>
+            </div>
+            
+            <!-- Performance and Optimization -->
+            <div class="section">
+                <h2>⚡ Performance Architecture & Optimization</h2>
+                <div class="concept">
+                    <p><strong>Core Function:</strong> JavaFX optimizes rendering through dirty region tracking, scene graph caching, and parallel rendering, ensuring smooth 60 FPS performance even with complex UIs.</p>
+                </div>
+                
+                <div class="analogy">
+                    JavaFX performance optimization is like Mumbai's Dabbawalas (lunchbox delivery system). They don't re-deliver all 200,000 lunchboxes if only one changed - they track which ones are "dirty" (changed) and optimize routes. Similarly, JavaFX's dirty region tracking only re-renders changed parts of the scene graph. Caching is like remembering frequent routes, and parallel rendering is like having multiple delivery teams working simultaneously!
+                </div>
+                
+                <div class="interactive-demo">
+                    <h3>🚀 Performance Optimization Demo</h3>
+                    <p>Toggle optimizations to see their impact:</p>
+                    
+                    <button onclick="toggleOptimization('cache')">Toggle Node Caching</button>
+                    <button onclick="toggleOptimization('dirty')">Toggle Dirty Region Tracking</button>
+                    
+                    <div class="output-box" id="perf-output">
+                        <strong>Current Optimizations:</strong><br>
+                        Cache: <span id="cache-status">Enabled</span><br>
+                        Dirty Tracking: <span id="dirty-status">Enabled</span><br>
+                        Estimated FPS: <span id="fps-estimate">60</span>
+                    </div>
+                </div>
+                
+<pre><code>// Performance Optimization Techniques
+public class PerformanceDemo extends Application {
+    @Override
+    public void start(Stage stage) {
+        Group root = new Group();
+        
+        // 1. Node Caching (for complex static nodes)
+        Circle complexShape = createComplexShape();
+        complexShape.setCache(true);  // Cache rendered image
+        complexShape.setCacheHint(CacheHint.SPEED); // or QUALITY
+        // Use when: Node is complex but rarely changes
+        
+        // 2. CSS Pseudo-classes (avoid layout recalculation)
+        Button btn = new Button("Hover Me");
+        // ✅ Use CSS pseudo-classes
+        btn.getStyleClass().add("hover-effect");
+        // CSS: .hover-effect:hover { -fx-background-color: red; }
+        
+        // ❌ Don't use setOnMouseEntered for styling
+        // btn.setOnMouseEntered(e -> btn.setStyle("...")); // Slower!
+        
+        // 3. Batch Updates (minimize pulse cycles)
+        List<Node> nodes = new ArrayList<>();
+        // ✅ Batch add
+        root.getChildren().addAll(nodes);
+        
+        // ❌ Don't add one by one in loop
+        // for (Node n : nodes) root.getChildren().add(n); // Many pulses!
+        
+        // 4. Use Canvas for many objects
+        Canvas canvas = new Canvas(800, 600);
+        GraphicsContext gc = canvas.getGraphicsContext2D();
+        
+        // Drawing 10,000 circles on Canvas (fast)
+        for (int i = 0; i < 10000; i++) {
+            gc.fillOval(Math.random() * 800, Math.random() * 600, 5, 5);
+        }
+        // vs creating 10,000 Circle nodes (slow - scene graph overhead)
+        
+        // 5. Disable node when not visible
+        Pane hiddenPane = new Pane();
+        hiddenPane.setVisible(false);
+        hiddenPane.setManaged(false); // Skip layout calculations
+        
+        // 6. Parallel Camera for 3D (uses parallel rendering)
+        ParallelCamera camera = new ParallelCamera();
+        Scene scene = new Scene(root, 800, 600);
+        scene.setCamera(camera);
+        
+        stage.setScene(scene);
+        stage.show();
+    }
+    
+    private Circle createComplexShape() {
+        // Simulate complex rendering
+        return new Circle(50, Color.BLUE);
+    }
+}
+
+// System Properties for Performance Tuning:
+// -Dprism.verbose=true          // Log rendering info
+// -Dprism.forceGPU=true         // Force GPU acceleration
+// -Djavafx.animation.fullspeed=true  // Remove FPS cap
+// -Dprism.dirtyopts=false       // Disable dirty region optimization (testing)
+// -Dquantum.multithreaded=true  // Enable parallel rendering
+
+// Monitoring Performance:
+AnimationTimer perfMonitor = new AnimationTimer() {
+    private long lastTime = 0;
+    private int frameCount = 0;
+    
+    @Override
+    public void handle(long now) {
+        frameCount++;
+        if (now - lastTime >= 1_000_000_000) { // 1 second
+            System.out.println("FPS: " + frameCount);
+            frameCount = 0;
+            lastTime = now;
+        }
+    }
+};</code></pre>
+            </div>
+            
+            <!-- Architecture Integration Summary -->
+            <div class="section">
+                <h2>🔗 How All Layers Work Together</h2>
+                <div class="concept">
+                    <p><strong>The Complete Picture:</strong> From your code to pixels on screen, every layer cooperates in a well-orchestrated pipeline.</p>
+                </div>
+                
+                <div class="interactive-demo">
+                    <h3>🎯 Complete Request Flow Visualization</h3>
+                    <p>Trace a button click from OS to your code:</p>
+                    
+                    <button onclick="traceCompleteFlow()">Trace Button Click Event</button>
+                    
+                    <div class="output-box" id="flow-output" style="font-family: monospace; font-size: 0.9em;">
+                        Click the button to trace the complete architecture flow
+                    </div>
+                </div>
+                
+<pre><code>// Complete Architecture Flow Example
+public class ArchitectureFlowDemo extends Application {
+    @Override
+    public void start(Stage stage) {
+        Button btn = new Button("Click Me");
+        Label status = new Label("Status: Ready");
+        
+        btn.setOnAction(e -> {
+            // Let's trace what happened:
+            
+            // 1. USER ACTION: Mouse click on screen
+            
+            // 2. GLASS LAYER:
+            //    - OS (Windows/Mac/Linux) detects mouse click
+            //    - Glass captures native event from OS event queue
+            //    - Glass translates to platform-independent JavaFX MouseEvent
+            
+            // 3. QUANTUM LAYER:
+            //    - Receives MouseEvent from Glass
+            //    - Determines which scene graph node was clicked
+            //    - Dispatches event through scene graph hierarchy
+            //    - Event bubbles up: Button → VBox → Scene
+            
+            // 4. PUBLIC API (Your Code):
+            //    - Your event handler executes
+            status.setText("Status: Button Clicked!");
+            btn.setStyle("-fx-background-color: green;");
+            
+            // 5. QUANTUM LAYER (Rendering):
+            //    - Marks changed nodes as "dirty"
+            //    - Waits for next pulse (every 16.67ms)
+            //    - At pulse: synchronizes scene graph changes
+            //    - Calculates which screen regions need redrawing
+            
+            // 6. PRISM LAYER:
+            //    - Receives rendering instructions from Quantum
+            //    - Traverses dirty regions of scene graph
+            //    - Converts nodes to geometry
+            //    - Sends to GPU via Direct3D/OpenGL
+            //    - GPU rasterizes and renders to framebuffer
+            
+            // 7. GLASS LAYER:
+            //    - Tells OS to display updated framebuffer
+            //    - User sees green button on screen!
+            
+            System.out.println("Complete architecture flow executed!");
+        });
+        
+        VBox root = new VBox(20, btn, status);
+        root.setPadding(new Insets(50));
+        
+        Scene scene = new Scene(root, 400, 200);
+        stage.setScene(scene);
+        stage.setTitle("JavaFX Architecture in Action");
+        stage.show();
+        
+        // Behind the scenes right now:
+        // - Glass created native window
+        // - Prism initialized GPU rendering pipeline
+        // - Quantum started pulse timer (60 Hz)
+        // - Scene graph constructed and ready
+        // - All layers synchronized and waiting for events!
+    }
+    
+    public static void main(String[] args) {
+        launch(args);
+    }
+}</code></pre>
+            </div>
+        </div>
+        
+        <!-- Instructor Notes -->
+        <div class="instructor-notes">
+            <div class="collapsible" onclick="toggleInstructorNotes()">
+                🧑‍🏫 Instructor Notes (Click to Expand)
+            </div>
+            <div class="collapsible-content" id="instructor-content">
+                <div style="padding: 20px 0;">
+                    <h3>📚 Teaching Tips</h3>
+                    <ol style="margin-left: 20px; margin-top: 10px;">
+                        <li><strong>Start with the Big Picture:</strong> Use the Architecture Explorer at the top. Let students click through each layer before diving deep. This gives context for everything else.</li>
+                        
+                        <li><strong>Use Real-World Debugging:</strong> Show students how to enable Prism logging (-Dprism.verbose=true) in their IDE. Run a simple JavaFX app and examine the console output together. This demystifies the "magic" happening under the hood.</li>
+                        
+                        <li><strong>Emphasize Threading Early:</strong> Most JavaFX bugs students encounter are threading issues. Spend extra time on Platform.runLater() and Task<T>. Have them intentionally create threading errors to see IllegalStateException, then fix them.</li>
+                    </ol>
+                    
+                    <h3>🎯 Key Concepts to Emphasize</h3>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li>Prism automatically selects the best rendering pipeline - students don't need to worry about it</li>
+                        <li>Quantum's pulse-based rendering is why animations are smooth at 60 FPS</li>
+                        <li>Glass abstracts platform differences - same code works on Windows, Mac, Linux</li>
+                        <li>Scene Graph hierarchy makes event handling and transformations intuitive</li>
+                        <li>ALWAYS use background threads for heavy operations</li>
+                    </ul>
+                    
+                    <h3>💡 Common Student Mistakes</h3>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li>Doing database calls on JavaFX Application Thread (freezes UI)</li>
+                        <li>Trying to update UI from background threads without Platform.runLater()</li>
+                        <li>Creating too many individual nodes instead of using Canvas for many items</li>
+                        <li>Not understanding CSS cascade (inline styles override everything)</li>
+                    </ul>
+                    
+                    <h3>🧪 Quick Quiz</h3>
+                    <div class="quiz">
+                        <p><strong>Question:</strong> A student writes a JavaFX application that fetches data from an API when a button is clicked. The UI freezes for 5 seconds during the fetch. Which layer is being misused, and what's the correct solution?</p>
+                        
+                        <div class="quiz-option" onclick="checkAnswer(this, false)">
+                            A) Glass layer is blocking - use Platform.runLater() to fix
+                        </div>
+                        <div class="quiz-option" onclick="checkAnswer(this, false)">
+                            B) Prism is rendering too slowly - enable GPU acceleration
+                        </div>
+                        <div class="quiz-option" onclick="checkAnswer(this, true)">
+                            C) Blocking the JavaFX Application Thread - move API call to background thread using Task&lt;T&gt;
+                        </div>
+                        <div class="quiz-option" onclick="checkAnswer(this, false)">
+                            D) Quantum pulse timing is off - increase FPS limit
+                        </div>
+                        
+                        <div id="quiz-result" style="margin-top: 15px; padding: 10px; border-radius: 6px; display: none;"></div>
+                    </div>
+                    
+                    <h3>📖 Further Reading</h3>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li>Official JavaFX Architecture Documentation</li>
+                        <li>Understanding the Scene Graph and Node hierarchy</li>
+                        <li>Prism Graphics Pipeline deep dive</li>
+                        <li>JavaFX Performance tuning and best practices</li>
+                        <li>Advanced CSS styling and theming</li>
+                        <li>Concurrency in JavaFX Applications (Task, Service, ScheduledService)</li>
+                    </ul>
+                    
+                    <h3>🎓 Suggested Lab Exercise</h3>
+                    <div style="background: white; padding: 15px; border-radius: 8px; margin-top: 10px;">
+                        <p><strong>Exercise:</strong> Create a "Mumbai Local Train Schedule" application that:</p>
+                        <ol style="margin-left: 20px; margin-top: 10px;">
+                            <li>Displays a scene graph with Station (root) → Platform (containers) → Trains (nodes)</li>
+                            <li>Fetches train timings from a mock API using background threads</li>
+                            <li>Updates UI with Platform.runLater()</li>
+                            <li>Uses CSS to style different train lines (Western, Central, Harbour)</li>
+                            <li>Shows performance monitoring (FPS counter)</li>
+                        </ol>
+                        <p style="margin-top: 10px;"><strong>Goal:</strong> Students will use all architectural layers and understand threading model practically.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Layer toggle functionality
+        let activeLayer = null;
+        
+        function toggleLayer(layerName) {
+            const details = document.getElementById(`details-${layerName}`);
+            const layer = details.previousElementSibling;
+            
+            // Hide previously active layer
+            if (activeLayer && activeLayer !== details) {
+                activeLayer.classList.remove('show');
+                activeLayer.previousElementSibling.classList.remove('active');
+            }
+            
+            // Toggle current layer
+            if (details.classList.contains('show')) {
+                details.classList.remove('show');
+                layer.classList.remove('active');
+                activeLayer = null;
+            } else {
+                details.classList.add('show');
+                layer.classList.add('active');
+                activeLayer = details;
+            }
+        }
+        
+        // Rendering Pipeline Animation
+        let pipelineInterval;
+        function animatePipeline() {
+            const stages = ['stage1', 'stage2', 'stage3', 'stage4', 'stage5'];
+            const output = document.getElementById('pipeline-output');
+            const messages = [
+                '1️⃣ Traversing scene graph to identify visible nodes...',
+                '2️⃣ Processing geometry and calculating transformations...',
+                '3️⃣ Rasterizing shapes into pixels...',
+                '4️⃣ GPU rendering with shaders and textures...',
+                '5️⃣ Displaying final image on screen! ✨'
+            ];
+            
+            let currentStage = 0;
+            
+            // Reset all stages
+            stages.forEach(id => {
+                document.getElementById(id).classList.remove('active');
+            });
+            
+            output.textContent = 'Starting rendering pipeline...';
+            
+            pipelineInterval = setInterval(() => {
+                if (currentStage < stages.length) {
+                    document.getElementById(stages[currentStage]).classList.add('active');
+                    output.textContent = messages[currentStage];
+                    currentStage++;
+                } else {
+                    clearInterval(pipelineInterval);
+                    setTimeout(() => {
+                        stages.forEach(id => {
+                            document.getElementById(id).classList.remove('active');
+                        });
+                        output.textContent = 'Pipeline complete! Ready for next frame.';
+                    }, 1000);
+                }
+            }, 800);
+        }
+        
+        // Pulse Simulation
+        let pulseTimer;
+        let pulseCount = 0;
+        let pulseActive = false;
+        
+        function startPulse() {
+            if (pulseActive) return;
+            pulseActive = true;
+            pulseCount = 0;
+            
+            const canvas = document.getElementById('pulseCanvas');
+            const ctx = canvas.getContext('2d');
+            const output = document.getElementById('pulse-output');
+            
+            let startTime = Date.now();
+            let lastPulse = startTime;
+            
+            pulseTimer = setInterval(() => {
+                pulseCount++;
+                const now = Date.now();
+                const fps = Math.round(1000 / (now - lastPulse));
+                lastPulse = now;
+                
+                output.textContent = `Pulse Count: ${pulseCount} | FPS: ${Math.min(fps, 60)}`;
+                
+                // Visualize pulse
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#5a67d8';
+                const x = (pulseCount * 10) % canvas.width;
+                ctx.fillRect(x, 50, 5, 50);
+                
+                // Draw FPS line
+                ctx.strokeStyle = '#38a169';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(0, 75);
+                ctx.lineTo(canvas.width, 75);
+                ctx.stroke();
+                
+                ctx.fillStyle = '#000';
+                ctx.font = '12px Arial';
+                ctx.fillText('60 FPS Target', 10, 70);
+            }, 16.67); // ~60 FPS
+        }
+        
+        function stopPulse() {
+            clearInterval(pulseTimer);
+            pulseActive = false;
+        }
+        
+        // Event Flow Simulation
+        function simulateEvent(eventType) {
+            const output = document.getElementById('event-output');
+            const events = {
+                mouse: [
+                    '🖱️ OS detects mouse click at coordinates (245, 180)',
+                    '📥 Glass captures native mouse event',
+                    '🔄 Glass converts to JavaFX MouseEvent',
+                    '⚛️ Quantum receives event',
+                    '🎯 Quantum performs hit testing on scene graph',
+                    '📍 Event target identified: Button node',
+                    '📤 Event dispatched through node hierarchy',
+                    '✅ Your EventHandler receives ActionEvent'
+                ],
+                keyboard: [
+                    '⌨️ OS detects key press: "Enter"',
+                    '📥 Glass captures native keyboard event',
+                    '🔄 Glass converts to JavaFX KeyEvent',
+                    '⚛️ Quantum receives KeyEvent',
+                    '🎯 Quantum checks focused node',
+                    '📍 Focused node: TextField',
+                    '📤 KeyEvent dispatched to TextField',
+                    '✅ Your KeyEvent handler executes'
+                ],
+                window: [
+                    '🪟 OS detects window resize',
+                    '📥 Glass captures native window event',
+                    '🔄 Glass updates window dimensions',
+                    '⚛️ Quantum receives layout invalidation',
+                    '📐 Scene graph layout recalculated',
+                    '🎨 Prism marks dirty regions',
+                    '🖼️ New frame rendered at updated size',
+                    '✅ Stage resized and displayed'
+                ]
+            };
+            
+            const steps = events[eventType];
+            let step = 0;
+            
+            output.innerHTML = '<strong>Event Flow Trace:</strong><br>';
+            
+            const interval = setInterval(() => {
+                if (step < steps.length) {
+                    output.innerHTML += steps[step] + '<br>';
+                    step++;
+                } else {
+                    clearInterval(interval);
+                    output.innerHTML += '<br><strong>🎉 Event flow complete!</strong>';
+                }
+            }, 400);
+        }
+        
+        // Scene Graph Highlighting
+        function highlightNode(element, nodeType) {
+            // Remove all highlights
+            document.querySelectorAll('.node').forEach(n => n.classList.remove('highlighted'));
+            
+            // Highlight clicked node
+            element.classList.add('highlighted');
+            
+            const output = document.getElementById('scenegraph-output');
+            const info = {
+                scene: {
+                    title: 'Scene (Root Node)',
+                    description: 'The root of the scene graph. Contains all visual content.',
+                    children: '1 child (VBox)',
+                    properties: 'Can have only ONE root node'
+                },
+                vbox: {
+                    title: 'VBox (Parent/Container Node)',
+                    description: 'Layout container that arranges children vertically.',
+                    children: '2 children (Button, Label)',
+                    properties: 'Can have MULTIPLE children'
+                },
+                button: {
+                    title: 'Button (Leaf Node)',
+                    description: 'Interactive control that fires events when clicked.',
+                    children: '0 children (leaf node)',
+                    properties: 'Inherits transforms from parent VBox'
+                },
+                label: {
+                    title: 'Label (Leaf Node)',
+                    description: 'Text display component.',
+                    children: '0 children (leaf node)',
+                    properties: 'Inherits styles from parent VBox'
+                }
+            };
+            
+            const nodeInfo = info[nodeType];
+            output.innerHTML = `
+                <strong>${nodeInfo.title}</strong><br>
+                📝 ${nodeInfo.description}<br>
+                👨‍👩‍👧‍👦 ${nodeInfo.children}<br>
+                ⚙️ ${nodeInfo.properties}
+            `;
+        }
+        
+        // CSS Cascade Demo
+        let cssLevel = 'default';
+        function applyCSSLevel(level) {
+            const box = document.getElementById('css-demo-box');
+            const output = document.getElementById('css-output');
+            
+            switch(level) {
+                case 'default':
+                    box.style.cssText = 'padding: 20px; text-align: center; border-radius: 6px; background: #e6f0ff; transition: all 0.3s;';
+                    output.innerHTML = '<strong>Default Style Applied</strong><br>Background: Light blue, Default font';
+                    cssLevel = 'default';
+                    break;
+                case 'stylesheet':
+                    box.style.cssText = 'padding: 20px; text-align: center; border-radius: 6px; background: #3498db; color: white; font-size: 18px; transition: all 0.3s;';
+                    output.innerHTML = '<strong>Stylesheet Style Applied</strong><br>External CSS overrides default<br>Background: Blue, White text, Larger font';
+                    cssLevel = 'stylesheet';
+                    break;
+                case 'inline':
+                    box.style.cssText = 'padding: 20px; text-align: center; border-radius: 6px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; font-size: 20px; font-weight: bold; transition: all 0.3s;';
+                    output.innerHTML = '<strong>Inline Style Applied (Highest Priority!)</strong><br>Overrides all other styles<br>Background: Gradient, Bold text, Largest font';
+                    cssLevel = 'inline';
+                    break;
+                case 'reset':
+                    box.style.cssText = 'padding: 20px; text-align: center; border-radius: 6px; background: #e6f0ff; transition: all 0.3s;';
+                    output.innerHTML = '<strong>Reset to Default</strong><br>All custom styles removed';
+                    cssLevel = 'default';
+                    break;
+            }
+        }
+        
+        // Threading Demo
+        function correctThreading() {
+            const output = document.getElementById('thread-output');
+            output.innerHTML = '<strong>✅ Correct Threading Pattern:</strong><br><br>';
+            
+            const steps = [
+                '1️⃣ Button clicked on JavaFX Application Thread',
+                '2️⃣ Creating background Task...',
+                '3️⃣ Starting background thread for heavy work...',
+                '4️⃣ [Background Thread] Fetching data from database...',
+                '5️⃣ [Background Thread] Processing 10,000 records...',
+                '6️⃣ [Background Thread] Work complete!',
+                '7️⃣ Using Platform.runLater() to switch to JavaFX thread...',
+                '8️⃣ [JavaFX Thread] Updating UI with results',
+                '✅ Success! UI remained responsive throughout'
+            ];
+            
+            let step = 0;
+            const interval = setInterval(() => {
+                if (step < steps.length) {
+                    output.innerHTML += steps[step] + '<br>';
+                    step++;
+                } else {
+                    clearInterval(interval);
+                }
+            }, 500);
+        }
+        
+        function incorrectThreading() {
+            const output = document.getElementById('thread-output');
+            output.innerHTML = '<strong>❌ Incorrect Threading Pattern (Simulated):</strong><br><br>';
+            
+            const steps = [
+                '1️⃣ Button clicked on JavaFX Application Thread',
+                '2️⃣ Starting heavy work DIRECTLY on JavaFX thread...',
+                '3️⃣ [JavaFX Thread] Fetching data... (UI FROZEN 😱)',
+                '4️⃣ [JavaFX Thread] Processing data... (STILL FROZEN 😱)',
+                '5️⃣ [JavaFX Thread] More processing... (USERS ANGRY 😡)',
+                '6️⃣ Work complete, UI unfrozen',
+                '⚠️ Result: Poor user experience, unresponsive UI',
+                '💡 Solution: Move work to background thread with Task<T>'
+            ];
+            
+            let step = 0;
+            const interval = setInterval(() => {
+                if (step < steps.length) {
+                    output.innerHTML += steps[step] + '<br>';
+                    step++;
+                } else {
+                    clearInterval(interval);
+                }
+            }, 600);
+        }
+        
+        // Performance Optimization Demo
+        let cacheEnabled = true;
+        let dirtyEnabled = true;
+        
+        function toggleOptimization(type) {
+            if (type === 'cache') {
+                cacheEnabled = !cacheEnabled;
+                document.getElementById('cache-status').textContent = cacheEnabled ? 'Enabled' : 'Disabled';
+                document.getElementById('cache-status').style.color = cacheEnabled ? 'green' : 'red';
+            } else if (type === 'dirty') {
+                dirtyEnabled = !dirtyEnabled;
+                document.getElementById('dirty-status').textContent = dirtyEnabled ? 'Enabled' : 'Disabled';
+                document.getElementById('dirty-status').style.color = dirtyEnabled ? 'green' : 'red';
+            }
+            
+            // Calculate estimated FPS based on optimizations
+            let fps = 60;
+            if (!cacheEnabled) fps -= 15;
+            if (!dirtyEnabled) fps -= 20;
+            
+            document.getElementById('fps-estimate').textContent = Math.max(fps, 10);
+            document.getElementById('fps-estimate').style.color = fps >= 50 ? 'green' : (fps >= 30 ? 'orange' : 'red');
+        }
+        
+        // Complete Flow Trace
+        function traceCompleteFlow() {
+            const output = document.getElementById('flow-output');
+            output.innerHTML = '';
+            
+            const flow = [
+                '═══════════════════════════════════════════════════',
+                '🖱️  USER ACTION: Mouse button pressed',
+                '═══════════════════════════════════════════════════',
+                '',
+                '┌─ GLASS WINDOWING TOOLKIT ─────────────────────┐',
+                '│ 1. Windows OS generates WM_LBUTTONDOWN event  │',
+                '│ 2. Glass native loop captures event           │',
+                '│ 3. Converts to JavaFX MouseEvent              │',
+                '│ 4. Queues event for Quantum                   │',
+                '└────────────────────────────────────────────────┘',
+                '         ↓',
+                '┌─ QUANTUM TOOLKIT ──────────────────────────────┐',
+                '│ 5. Receives MouseEvent from Glass             │',
+                '│ 6. Performs hit-testing on Scene Graph        │',
+                '│ 7. Identifies target: Button at (120, 85)     │',
+                '│ 8. Dispatches event through node hierarchy:   │',
+                '│    Button → VBox → Scene → Stage              │',
+                '└────────────────────────────────────────────────┘',
+                '         ↓',
+                '┌─ PUBLIC API (YOUR CODE) ───────────────────────┐',
+                '│ 9. EventHandler<ActionEvent> triggered        │',
+                '│ 10. Your code executes:                        │',
+                '│     button.setText("Clicked!");                │',
+                '│     button.setStyle("-fx-background: green");  │',
+                '└────────────────────────────────────────────────┘',
+                '         ↓',
+                '┌─ QUANTUM TOOLKIT (RENDERING) ─────────────────┐',
+                '│ 11. Marks Button node as "dirty"              │',
+                '│ 12. Waits for next pulse (16.67ms later)      │',
+                '│ 13. Pulse fires! Synchronize scene graph      │',
+                '│ 14. Calculate dirty regions: (100,70,140,110) │',
+                '│ 15. Send render instructions to Prism         │',
+                '└────────────────────────────────────────────────┘',
+                '         ↓',
+                '┌─ PRISM GRAPHICS ENGINE ────────────────────────┐',
+                '│ 16. Traverse scene graph for dirty nodes      │',
+                '│ 17. Convert Button to geometric primitives    │',
+                '│ 18. Apply CSS styles (green background)       │',
+                '│ 19. Generate vertex data for GPU              │',
+                '│ 20. Submit to Direct3D/OpenGL pipeline        │',
+                '│ 21. GPU rasterizes and renders                │',
+                '└────────────────────────────────────────────────┘',
+                '         ↓',
+                '┌─ GLASS WINDOWING TOOLKIT (OUTPUT) ────────────┐',
+                '│ 22. Receives rendered framebuffer from Prism  │',
+                '│ 23. Calls OS to present framebuffer           │',
+                '│ 24. OS compositor displays on screen          │',
+                '└────────────────────────────────────────────────┘',
+                '         ↓',
+                '═══════════════════════════════════════════════════',
+                '👁️  USER SEES: Green button with "Clicked!" text',
+                '⏱️  Total time: ~16-20ms (60 FPS maintained!)',
+                '═══════════════════════════════════════════════════',
+                '',
+                '✨ All 4 layers worked together seamlessly! ✨'
+            ];
+            
+            let line = 0;
+            const interval = setInterval(() => {
+                if (line < flow.length) {
+                    output.innerHTML += flow[line] + '\n';
+                    output.scrollTop = output.scrollHeight;
+                    line++;
+                } else {
+                    clearInterval(interval);
+                }
+            }, 100);
+        }
+        
+        // Instructor Notes Toggle
+        function toggleInstructorNotes() {
+            const content = document.getElementById('instructor-content');
+            content.classList.toggle('active');
+        }
+        
+        // Quiz Answer Check
+        function checkAnswer(element, isCorrect) {
+            // Remove previous selections
+            document.querySelectorAll('.quiz-option').forEach(opt => {
+                opt.classList.remove('correct', 'incorrect');
+            });
+            
+            const resultDiv = document.getElementById('quiz-result');
+            
+            if (isCorrect) {
+                element.classList.add('correct');
+                resultDiv.style.background = '#c6f6d5';
+                resultDiv.style.border = '2px solid #38a169';
+                resultDiv.innerHTML = `
+                    <strong>✅ Correct!</strong><br><br>
+                    The JavaFX Application Thread is being blocked by the synchronous API call. 
+                    When you perform long-running operations (like network requests, database queries, 
+                    or file I/O) on the JavaFX Application Thread, the UI becomes unresponsive because 
+                    the thread cannot process rendering pulses or user events.<br><br>
+                    <strong>Solution:</strong> Use <code>Task&lt;T&gt;</code> to move the API call to a 
+                    background thread, then use <code>Platform.runLater()</code> to update the UI 
+                    once the data is fetched.<br><br>
+                    <strong>Example:</strong><br>
+                    <code style="display: block; background: #1e1e1e; color: #d4d4d4; padding: 10px; border-radius: 4px; margin-top: 5px;">
+                    Task&lt;String&gt; task = new Task&lt;&gt;() {<br>
+                    &nbsp;&nbsp;protected String call() {<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;return fetchFromAPI(); // Background thread<br>
+                    &nbsp;&nbsp;}<br>
+                    };<br>
+                    task.setOnSucceeded(e -> {<br>
+                    &nbsp;&nbsp;label.setText(task.getValue()); // JavaFX thread<br>
+                    });<br>
+                    new Thread(task).start();
+                    </code>
+                `;
+            } else {
+                element.classList.add('incorrect');
+                resultDiv.style.background = '#fed7d7';
+                resultDiv.style.border = '2px solid #e53e3e';
+                resultDiv.innerHTML = `
+                    <strong>❌ Incorrect.</strong><br><br>
+                    This is not the correct layer or solution. Think about which thread is 
+                    being blocked and preventing the UI from updating. The issue is not with 
+                    Glass, Prism, or Quantum directly, but with how the JavaFX Application 
+                    Thread is being used.
+                `;
+            }
+            
+            resultDiv.style.display = 'block';
+        }
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('JavaFX Architecture Deep Dive Demo Loaded!');
+            console.log('🎭 All interactive elements ready');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1280 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SceneBuilder Deep Dive - Interactive Demo</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 20px;
+        line-height: 1.6;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+      }
+
+      header {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        color: white;
+        padding: 30px;
+        text-align: center;
+      }
+
+      header h1 {
+        font-size: 2.5em;
+        margin-bottom: 10px;
+      }
+
+      header p {
+        font-size: 1.1em;
+        opacity: 0.9;
+      }
+
+      .content {
+        padding: 40px;
+      }
+
+      .section {
+        margin-bottom: 50px;
+        padding: 30px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        border-left: 5px solid #667eea;
+      }
+
+      .section h2 {
+        color: #1e3c72;
+        margin-bottom: 15px;
+        font-size: 1.8em;
+      }
+
+      .section h3 {
+        color: #2a5298;
+        margin: 20px 0 10px 0;
+        font-size: 1.3em;
+      }
+
+      .concept {
+        background: #e3f2fd;
+        padding: 15px;
+        border-radius: 8px;
+        margin: 15px 0;
+        border-left: 4px solid #2196f3;
+      }
+
+      .analogy {
+        background: #fff3e0;
+        padding: 15px;
+        border-radius: 8px;
+        margin: 15px 0;
+        border-left: 4px solid #ff9800;
+      }
+
+      .analogy::before {
+        content: "💡 Analogy: ";
+        font-weight: bold;
+        color: #f57c00;
+      }
+
+      .interactive-demo {
+        background: white;
+        padding: 25px;
+        border-radius: 10px;
+        margin: 20px 0;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .demo-title {
+        font-weight: bold;
+        color: #667eea;
+        margin-bottom: 15px;
+        font-size: 1.1em;
+      }
+
+      button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 1em;
+        transition: transform 0.2s, box-shadow 0.2s;
+        margin: 5px;
+      }
+
+      button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(102, 126, 234, 0.4);
+      }
+
+      button:active {
+        transform: translateY(0);
+      }
+
+      pre {
+        background: #2d2d2d;
+        color: #f8f8f2;
+        padding: 20px;
+        border-radius: 8px;
+        overflow-x: auto;
+        margin: 15px 0;
+        font-size: 0.9em;
+        line-height: 1.5;
+      }
+
+      code {
+        font-family: "Consolas", "Monaco", "Courier New", monospace;
+      }
+
+      .fxml-preview {
+        background: #fff;
+        border: 2px solid #ddd;
+        padding: 20px;
+        border-radius: 8px;
+        margin: 15px 0;
+        min-height: 150px;
+      }
+
+      .comparison-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+      }
+
+      .comparison-table th {
+        background: #667eea;
+        color: white;
+        padding: 15px;
+        text-align: left;
+      }
+
+      .comparison-table td {
+        padding: 15px;
+        border-bottom: 1px solid #ddd;
+      }
+
+      .comparison-table tr:hover {
+        background: #f5f5f5;
+      }
+
+      .visual-builder {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin: 20px 0;
+      }
+
+      .builder-panel {
+        background: #f5f5f5;
+        padding: 20px;
+        border-radius: 8px;
+        border: 2px dashed #667eea;
+      }
+
+      .component-palette {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin: 15px 0;
+      }
+
+      .component-item {
+        background: #fff;
+        padding: 10px 15px;
+        border-radius: 5px;
+        border: 2px solid #ddd;
+        cursor: move;
+        transition: all 0.2s;
+      }
+
+      .component-item:hover {
+        border-color: #667eea;
+        transform: scale(1.05);
+      }
+
+      .drop-zone {
+        min-height: 200px;
+        background: white;
+        border: 3px dashed #ccc;
+        border-radius: 8px;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .drop-zone.drag-over {
+        border-color: #667eea;
+        background: #f0f4ff;
+      }
+
+      .dropped-component {
+        background: #e3f2fd;
+        padding: 10px;
+        border-radius: 5px;
+        border: 1px solid #2196f3;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .remove-btn {
+        background: #f44336;
+        padding: 5px 10px;
+        font-size: 0.8em;
+      }
+
+      .instructor-notes {
+        background: #e8f5e9;
+        border-radius: 10px;
+        margin-top: 40px;
+        overflow: hidden;
+      }
+
+      .instructor-header {
+        background: #4caf50;
+        color: white;
+        padding: 20px;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .instructor-header:hover {
+        background: #45a049;
+      }
+
+      .instructor-content {
+        padding: 30px;
+        display: none;
+      }
+
+      .instructor-content.active {
+        display: block;
+      }
+
+      .quiz {
+        background: #fff3cd;
+        padding: 20px;
+        border-radius: 8px;
+        margin: 20px 0;
+        border-left: 4px solid #ffc107;
+      }
+
+      .quiz-option {
+        margin: 10px 0;
+        padding: 10px;
+        background: white;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+
+      .quiz-option:hover {
+        background: #fff8e1;
+      }
+
+      .quiz-option input {
+        margin-right: 10px;
+      }
+
+      .output-display {
+        background: #f5f5f5;
+        padding: 15px;
+        border-radius: 5px;
+        margin: 10px 0;
+        font-family: monospace;
+        min-height: 50px;
+      }
+
+      @media (max-width: 768px) {
+        .visual-builder {
+          grid-template-columns: 1fr;
+        }
+
+        header h1 {
+          font-size: 1.8em;
+        }
+
+        .content {
+          padding: 20px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>🎨 SceneBuilder Deep Dive</h1>
+        <p>Visual FXML Design Tool for JavaFX Applications</p>
+      </header>
+
+      <div class="content">
+        <!-- Introduction Section -->
+        <div class="section">
+          <h2>📋 What is SceneBuilder?</h2>
+          <div class="concept">
+            <strong
+              >SceneBuilder is a visual layout tool that lets you design JavaFX
+              GUIs by dragging and dropping components, automatically generating
+              FXML code without writing XML manually.</strong
+            >
+          </div>
+
+          <div class="analogy">
+            Think of SceneBuilder like using Canva or Figma for designing
+            posters—you drag elements visually instead of writing HTML/CSS code.
+            Similarly, SceneBuilder helps you design JavaFX UIs visually instead
+            of writing FXML manually.
+          </div>
+        </div>
+
+        <!-- SceneBuilder Download & Setup Section -->
+        <div class="section">
+          <h2>📥 Download & Install SceneBuilder</h2>
+          <div class="concept">
+            You can download the latest version of
+            <strong>Gluon SceneBuilder</strong> — the official JavaFX
+            SceneBuilder — directly from the Gluon website. After installation,
+            you can integrate it with Eclipse for visual FXML editing.
+          </div>
+
+          <div class="analogy">
+            Think of this step like connecting a visual design studio
+            (SceneBuilder) with your coding workspace (Eclipse) — so you can
+            switch between design and code effortlessly.
+          </div>
+
+          <h3>🔗 Recommended YouTube Tutorial</h3>
+          <p>
+            🎥 Watch this step-by-step guide on downloading, installing, and
+            integrating SceneBuilder with Eclipse:
+          </p>
+
+          <div style="text-align: center; margin-top: 20px">
+            <iframe
+              width="560"
+              height="315"
+              src="https://www.youtube.com/embed/Dbb69NiQHso"
+              title="Create JavaFX Application using Eclipse IDE (2021) and Scene Builder"
+              frameborder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowfullscreen
+            >
+            </iframe>
+          </div>
+
+          <div class="concept" style="margin-top: 20px">
+            <strong>Quick Summary:</strong>
+            <ol style="margin-left: 20px; line-height: 1.8">
+              <li>
+                Download SceneBuilder from
+                <a
+                  href="https://gluonhq.com/products/scene-builder/"
+                  target="_blank"
+                  >GluonHQ official site</a
+                >.
+              </li>
+              <li>Install SceneBuilder like a normal application.</li>
+              <li>
+                In Eclipse: Go to
+                <strong>Window → Help → MarketPlace</strong>. search for
+                "e(fx)clipse" and install the plugin.
+              </li>
+              <li>
+                In Eclipse: Go to
+                <strong>Window → Preferences → JavaFX</strong>.
+              </li>
+              <li>
+                Set the <strong>SceneBuilder executable path</strong> (e.g.,
+                <code>Your path for scene builder exe</code>).
+              </li>
+              <li>
+                Now you can right-click an FXML file and select
+                <strong>Open with SceneBuilder</strong>.
+              </li>
+            </ol>
+          </div>
+        </div>
+
+        <!-- Core Concepts -->
+        <div class="section">
+          <h2>🔑 Core Concepts</h2>
+
+          <h3>1. FXML Files</h3>
+          <div class="concept">
+            FXML is an XML-based markup language for defining JavaFX UI layouts,
+            separating design from logic (like HTML separates structure from
+            JavaScript).
+          </div>
+
+          <div class="interactive-demo">
+            <div class="demo-title">🔧 Interactive: See Code vs Visual</div>
+            <button onclick="toggleView('java')">Show Java Code</button>
+            <button onclick="toggleView('fxml')">Show FXML</button>
+            <button onclick="toggleView('visual')">Show Visual</button>
+
+            <div id="codeDisplay" class="output-display">
+              <em>Click a button above to see different representations</em>
+            </div>
+          </div>
+
+          <h3>2. MVC Architecture with SceneBuilder</h3>
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>Component</th>
+                <th>Role</th>
+                <th>Created By</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>FXML (View)</strong></td>
+                <td>UI layout and structure</td>
+                <td>SceneBuilder</td>
+              </tr>
+              <tr>
+                <td><strong>Controller (Logic)</strong></td>
+                <td>Event handling & business logic</td>
+                <td>Java code (manually)</td>
+              </tr>
+              <tr>
+                <td><strong>Model (Data)</strong></td>
+                <td>Data structures & properties</td>
+                <td>Java classes</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="analogy">
+            In a restaurant: FXML is the menu card design, Controller is the
+            chef who prepares orders, and Model is the ingredients and recipes.
+            SceneBuilder helps you design the menu card without writing text by
+            hand!
+          </div>
+        </div>
+
+        <!-- Visual Builder Demo -->
+        <div class="section">
+          <h2>🎯 Interactive SceneBuilder Simulator</h2>
+          <div class="concept">
+            Drag components from the palette to the canvas to build your UI.
+            This mimics how SceneBuilder works!
+          </div>
+
+          <div class="interactive-demo">
+            <div class="demo-title">🖱️ Try It: Build Your Own Form</div>
+
+            <div class="visual-builder">
+              <div class="builder-panel">
+                <h4>Component Palette</h4>
+                <div class="component-palette">
+                  <div
+                    class="component-item"
+                    draggable="true"
+                    ondragstart="drag(event)"
+                    data-type="Label"
+                  >
+                    📝 Label
+                  </div>
+                  <div
+                    class="component-item"
+                    draggable="true"
+                    ondragstart="drag(event)"
+                    data-type="TextField"
+                  >
+                    ✏️ TextField
+                  </div>
+                  <div
+                    class="component-item"
+                    draggable="true"
+                    ondragstart="drag(event)"
+                    data-type="Button"
+                  >
+                    🔘 Button
+                  </div>
+                  <div
+                    class="component-item"
+                    draggable="true"
+                    ondragstart="drag(event)"
+                    data-type="ComboBox"
+                  >
+                    📋 ComboBox
+                  </div>
+                </div>
+              </div>
+
+              <div class="builder-panel">
+                <h4>Design Canvas</h4>
+                <div
+                  class="drop-zone"
+                  id="dropZone"
+                  ondrop="drop(event)"
+                  ondragover="allowDrop(event)"
+                >
+                  <em style="color: #999"
+                    >Drop components here to build your UI</em
+                  >
+                </div>
+                <button onclick="generateFXML()">Generate FXML Code</button>
+                <button onclick="clearCanvas()" class="remove-btn">
+                  Clear Canvas
+                </button>
+              </div>
+            </div>
+
+            <div
+              id="fxmlOutput"
+              class="output-display"
+              style="display: none"
+            ></div>
+          </div>
+        </div>
+
+        <!-- Working with SceneBuilder -->
+        <div class="section">
+          <h2>🛠️ Working with SceneBuilder</h2>
+
+          <h3>Step 1: Create FXML in SceneBuilder</h3>
+          <pre><code>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+
+&lt;?import javafx.scene.control.*?&gt;
+&lt;?import javafx.scene.layout.*?&gt;
+
+&lt;VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.example.StudentFormController"
+      spacing="10" padding="20"&gt;
+    
+    &lt;Label text="Student Registration Form" 
+           style="-fx-font-size: 18px; -fx-font-weight: bold;"/&gt;
+    
+    &lt;TextField fx:id="nameField" promptText="Enter student name"/&gt;
+    
+    &lt;TextField fx:id="rollNoField" promptText="Enter roll number"/&gt;
+    
+    &lt;Button fx:id="submitBtn" text="Submit" onAction="#handleSubmit"/&gt;
+    
+&lt;/VBox&gt;</code></pre>
+
+          <h3>Step 2: Create Controller Class</h3>
+          <pre><code>package com.example;
+
+import javafx.fxml.FXML;
+import javafx.scene.control.TextField;
+import javafx.scene.control.Button;
+import javafx.event.ActionEvent;
+
+public class StudentFormController {
+    
+    // FXML injected fields (fx:id matches variable name)
+    @FXML
+    private TextField nameField;
+    
+    @FXML
+    private TextField rollNoField;
+    
+    @FXML
+    private Button submitBtn;
+    
+    // Method linked via onAction="#handleSubmit"
+    @FXML
+    private void handleSubmit(ActionEvent event) {
+        String name = nameField.getText();
+        String rollNo = rollNoField.getText();
+        
+        System.out.println("Name: " + name);
+        System.out.println("Roll No: " + rollNo);
+        
+        // Clear fields after submission
+        nameField.clear();
+        rollNoField.clear();
+    }
+    
+    // Optional: initialize method called after FXML loading
+    @FXML
+    private void initialize() {
+        System.out.println("Controller initialized!");
+    }
+}</code></pre>
+
+          <h3>Step 3: Load FXML in Main Application</h3>
+          <pre><code>package com.example;
+
+import javafx.application.Application;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
+
+public class MainApp extends Application {
+    
+    @Override
+    public void start(Stage primaryStage) throws Exception {
+        // Load FXML file
+        FXMLLoader loader = new FXMLLoader(
+            getClass().getResource("StudentForm.fxml")
+        );
+        
+        Parent root = loader.load();
+        
+        // Create scene and show stage
+        Scene scene = new Scene(root, 400, 300);
+        primaryStage.setTitle("Student Registration");
+        primaryStage.setScene(scene);
+        primaryStage.show();
+    }
+    
+    public static void main(String[] args) {
+        launch(args);
+    }
+}</code></pre>
+
+          <div class="interactive-demo">
+            <div class="demo-title">🎮 Simulate Loading FXML</div>
+            <button onclick="simulateFXMLLoad()">
+              Load FXML & Show Output
+            </button>
+            <div id="loadOutput" class="output-display"></div>
+          </div>
+        </div>
+
+        <!-- Key Features -->
+        <div class="section">
+          <h2>⚡ Key SceneBuilder Features</h2>
+
+          <h3>1. fx:id - Linking FXML to Controller</h3>
+          <div class="concept">
+            The <code>fx:id</code> attribute connects FXML elements to Java
+            controller fields using <code>@FXML</code> annotation.
+          </div>
+
+          <div class="analogy">
+            Like Aadhaar numbers linking citizens to government databases,
+            <code>fx:id</code> links UI components to controller
+            variables—unique identifiers for access!
+          </div>
+
+          <pre><code>// In FXML
+&lt;TextField fx:id="emailField" /&gt;
+
+// In Controller
+@FXML
+private TextField emailField;  // Variable name MUST match fx:id</code></pre>
+
+          <h3>2. Event Handling with onAction</h3>
+          <div class="concept">
+            Use <code>onAction="#methodName"</code> in FXML to link button
+            clicks to controller methods.
+          </div>
+
+          <pre><code>// In FXML
+&lt;Button text="Calculate" onAction="#calculateTotal"/&gt;
+
+// In Controller
+@FXML
+private void calculateTotal(ActionEvent event) {
+    // Method name matches onAction value (without #)
+    // ActionEvent parameter is optional
+    System.out.println("Button clicked!");
+}</code></pre>
+
+          <div class="interactive-demo">
+            <div class="demo-title">🔗 Test Event Binding</div>
+            <input
+              type="text"
+              id="testInput"
+              placeholder="Type something..."
+              style="
+                padding: 10px;
+                width: 200px;
+                border-radius: 5px;
+                border: 1px solid #ddd;
+              "
+            />
+            <button onclick="testEventBinding()">Trigger Event</button>
+            <div id="eventOutput" class="output-display"></div>
+          </div>
+
+          <h3>3. CSS Styling in SceneBuilder</h3>
+          <div class="concept">
+            Apply inline styles or external CSS files directly in SceneBuilder's
+            properties panel.
+          </div>
+
+          <pre><code>// Inline style in FXML
+&lt;Button text="Stylish Button" 
+        style="-fx-background-color: #667eea; 
+               -fx-text-fill: white; 
+               -fx-font-size: 16px;"/&gt;
+
+// External stylesheet
+&lt;VBox stylesheets="@styles.css"&gt;
+    &lt;Button styleClass="primary-btn" text="Click Me"/&gt;
+&lt;/VBox&gt;</code></pre>
+        </div>
+
+        <!-- Best Practices -->
+        <div class="section">
+          <h2>✅ Best Practices</h2>
+
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>Practice</th>
+                <th>Why?</th>
+                <th>Example</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Use meaningful fx:id names</td>
+                <td>Improves code readability</td>
+                <td><code>studentNameField</code> not <code>tf1</code></td>
+              </tr>
+              <tr>
+                <td>Separate FXML from logic</td>
+                <td>Maintains MVC architecture</td>
+                <td>Keep business logic in controller, not FXML</td>
+              </tr>
+              <tr>
+                <td>Use CSS for styling</td>
+                <td>Reusable and maintainable</td>
+                <td>External stylesheet over inline styles</td>
+              </tr>
+              <tr>
+                <td>Test controller independently</td>
+                <td>Unit testing becomes easier</td>
+                <td>Mock FXML components in tests</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Common Patterns -->
+        <div class="section">
+          <h2>🎨 Common UI Patterns with SceneBuilder</h2>
+
+          <h3>Pattern 1: Form Validation</h3>
+          <pre><code>@FXML
+private TextField phoneField;
+
+@FXML
+private Label errorLabel;
+
+@FXML
+private void validatePhone(ActionEvent event) {
+    String phone = phoneField.getText();
+    
+    if (phone.matches("\\d{10}")) {
+        errorLabel.setText("✓ Valid phone number");
+        errorLabel.setStyle("-fx-text-fill: green;");
+    } else {
+        errorLabel.setText("✗ Enter 10-digit phone number");
+        errorLabel.setStyle("-fx-text-fill: red;");
+    }
+}</code></pre>
+
+          <h3>Pattern 2: Dynamic List Population</h3>
+          <pre><code>@FXML
+private ComboBox&lt;String&gt; cityComboBox;
+
+@FXML
+private void initialize() {
+    // Populate dropdown with Indian cities
+    cityComboBox.getItems().addAll(
+        "Mumbai", "Delhi", "Bangalore", 
+        "Hyderabad", "Chennai", "Kolkata"
+    );
+    
+    // Set default selection
+    cityComboBox.setValue("Bangalore");
+}</code></pre>
+
+          <h3>Pattern 3: Navigation Between Scenes</h3>
+          <pre><code>@FXML
+private void goToNextPage(ActionEvent event) throws Exception {
+    // Get current stage from event source
+    Stage stage = (Stage)((Node)event.getSource()).getScene().getWindow();
+    
+    // Load new FXML
+    FXMLLoader loader = new FXMLLoader(
+        getClass().getResource("NextPage.fxml")
+    );
+    Parent root = loader.load();
+    
+    // Set new scene
+    Scene scene = new Scene(root);
+    stage.setScene(scene);
+    stage.show();
+}</code></pre>
+
+          <div class="interactive-demo">
+            <div class="demo-title">🚀 Quick Pattern Selector</div>
+            <button onclick="showPattern('validation')">
+              Show Validation Pattern
+            </button>
+            <button onclick="showPattern('list')">Show List Pattern</button>
+            <button onclick="showPattern('navigation')">
+              Show Navigation Pattern
+            </button>
+            <div id="patternOutput" class="output-display"></div>
+          </div>
+        </div>
+
+        <!-- Instructor Notes -->
+        <div class="instructor-notes">
+          <div class="instructor-header" onclick="toggleInstructor()">
+            <h2>🧑‍🏫 Instructor Notes</h2>
+            <span id="instructorToggle">▼</span>
+          </div>
+          <div class="instructor-content" id="instructorContent">
+            <h3>Teaching Tips:</h3>
+            <ol style="margin-left: 20px; line-height: 2">
+              <li>
+                <strong>Live Demo First:</strong> Open SceneBuilder in class and
+                build a simple login form live. Show how dragging a Button
+                automatically generates FXML code. This "aha moment" helps
+                students understand the visual-to-code mapping.
+              </li>
+
+              <li>
+                <strong>Controller Connection Exercise:</strong> Give students a
+                pre-made FXML file and ask them to create the controller class.
+                This reinforces the fx:id → @FXML connection and helps them
+                understand the separation of concerns.
+              </li>
+
+              <li>
+                <strong>Common Mistake Alert:</strong> Students often forget
+                that fx:id names must EXACTLY match controller variable names
+                (case-sensitive). Demonstrate what happens when they don't match
+                (NullPointerException) and how to debug it.
+              </li>
+            </ol>
+
+            <div class="quiz">
+              <h3>📝 Quick Quiz</h3>
+              <p>
+                <strong>Question:</strong> You create a TextField in
+                SceneBuilder with fx:id="emailField". In your controller, you
+                write:
+              </p>
+              <pre
+                style="background: white; color: black; padding: 10px"
+              ><code>@FXML
+private TextField email_Field;</code></pre>
+              <p>What will happen when you run the application?</p>
+
+              <div class="quiz-option">
+                <input type="radio" name="quiz" id="q1" value="a" />
+                <label for="q1"
+                  >A) It works fine, JavaFX auto-maps similar names</label
+                >
+              </div>
+              <div class="quiz-option">
+                <input type="radio" name="quiz" id="q2" value="b" />
+                <label for="q2"
+                  >B) NullPointerException when accessing email_Field</label
+                >
+              </div>
+              <div class="quiz-option">
+                <input type="radio" name="quiz" id="q3" value="c" />
+                <label for="q3">C) Compile-time error</label>
+              </div>
+              <div class="quiz-option">
+                <input type="radio" name="quiz" id="q4" value="d" />
+                <label for="q4">D) FXML fails to load completely</label>
+              </div>
+
+              <button onclick="checkQuiz()" style="margin-top: 15px">
+                Check Answer
+              </button>
+              <div
+                id="quizResult"
+                style="margin-top: 15px; font-weight: bold"
+              ></div>
+            </div>
+
+            <h3>📚 Further Reading:</h3>
+            <ul style="margin-left: 20px; line-height: 2">
+              <li>Official JavaFX SceneBuilder Documentation</li>
+              <li>FXML Reference Guide</li>
+              <li>Advanced Layout Management with FXML</li>
+              <li>CSS Styling in JavaFX Applications</li>
+              <li>Best Practices for MVC Architecture in JavaFX</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Component data tracking
+      let componentCounter = 0;
+      let droppedComponents = [];
+
+      // Toggle between code views
+      function toggleView(view) {
+        const display = document.getElementById("codeDisplay");
+
+        if (view === "java") {
+          display.innerHTML = `<strong>Java Code Approach (Old Way):</strong>
+<pre style="margin:10px 0;">VBox root = new VBox();
+root.setSpacing(10);
+root.setPadding(new Insets(20));
+
+Label label = new Label("Student Name:");
+TextField nameField = new TextField();
+Button submitBtn = new Button("Submit");
+
+root.getChildren().addAll(label, nameField, submitBtn);</pre>
+<em>❌ Mixing UI design with logic, hard to maintain!</em>`;
+        } else if (view === "fxml") {
+          display.innerHTML = `<strong>FXML Approach (SceneBuilder Way):</strong>
+<pre style="margin:10px 0;">&lt;VBox spacing="10" padding="20"&gt;
+    &lt;Label text="Student Name:"/&gt;
+    &lt;TextField fx:id="nameField"/&gt;
+    &lt;Button text="Submit" onAction="#handleSubmit"/&gt;
+&lt;/VBox&gt;</pre>
+<em>✓ Clean separation, visual design in FXML, logic in Controller!</em>`;
+        } else if (view === "visual") {
+          display.innerHTML = `<strong>Visual Representation:</strong>
+<div style="background:white; padding:20px; border:2px solid #ddd; margin:10px 0;">
+    <div style="margin-bottom:10px; font-weight:bold;">Student Name:</div>
+    <input type="text" style="padding:8px; width:100%; margin-bottom:10px; border:1px solid #ccc; border-radius:4px;" placeholder="Enter name">
+    <button style="padding:8px 20px; background:#667eea; color:white; border:none; border-radius:4px; cursor:pointer;">Submit</button>
+</div>
+<em>👆 This is what users see—designed in SceneBuilder, no manual coding!</em>`;
+        }
+      }
+
+      // Drag and drop functionality
+      function allowDrop(ev) {
+        ev.preventDefault();
+        document.getElementById("dropZone").classList.add("drag-over");
+      }
+
+      function drag(ev) {
+        const componentType = ev.target.getAttribute("data-type");
+        ev.dataTransfer.setData("componentType", componentType);
+      }
+
+      function drop(ev) {
+        ev.preventDefault();
+        document.getElementById("dropZone").classList.remove("drag-over");
+
+        const componentType = ev.dataTransfer.getData("componentType");
+        addComponent(componentType);
+      }
+
+      function addComponent(type) {
+        componentCounter++;
+        const id = `${type.toLowerCase()}${componentCounter}`;
+
+        droppedComponents.push({
+          type: type,
+          id: id,
+        });
+
+        const dropZone = document.getElementById("dropZone");
+        const componentDiv = document.createElement("div");
+        componentDiv.className = "dropped-component";
+        componentDiv.innerHTML = `
+                <span><strong>${type}</strong> (fx:id="${id}")</span>
+                <button class="remove-btn" onclick="removeComponent('${id}')">Remove</button>
+            `;
+
+        // Remove placeholder text if exists
+        const placeholder = dropZone.querySelector("em");
+        if (placeholder) placeholder.remove();
+
+        dropZone.appendChild(componentDiv);
+      }
+
+      function removeComponent(id) {
+        droppedComponents = droppedComponents.filter((comp) => comp.id !== id);
+        generateFXML();
+
+        // Rebuild UI
+        const dropZone = document.getElementById("dropZone");
+        dropZone.innerHTML = "";
+
+        if (droppedComponents.length === 0) {
+          dropZone.innerHTML =
+            '<em style="color: #999;">Drop components here to build your UI</em>';
+        } else {
+          droppedComponents.forEach((comp) => {
+            const componentDiv = document.createElement("div");
+            componentDiv.className = "dropped-component";
+            componentDiv.innerHTML = `
+                        <span><strong>${comp.type}</strong> (fx:id="${comp.id}")</span>
+                        <button class="remove-btn" onclick="removeComponent('${comp.id}')">Remove</button>
+                    `;
+            dropZone.appendChild(componentDiv);
+          });
+        }
+      }
+
+      function clearCanvas() {
+        droppedComponents = [];
+        componentCounter = 0;
+        const dropZone = document.getElementById("dropZone");
+        dropZone.innerHTML =
+          '<em style="color: #999;">Drop components here to build your UI</em>';
+        document.getElementById("fxmlOutput").style.display = "none";
+      }
+
+      function generateFXML() {
+        if (droppedComponents.length === 0) {
+          alert("Drop some components first!");
+          return;
+        }
+
+        let fxmlCode = `&lt;?xml version="1.0" encoding="UTF-8"?&gt;\n\n`;
+        fxmlCode += `&lt;?import javafx.scene.control.*?&gt;\n`;
+        fxmlCode += `&lt;?import javafx.scene.layout.*?&gt;\n\n`;
+        fxmlCode += `&lt;VBox xmlns="http://javafx.com/javafx"\n`;
+        fxmlCode += `      xmlns:fx="http://javafx.com/fxml"\n`;
+        fxmlCode += `      fx:controller="com.example.MyController"\n`;
+        fxmlCode += `      spacing="10" padding="20"&gt;\n\n`;
+
+        droppedComponents.forEach((comp) => {
+          const tag = comp.type;
+          fxmlCode += `    &lt;${tag} fx:id="${comp.id}"`;
+
+          if (tag === "Label") {
+            fxmlCode += ` text="Label Text"`;
+          } else if (tag === "TextField") {
+            fxmlCode += ` promptText="Enter text..."`;
+          } else if (tag === "Button") {
+            fxmlCode += ` text="Click Me" onAction="#handleButtonClick"`;
+          } else if (tag === "ComboBox") {
+            fxmlCode += ``;
+          }
+
+          fxmlCode += `/&gt;\n`;
+        });
+
+        fxmlCode += `\n&lt;/VBox&gt;`;
+
+        const output = document.getElementById("fxmlOutput");
+        output.style.display = "block";
+        output.innerHTML = `<strong>✅ Generated FXML Code:</strong><pre style="background:#2d2d2d; color:#f8f8f2; padding:15px; border-radius:5px; margin-top:10px;">${fxmlCode}</pre>`;
+      }
+
+      // Simulate FXML loading
+      function simulateFXMLLoad() {
+        const output = document.getElementById("loadOutput");
+        output.innerHTML = `<strong>📂 Loading StudentForm.fxml...</strong><br><br>`;
+
+        setTimeout(() => {
+          output.innerHTML += `✓ FXML parsed successfully<br>`;
+        }, 500);
+
+        setTimeout(() => {
+          output.innerHTML += `✓ Controller "StudentFormController" instantiated<br>`;
+        }, 1000);
+
+        setTimeout(() => {
+          output.innerHTML += `✓ @FXML fields injected: nameField, rollNoField, submitBtn<br>`;
+        }, 1500);
+
+        setTimeout(() => {
+          output.innerHTML += `✓ initialize() method called<br>`;
+        }, 2000);
+
+        setTimeout(() => {
+          output.innerHTML += `<br><strong style="color:#4caf50;">✅ Scene loaded and displayed!</strong>`;
+        }, 2500);
+      }
+
+      // Test event binding
+      function testEventBinding() {
+        const input = document.getElementById("testInput");
+        const output = document.getElementById("eventOutput");
+
+        if (input.value.trim() === "") {
+          output.innerHTML =
+            '<span style="color:#f44336;">❌ Please type something first!</span>';
+          return;
+        }
+
+        output.innerHTML = `<strong>Event Flow:</strong><br><br>`;
+        output.innerHTML += `1️⃣ User typed: "${input.value}"<br>`;
+        output.innerHTML += `2️⃣ Button clicked → onAction="#testMethod" triggered<br>`;
+        output.innerHTML += `3️⃣ Controller method executed:<br>`;
+        output.innerHTML += `<pre style="background:#2d2d2d; color:#4caf50; padding:10px; margin:5px 0; border-radius:5px;">@FXML
+private void testMethod(ActionEvent event) {
+    String text = testInput.getText();
+    System.out.println("Input: " + text);
+    // Output: Input: ${input.value}
+}</pre>`;
+        output.innerHTML += `<strong style="color:#4caf50;">✓ Event handling complete!</strong>`;
+      }
+
+      // Pattern selector
+      function showPattern(patternType) {
+        const output = document.getElementById("patternOutput");
+
+        if (patternType === "validation") {
+          output.innerHTML = `<strong>📝 Form Validation Pattern:</strong>
+<pre style="background:#2d2d2d; color:#f8f8f2; padding:15px; border-radius:5px; margin-top:10px;">// FXML: Add error label
+&lt;TextField fx:id="emailField"/&gt;
+&lt;Label fx:id="errorLabel" style="-fx-text-fill: red;"/&gt;
+
+// Controller: Validate on button click
+@FXML
+private void validateEmail() {
+    String email = emailField.getText();
+    String emailRegex = "^[A-Za-z0-9+_.-]+@(.+)$";
+    
+    if (email.matches(emailRegex)) {
+        errorLabel.setText("✓ Valid email");
+        errorLabel.setStyle("-fx-text-fill: green;");
+    } else {
+        errorLabel.setText("✗ Invalid email format");
+        errorLabel.setStyle("-fx-text-fill: red;");
+    }
+}</pre>
+<strong>💡 Use Case:</strong> Registration forms, login pages, data entry applications`;
+        } else if (patternType === "list") {
+          output.innerHTML = `<strong>📋 Dynamic List Population:</strong>
+<pre style="background:#2d2d2d; color:#f8f8f2; padding:15px; border-radius:5px; margin-top:10px;">// FXML: Create ComboBox
+&lt;ComboBox fx:id="stateComboBox"/&gt;
+
+// Controller: Populate in initialize()
+@FXML
+private ComboBox&lt;String&gt; stateComboBox;
+
+@FXML
+private void initialize() {
+    // Add Indian states
+    ObservableList&lt;String&gt; states = FXCollections.observableArrayList(
+        "Andhra Pradesh", "Karnataka", "Tamil Nadu",
+        "Maharashtra", "Gujarat", "West Bengal"
+    );
+    stateComboBox.setItems(states);
+    
+    // Listen for selection changes
+    stateComboBox.setOnAction(e -> {
+        String selected = stateComboBox.getValue();
+        System.out.println("Selected: " + selected);
+    });
+}</pre>
+<strong>💡 Use Case:</strong> Dropdowns, filtering, category selection`;
+        } else if (patternType === "navigation") {
+          output.innerHTML = `<strong>🚀 Scene Navigation Pattern:</strong>
+<pre style="background:#2d2d2d; color:#f8f8f2; padding:15px; border-radius:5px; margin-top:10px;">// FXML: Button with navigation
+&lt;Button text="Go to Dashboard" onAction="#goToDashboard"/&gt;
+
+// Controller: Navigate to another scene
+@FXML
+private void goToDashboard(ActionEvent event) {
+    try {
+        // Get current stage
+        Stage stage = (Stage)((Node)event.getSource())
+                      .getScene().getWindow();
+        
+        // Load new FXML
+        FXMLLoader loader = new FXMLLoader(
+            getClass().getResource("Dashboard.fxml")
+        );
+        Parent root = loader.load();
+        
+        // Optional: Pass data to next controller
+        DashboardController controller = loader.getController();
+        controller.setUserData(userData);
+        
+        // Switch scene
+        Scene scene = new Scene(root, 800, 600);
+        stage.setScene(scene);
+        stage.show();
+        
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+}</pre>
+<strong>💡 Use Case:</strong> Multi-page apps, wizards, menu navigation`;
+        }
+      }
+
+      // Toggle instructor notes
+      function toggleInstructor() {
+        const content = document.getElementById("instructorContent");
+        const toggle = document.getElementById("instructorToggle");
+
+        if (content.classList.contains("active")) {
+          content.classList.remove("active");
+          toggle.textContent = "▼";
+        } else {
+          content.classList.add("active");
+          toggle.textContent = "▲";
+        }
+      }
+
+      // Quiz checker
+      function checkQuiz() {
+        const selected = document.querySelector('input[name="quiz"]:checked');
+        const result = document.getElementById("quizResult");
+
+        if (!selected) {
+          result.innerHTML =
+            '<span style="color:#ff9800;">⚠️ Please select an answer first!</span>';
+          return;
+        }
+
+        if (selected.value === "b") {
+          result.innerHTML =
+            '<span style="color:#4caf50;">✅ Correct!</span><br><br>' +
+            '<strong>Explanation:</strong> The fx:id "emailField" must EXACTLY match the controller variable name. ' +
+            'Since you wrote "email_Field" (with underscore), JavaFX cannot inject the TextField. ' +
+            "When you try to use email_Field.getText(), it's null, causing NullPointerException.<br><br>" +
+            "<strong>Fix:</strong> Change variable to <code>private TextField emailField;</code>";
+        } else {
+          result.innerHTML =
+            '<span style="color:#f44336;">❌ Incorrect.</span><br><br>' +
+            "<strong>Hint:</strong> Think about what happens when JavaFX tries to inject @FXML fields but can't find a matching fx:id. " +
+            "The field remains null. What happens when you call methods on null?";
+        }
+      }
+
+      // Prevent drag/drop issues
+      document.addEventListener("dragover", function (e) {
+        const dropZone = document.getElementById("dropZone");
+        if (e.target !== dropZone && !dropZone.contains(e.target)) {
+          e.dataTransfer.effectAllowed = "none";
+          e.dataTransfer.dropEffect = "none";
+        }
+      });
+
+      document.addEventListener("drop", function (e) {
+        const dropZone = document.getElementById("dropZone");
+        if (e.target !== dropZone && !dropZone.contains(e.target)) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authentication Endpoints Deep Dive - Node.js & Express</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .section {
+            margin-bottom: 50px;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 5px solid #667eea;
+        }
+        
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.8em;
+        }
+        
+        .section h3 {
+            color: #764ba2;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            font-size: 1.4em;
+        }
+        
+        .analogy {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        
+        .analogy strong {
+            color: #ff6b6b;
+            font-size: 1.1em;
+        }
+        
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        code {
+            font-family: 'Courier New', monospace;
+        }
+        
+        .interactive-demo {
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+        
+        .demo-title {
+            color: #667eea;
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+        
+        .input-group {
+            margin: 15px 0;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: transform 0.2s;
+            margin: 10px 5px 10px 0;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .output {
+            background: #f8f9fa;
+            border: 2px solid #28a745;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 15px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .output.error {
+            border-color: #dc3545;
+            background: #f8d7da;
+        }
+        
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+        }
+        
+        .comparison-table th {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            text-align: left;
+        }
+        
+        .comparison-table td {
+            padding: 15px;
+            border: 1px solid #ddd;
+        }
+        
+        .comparison-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        .highlight {
+            background: #d4edda;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        
+        .instructor-notes {
+            background: #e7f3ff;
+            border: 2px solid #2196F3;
+            border-radius: 10px;
+            padding: 25px;
+            margin-top: 40px;
+        }
+        
+        .instructor-notes h2 {
+            color: #2196F3;
+            margin-bottom: 20px;
+        }
+        
+        .collapsible {
+            cursor: pointer;
+            padding: 15px;
+            background: #2196F3;
+            color: white;
+            border: none;
+            text-align: left;
+            width: 100%;
+            font-size: 1.2em;
+            font-weight: bold;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        
+        .collapsible:hover {
+            background: #1976D2;
+        }
+        
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        
+        .collapsible-content.active {
+            max-height: 2000px;
+        }
+        
+        .quiz {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .quiz-option {
+            padding: 10px;
+            margin: 10px 0;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .quiz-option:hover {
+            background: #f0f0f0;
+            border-color: #667eea;
+        }
+        
+        .quiz-option.correct {
+            background: #d4edda;
+            border-color: #28a745;
+        }
+        
+        .quiz-option.incorrect {
+            background: #f8d7da;
+            border-color: #dc3545;
+        }
+        
+        .request-flow {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        
+        .flow-box {
+            background: white;
+            border: 2px solid #667eea;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            min-width: 150px;
+            margin: 10px;
+        }
+        
+        .flow-arrow {
+            font-size: 2em;
+            color: #667eea;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 5px 10px;
+            background: #667eea;
+            color: white;
+            border-radius: 15px;
+            font-size: 0.85em;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔐 Authentication Endpoints Deep Dive</h1>
+            <p>Node.js & Express - Login & Registration Implementation</p>
+        </header>
+        
+        <div class="content">
+            <!-- Section 1: Registration Endpoint -->
+            <div class="section">
+                <h2>1️⃣ Registration Endpoint (/register)</h2>
+                <p><strong>Concept:</strong> The registration endpoint creates a new user account by validating input, hashing the password, and storing user credentials in the database.</p>
+                
+                <div class="analogy">
+                    <strong>💡 Analogy:</strong> Think of registration like opening a new bank account at SBI. You provide your details (PAN, Aadhaar, phone), the bank validates them, creates a unique account number, and stores your information securely in their system. You can't open multiple accounts with the same PAN card!
+                </div>
+                
+                <h3>📋 Key Steps in Registration Flow</h3>
+                <div class="request-flow">
+                    <div class="flow-box">
+                        <strong>1. Request</strong><br>
+                        POST /register<br>
+                        {email, password}
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-box">
+                        <strong>2. Validate</strong><br>
+                        Check email format<br>
+                        Check if user exists
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-box">
+                        <strong>3. Hash</strong><br>
+                        bcrypt.hash()<br>
+                        Generate salt
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-box">
+                        <strong>4. Store</strong><br>
+                        Save to DB<br>
+                        Return success
+                    </div>
+                </div>
+                
+                <h3>💻 Complete Registration Endpoint Code</h3>
+<pre><code>// Import required modules
+const express = require('express');
+const bcrypt = require('bcrypt');
+const router = express.Router();
+
+// User Model (example with MongoDB/Mongoose)
+const User = require('../models/User');
+
+// POST /api/auth/register
+router.post('/register', async (req, res) => {
+    try {
+        // 1. Extract data from request body
+        const { name, email, password, phone } = req.body;
+        
+        // 2. Validate input
+        if (!name || !email || !password) {
+            return res.status(400).json({
+                success: false,
+                message: 'Please provide all required fields'
+            });
+        }
+        
+        // 3. Email format validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid email format'
+            });
+        }
+        
+        // 4. Password strength validation
+        if (password.length < 6) {
+            return res.status(400).json({
+                success: false,
+                message: 'Password must be at least 6 characters long'
+            });
+        }
+        
+        // 5. Check if user already exists
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(409).json({
+                success: false,
+                message: 'User already exists with this email'
+            });
+        }
+        
+        // 6. Hash the password (10 salt rounds)
+        const saltRounds = 10;
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
+        
+        // 7. Create new user object
+        const newUser = new User({
+            name,
+            email,
+            password: hashedPassword,
+            phone: phone || '',
+            createdAt: new Date()
+        });
+        
+        // 8. Save user to database
+        await newUser.save();
+        
+        // 9. Send success response (don't send password back!)
+        res.status(201).json({
+            success: true,
+            message: 'User registered successfully',
+            user: {
+                id: newUser._id,
+                name: newUser.name,
+                email: newUser.email
+            }
+        });
+        
+    } catch (error) {
+        console.error('Registration error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error during registration'
+        });
+    }
+});
+
+module.exports = router;</code></pre>
+
+                <h3>🎮 Interactive Registration Demo</h3>
+                <div class="interactive-demo">
+                    <div class="demo-title">Simulate Registration Request</div>
+                    
+                    <div class="input-group">
+                        <label>Name:</label>
+                        <input type="text" id="regName" placeholder="Rahul Kumar" />
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Email:</label>
+                        <input type="email" id="regEmail" placeholder="rahul.kumar@example.com" />
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Password:</label>
+                        <input type="password" id="regPassword" placeholder="Enter password" />
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Phone (optional):</label>
+                        <input type="tel" id="regPhone" placeholder="+91 98765 43210" />
+                    </div>
+                    
+                    <button onclick="simulateRegistration()">🚀 Register User</button>
+                    <button onclick="clearRegistration()">🔄 Clear</button>
+                    
+                    <div id="regOutput"></div>
+                </div>
+                
+                <h3>⚠️ Common Mistakes to Avoid</h3>
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>❌ Wrong Approach</th>
+                            <th>✅ Correct Approach</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Storing plain text passwords</td>
+                            <td>Always hash passwords with bcrypt</td>
+                        </tr>
+                        <tr>
+                            <td>Not checking if user exists</td>
+                            <td>Check for duplicate email before creating</td>
+                        </tr>
+                        <tr>
+                            <td>Returning password in response</td>
+                            <td>Never send password back to client</td>
+                        </tr>
+                        <tr>
+                            <td>Generic error messages</td>
+                            <td>Specific validation error messages</td>
+                        </tr>
+                        <tr>
+                            <td>No input validation</td>
+                            <td>Validate email format, password strength</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Section 2: Login Endpoint -->
+            <div class="section">
+                <h2>2️⃣ Login Endpoint (/login)</h2>
+                <p><strong>Concept:</strong> The login endpoint authenticates users by verifying credentials, comparing hashed passwords, and generating JWT tokens for session management.</p>
+                
+                <div class="analogy">
+                    <strong>💡 Analogy:</strong> Login is like using your ATM card. You insert your card (email) and enter your PIN (password). The bank verifies your PIN by comparing it with their secure records. If correct, they give you a session token (the ATM displays your options), allowing you to perform transactions. If wrong, access is denied after 3 attempts!
+                </div>
+                
+                <h3>📋 Key Steps in Login Flow</h3>
+                <div class="request-flow">
+                    <div class="flow-box">
+                        <strong>1. Request</strong><br>
+                        POST /login<br>
+                        {email, password}
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-box">
+                        <strong>2. Find User</strong><br>
+                        Query DB<br>
+                        by email
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-box">
+                        <strong>3. Compare</strong><br>
+                        bcrypt.compare()<br>
+                        Verify password
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-box">
+                        <strong>4. Generate JWT</strong><br>
+                        Create token<br>
+                        Return to client
+                    </div>
+                </div>
+                
+                <h3>💻 Complete Login Endpoint Code</h3>
+<pre><code>// Import required modules
+const express = require('express');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const router = express.Router();
+
+// User Model
+const User = require('../models/User');
+
+// POST /api/auth/login
+router.post('/login', async (req, res) => {
+    try {
+        // 1. Extract credentials from request
+        const { email, password } = req.body;
+        
+        // 2. Validate input
+        if (!email || !password) {
+            return res.status(400).json({
+                success: false,
+                message: 'Please provide email and password'
+            });
+        }
+        
+        // 3. Find user by email
+        const user = await User.findOne({ email });
+        
+        // 4. Check if user exists
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: 'Invalid email or password'
+            });
+        }
+        
+        // 5. Compare password with hashed password
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        
+        // 6. Check password validity
+        if (!isPasswordValid) {
+            return res.status(401).json({
+                success: false,
+                message: 'Invalid email or password'
+            });
+        }
+        
+        // 7. Generate JWT token
+        const payload = {
+            userId: user._id,
+            email: user.email,
+            name: user.name
+        };
+        
+        const token = jwt.sign(
+            payload,
+            process.env.JWT_SECRET,  // Store in environment variable
+            { expiresIn: '24h' }      // Token expires in 24 hours
+        );
+        
+        // 8. Update last login timestamp (optional)
+        user.lastLogin = new Date();
+        await user.save();
+        
+        // 9. Send success response with token
+        res.status(200).json({
+            success: true,
+            message: 'Login successful',
+            token: token,
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email
+            }
+        });
+        
+    } catch (error) {
+        console.error('Login error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error during login'
+        });
+    }
+});
+
+module.exports = router;</code></pre>
+
+                <h3>🎮 Interactive Login Demo</h3>
+                <div class="interactive-demo">
+                    <div class="demo-title">Simulate Login Request</div>
+                    
+                    <div class="input-group">
+                        <label>Email:</label>
+                        <input type="email" id="loginEmail" placeholder="rahul.kumar@example.com" />
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Password:</label>
+                        <input type="password" id="loginPassword" placeholder="Enter password" />
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Simulate Scenario:</label>
+                        <select id="loginScenario">
+                            <option value="success">✅ Valid Credentials</option>
+                            <option value="wrong-password">❌ Wrong Password</option>
+                            <option value="user-not-found">❌ User Not Found</option>
+                            <option value="empty-fields">❌ Empty Fields</option>
+                        </select>
+                    </div>
+                    
+                    <button onclick="simulateLogin()">🔑 Login</button>
+                    <button onclick="clearLogin()">🔄 Clear</button>
+                    
+                    <div id="loginOutput"></div>
+                </div>
+                
+                <h3>🔒 Security Best Practices</h3>
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Security Aspect</th>
+                            <th>Implementation</th>
+                            <th>Why It Matters</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="badge">bcrypt.compare()</span></td>
+                            <td>Never decrypt password; always compare hashes</td>
+                            <td>Prevents password exposure if database is compromised</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge">Generic Error Messages</span></td>
+                            <td>"Invalid email or password" (don't reveal which is wrong)</td>
+                            <td>Prevents username enumeration attacks</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge">JWT Secret</span></td>
+                            <td>Store in environment variables, never hardcode</td>
+                            <td>Prevents token forgery</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge">Token Expiry</span></td>
+                            <td>Set reasonable expiration time (1-24 hours)</td>
+                            <td>Limits damage if token is stolen</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge">HTTPS Only</span></td>
+                            <td>Always use HTTPS in production</td>
+                            <td>Prevents man-in-the-middle attacks</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Section 3: Request-Response Comparison -->
+            <div class="section">
+                <h2>3️⃣ Registration vs Login: Side-by-Side Comparison</h2>
+                
+                <div class="analogy">
+                    <strong>💡 Analogy:</strong> Registration is like getting a new Aadhaar card (you provide details, they verify, create a unique ID, and store your info). Login is like using your Aadhaar to verify your identity at a government office (they check your number and biometrics match their records, then grant you access).
+                </div>
+                
+                <h3>📊 Key Differences</h3>
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Aspect</th>
+                            <th>Registration Endpoint</th>
+                            <th>Login Endpoint</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Purpose</strong></td>
+                            <td>Create new user account</td>
+                            <td>Authenticate existing user</td>
+                        </tr>
+                        <tr>
+                            <td><strong>HTTP Method</strong></td>
+                            <td>POST</td>
+                            <td>POST</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Route</strong></td>
+                            <td>/api/auth/register</td>
+                            <td>/api/auth/login</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Input Data</strong></td>
+                            <td>name, email, password, phone (more fields)</td>
+                            <td>email, password (minimal fields)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Password Handling</strong></td>
+                            <td><span class="highlight">bcrypt.hash()</span> - Create hash</td>
+                            <td><span class="highlight">bcrypt.compare()</span> - Verify hash</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Database Operation</strong></td>
+                            <td>INSERT new user record</td>
+                            <td>SELECT user by email</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Success Status</strong></td>
+                            <td>201 Created</td>
+                            <td>200 OK</td>
+                        </tr>
+                        <tr>
+                            <td><strong>JWT Token</strong></td>
+                            <td>Optional (can auto-login after registration)</td>
+                            <td>Required (sent in response)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Error Cases</strong></td>
+                            <td>User already exists (409), Invalid input (400)</td>
+                            <td>Invalid credentials (401), User not found (401)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Response Data</strong></td>
+                            <td>User info (id, name, email)</td>
+                            <td>JWT token + User info</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <h3>🎮 Interactive Comparison Demo</h3>
+                <div class="interactive-demo">
+                    <div class="demo-title">Compare Request/Response Structures</div>
+                    
+                    <button onclick="showRegistrationStructure()">📝 Show Registration Structure</button>
+                    <button onclick="showLoginStructure()">🔑 Show Login Structure</button>
+                    <button onclick="showBothStructures()">📊 Show Both Side-by-Side</button>
+                    
+                    <div id="comparisonOutput"></div>
+                </div>
+            </div>
+            
+            <!-- Section 4: Complete Express App Setup -->
+            <div class="section">
+                <h2>4️⃣ Complete Express App Setup</h2>
+                <p><strong>Concept:</strong> A complete authentication system requires proper project structure, middleware configuration, and database connection.</p>
+                
+                <h3>📁 Project Structure</h3>
+<pre><code>project-root/
+│
+├── server.js                 # Main entry point
+├── .env                      # Environment variables
+├── package.json              # Dependencies
+│
+├── routes/
+│   └── auth.js              # Authentication routes
+│
+├── models/
+│   └── User.js              # User schema/model
+│
+├── middleware/
+│   └── authMiddleware.js    # JWT verification middleware
+│
+└── config/
+    └── db.js                # Database connection</code></pre>
+
+                <h3>💻 Main Server File (server.js)</h3>
+<pre><code>const express = require('express');
+const mongoose = require('mongoose');
+require('dotenv').config();
+
+// Import routes
+const authRoutes = require('./routes/auth');
+
+// Initialize Express app
+const app = express();
+
+// Middleware
+app.use(express.json());  // Parse JSON request bodies
+app.use(express.urlencoded({ extended: true }));  // Parse URL-encoded data
+
+// CORS (if frontend is on different domain)
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    next();
+});
+
+// Database connection
+mongoose.connect(process.env.MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+})
+.then(() => console.log('✅ Connected to MongoDB'))
+.catch(err => console.error('❌ MongoDB connection error:', err));
+
+// Routes
+app.use('/api/auth', authRoutes);
+
+// Root route
+app.get('/', (req, res) => {
+    res.json({ message: 'Authentication API is running!' });
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({
+        success: false,
+        message: 'Something went wrong!'
+    });
+});
+
+// Start server
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+});</code></pre>
+
+                <h3>💾 User Model (models/User.js)</h3>
+<pre><code>const mongoose = require('mongoose');
+
+const userSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: [true, 'Name is required'],
+        trim: true,
+        minlength: 2,
+        maxlength: 50
+    },
+    email: {
+        type: String,
+        required: [true, 'Email is required'],
+        unique: true,
+        lowercase: true,
+        trim: true,
+        match: [/^\S+@\S+\.\S+$/, 'Please enter a valid email']
+    },
+    password: {
+        type: String,
+        required: [true, 'Password is required'],
+        minlength: 6
+    },
+    phone: {
+        type: String,
+        default: ''
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
+    },
+    lastLogin: {
+        type: Date
+    }
+});
+
+module.exports = mongoose.model('User', userSchema);</code></pre>
+
+                <h3>🔐 Environment Variables (.env)</h3>
+<pre><code># .env file - NEVER commit this to Git!
+
+# MongoDB connection
+MONGODB_URI=mongodb://localhost:27017/auth_demo
+
+# JWT Secret (use a strong random string in production)
+JWT_SECRET=your_super_secret_key_here_min_32_chars
+
+# Server Port
+PORT=5000
+
+# Node Environment
+NODE_ENV=development

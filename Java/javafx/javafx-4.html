@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaFX Properties & Binding - Deep Dive</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 50px;
+            border-left: 5px solid #667eea;
+            padding-left: 25px;
+        }
+
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.8em;
+        }
+
+        .concept {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #764ba2;
+        }
+
+        .analogy {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #ffc107;
+        }
+
+        .analogy::before {
+            content: "💡 Analogy: ";
+            font-weight: bold;
+            color: #856404;
+        }
+
+        .demo-box {
+            background: #e3f2fd;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 2px solid #667eea;
+        }
+
+        .demo-box h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+
+        code {
+            font-family: 'Courier New', monospace;
+        }
+
+        .interactive-demo {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        input[type="text"], input[type="number"] {
+            padding: 10px;
+            border: 2px solid #667eea;
+            border-radius: 5px;
+            font-size: 1em;
+            width: 200px;
+            margin: 5px;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            margin: 5px;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #764ba2;
+        }
+
+        .output {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+            font-family: monospace;
+            min-height: 40px;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .comparison-table th, .comparison-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+
+        .comparison-table th {
+            background: #667eea;
+            color: white;
+        }
+
+        .comparison-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .instructor-notes {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 40px;
+        }
+
+        .instructor-notes h3 {
+            color: #155724;
+            margin-bottom: 15px;
+        }
+
+        details {
+            margin: 10px 0;
+        }
+
+        summary {
+            cursor: pointer;
+            font-weight: bold;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            user-select: none;
+        }
+
+        summary:hover {
+            background: #e9ecef;
+        }
+
+        .quiz {
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .quiz-option {
+            padding: 10px;
+            margin: 8px 0;
+            background: #f8f9fa;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .quiz-option:hover {
+            background: #e9ecef;
+        }
+
+        .correct {
+            background: #d4edda !important;
+            border-left: 4px solid #28a745;
+        }
+
+        .incorrect {
+            background: #f8d7da !important;
+            border-left: 4px solid #dc3545;
+        }
+
+        .binding-visual {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .binding-box {
+            background: white;
+            border: 3px solid #667eea;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 10px;
+            min-width: 150px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .arrow {
+            font-size: 2em;
+            color: #667eea;
+            margin: 0 10px;
+        }
+
+        .highlight {
+            background: #fff3cd;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔗 JavaFX Properties & Binding</h1>
+            <p>Deep Dive into Observable Properties and Binding Mechanisms</p>
+        </header>
+
+        <div class="content">
+            <!-- Introduction -->
+            <div class="section">
+                <h2>📚 What Are Properties?</h2>
+                <div class="concept">
+                    <p><strong>Properties</strong> are observable wrappers around values that notify listeners when the value changes. They're the foundation of JavaFX's reactive programming model.</p>
+                </div>
+
+                <div class="analogy">
+                    Think of a property like a <strong>WhatsApp group notification</strong>. When someone (the property) posts a message (changes value), all group members (listeners) get notified automatically. You don't need to keep checking the group manually!
+                </div>
+
+                <pre><code>// Traditional Java variable - No notification
+private String name = "Rahul";
+
+// JavaFX Property - Automatic notification
+private StringProperty name = new SimpleStringProperty("Rahul");
+
+// Anyone interested gets notified when name changes!
+name.addListener((observable, oldValue, newValue) -> {
+    System.out.println("Name changed from " + oldValue + " to " + newValue);
+});</code></pre>
+            </div>
+
+            <!-- Property Types -->
+            <div class="section">
+                <h2>🎯 Property Types in JavaFX</h2>
+                
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Property Type</th>
+                            <th>Java Type</th>
+                            <th>Example Use Case</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>SimpleStringProperty</strong></td>
+                            <td>String</td>
+                            <td>TextField text, Labels</td>
+                        </tr>
+                        <tr>
+                            <td><strong>SimpleIntegerProperty</strong></td>
+                            <td>int</td>
+                            <td>Counters, ages, scores</td>
+                        </tr>
+                        <tr>
+                            <td><strong>SimpleDoubleProperty</strong></td>
+                            <td>double</td>
+                            <td>Prices, percentages</td>
+                        </tr>
+                        <tr>
+                            <td><strong>SimpleBooleanProperty</strong></td>
+                            <td>boolean</td>
+                            <td>CheckBox state, visibility</td>
+                        </tr>
+                        <tr>
+                            <td><strong>SimpleObjectProperty&lt;T&gt;</strong></td>
+                            <td>Any Object</td>
+                            <td>Custom objects, LocalDate</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <pre><code>// Property declarations with Indian context
+private StringProperty studentName = new SimpleStringProperty("Priya Sharma");
+private IntegerProperty marks = new SimpleIntegerProperty(85);
+private DoubleProperty fees = new SimpleDoubleProperty(50000.00);
+private BooleanProperty isPresent = new SimpleBooleanProperty(true);
+private ObjectProperty&lt;LocalDate&gt; admissionDate = 
+    new SimpleObjectProperty&lt;&gt;(LocalDate.now());</code></pre>
+            </div>
+
+            <!-- Interactive Demo 1: Property Listeners -->
+            <div class="section">
+                <h2>🎪 Interactive Demo 1: Property Listeners</h2>
+                
+                <div class="demo-box">
+                    <h3>Simulate Property Change Notifications</h3>
+                    <p>Type in the text field below and see how listeners get notified automatically!</p>
+                    
+                    <div class="interactive-demo">
+                        <label><strong>Student Name:</strong></label><br>
+                        <input type="text" id="studentNameInput" placeholder="Enter student name" value="Rahul Kumar">
+                        
+                        <div class="output" id="listenerOutput">
+                            Waiting for changes...
+                        </div>
+                    </div>
+                </div>
+
+                <pre><code>// JavaFX Code for the above demo
+StringProperty studentName = new SimpleStringProperty("Rahul Kumar");
+
+// Listener 1: Change Listener (gets old and new values)
+studentName.addListener((observable, oldValue, newValue) -> {
+    System.out.println("Changed from: " + oldValue + " to: " + newValue);
+});
+
+// Listener 2: Invalidation Listener (just notified of change)
+studentName.addListener(observable -> {
+    System.out.println("Property was invalidated!");
+});
+
+// When you type, all listeners get notified automatically!</code></pre>
+            </div>
+
+            <!-- Binding Concept -->
+            <div class="section">
+                <h2>🔗 What is Binding?</h2>
+                
+                <div class="concept">
+                    <p><strong>Binding</strong> creates a dependency between properties where one property automatically updates when another changes. It's a unidirectional or bidirectional relationship.</p>
+                </div>
+
+                <div class="analogy">
+                    Imagine a <strong>train coach connection</strong>. When the engine (source property) moves, all connected coaches (bound properties) move automatically. You don't need to manually push each coach - the binding does it for you!
+                </div>
+
+                <div class="binding-visual">
+                    <div class="binding-box">
+                        <strong>Source Property</strong><br>
+                        <span style="color: #667eea;">temperature (°C)</span>
+                    </div>
+                    <div class="arrow">→</div>
+                    <div class="binding-box">
+                        <strong>Bound Property</strong><br>
+                        <span style="color: #764ba2;">message</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Unidirectional Binding -->
+            <div class="section">
+                <h2>➡️ Unidirectional Binding</h2>
+                
+                <div class="concept">
+                    <p>Property B automatically updates when Property A changes, but not vice versa.</p>
+                </div>
+
+                <div class="demo-box">
+                    <h3>Interactive Demo 2: Temperature to Message Binding</h3>
+                    <p>Change the temperature and watch the message update automatically!</p>
+                    
+                    <div class="interactive-demo">
+                        <label><strong>Temperature (°C):</strong></label><br>
+                        <input type="number" id="tempInput" value="25" min="-50" max="50">
+                        
+                        <div class="output" id="tempOutput">
+                            Current Message: Pleasant weather!
+                        </div>
+                    </div>
+                </div>
+
+                <pre><code>// Unidirectional Binding Example
+IntegerProperty temperature = new SimpleIntegerProperty(25);
+StringProperty weatherMessage = new SimpleStringProperty();
+
+// Bind message to temperature using conditional logic
+weatherMessage.bind(
+    Bindings.when(temperature.lessThan(15))
+        .then("ठंड है! (It's cold!)")
+        .otherwise(
+            Bindings.when(temperature.greaterThan(35))
+                .then("गर्मी है! (It's hot!)")
+                .otherwise("Pleasant weather!")
+        )
+);
+
+// Now whenever temperature changes, weatherMessage updates automatically!
+temperature.set(40); // weatherMessage becomes "गर्मी है! (It's hot!)"</code></pre>
+            </div>
+
+            <!-- Bidirectional Binding -->
+            <div class="section">
+                <h2>↔️ Bidirectional Binding</h2>
+                
+                <div class="concept">
+                    <p>Two properties stay synchronized - changing either one updates the other automatically.</p>
+                </div>
+
+                <div class="analogy">
+                    Like <strong>Google Docs collaboration</strong>. When you edit in your browser, your friend sees the changes in their browser, and vice versa. Both sides stay perfectly synchronized!
+                </div>
+
+                <div class="demo-box">
+                    <h3>Interactive Demo 3: Bidirectional Text Sync</h3>
+                    <p>Type in either field - both stay synchronized!</p>
+                    
+                    <div class="interactive-demo">
+                        <label><strong>TextField 1:</strong></label><br>
+                        <input type="text" id="biField1" placeholder="Type here..." value="Mumbai">
+                        <br><br>
+                        <label><strong>TextField 2:</strong></label><br>
+                        <input type="text" id="biField2" placeholder="Or here..." value="Mumbai">
+                    </div>
+                </div>
+
+                <pre><code>// Bidirectional Binding Example
+TextField field1 = new TextField("Mumbai");
+TextField field2 = new TextField();
+
+// Bind bidirectionally - changes in either field update the other
+field1.textProperty().bindBidirectional(field2.textProperty());
+
+// Now typing in field1 updates field2, and vice versa!
+// Common use: Syncing display name with username field</code></pre>
+            </div>
+
+            <!-- High-level vs Low-level Binding -->
+            <div class="section">
+                <h2>🎨 Binding API Types</h2>
+
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Binding Type</th>
+                            <th>When to Use</th>
+                            <th>Example</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>High-level (Fluent API)</strong></td>
+                            <td>Simple expressions, built-in operations</td>
+                            <td>total.bind(price.multiply(quantity))</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Low-level (Custom Binding)</strong></td>
+                            <td>Complex logic, multiple properties</td>
+                            <td>Extending ObjectBinding class</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="demo-box">
+                    <h3>Interactive Demo 4: Shopping Cart Total (High-level Binding)</h3>
+                    <p>Change price or quantity - total updates automatically!</p>
+                    
+                    <div class="interactive-demo">
+                        <label><strong>Price (₹):</strong></label>
+                        <input type="number" id="priceInput" value="500" min="0">
+                        <br><br>
+                        <label><strong>Quantity:</strong></label>
+                        <input type="number" id="quantityInput" value="2" min="0">
+                        
+                        <div class="output" id="cartOutput">
+                            Total: ₹1000
+                        </div>
+                    </div>
+                </div>
+
+                <pre><code>// High-level Binding (Fluent API)
+DoubleProperty price = new SimpleDoubleProperty(500);
+IntegerProperty quantity = new SimpleIntegerProperty(2);
+DoubleProperty total = new SimpleDoubleProperty();
+
+// Bind total to price × quantity using fluent API
+total.bind(price.multiply(quantity));
+
+// Available operations: add(), subtract(), multiply(), divide(),
+// negate(), isEqualTo(), greaterThan(), lessThan(), etc.
+
+price.set(600);    // total automatically becomes 1200
+quantity.set(3);   // total automatically becomes 1800</code></pre>
+
+                <pre><code>// Low-level Binding (Custom Logic)
+StringProperty firstName = new SimpleStringProperty("Amit");
+StringProperty lastName = new SimpleStringProperty("Patel");
+StringProperty fullName = new SimpleStringProperty();
+
+// Custom binding with complex logic
+fullName.bind(Bindings.createStringBinding(
+    () -> {
+        String first = firstName.get();
+        String last = lastName.get();
+        // Custom formatting logic
+        return last.toUpperCase() + ", " + first;
+    },
+    firstName, lastName  // Dependencies
+));
+
+// Result: "PATEL, Amit"
+// Updates automatically when firstName or lastName changes!</code></pre>
+            </div>
+
+            <!-- Binding in UI -->
+            <div class="section">
+                <h2>🖥️ Properties in Real UI Components</h2>
+
+                <div class="concept">
+                    <p>All JavaFX UI controls expose properties that can be bound together for reactive UIs.</p>
+                </div>
+
+                <div class="demo-box">
+                    <h3>Interactive Demo 5: Enable/Disable Button Based on Input</h3>
+                    <p>The submit button enables only when text is entered!</p>
+                    
+                    <div class="interactive-demo">
+                        <label><strong>Name:</strong></label><br>
+                        <input type="text" id="nameInput" placeholder="Enter your name">
+                        <br><br>
+                        <button id="submitBtn" disabled>Submit</button>
+                    </div>
+                </div>
+
+                <pre><code>// Binding UI Component Properties
+TextField nameField = new TextField();
+Button submitButton = new Button("Submit");
+
+// Disable button when text field is empty
+submitButton.disableProperty().bind(
+    nameField.textProperty().isEmpty()
+);
+
+// The button automatically enables/disables as you type!
+
+// More examples:
+// 1. Progress bar bound to slider
+progressBar.progressProperty().bind(
+    slider.valueProperty().divide(100)
+);
+
+// 2. Label text bound to TextField
+label.textProperty().bind(
+    Bindings.concat("Hello, ", nameField.textProperty(), "!")
+);
+
+// 3. Shape visibility bound to CheckBox
+circle.visibleProperty().bind(checkBox.selectedProperty());</code></pre>
+            </div>
+
+            <!-- Unbinding -->
+            <div class="section">
+                <h2>🔓 Unbinding Properties</h2>
+
+                <div class="concept">
+                    <p>Sometimes you need to break the binding to manually control a property again.</p>
+                </div>
+
+                <pre><code>// Creating and breaking bindings
+DoubleProperty price = new SimpleDoubleProperty(100);
+DoubleProperty discount = new SimpleDoubleProperty();
+
+// Bind discount to 10% of price
+discount.bind(price.multiply(0.10));
+
+System.out.println(discount.get()); // 10.0
+
+// Unbind to set manually
+discount.unbind();
+discount.set(25.0); // Now we can set it manually
+
+// For bidirectional binding
+field1.textProperty().bindBidirectional(field2.textProperty());
+
+// Unbind bidirectional
+field1.textProperty().unbindBidirectional(field2.textProperty());</code></pre>
+            </div>
+
+            <!-- Practical Example -->
+            <div class="section">
+                <h2>💼 Complete Practical Example: Student Registration Form</h2>
+
+                <pre><code>public class StudentRegistration extends Application {
+    
+    @Override
+    public void start(Stage primaryStage) {
+        // Properties
+        StringProperty firstName = new SimpleStringProperty("");
+        StringProperty lastName = new SimpleStringProperty("");
+        StringProperty fullName = new SimpleStringProperty();
+        IntegerProperty age = new SimpleIntegerProperty(18);
+        DoubleProperty fees = new SimpleDoubleProperty(50000);
+        DoubleProperty discount = new SimpleDoubleProperty();
+        DoubleProperty finalFees = new SimpleDoubleProperty();
+        
+        // UI Components
+        TextField firstNameField = new TextField();
+        TextField lastNameField = new TextField();
+        Label fullNameLabel = new Label();
+        Slider ageSlider = new Slider(15, 25, 18);
+        Label ageLabel = new Label();
+        Label feesLabel = new Label();
+        Button registerButton = new Button("Register");
+        
+        // Bidirectional bindings for input fields
+        firstNameField.textProperty().bindBidirectional(firstName);
+        lastNameField.textProperty().bindBidirectional(lastName);
+        ageSlider.valueProperty().bindBidirectional(age);
+        
+        // Unidirectional bindings for computed values
+        fullName.bind(Bindings.concat(
+            firstName, " ", lastName
+        ));
+        fullNameLabel.textProperty().bind(fullName);
+        
+        ageLabel.textProperty().bind(
+            Bindings.concat("Age: ", age.asString())
+        );
+        
+        // Discount logic: 10% if age < 18, else 5%
+        discount.bind(
+            Bindings.when(age.lessThan(18))
+                .then(fees.multiply(0.10))
+                .otherwise(fees.multiply(0.05))
+        );
+        
+        finalFees.bind(fees.subtract(discount));
+        
+        feesLabel.textProperty().bind(
+            Bindings.concat(
+                "Fees: ₹", fees.asString(),
+                " - Discount: ₹", discount.asString("%.2f"),
+                " = Final: ₹", finalFees.asString("%.2f")
+            )
+        );
+        
+        // Enable register button only when name is filled
+        registerButton.disableProperty().bind(
+            firstName.isEmpty().or(lastName.isEmpty())
+        );
+        
+        // Layout
+        VBox layout = new VBox(10);
+        layout.setPadding(new Insets(20));
+        layout.getChildren().addAll(
+            new Label("First Name:"), firstNameField,
+            new Label("Last Name:"), lastNameField,
+            fullNameLabel,
+            new Label("Age:"), ageSlider, ageLabel,
+            feesLabel,
+            registerButton
+        );
+        
+        Scene scene = new Scene(layout, 400, 400);
+        primaryStage.setScene(scene);
+        primaryStage.setTitle("Student Registration");
+        primaryStage.show();
+    }
+}</code></pre>
+            </div>
+
+            <!-- Key Takeaways -->
+            <div class="section">
+                <h2>🎯 Key Takeaways</h2>
+                
+                <div class="concept">
+                    <ul style="list-style: none; padding-left: 0;">
+                        <li>✅ <strong>Properties</strong> wrap values and notify listeners of changes</li>
+                        <li>✅ <strong>Binding</strong> creates automatic dependencies between properties</li>
+                        <li>✅ <strong>Unidirectional binding:</strong> A → B (B updates when A changes)</li>
+                        <li>✅ <strong>Bidirectional binding:</strong> A ↔ B (both stay synchronized)</li>
+                        <li>✅ <strong>High-level API:</strong> Fluent methods for simple expressions</li>
+                        <li>✅ <strong>Low-level API:</strong> Custom bindings for complex logic</li>
+                        <li>✅ All JavaFX controls expose bindable properties</li>
+                        <li>✅ Use <span class="highlight">.unbind()</span> to break binding and regain manual control</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Instructor Notes -->
+            <div class="instructor-notes">
+                <h3>🧑‍🏫 Instructor Notes</h3>
+                
+                <details>
+                    <summary><strong>Teaching Tips</strong></summary>
+                    <div style="padding: 15px;">
+                        <ol>
+                            <li><strong>Start with the "Why":</strong> Explain how properties eliminate the need for manual UI updates. Show a before/after comparison with traditional setters vs. binding.</li>
+                            <li><strong>Use Real-world Analogies:</strong> Train coaches, WhatsApp groups, and Google Docs are relatable. Connect abstract concepts to student experiences.</li>
+                            <li><strong>Live Coding:</strong> Build a simple form in class with bidirectional binding between TextField and Label. Let students see the "magic" happen in real-time.</li>
+                            <li><strong>Common Pitfall:</strong> Students often forget to call <code>get()</code> on properties. Emphasize: <code>property.get()</code> returns value, <code>property.set(value)</code> sets it.</li>
+                            <li><strong>Practice Exercise:</strong> Have students build a BMI calculator where weight/height sliders automatically update the BMI label using binding.</li>
+                        </ol>
+                    </div>
+                </details>
+                
+                <details>
+                    <summary><strong>Quick Quiz</strong></summary>
+                    <div class="quiz">
+                        <p><strong>Question:</strong> What happens when you try to manually set a value on a property that is currently bound?</p>
+                        <div class="quiz-option" onclick="checkAnswer(this, false)">
+                            A) The binding breaks automatically and the new value is set
+                        </div>
+                        <div class="quiz-option" onclick="checkAnswer(this, false)">
+                            B) The value is set but the binding continues to work
+                        </div>
+                        <div class="quiz-option" onclick="checkAnswer(this, true)">
+                            C) A RuntimeException is thrown (property is bound)
+                        </div>
+                        <div class="quiz-option" onclick="checkAnswer(this, false)">
+                            D) The value is ignored silently
+                        </div>
+                        <div id="quizFeedback" style="margin-top: 15px; font-weight: bold;"></div>
+                    </div>
+                </details>
+                
+                <details>
+                    <summary><strong>Further Reading & Practice</strong></summary>
+                    <div style="padding: 15px;">
+                        <ul>
+                            <li>Official JavaFX Documentation: Properties and Bindings</li>
+                            <li>Oracle Tutorial: Using JavaFX Properties and Binding</li>
+                            <li>Book: "Pro JavaFX 17" - Chapter on Properties</li>
+                            <li>Practice Project: Build a shopping cart with automatic total calculation</li>
+                            <li>Advanced Topic: Custom Binding classes and when to extend them</li>
+                        </ul>
+                    </div>
+                </details>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Demo 1: Property Listener Simulation
+        const studentInput = document.getElementById('studentNameInput');
+        const listenerOutput = document.getElementById('listenerOutput');
+        let previousValue = studentInput.value;
+
+        studentInput.addEventListener('input', function(e) {
+            const newValue = e.target.value;
+            const output = `
+                📢 ChangeListener notified:<br>
+                &nbsp;&nbsp;Old value: "${previousValue}"<br>
+                &nbsp;&nbsp;New value: "${newValue}"<br><br>
+                🔔 InvalidationListener notified:<br>
+                &nbsp;&nbsp;Property has changed!
+            `;
+            listenerOutput.innerHTML = output;
+            previousValue = newValue;
+        });
+
+        // Demo 2: Temperature to Message Binding
+        const tempInput = document.getElementById('tempInput');
+        const tempOutput = document.getElementById('tempOutput');
+
+        function updateWeatherMessage() {
+            const temp = parseInt(tempInput.value);
+            let message;
+            
+            if (temp < 15) {
+                message = "ठंड है! (It's cold!)";
+            } else if (temp > 35) {
+                message = "गर्मी है! (It's hot!)";
+            } else {
+                message = "Pleasant weather!";
+            }
+            
+            tempOutput.innerHTML = `Current Message: <strong>${message}</strong>`;
+        }
+
+        tempInput.addEventListener('input', updateWeatherMessage);
+
+        // Demo 3: Bidirectional Binding Simulation
+        const biField1 = document.getElementById('biField1');
+        const biField2 = document.getElementById('biField2');
+
+        biField1.addEventListener('input', function(e) {
+            biField2.value = e.target.value;
+        });
+
+        biField2.addEventListener('input', function(e) {
+            biField1.value = e.target.value;
+        });
+
+        // Demo 4: Shopping Cart Total
+        const priceInput = document.getElementById('priceInput');
+        const quantityInput = document.getElementById('quantityInput');
