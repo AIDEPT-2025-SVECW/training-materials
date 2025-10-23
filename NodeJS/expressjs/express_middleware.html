@@ -1,272 +1,283 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Express.js Middleware Demo</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 20px;
+        min-height: 100vh;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+      }
+
+      header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        text-align: center;
+      }
+
+      h1 {
+        font-size: 2.5em;
+        margin-bottom: 10px;
+      }
+
+      .subtitle {
+        font-size: 1.2em;
+        opacity: 0.9;
+      }
+
+      .content {
+        padding: 30px;
+      }
+
+      .section {
+        margin-bottom: 40px;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        overflow: hidden;
+      }
+
+      .section-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: all 0.3s;
+      }
+
+      .section-header:hover {
+        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+      }
+
+      .section-header h2 {
+        font-size: 1.8em;
+      }
+
+      .toggle-icon {
+        font-size: 1.5em;
+        transition: transform 0.3s;
+      }
+
+      .section-header.active .toggle-icon {
+        transform: rotate(180deg);
+      }
+
+      .section-content {
+        padding: 25px;
+        display: none;
+        background: #f9f9f9;
+      }
+
+      .section-content.active {
+        display: block;
+        animation: slideDown 0.3s ease-out;
+      }
+
+      @keyframes slideDown {
+        from {
+          opacity: 0;
+          transform: translateY(-10px);
         }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 20px;
-            min-height: 100vh;
+        to {
+          opacity: 1;
+          transform: translateY(0);
         }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            overflow: hidden;
-        }
-        
-        header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-        
-        h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-        }
-        
-        .subtitle {
-            font-size: 1.2em;
-            opacity: 0.9;
-        }
-        
-        .content {
-            padding: 30px;
-        }
-        
-        .section {
-            margin-bottom: 40px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        
-        .section-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.3s;
-        }
-        
-        .section-header:hover {
-            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-        }
-        
-        .section-header h2 {
-            font-size: 1.8em;
-        }
-        
-        .toggle-icon {
-            font-size: 1.5em;
-            transition: transform 0.3s;
-        }
-        
-        .section-header.active .toggle-icon {
-            transform: rotate(180deg);
-        }
-        
-        .section-content {
-            padding: 25px;
-            display: none;
-            background: #f9f9f9;
-        }
-        
-        .section-content.active {
-            display: block;
-            animation: slideDown 0.3s ease-out;
-        }
-        
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .analogy {
-            background: #fff3cd;
-            border-left: 4px solid #ffc107;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 5px;
-        }
-        
-        .analogy strong {
-            color: #856404;
-            display: block;
-            margin-bottom: 10px;
-            font-size: 1.1em;
-        }
-        
-        .explanation {
-            background: #d1ecf1;
-            border-left: 4px solid #17a2b8;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 5px;
-            line-height: 1.6;
-        }
-        
-        pre {
-            background: #2d2d2d;
-            color: #f8f8f2;
-            padding: 20px;
-            border-radius: 8px;
-            overflow-x: auto;
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-            line-height: 1.5;
-            margin: 15px 0;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        
-        .interactive-demo {
-            background: white;
-            border: 2px solid #667eea;
-            border-radius: 10px;
-            padding: 20px;
-            margin: 20px 0;
-        }
-        
-        .demo-title {
-            font-size: 1.3em;
-            color: #667eea;
-            margin-bottom: 15px;
-            font-weight: bold;
-        }
-        
-        input[type="text"], textarea {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #ddd;
-            border-radius: 5px;
-            font-size: 14px;
-            margin-bottom: 10px;
-            font-family: inherit;
-        }
-        
-        button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-        
-        button:active {
-            transform: translateY(0);
-        }
-        
-        .output {
-            background: #f8f9fa;
-            border: 2px solid #28a745;
-            border-radius: 5px;
-            padding: 15px;
-            margin-top: 15px;
-            min-height: 50px;
-            font-family: monospace;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
-        
-        .key-points {
-            background: #e7f3ff;
-            border-left: 4px solid #2196F3;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 5px;
-        }
-        
-        .key-points ul {
-            margin-left: 20px;
-            margin-top: 10px;
-        }
-        
-        .key-points li {
-            margin: 8px 0;
-            line-height: 1.6;
-        }
-        
-        .file-list {
-            background: #fff;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            padding: 10px;
-            margin-top: 10px;
-        }
-        
-        .file-item {
-            padding: 8px;
-            margin: 5px 0;
-            background: #f8f9fa;
-            border-radius: 3px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        
-        .file-item:hover {
-            background: #e9ecef;
-        }
+      }
+
+      .analogy {
+        background: #fff3cd;
+        border-left: 4px solid #ffc107;
+        padding: 15px;
+        margin: 20px 0;
+        border-radius: 5px;
+      }
+
+      .analogy strong {
+        color: #856404;
+        display: block;
+        margin-bottom: 10px;
+        font-size: 1.1em;
+      }
+
+      .explanation {
+        background: #d1ecf1;
+        border-left: 4px solid #17a2b8;
+        padding: 15px;
+        margin: 20px 0;
+        border-radius: 5px;
+        line-height: 1.6;
+      }
+
+      pre {
+        background: #2d2d2d;
+        color: #f8f8f2;
+        padding: 20px;
+        border-radius: 8px;
+        overflow-x: auto;
+        font-family: "Courier New", monospace;
+        font-size: 14px;
+        line-height: 1.5;
+        margin: 15px 0;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .interactive-demo {
+        background: white;
+        border: 2px solid #667eea;
+        border-radius: 10px;
+        padding: 20px;
+        margin: 20px 0;
+      }
+
+      .demo-title {
+        font-size: 1.3em;
+        color: #667eea;
+        margin-bottom: 15px;
+        font-weight: bold;
+      }
+
+      input[type="text"],
+      textarea {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #ddd;
+        border-radius: 5px;
+        font-size: 14px;
+        margin-bottom: 10px;
+        font-family: inherit;
+      }
+
+      button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: bold;
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+
+      button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+      }
+
+      button:active {
+        transform: translateY(0);
+      }
+
+      .output {
+        background: #f8f9fa;
+        border: 2px solid #28a745;
+        border-radius: 5px;
+        padding: 15px;
+        margin-top: 15px;
+        min-height: 50px;
+        font-family: monospace;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+      }
+
+      .key-points {
+        background: #e7f3ff;
+        border-left: 4px solid #2196f3;
+        padding: 15px;
+        margin: 20px 0;
+        border-radius: 5px;
+      }
+
+      .key-points ul {
+        margin-left: 20px;
+        margin-top: 10px;
+      }
+
+      .key-points li {
+        margin: 8px 0;
+        line-height: 1.6;
+      }
+
+      .file-list {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        padding: 10px;
+        margin-top: 10px;
+      }
+
+      .file-item {
+        padding: 8px;
+        margin: 5px 0;
+        background: #f8f9fa;
+        border-radius: 3px;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+
+      .file-item:hover {
+        background: #e9ecef;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <header>
-            <h1>🚀 Express.js Built-in Middleware</h1>
-            <p class="subtitle">Interactive Learning Guide</p>
-        </header>
-        
-        <div class="content">
-            <!-- express.json() Section -->
-            <div class="section">
-                <div class="section-header" onclick="toggleSection(this)">
-                    <h2>express.json()</h2>
-                    <span class="toggle-icon">▼</span>
-                </div>
-                <div class="section-content">
-                    <div class="analogy">
-                        <strong>🎯 Analogy: The Package Translator</strong>
-                        Imagine you receive a package wrapped in brown paper with foreign text written on it. You can't use what's inside until someone unwraps it and translates the contents into a language you understand. That's what <code>express.json()</code> does! It unwraps JSON data from HTTP requests and translates it into JavaScript objects you can work with.
-                    </div>
-                    
-                    <div class="explanation">
-                        <strong>What it does:</strong><br>
-                        <code>express.json()</code> is a built-in middleware that parses incoming requests with JSON payloads. When a client sends data in JSON format (like from a fetch request or AJAX call), this middleware converts that JSON string into a JavaScript object and attaches it to <code>req.body</code>.
-                    </div>
-                    
-                    <h3>Basic Setup:</h3>
-<pre>const express = require('express');
+      <header>
+        <h1>🚀 Express.js Built-in Middleware</h1>
+        <p class="subtitle">Interactive Learning Guide</p>
+      </header>
+
+      <div class="content">
+        <!-- express.json() Section -->
+        <div class="section">
+          <div class="section-header" onclick="toggleSection(this)">
+            <h2>express.json()</h2>
+            <span class="toggle-icon">▼</span>
+          </div>
+          <div class="section-content">
+            <div class="analogy">
+              <strong>🎯 Analogy: The Package Translator</strong>
+              Imagine you receive a package wrapped in brown paper with foreign
+              text written on it. You can't use what's inside until someone
+              unwraps it and translates the contents into a language you
+              understand. That's what <code>express.json()</code> does! It
+              unwraps JSON data from HTTP requests and translates it into
+              JavaScript objects you can work with.
+            </div>
+
+            <div class="explanation">
+              <strong>What it does:</strong><br />
+              <code>express.json()</code> is a built-in middleware that parses
+              incoming requests with JSON payloads. When a client sends data in
+              JSON format (like from a fetch request or AJAX call), this
+              middleware converts that JSON string into a JavaScript object and
+              attaches it to <code>req.body</code>.
+            </div>
+
+            <h3>Basic Setup:</h3>
+            <pre>
+const express = require('express');
 const app = express();
 
 // Enable JSON parsing middleware
@@ -282,55 +293,86 @@ app.post('/api/users', (req, res) => {
         message: 'User created',
         data: req.body
     });
-});</pre>
-                    
-                    <div class="key-points">
-                        <strong>🔑 Key Points:</strong>
-                        <ul>
-                            <li><strong>Content-Type:</strong> Only parses requests with Content-Type: application/json</li>
-                            <li><strong>req.body:</strong> Parsed data is available in req.body</li>
-                            <li><strong>Size limit:</strong> Default limit is 100kb (configurable)</li>
-                            <li><strong>Error handling:</strong> Returns 400 Bad Request for invalid JSON</li>
-                        </ul>
-                    </div>
-                    
-                    <h3>Advanced Configuration:</h3>
-<pre>// With options
+});</pre
+            >
+
+            <div class="key-points">
+              <strong>🔑 Key Points:</strong>
+              <ul>
+                <li>
+                  <strong>Content-Type:</strong> Only parses requests with
+                  Content-Type: application/json
+                </li>
+                <li>
+                  <strong>req.body:</strong> Parsed data is available in
+                  req.body
+                </li>
+                <li>
+                  <strong>Size limit:</strong> Default limit is 100kb
+                  (configurable)
+                </li>
+                <li>
+                  <strong>Error handling:</strong> Returns 400 Bad Request for
+                  invalid JSON
+                </li>
+              </ul>
+            </div>
+
+            <h3>Advanced Configuration:</h3>
+            <pre>
+// With options
 app.use(express.json({
     limit: '10mb',           // Maximum request body size
     strict: true,            // Only parse arrays and objects
     type: 'application/json' // Custom content-type to parse
-}));</pre>
-                    
-                    <div class="interactive-demo">
-                        <div class="demo-title">🎮 Try It: JSON Parser Simulator</div>
-                        <p>Enter JSON data below and see how express.json() would parse it:</p>
-                        <textarea id="jsonInput" rows="5" placeholder='{"name": "John", "age": 30, "city": "New York"}'></textarea>
-                        <button onclick="parseJSON()">Parse JSON</button>
-                        <div id="jsonOutput" class="output"></div>
-                    </div>
-                </div>
+}));</pre
+            >
+
+            <div class="interactive-demo">
+              <div class="demo-title">🎮 Try It: JSON Parser Simulator</div>
+              <p>
+                Enter JSON data below and see how express.json() would parse it:
+              </p>
+              <textarea
+                id="jsonInput"
+                rows="5"
+                placeholder='{"name": "John", "age": 30, "city": "New York"}'
+              ></textarea>
+              <button onclick="parseJSON()">Parse JSON</button>
+              <div id="jsonOutput" class="output"></div>
             </div>
-            
-            <!-- express.static() Section -->
-            <div class="section">
-                <div class="section-header" onclick="toggleSection(this)">
-                    <h2>express.static()</h2>
-                    <span class="toggle-icon">▼</span>
-                </div>
-                <div class="section-content">
-                    <div class="analogy">
-                        <strong>🎯 Analogy: The Library Librarian</strong>
-                        Think of <code>express.static()</code> as an automatic librarian who knows exactly where every book (file) is kept. When someone asks for a book, the librarian instantly fetches it without you having to create individual routes for each book. The librarian serves HTML files, CSS, images, JavaScript files - anything in the designated folder!
-                    </div>
-                    
-                    <div class="explanation">
-                        <strong>What it does:</strong><br>
-                        <code>express.static()</code> is a built-in middleware that serves static files such as HTML, CSS, images, JavaScript files, and more. Instead of writing individual routes for each file, this middleware automatically handles requests for files in a specified directory.
-                    </div>
-                    
-                    <h3>Basic Setup:</h3>
-<pre>const express = require('express');
+          </div>
+        </div>
+
+        <!-- express.static() Section -->
+        <div class="section">
+          <div class="section-header" onclick="toggleSection(this)">
+            <h2>express.static()</h2>
+            <span class="toggle-icon">▼</span>
+          </div>
+          <div class="section-content">
+            <div class="analogy">
+              <strong>🎯 Analogy: The Library Librarian</strong>
+              Think of <code>express.static()</code> as an automatic librarian
+              who knows exactly where every book (file) is kept. When someone
+              asks for a book, the librarian instantly fetches it without you
+              having to create individual routes for each book. The librarian
+              serves HTML files, CSS, images, JavaScript files - anything in the
+              designated folder!
+            </div>
+
+            <div class="explanation">
+              <strong>What it does:</strong><br />
+              <code>express.static()</code> is a built-in middleware that serves
+              static files such as HTML, CSS, images, JavaScript files, and
+              more. Instead of writing individual routes for each file, this
+              middleware automatically handles requests for files in a specified
+              directory.
+            </div>
+
+            <h3>Basic Setup:</h3>
+            <pre>
+const express = require('express');
 const app = express();
 
 // Serve static files from the 'public' directory
@@ -339,45 +381,68 @@ app.use(express.static('public'));
 // Now these URLs will work automatically:
 // http://localhost:3000/style.css       -> serves public/style.css
 // http://localhost:3000/images/logo.png -> serves public/images/logo.png
-// http://localhost:3000/index.html      -> serves public/index.html</pre>
-                    
-                    <h3>Multiple Static Directories:</h3>
-<pre>// You can have multiple static directories
+// http://localhost:3000/index.html      -> serves public/index.html</pre
+            >
+
+            <h3>Multiple Static Directories:</h3>
+            <pre>
+// You can have multiple static directories
 app.use(express.static('public'));
 app.use(express.static('uploads'));
 app.use(express.static('assets'));
 
-// Express will search for files in the order you define them</pre>
-                    
-                    <h3>Virtual Path Prefix:</h3>
-<pre>// Add a virtual path prefix (URL path doesn't exist in file system)
+// Express will search for files in the order you define them</pre
+            >
+
+            <h3>Virtual Path Prefix:</h3>
+            <pre>
+// Add a virtual path prefix (URL path doesn't exist in file system)
 app.use('/static', express.static('public'));
 
 // Now files are accessed with /static prefix:
 // http://localhost:3000/static/style.css -> serves public/style.css
-// http://localhost:3000/static/logo.png  -> serves public/logo.png</pre>
-                    
-                    <h3>Using Absolute Path:</h3>
-<pre>const path = require('path');
+// http://localhost:3000/static/logo.png  -> serves public/logo.png</pre
+            >
+
+            <h3>Using Absolute Path:</h3>
+            <pre>
+const path = require('path');
 
 // Use absolute path for reliability
 app.use('/static', express.static(path.join(__dirname, 'public')));
 
-// This ensures the path is correct regardless of where Node is run from</pre>
-                    
-                    <div class="key-points">
-                        <strong>🔑 Key Points:</strong>
-                        <ul>
-                            <li><strong>Automatic serving:</strong> No need to write routes for each file</li>
-                            <li><strong>Index files:</strong> Automatically serves index.html when directory is requested</li>
-                            <li><strong>Caching:</strong> Handles caching headers for better performance</li>
-                            <li><strong>Security:</strong> Only serves files from specified directory (no directory traversal)</li>
-                            <li><strong>MIME types:</strong> Automatically sets correct Content-Type headers</li>
-                        </ul>
-                    </div>
-                    
-                    <h3>Advanced Configuration:</h3>
-<pre>// With options
+// This ensures the path is correct regardless of where Node is run from</pre
+            >
+
+            <div class="key-points">
+              <strong>🔑 Key Points:</strong>
+              <ul>
+                <li>
+                  <strong>Automatic serving:</strong> No need to write routes
+                  for each file
+                </li>
+                <li>
+                  <strong>Index files:</strong> Automatically serves index.html
+                  when directory is requested
+                </li>
+                <li>
+                  <strong>Caching:</strong> Handles caching headers for better
+                  performance
+                </li>
+                <li>
+                  <strong>Security:</strong> Only serves files from specified
+                  directory (no directory traversal)
+                </li>
+                <li>
+                  <strong>MIME types:</strong> Automatically sets correct
+                  Content-Type headers
+                </li>
+              </ul>
+            </div>
+
+            <h3>Advanced Configuration:</h3>
+            <pre>
+// With options
 app.use(express.static('public', {
     dotfiles: 'ignore',      // How to treat dotfiles (allow/deny/ignore)
     etag: true,              // Enable ETag generation
@@ -391,34 +456,75 @@ app.use(express.static('public', {
             res.set('Content-Disposition', 'attachment');
         }
     }
-}));</pre>
-                    
-                    <div class="interactive-demo">
-                        <div class="demo-title">🎮 Try It: Static File Server Simulator</div>
-                        <p>Simulate requesting static files from different directories:</p>
-                        <input type="text" id="fileRequest" placeholder="Enter file path (e.g., /images/logo.png)" />
-                        <button onclick="simulateStaticRequest()">Request File</button>
-                        <div class="file-list">
-                            <strong>Available Files (simulated):</strong>
-                            <div class="file-item" onclick="document.getElementById('fileRequest').value='/style.css'">/style.css</div>
-                            <div class="file-item" onclick="document.getElementById('fileRequest').value='/images/logo.png'">/images/logo.png</div>
-                            <div class="file-item" onclick="document.getElementById('fileRequest').value='/js/app.js'">/js/app.js</div>
-                            <div class="file-item" onclick="document.getElementById('fileRequest').value='/index.html'">/index.html</div>
-                        </div>
-                        <div id="staticOutput" class="output"></div>
-                    </div>
+}));</pre
+            >
+
+            <div class="interactive-demo">
+              <div class="demo-title">
+                🎮 Try It: Static File Server Simulator
+              </div>
+              <p>
+                Simulate requesting static files from different directories:
+              </p>
+              <input
+                type="text"
+                id="fileRequest"
+                placeholder="Enter file path (e.g., /images/logo.png)"
+              />
+              <button onclick="simulateStaticRequest()">Request File</button>
+              <div class="file-list">
+                <strong>Available Files (simulated):</strong>
+                <div
+                  class="file-item"
+                  onclick="document.getElementById('fileRequest').value='/style.css'"
+                >
+                  /style.css
                 </div>
+                <div
+                  class="file-item"
+                  onclick="document.getElementById('fileRequest').value='/images/logo.png'"
+                >
+                  /images/logo.png
+                </div>
+                <div
+                  class="file-item"
+                  onclick="document.getElementById('fileRequest').value='/js/app.js'"
+                >
+                  /js/app.js
+                </div>
+                <div
+                  class="file-item"
+                  onclick="document.getElementById('fileRequest').value='/index.html'"
+                >
+                  /index.html
+                </div>
+              </div>
+              <div id="staticOutput" class="output"></div>
             </div>
-            
-            <!-- Comparison Section -->
             <div class="section">
-                <div class="section-header" onclick="toggleSection(this)">
-                    <h2>Quick Comparison</h2>
-                    <span class="toggle-icon">▼</span>
-                </div>
-                <div class="section-content">
-                    <h3>When to Use Each:</h3>
-<pre>// express.json() - Use when:
+              <span
+                ><strong
+                  ><a
+                    href="https://github.com/pradeepjuluri143/NodeJS-DemoExamples/tree/master/7-Express/7.3-BuiltinMiddlewareStatic"
+                    target="_blank"
+                    >Ref Example</a
+                  ></strong
+                ></span
+              >
+            </div>
+          </div>
+        </div>
+
+        <!-- Comparison Section -->
+        <div class="section">
+          <div class="section-header" onclick="toggleSection(this)">
+            <h2>Quick Comparison</h2>
+            <span class="toggle-icon">▼</span>
+          </div>
+          <div class="section-content">
+            <h3>When to Use Each:</h3>
+            <pre>
+// express.json() - Use when:
 // ✅ Building REST APIs
 // ✅ Accepting JSON data from clients
 // ✅ Working with fetch() or AJAX requests
@@ -437,20 +543,34 @@ app.post('/api/data', (req, res) => {
 // ✅ Providing downloadable files
 
 app.use(express.static('public'));
-// Browser can now access files directly</pre>
-                    
-                    <div class="key-points">
-                        <strong>🎯 Key Differences:</strong>
-                        <ul>
-                            <li><strong>express.json():</strong> Processes request BODY (incoming data from client)</li>
-                            <li><strong>express.static():</strong> Serves FILES from disk (outgoing data to client)</li>
-                            <li><strong>express.json():</strong> Used for APIs and data submission</li>
-                            <li><strong>express.static():</strong> Used for web pages and assets</li>
-                        </ul>
-                    </div>
-                    
-                    <h3>Complete Example - Using Both:</h3>
-<pre>const express = require('express');
+// Browser can now access files directly</pre
+            >
+
+            <div class="key-points">
+              <strong>🎯 Key Differences:</strong>
+              <ul>
+                <li>
+                  <strong>express.json():</strong> Processes request BODY
+                  (incoming data from client)
+                </li>
+                <li>
+                  <strong>express.static():</strong> Serves FILES from disk
+                  (outgoing data to client)
+                </li>
+                <li>
+                  <strong>express.json():</strong> Used for APIs and data
+                  submission
+                </li>
+                <li>
+                  <strong>express.static():</strong> Used for web pages and
+                  assets
+                </li>
+              </ul>
+            </div>
+
+            <h3>Complete Example - Using Both:</h3>
+            <pre>
+const express = require('express');
 const path = require('path');
 const app = express();
 
@@ -470,91 +590,117 @@ app.post('/api/contact', (req, res) => {
 
 app.listen(3000, () => {
     console.log('Server running on http://localhost:3000');
-});</pre>
-                </div>
-            </div>
+});</pre
+            >
+          </div>
         </div>
+      </div>
     </div>
-    
+
     <script>
-        // Toggle section visibility
-        function toggleSection(header) {
-            header.classList.toggle('active');
-            const content = header.nextElementSibling;
-            content.classList.toggle('active');
+      // Toggle section visibility
+      function toggleSection(header) {
+        header.classList.toggle("active");
+        const content = header.nextElementSibling;
+        content.classList.toggle("active");
+      }
+
+      // Open first section by default
+      document.addEventListener("DOMContentLoaded", () => {
+        const firstHeader = document.querySelector(".section-header");
+        if (firstHeader) {
+          toggleSection(firstHeader);
         }
-        
-        // Open first section by default
-        document.addEventListener('DOMContentLoaded', () => {
-            const firstHeader = document.querySelector('.section-header');
-            if (firstHeader) {
-                toggleSection(firstHeader);
-            }
-        });
-        
-        // JSON Parser Demo
-        function parseJSON() {
-            const input = document.getElementById('jsonInput').value;
-            const output = document.getElementById('jsonOutput');
-            
-            try {
-                // Simulate express.json() behavior
-                const parsed = JSON.parse(input);
-                output.style.borderColor = '#28a745';
-                output.innerHTML = `<strong>✅ Successfully parsed!</strong>\n\n` +
-                    `<strong>Type:</strong> ${typeof parsed}\n\n` +
-                    `<strong>req.body would contain:</strong>\n` +
-                    JSON.stringify(parsed, null, 2) + `\n\n` +
-                    `<strong>Access properties like:</strong>\n` +
-                    Object.keys(parsed).map(key => `req.body.${key} = ${JSON.stringify(parsed[key])}`).join('\n');
-            } catch (error) {
-                output.style.borderColor = '#dc3545';
-                output.innerHTML = `<strong>❌ Parse Error!</strong>\n\n` +
-                    `Express would return: 400 Bad Request\n\n` +
-                    `Error: ${error.message}\n\n` +
-                    `<strong>Tip:</strong> Make sure your JSON is properly formatted:\n` +
-                    `- Use double quotes for strings\n` +
-                    `- No trailing commas\n` +
-                    `- Property names must be quoted`;
-            }
+      });
+
+      // JSON Parser Demo
+      function parseJSON() {
+        const input = document.getElementById("jsonInput").value;
+        const output = document.getElementById("jsonOutput");
+
+        try {
+          // Simulate express.json() behavior
+          const parsed = JSON.parse(input);
+          output.style.borderColor = "#28a745";
+          output.innerHTML =
+            `<strong>✅ Successfully parsed!</strong>\n\n` +
+            `<strong>Type:</strong> ${typeof parsed}\n\n` +
+            `<strong>req.body would contain:</strong>\n` +
+            JSON.stringify(parsed, null, 2) +
+            `\n\n` +
+            `<strong>Access properties like:</strong>\n` +
+            Object.keys(parsed)
+              .map((key) => `req.body.${key} = ${JSON.stringify(parsed[key])}`)
+              .join("\n");
+        } catch (error) {
+          output.style.borderColor = "#dc3545";
+          output.innerHTML =
+            `<strong>❌ Parse Error!</strong>\n\n` +
+            `Express would return: 400 Bad Request\n\n` +
+            `Error: ${error.message}\n\n` +
+            `<strong>Tip:</strong> Make sure your JSON is properly formatted:\n` +
+            `- Use double quotes for strings\n` +
+            `- No trailing commas\n` +
+            `- Property names must be quoted`;
         }
-        
-        // Static File Server Demo
-        function simulateStaticRequest() {
-            const request = document.getElementById('fileRequest').value;
-            const output = document.getElementById('staticOutput');
-            
-            // Simulated file system
-            const files = {
-                '/style.css': { type: 'text/css', size: '2.4 KB', content: 'CSS file content' },
-                '/images/logo.png': { type: 'image/png', size: '15.3 KB', content: 'Binary image data' },
-                '/js/app.js': { type: 'application/javascript', size: '8.7 KB', content: 'JavaScript code' },
-                '/index.html': { type: 'text/html', size: '3.2 KB', content: 'HTML document' }
-            };
-            
-            if (files[request]) {
-                const file = files[request];
-                output.style.borderColor = '#28a745';
-                output.innerHTML = `<strong>✅ File Found!</strong>\n\n` +
-                    `<strong>Request:</strong> GET ${request}\n` +
-                    `<strong>Status:</strong> 200 OK\n` +
-                    `<strong>Content-Type:</strong> ${file.type}\n` +
-                    `<strong>Content-Length:</strong> ${file.size}\n\n` +
-                    `<strong>express.static() served:</strong> public${request}\n` +
-                    `<strong>Cache-Control:</strong> public, max-age=0\n` +
-                    `<strong>ETag:</strong> "${Math.random().toString(36).substr(2, 9)}"`;
-            } else {
-                output.style.borderColor = '#dc3545';
-                output.innerHTML = `<strong>❌ File Not Found!</strong>\n\n` +
-                    `<strong>Request:</strong> GET ${request}\n` +
-                    `<strong>Status:</strong> 404 Not Found\n\n` +
-                    `Express couldn't find this file in the static directory.\n\n` +
-                    `<strong>Tip:</strong> Check that:\n` +
-                    `- The file exists in your public folder\n` +
-                    `- The path is correct (case-sensitive)\n` +
-                    `- The file isn't in a parent directory (security restriction)`;
-            }
+      }
+
+      // Static File Server Demo
+      function simulateStaticRequest() {
+        const request = document.getElementById("fileRequest").value;
+        const output = document.getElementById("staticOutput");
+
+        // Simulated file system
+        const files = {
+          "/style.css": {
+            type: "text/css",
+            size: "2.4 KB",
+            content: "CSS file content",
+          },
+          "/images/logo.png": {
+            type: "image/png",
+            size: "15.3 KB",
+            content: "Binary image data",
+          },
+          "/js/app.js": {
+            type: "application/javascript",
+            size: "8.7 KB",
+            content: "JavaScript code",
+          },
+          "/index.html": {
+            type: "text/html",
+            size: "3.2 KB",
+            content: "HTML document",
+          },
+        };
+
+        if (files[request]) {
+          const file = files[request];
+          output.style.borderColor = "#28a745";
+          output.innerHTML =
+            `<strong>✅ File Found!</strong>\n\n` +
+            `<strong>Request:</strong> GET ${request}\n` +
+            `<strong>Status:</strong> 200 OK\n` +
+            `<strong>Content-Type:</strong> ${file.type}\n` +
+            `<strong>Content-Length:</strong> ${file.size}\n\n` +
+            `<strong>express.static() served:</strong> public${request}\n` +
+            `<strong>Cache-Control:</strong> public, max-age=0\n` +
+            `<strong>ETag:</strong> "${Math.random()
+              .toString(36)
+              .substr(2, 9)}"`;
+        } else {
+          output.style.borderColor = "#dc3545";
+          output.innerHTML =
+            `<strong>❌ File Not Found!</strong>\n\n` +
+            `<strong>Request:</strong> GET ${request}\n` +
+            `<strong>Status:</strong> 404 Not Found\n\n` +
+            `Express couldn't find this file in the static directory.\n\n` +
+            `<strong>Tip:</strong> Check that:\n` +
+            `- The file exists in your public folder\n` +
+            `- The path is correct (case-sensitive)\n` +
+            `- The file isn't in a parent directory (security restriction)`;
         }
+      }
     </script>
-</body>
+  </body>
 </html>

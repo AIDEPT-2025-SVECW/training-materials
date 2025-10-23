@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protecting Routes with Middleware - Interactive Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-style: italic;
+        }
+        
+        .section {
+            margin: 30px 0;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 5px solid #667eea;
+        }
+        
+        h2 {
+            color: #764ba2;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        h3 {
+            color: #667eea;
+            margin: 20px 0 10px 0;
+        }
+        
+        .analogy {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        
+        .analogy strong {
+            color: #e65100;
+        }
+        
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        code {
+            font-family: 'Courier New', monospace;
+        }
+        
+        .interactive-demo {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #667eea;
+            margin: 20px 0;
+        }
+        
+        .demo-title {
+            font-weight: bold;
+            color: #764ba2;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+        
+        .request-box {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+            flex-wrap: wrap;
+        }
+        
+        input[type="text"], input[type="password"] {
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            flex: 1;
+            min-width: 200px;
+            font-size: 14px;
+        }
+        
+        button {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .response-box {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        
+        .success {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            color: #155724;
+        }
+        
+        .error {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+            color: #721c24;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            color: #856404;
+        }
+        
+        .info {
+            background: #d1ecf1;
+            border: 2px solid #17a2b8;
+            color: #0c5460;
+        }
+        
+        .middleware-chain {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 20px 0;
+            overflow-x: auto;
+            padding: 10px;
+        }
+        
+        .middleware-step {
+            padding: 15px 20px;
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            min-width: 120px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        
+        .middleware-step.active {
+            background: #667eea;
+            color: white;
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .middleware-step.passed {
+            background: #28a745;
+            color: white;
+            border-color: #28a745;
+        }
+        
+        .middleware-step.blocked {
+            background: #dc3545;
+            color: white;
+            border-color: #dc3545;
+        }
+        
+        .arrow {
+            font-size: 24px;
+            color: #667eea;
+        }
+        
+        .instructor-notes {
+            background: #e8f5e9;
+            border: 2px solid #4caf50;
+            border-radius: 10px;
+            margin-top: 30px;
+            overflow: hidden;
+        }
+        
+        .instructor-header {
+            background: #4caf50;
+            color: white;
+            padding: 15px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .instructor-content {
+            padding: 20px;
+            display: none;
+        }
+        
+        .instructor-content.show {
+            display: block;
+        }
+        
+        .quiz {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .quiz-option {
+            padding: 10px;
+            margin: 8px 0;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .quiz-option:hover {
+            border-color: #667eea;
+            background: #f0f0f0;
+        }
+        
+        .quiz-option.correct {
+            background: #d4edda;
+            border-color: #28a745;
+        }
+        
+        .quiz-option.incorrect {
+            background: #f8d7da;
+            border-color: #dc3545;
+        }
+        
+        .token-display {
+            background: #2d2d2d;
+            color: #4caf50;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            margin: 10px 0;
+            word-break: break-all;
+        }
+        
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        .comparison-table th,
+        .comparison-table td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        
+        .comparison-table th {
+            background: #667eea;
+            color: white;
+        }
+        
+        .comparison-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .badge-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .badge-danger {
+            background: #dc3545;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛡️ Protecting Routes with Middleware</h1>
+        <p class="subtitle">Deep Dive: Authentication & Authorization in Express.js</p>
+        
+        <!-- Introduction -->
+        <div class="section">
+            <h2>📚 What You'll Learn</h2>
+            <p>Since you already know JWT authentication, login/registration endpoints, and basic routing, we'll focus on the <strong>middleware layer</strong> that protects your routes. This is where the rubber meets the road in production applications!</p>
+            <p><strong>Key Concept:</strong> Middleware functions are the gatekeepers that stand between incoming requests and your route handlers, deciding who gets through and who gets blocked.</p>
+        </div>
+        
+        <!-- Analogy Section -->
+        <div class="section">
+            <h2>💡 The Security Check Post Analogy</h2>
+            <div class="analogy">
+                <strong>💡 Analogy:</strong> Think of protected routes like entering a secure building in Cyber Towers, Hitech City, Hyderabad:
+                <ul style="margin-top: 10px; margin-left: 20px;">
+                    <li><strong>Unprotected Routes (Public Areas):</strong> Reception desk - anyone can walk in</li>
+                    <li><strong>Authentication Middleware:</strong> Security guard checking your ID card at the gate</li>
+                    <li><strong>Authorization Middleware:</strong> Floor-specific access - your card works on 3rd floor but not on 5th</li>
+                    <li><strong>Multiple Middleware:</strong> Multiple checkpoints - first security, then biometric, then OTP</li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Basic Authentication Middleware -->
+        <div class="section">
+            <h2>🔐 1. Basic Authentication Middleware</h2>
+            <p><strong>Concept:</strong> Verifies the JWT token exists and is valid before allowing access to the route.</p>
+            
+            <h3>Implementation Pattern</h3>
+            <pre><code>// middleware/auth.js
+const jwt = require('jsonwebtoken');
+
+const authenticateToken = (req, res, next) => {
+  // Extract token from Authorization header
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1]; // "Bearer TOKEN"
+  
+  if (!token) {
+    return res.status(401).json({ 
+      message: 'Access token required' 
+    });
+  }
+  
+  try {
+    // Verify token and decode payload
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
+    // Attach user info to request object for downstream use
+    req.user = decoded;
+    
+    // Pass control to next middleware/route handler
+    next();
+  } catch (error) {
+    return res.status(403).json({ 
+      message: 'Invalid or expired token' 
+    });
+  }
+};
+
+module.exports = authenticateToken;</code></pre>
+
+            <h3>Using the Middleware</h3>
+            <pre><code>// routes/profile.js
+const express = require('express');
+const router = express.Router();
+const authenticateToken = require('../middleware/auth');
+
+// Public route - no middleware
+router.get('/public', (req, res) => {
+  res.json({ message: 'Public data accessible to everyone' });
+});
+
+// Protected route - middleware applied
+router.get('/profile', authenticateToken, (req, res) => {
+  // req.user is available here thanks to middleware
+  res.json({ 
+    message: 'Protected profile data',
+    user: req.user 
+  });
+});
+
+module.exports = router;</code></pre>
+
+            <div class="interactive-demo">
+                <div class="demo-title">🎮 Interactive Demo: Token Authentication</div>
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: bold;">Step 1: Login to get token</label>
+                    <div class="request-box">
+                        <input type="text" id="login-username" placeholder="Username (e.g., rajesh)" value="rajesh">
+                        <input type="password" id="login-password" placeholder="Password" value="password123">
+                        <button onclick="simulateLogin()">Login</button>
+                    </div>
+                    <div id="token-display"></div>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: bold;">Step 2: Access Protected Route</label>
+                    <div class="request-box">
+                        <input type="text" id="access-token" placeholder="Paste your token here" style="flex: 2;">
+                        <button onclick="accessProtectedRoute()">Access /profile</button>
+                        <button onclick="accessPublicRoute()">Access /public</button>
+                    </div>
+                </div>
+                
+                <div class="middleware-chain" id="auth-chain">
+                    <div class="middleware-step" id="step-request">📨 Request</div>
+                    <div class="arrow">→</div>
+                    <div class="middleware-step" id="step-auth">🔐 Auth Check</div>
+                    <div class="arrow">→</div>
+                    <div class="middleware-step" id="step-handler">🎯 Route Handler</div>
+                    <div class="arrow">→</div>
+                    <div class="middleware-step" id="step-response">📤 Response</div>
+                </div>
+                
+                <div id="auth-response"></div>
+            </div>
+        </div>
+        
+        <!-- Role-Based Authorization -->
+        <div class="section">
+            <h2>👥 2. Role-Based Authorization Middleware</h2>
+            <p><strong>Concept:</strong> After authentication, check if the user has the required role/permission to access specific resources.</p>
+            
+            <div class="analogy">
+                <strong>💡 Analogy:</strong> Like IRCTC reservation system - everyone can login (authenticate), but only admin users can cancel tickets for others, while regular users can only cancel their own tickets (authorize).
+            </div>
+            
+            <h3>Implementation Pattern</h3>
+            <pre><code>// middleware/authorize.js
+const authorizeRoles = (...allowedRoles) => {
+  return (req, res, next) => {
+    // req.user is set by previous authenticateToken middleware
+    if (!req.user) {
+      return res.status(401).json({ 
+        message: 'User not authenticated' 
+      });
+    }
+    
+    // Check if user's role is in the allowed roles
+    if (!allowedRoles.includes(req.user.role)) {
+      return res.status(403).json({ 
+        message: `Access denied. Required roles: ${allowedRoles.join(', ')}`,
+        yourRole: req.user.role
+      });
+    }
+    
+    next(); // User has required role, proceed
+  };
+};
+
+module.exports = authorizeRoles;</code></pre>
+
+            <h3>Chaining Multiple Middleware</h3>
+            <pre><code>// routes/admin.js
+const express = require('express');
+const router = express.Router();
+const authenticateToken = require('../middleware/auth');
+const authorizeRoles = require('../middleware/authorize');
+
+// Only admin and manager can access this route
+router.get('/users', 
+  authenticateToken,                    // First: verify token
+  authorizeRoles('admin', 'manager'),  // Second: check role
+  (req, res) => {
+    // Both middleware passed, handle request
+    res.json({ 
+      message: 'User list',
+      users: ['Priya', 'Amit', 'Sunita'] 
+    });
+  }
+);
+
+// Only admin can delete users
+router.delete('/users/:id',
+  authenticateToken,
+  authorizeRoles('admin'),  // Only admin role
+  (req, res) => {
+    res.json({ 
+      message: `User ${req.params.id} deleted successfully` 
+    });
+  }
+);
+
+module.exports = router;</code></pre>
+
+            <div class="interactive-demo">
+                <div class="demo-title">🎮 Interactive Demo: Role-Based Access</div>
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: bold;">Select User Role:</label>
+                    <div class="request-box">
+                        <select id="user-role" style="padding: 10px; border: 2px solid #ddd; border-radius: 5px; flex: 1;">
+                            <option value="user">Regular User</option>
+                            <option value="manager">Manager</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                        <button onclick="generateRoleToken()">Generate Token</button>
+                    </div>
+                    <div id="role-token-display"></div>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: bold;">Try Accessing Different Routes:</label>
+                    <div class="request-box">
+                        <button onclick="accessRoute('profile')">GET /profile</button>
+                        <button onclick="accessRoute('users')">GET /users (manager+)</button>
+                        <button onclick="accessRoute('delete')">DELETE /users (admin only)</button>
+                    </div>
+                </div>
+                
+                <div id="role-response"></div>
+            </div>
+        </div>
+        
+        <!-- Advanced Patterns -->
+        <div class="section">
+            <h2>🚀 3. Advanced Middleware Patterns</h2>
+            
+            <h3>A. Resource-Level Authorization</h3>
+            <p><strong>Concept:</strong> Check if user owns the resource they're trying to access.</p>
+            
+            <pre><code>// middleware/checkOwnership.js
+const checkResourceOwnership = (resourceModel) => {
+  return async (req, res, next) => {
+    try {
+      const resourceId = req.params.id;
+      const resource = await resourceModel.findById(resourceId);
+      
+      if (!resource) {
+        return res.status(404).json({ message: 'Resource not found' });
+      }
+      
+      // Check if user owns this resource OR is admin
+      if (resource.userId.toString() !== req.user.id && req.user.role !== 'admin') {
+        return res.status(403).json({ 
+          message: 'You can only access your own resources' 
+        });
+      }
+      
+      // Attach resource to request for downstream use
+      req.resource = resource;
+      next();
+    } catch (error) {
+      res.status(500).json({ message: 'Server error' });
+    }
+  };
+};
+
+// Usage
+router.put('/posts/:id',
+  authenticateToken,
+  checkResourceOwnership(Post),
+  async (req, res) => {
+    // User owns the post, allow edit
+    req.resource.content = req.body.content;
+    await req.resource.save();
+    res.json({ message: 'Post updated' });
+  }
+);</code></pre>
+
+            <h3>B. Rate Limiting Middleware</h3>
+            <p><strong>Concept:</strong> Prevent abuse by limiting request frequency per user.</p>
+            
+            <pre><code>// middleware/rateLimit.js
+const rateLimit = require('express-rate-limit');
+
+// Create a limiter for API routes
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each user to 100 requests per windowMs
+  message: 'Too many requests from this IP, please try again later',
+  standardHeaders: true, // Return rate limit info in headers
+  legacyHeaders: false,
+});
+
+// Apply to specific routes
+router.post('/submit', apiLimiter, authenticateToken, (req, res) => {
+  // Handle submission
+});</code></pre>
+
+            <h3>C. Conditional Middleware</h3>
+            <p><strong>Concept:</strong> Apply middleware only under certain conditions.</p>
+            
+            <pre><code>// Middleware that only runs on production
+const productionOnly = (req, res, next) => {
+  if (process.env.NODE_ENV === 'production') {
+    // Apply strict checks in production
+    return authenticateToken(req, res, next);
+  }
+  // Skip in development
+  next();
+};
+
+// Middleware that checks API key for external clients
+const checkApiKeyOrAuth = (req, res, next) => {
+  const apiKey = req.headers['x-api-key'];
+  
+  if (apiKey && apiKey === process.env.API_KEY) {
+    // Valid API key, skip auth
+    return next();
+  }
+  
+  // No API key, require JWT auth
+  return authenticateToken(req, res, next);
+};</code></pre>
+        </div>
+        
+        <!-- Comparison Table -->
+        <div class="section">
+            <h2>📊 Middleware Comparison</h2>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Middleware Type</th>
+                        <th>Purpose</th>
+                        <th>When to Use</th>
+                        <th>Example Scenario</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Authentication</strong></td>
+                        <td>Verify user identity</td>
+                        <td>Every protected route</td>
+                        <td>User accessing their dashboard</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Authorization (Role)</strong></td>
+                        <td>Check user permissions</td>
+                        <td>Admin/privileged routes</td>
+                        <td>Manager viewing all employees</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Authorization (Ownership)</strong></td>
+                        <td>Verify resource access</td>
+                        <td>User-specific resources</td>
+                        <td>User editing own profile only</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Rate Limiting</strong></td>
+                        <td>Prevent abuse</td>
+                        <td>Public APIs, login routes</td>
+                        <td>Limit login attempts to 5/min</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Input Validation</strong></td>
+                        <td>Sanitize data</td>
+                        <td>All POST/PUT routes</td>
+                        <td>Validate email format before registration</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Error Handling -->
+        <div class="section">
+            <h2>⚠️ 4. Proper Error Handling in Middleware</h2>
+            <p><strong>Concept:</strong> Middleware should handle errors gracefully and return appropriate HTTP status codes.</p>
+            
+            <h3>Status Code Guide</h3>
+            <ul style="margin-left: 20px; margin-top: 10px;">
+                <li><strong>401 Unauthorized:</strong> No token provided or token invalid</li>
+                <li><strong>403 Forbidden:</strong> Valid token but insufficient permissions</li>
+                <li><strong>404 Not Found:</strong> Resource doesn't exist</li>
+                <li><strong>429 Too Many Requests:</strong> Rate limit exceeded</li>
+            </ul>
+            
+            <pre><code>// Error handling middleware (place at the end)
+const errorHandler = (err, req, res, next) => {
+  console.error(err.stack);
+  
+  // JWT specific errors
+  if (err.name === 'JsonWebTokenError') {
+    return res.status(401).json({ message: 'Invalid token' });
+  }
+  
+  if (err.name === 'TokenExpiredError') {
+    return res.status(401).json({ message: 'Token expired' });
+  }
+  
+  // Default error
+  res.status(err.status || 500).json({
+    message: err.message || 'Internal server error',
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+  });
+};
+
+// Apply error handler
+app.use(errorHandler);</code></pre>
+        </div>
+        
+        <!-- Best Practices -->
+        <div class="section">
+            <h2>✅ Best Practices</h2>
+            <div style="background: white; padding: 15px; border-radius: 8px; margin-top: 15px;">
+                <h3>1. Middleware Order Matters</h3>
+                <pre><code>// CORRECT order
+app.use(helmet());              // 1. Security headers
+app.use(cors());                // 2. CORS
+app.use(express.json());        // 3. Body parsing
+app.use(rateLimiter);           // 4. Rate limiting
+app.use('/api', routes);        // 5. Routes with specific middleware
+app.use(errorHandler);          // 6. Error handling (last)</code></pre>
+                
+                <h3>2. Don't Forget to Call next()</h3>
+                <pre><code>// BAD - Request hangs
+const badMiddleware = (req, res, next) => {
+  console.log('Doing something...');
+  // Forgot next()! Request never proceeds
+};
+
+// GOOD
+const goodMiddleware = (req, res, next) => {
+  console.log('Doing something...');
+  next(); // Always call next() if not sending response
+};</code></pre>
+                
+                <h3>3. Use Environment Variables for Secrets</h3>
+                <pre><code>// NEVER hardcode secrets
+const BAD_SECRET = 'mysecretkey123'; // ❌ Bad
+
+// Use environment variables
+const GOOD_SECRET = process.env.JWT_SECRET; // ✅ Good</code></pre>
+                
+                <h3>4. Return After Sending Response</h3>
+                <pre><code>// BAD - code continues after sending response
+if (!token) {
+  res.status(401).json({ message: 'No token' });
+  // Code continues, might cause "Can't set headers" error
+}
+
+// GOOD - use return
+if (!token) {
+  return res.status(401).json({ message: 'No token' });
+  // Execution stops here
+}</code></pre>
+            </div>
+        </div>
+        
+        <!-- Complete Example -->
+        <div class="section">
+            <h2>🏗️ Complete Application Structure</h2>
+            <pre><code>// app.js - Main application file
+const express = require('express');
+const app = express();
+
+// Import middleware
+const authenticateToken = require('./middleware/auth');
+const authorizeRoles = require('./middleware/authorize');
+
+// Global middleware
+app.use(express.json());
+
+// Public routes (no middleware)
+app.post('/api/register', registerController);
+app.post('/api/login', loginController);
+
+// Protected routes (authentication required)
+app.get('/api/profile', authenticateToken, profileController);
+
+// Admin routes (authentication + authorization)
+app.get('/api/admin/users', 
+  authenticateToken, 
+  authorizeRoles('admin'), 
+  getAllUsersController
+);
+
+// Manager routes (multiple roles allowed)
+app.get('/api/reports', 
+  authenticateToken, 
+  authorizeRoles('admin', 'manager'), 
+  getReportsController
+);
+
+// Resource-specific protection
+app.put('/api/posts/:id', 
+  authenticateToken, 
+  checkOwnership, 
+  updatePostController
+);
+
+// Error handling (must be last)
+app.use(errorHandler);
+
+app.listen(3000, () => {
+  console.log('Server running on port 3000');
+});</code></pre>
+        </div>
+        
+        <!-- Instructor Notes -->
+        <div class="instructor-notes">
+            <div class="instructor-header" onclick="toggleInstructor()">
+                <span>🧑‍🏫 Instructor Notes</span>
+                <span id="instructor-toggle">▼</span>
+            </div>
+            <div class="instructor-content" id="instructor-content">
+                <h3>Teaching Tips</h3>
+                <ol style="margin-left: 20px;">
+                    <li><strong>Start with the analogy:</strong> Use the security checkpoint analogy to build intuition before diving into code. Ask students to think of other real-world scenarios.</li>
+                    <li><strong>Live code the authentication middleware first:</strong> Write it from scratch while explaining each line. Then show how to apply it to routes.</li>
+                    <li><strong>Demonstrate the middleware chain visually:</strong> Use the interactive demo to show the flow. Intentionally break things (remove token, wrong role) to show error handling.</li>
+                    <li><strong>Common mistake to highlight:</strong> Forgetting to call <code>next()</code> or calling it after sending a response. Show the hanging request in browser DevTools.</li>
+                    <li><strong>Assignment idea:</strong> Have students build a simple blog API where users can create posts (authenticated), but only edit/delete their own posts (ownership), and only admins can delete any post (role-based).</li>
+                </ol>
+                
+                <h3>Quick Quiz</h3>
+                <div class="quiz">
+                    <p><strong>Question:</strong> What is the difference between authentication and authorization in the context of route protection?</p>
+                    <div class="quiz-option" onclick="checkAnswer(this, false)">
+                        C) They are the same thing, just different terms
+                    </div>
+                    <div class="quiz-option" onclick="checkAnswer(this, false)">
+                        D) Authentication is for frontend, Authorization is for backend
+                    </div>
+                    <div id="quiz-feedback" style="margin-top: 10px; padding: 10px; border-radius: 5px; display: none;"></div>
+                </div>
+                
+                <h3>Further Reading & Practice</h3>
+                <ul style="margin-left: 20px;">
+                    <li>Express.js official documentation on middleware</li>
+                    <li>JWT.io - Understanding JSON Web Tokens</li>
+                    <li>OWASP Top 10 - Understanding common security vulnerabilities</li>
+                    <li>Node.js Security Best Practices</li>
+                    <li>Practice: Build a multi-tenant application with role-based access control</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Simulated token storage
+        let currentToken = null;
+        let currentUser = null;
+        
+        // Simulate login and generate token
+        function simulateLogin() {
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+            
+            // Reset animation
+            resetChain();
+            
+            // Simulate authentication
+            if (username && password) {
+                // Create a fake JWT token (in real app, this comes from server)
+                const fakeToken = btoa(JSON.stringify({
+                    userId: '123',
+                    username: username,
+                    role: 'user',
+                    iat: Date.now()
+                }));
+                
+                currentToken = fakeToken;
+                currentUser = { username, role: 'user' };
+                
+                const tokenDisplay = document.getElementById('token-display');
+                tokenDisplay.innerHTML = `
+                    <div class="response-box success">
+                        <strong>✅ Login Successful!</strong>
+                        <div class="token-display">Token: ${fakeToken.substring(0, 50)}...</div>
+                        <p style="margin-top: 10px;">Copy this token to access protected routes!</p>
+                    </div>
+                `;
+                
+                // Auto-fill token in access field
+                document.getElementById('access-token').value = fakeToken;
+            } else {
+                const tokenDisplay = document.getElementById('token-display');
+                tokenDisplay.innerHTML = `
+                    <div class="response-box error">
+                        <strong>❌ Login Failed</strong>
+                        <p>Username and password required</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Reset animation chain
+        function resetChain() {
+            const steps = ['step-request', 'step-auth', 'step-handler', 'step-response'];
+            steps.forEach(id => {
+                const el = document.getElementById(id);
+                el.classList.remove('active', 'passed', 'blocked');
+            });
+        }
+        
+        // Animate middleware chain
+        async function animateChain(success) {
+            resetChain();
+            
+            // Step 1: Request arrives
+            await highlightStep('step-request', 500);
+            document.getElementById('step-request').classList.add('passed');
+            
+            // Step 2: Auth middleware
+            await highlightStep('step-auth', 800);
+            
+            if (success) {
+                document.getElementById('step-auth').classList.add('passed');
+                
+                // Step 3: Route handler
+                await highlightStep('step-handler', 500);
+                document.getElementById('step-handler').classList.add('passed');
+                
+                // Step 4: Response
+                await highlightStep('step-response', 500);
+                document.getElementById('step-response').classList.add('passed');
+            } else {
+                document.getElementById('step-auth').classList.add('blocked');
+                await new Promise(resolve => setTimeout(resolve, 300));
+                
+                // Jump directly to response (error)
+                document.getElementById('step-response').classList.add('blocked');
+            }
+        }
+        
+        function highlightStep(stepId, duration) {
+            return new Promise(resolve => {
+                document.getElementById(stepId).classList.add('active');
+                setTimeout(() => {
+                    document.getElementById(stepId).classList.remove('active');
+                    resolve();
+                }, duration);
+            });
+        }
+        
+        // Access public route (no auth needed)
+        async function accessPublicRoute() {
+            const responseDiv = document.getElementById('auth-response');
+            
+            await animateChain(true);
+            
+            responseDiv.innerHTML = `
+                <div class="response-box success">
+                    <strong>✅ GET /public - 200 OK</strong>
+                    <pre>{
+  "message": "Public data accessible to everyone",
+  "data": "This route doesn't require authentication"
+}</pre>
+                    <p style="margin-top: 10px;"><strong>Middleware Flow:</strong> Request → Route Handler → Response</p>
+                    <p><em>No authentication middleware was applied to this route.</em></p>
+                </div>
+            `;
+        }
+        
+        // Access protected route
+        async function accessProtectedRoute() {
+            const token = document.getElementById('access-token').value;
+            const responseDiv = document.getElementById('auth-response');
+            
+            if (!token) {
+                await animateChain(false);
+                
+                responseDiv.innerHTML = `
+                    <div class="response-box error">
+                        <strong>❌ GET /profile - 401 Unauthorized</strong>
+                        <pre>{
+  "message": "Access token required"
+}</pre>
+                        <p style="margin-top: 10px;"><strong>Middleware Flow:</strong> Request → Auth Middleware <span class="badge badge-danger">BLOCKED</span></p>
+                        <p><em>Authentication middleware rejected the request because no token was provided.</em></p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Validate token (simplified)
+            try {
+                const decoded = JSON.parse(atob(token));
+                
+                await animateChain(true);
+                
+                responseDiv.innerHTML = `
+                    <div class="response-box success">
+                        <strong>✅ GET /profile - 200 OK</strong>
+                        <pre>{
+  "message": "Protected profile data",
+  "user": {
+    "userId": "${decoded.userId}",
+    "username": "${decoded.username}",
+    "role": "${decoded.role}"
+  }
+}</pre>
+                        <p style="margin-top: 10px;"><strong>Middleware Flow:</strong> Request → Auth Middleware <span class="badge badge-success">PASSED</span> → Route Handler → Response</p>
+                        <p><em>Token verified successfully. User info extracted from token and attached to req.user</em></p>
+                    </div>
+                `;
+            } catch (e) {
+                await animateChain(false);
+                
+                responseDiv.innerHTML = `
+                    <div class="response-box error">
+                        <strong>❌ GET /profile - 403 Forbidden</strong>
+                        <pre>{
+  "message": "Invalid or expired token"
+}</pre>
+                        <p style="margin-top: 10px;"><strong>Middleware Flow:</strong> Request → Auth Middleware <span class="badge badge-danger">BLOCKED</span></p>
+                        <p><em>Token verification failed. Possible reasons: malformed token, expired token, or invalid signature.</em></p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Generate token with specific role
+        function generateRoleToken() {
+            const role = document.getElementById('user-role').value;
+            
+            const fakeToken = btoa(JSON.stringify({
+                userId: '123',
+                username: 'rajesh',
+                role: role,
+                iat: Date.now()
+            }));
+            
+            currentToken = fakeToken;
+            currentUser = { username: 'rajesh', role: role };
+            
+            const roleLabels = {
+                'user': 'Regular User',
+                'manager': 'Manager',
+                'admin': 'Administrator'
+            };
+            
+            document.getElementById('role-token-display').innerHTML = `
+                <div class="response-box info">
+                    <strong>Token generated for: ${roleLabels[role]}</strong>
+                    <div class="token-display">Token: ${fakeToken.substring(0, 50)}...</div>
+                    <p style="margin-top: 10px;">Role: <strong>${role}</strong></p>
+                </div>
+            `;
+        }
+        
+        // Access routes with role checking
+        async function accessRoute(routeType) {
+            const responseDiv = document.getElementById('role-response');
+            
+            if (!currentToken || !currentUser) {
+                responseDiv.innerHTML = `
+                    <div class="response-box error">
+                        <strong>❌ 401 Unauthorized</strong>
+                        <p>Please generate a token first by selecting a role and clicking "Generate Token"</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const routes = {
+                'profile': {
+                    path: '/profile',
+                    requiredRoles: ['user', 'manager', 'admin'],
+                    description: 'View own profile'
+                },
+                'users': {
+                    path: '/admin/users',
+                    requiredRoles: ['manager', 'admin'],
+                    description: 'View all users list'
+                },
+                'delete': {
+                    path: '/admin/users/delete',
+                    requiredRoles: ['admin'],
+                    description: 'Delete user accounts'
+                }
+            };
+            
+            const route = routes[routeType];
+            const hasAccess = route.requiredRoles.includes(currentUser.role);
+            
+            if (hasAccess) {
+                responseDiv.innerHTML = `
+                    <div class="response-box success">
+                        <strong>✅ GET ${route.path} - 200 OK</strong>
+                        <pre>{
+  "message": "${route.description}",
+  "user": {
+    "username": "${currentUser.username}",
+    "role": "${currentUser.role}"
+  },
+  "data": "... protected data ..."
+}</pre>
+                        <p style="margin-top: 10px;"><strong>Middleware Flow:</strong></p>
+                        <p>1. Auth Middleware <span class="badge badge-success">PASSED</span> - Token valid</p>
+                        <p>2. Role Check <span class="badge badge-success">PASSED</span> - Role "${currentUser.role}" is in [${route.requiredRoles.join(', ')}]</p>
+                        <p>3. Route Handler executed successfully</p>
+                    </div>
+                `;
+            } else {
+                responseDiv.innerHTML = `
+                    <div class="response-box error">
+                        <strong>❌ GET ${route.path} - 403 Forbidden</strong>
+                        <pre>{
+  "message": "Access denied. Required roles: ${route.requiredRoles.join(', ')}",
+  "yourRole": "${currentUser.role}"
+}</pre>
+                        <p style="margin-top: 10px;"><strong>Middleware Flow:</strong></p>
+                        <p>1. Auth Middleware <span class="badge badge-success">PASSED</span> - Token valid</p>
+                        <p>2. Role Check <span class="badge badge-danger">BLOCKED</span> - Role "${currentUser.role}" NOT in [${route.requiredRoles.join(', ')}]</p>
+                        <p>3. Route Handler was never reached</p>
+                        <p style="margin-top: 10px;"><em>Try selecting a different role and generating a new token!</em></p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Toggle instructor notes
+        function toggleInstructor() {
+            const content = document.getElementById('instructor-content');
+            const toggle = document.getElementById('instructor-toggle');
+            
+            if (content.classList.contains('show')) {
+                content.classList.remove('show');
+                toggle.textContent = '▼';
+            } else {
+                content.classList.add('show');
+                toggle.textContent = '▲';
+            }
+        }
+        
+        // Check quiz answer
+        function checkAnswer(element, isCorrect) {
+            // Remove previous selections
+            const options = document.querySelectorAll('.quiz-option');
+            options.forEach(opt => {
+                opt.classList.remove('correct', 'incorrect');
+            });
+            
+            // Mark this option
+            if (isCorrect) {
+                element.classList.add('correct');
+                document.getElementById('quiz-feedback').innerHTML = `
+                    <div style="color: #28a745; font-weight: bold;">
+                        ✅ Correct! Authentication verifies WHO the user is (identity), while Authorization determines WHAT they can access (permissions).
+                    </div>
+                `;
+            } else {
+                element.classList.add('incorrect');
+                document.getElementById('quiz-feedback').innerHTML = `
+                    <div style="color: #dc3545; font-weight: bold;">
+                        ❌ Incorrect. Think about it this way: Authentication = "Who are you?" (checking ID), Authorization = "What can you do?" (checking permissions).
+                    </div>
+                `;
+            }
+            
+            document.getElementById('quiz-feedback').style.display = 'block';
+        }
+        
+        // Initialize with example on page load
+        window.onload = function() {
+            // Pre-fill demo values for quick testing
+            document.getElementById('login-username').value = 'rajesh';
+            document.getElementById('login-password').value = 'password123';
+        };
+    </script>
+</body>
+</html>">
+                        A) Authentication checks user roles, Authorization verifies the JWT token
+                    </div>
+                    <div class="quiz-option" onclick="checkAnswer(this, true)">
+                        B) Authentication verifies who the user is, Authorization checks what they can access
+                    </div>
+                    <div class="quiz-option" onclick="checkAnswer(this, false)

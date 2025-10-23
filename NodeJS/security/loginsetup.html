@@ -1,0 +1,1496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Express JS Authentication Endpoints - Interactive Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+            padding: 25px;
+            background: #f7fafc;
+            border-radius: 10px;
+            border-left: 5px solid #667eea;
+        }
+        
+        .section h2 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-size: 1.8em;
+        }
+        
+        .section h3 {
+            color: #4a5568;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 1.3em;
+        }
+        
+        .concept {
+            background: #edf2f7;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #4299e1;
+        }
+        
+        .analogy {
+            background: #fef5e7;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #f39c12;
+        }
+        
+        .analogy::before {
+            content: "💡 Analogy: ";
+            font-weight: bold;
+            color: #f39c12;
+        }
+        
+        pre {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+        
+        code {
+            font-family: 'Courier New', Courier, monospace;
+        }
+        
+        .interactive-demo {
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+        
+        .demo-title {
+            color: #667eea;
+            font-weight: bold;
+            font-size: 1.2em;
+            margin-bottom: 15px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #2d3748;
+        }
+        
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #cbd5e0;
+            border-radius: 5px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        button {
+            background: #667eea;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-right: 10px;
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .output {
+            background: #2d3748;
+            color: #48bb78;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+            font-family: 'Courier New', Courier, monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .error {
+            color: #f56565;
+        }
+        
+        .success {
+            color: #48bb78;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: #4a5568;
+            font-weight: 600;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .instructor-notes {
+            background: #e6fffa;
+            border: 2px solid #38b2ac;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+        
+        .instructor-notes summary {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #234e52;
+            cursor: pointer;
+            padding: 10px;
+        }
+        
+        .quiz {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        
+        .quiz-option {
+            padding: 10px;
+            margin: 10px 0;
+            border: 2px solid #cbd5e0;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .quiz-option:hover {
+            background: #edf2f7;
+            border-color: #667eea;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 5px 10px;
+            background: #667eea;
+            color: white;
+            border-radius: 15px;
+            font-size: 0.85em;
+            margin-right: 10px;
+        }
+        
+        .warning {
+            background: #fff5f5;
+            border-left: 4px solid #f56565;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        
+        .tip {
+            background: #f0fff4;
+            border-left: 4px solid #48bb78;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔐 Express JS Authentication Endpoints</h1>
+            <p>Interactive Deep Dive: Login & Registration with JWT</p>
+        </header>
+        
+        <div class="content">
+            <!-- Section 1: Registration Endpoint -->
+            <div class="section">
+                <h2>1. Registration Endpoint Deep Dive</h2>
+                
+                <div class="concept">
+                    <strong>Core Concept:</strong> Registration endpoints validate user data, hash passwords, store users in MongoDB via Mongoose, and return appropriate responses with status codes.
+                </div>
+                
+                <div class="analogy">
+                    Think of registration like opening a new bank account at SBI. The bank (server) checks if you already have an account (email uniqueness), verifies your documents (validation), creates a secure locker (password hashing), stores your details (database), and gives you an account number (user ID).
+                </div>
+                
+                <h3>Complete Registration Flow</h3>
+                <pre><code>// User Model (models/User.js)
+const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
+
+const userSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: [true, 'Name is required'],
+    trim: true,
+    minlength: [2, 'Name must be at least 2 characters']
+  },
+  email: {
+    type: String,
+    required: [true, 'Email is required'],
+    unique: true,
+    lowercase: true,
+    match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Invalid email']
+  },
+  password: {
+    type: String,
+    required: [true, 'Password is required'],
+    minlength: [6, 'Password must be at least 6 characters']
+  },
+  role: {
+    type: String,
+    enum: ['user', 'admin'],
+    default: 'user'
+  }
+}, { timestamps: true });
+
+// Hash password before saving
+userSchema.pre('save', async function(next) {
+  if (!this.isModified('password')) return next();
+  this.password = await bcrypt.hash(this.password, 12);
+  next();
+});
+
+module.exports = mongoose.model('User', userSchema);</code></pre>
+
+                <pre><code>// Registration Route (routes/auth.js)
+const express = require('express');
+const router = express.Router();
+const User = require('../models/User');
+
+router.post('/register', async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+    
+    // 1. Input Validation
+    if (!name || !email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide all required fields'
+      });
+    }
+    
+    // 2. Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(409).json({
+        success: false,
+        message: 'User already exists with this email'
+      });
+    }
+    
+    // 3. Create new user (password hashing happens in pre-save hook)
+    const user = await User.create({
+      name,
+      email,
+      password
+    });
+    
+    // 4. Send success response (never send password back)
+    res.status(201).json({
+      success: true,
+      message: 'User registered successfully',
+      data: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
+    });
+    
+  } catch (error) {
+    // Handle Mongoose validation errors
+    if (error.name === 'ValidationError') {
+      const messages = Object.values(error.errors).map(e => e.message);
+      return res.status(400).json({
+        success: false,
+        message: messages.join(', ')
+      });
+    }
+    
+    // Generic error
+    res.status(500).json({
+      success: false,
+      message: 'Server error during registration'
+    });
+  }
+});</code></pre>
+
+                <div class="interactive-demo">
+                    <div class="demo-title">🎮 Interactive Registration Demo</div>
+                    <form id="registerForm">
+                        <div class="form-group">
+                            <label>Name:</label>
+                            <input type="text" id="regName" placeholder="Rajesh Kumar">
+                        </div>
+                        <div class="form-group">
+                            <label>Email:</label>
+                            <input type="email" id="regEmail" placeholder="rajesh@example.com">
+                        </div>
+                        <div class="form-group">
+                            <label>Password:</label>
+                            <input type="password" id="regPassword" placeholder="Min 6 characters">
+                        </div>
+                        <button type="submit">Register User</button>
+                        <button type="button" onclick="testDuplicateEmail()">Test Duplicate Email</button>
+                        <button type="button" onclick="testValidationError()">Test Validation Error</button>
+                    </form>
+                    <div id="registerOutput" class="output" style="display:none;"></div>
+                </div>
+
+                <div class="tip">
+                    <strong>💡 Best Practice:</strong> Always use Mongoose schema validation + bcrypt hashing (12+ rounds) + unique email indexes. Never store plain text passwords!
+                </div>
+            </div>
+
+            <!-- Section 2: Login Endpoint -->
+            <div class="section">
+                <h2>2. Login Endpoint Deep Dive</h2>
+                
+                <div class="concept">
+                    <strong>Core Concept:</strong> Login endpoints verify credentials, compare hashed passwords, generate JWT tokens with expiration, and set secure HTTP-only cookies or return tokens in response body.
+                </div>
+                
+                <div class="analogy">
+                    Login is like entering your office building with an ID card. Security (server) checks your card (email), verifies your face matches (password comparison), and if correct, gives you a temporary access badge (JWT token) that works for the day (expiration time). You show this badge to access different floors (protected routes).
+                </div>
+                
+                <h3>Complete Login Flow with JWT</h3>
+                <pre><code>// Add password comparison method to User model
+userSchema.methods.comparePassword = async function(candidatePassword) {
+  return await bcrypt.compare(candidatePassword, this.password);
+};
+
+// Generate JWT token method
+userSchema.methods.generateAuthToken = function() {
+  const jwt = require('jsonwebtoken');
+  return jwt.sign(
+    { 
+      id: this._id, 
+      email: this.email,
+      role: this.role 
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: '7d' }
+  );
+};</code></pre>
+
+                <pre><code>// Login Route (routes/auth.js)
+router.post('/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    
+    // 1. Validate input
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide email and password'
+      });
+    }
+    
+    // 2. Find user and include password field (usually excluded)
+    const user = await User.findOne({ email }).select('+password');
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid credentials'
+      });
+    }
+    
+    // 3. Compare passwords
+    const isPasswordValid = await user.comparePassword(password);
+    if (!isPasswordValid) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid credentials'
+      });
+    }
+    
+    // 4. Generate JWT token
+    const token = user.generateAuthToken();
+    
+    // 5. Set HTTP-only cookie (recommended) OR send in response
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production', // HTTPS only
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    });
+    
+    // 6. Send success response
+    res.status(200).json({
+      success: true,
+      message: 'Login successful',
+      token, // Optional: send token in body for mobile apps
+      data: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
+    });
+    
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Server error during login'
+    });
+  }
+});</code></pre>
+
+                <div class="interactive-demo">
+                    <div class="demo-title">🎮 Interactive Login Demo</div>
+                    <form id="loginForm">
+                        <div class="form-group">
+                            <label>Email:</label>
+                            <input type="email" id="loginEmail" placeholder="rajesh@example.com">
+                        </div>
+                        <div class="form-group">
+                            <label>Password:</label>
+                            <input type="password" id="loginPassword" placeholder="Your password">
+                        </div>
+                        <button type="submit">Login</button>
+                        <button type="button" onclick="testWrongPassword()">Test Wrong Password</button>
+                        <button type="button" onclick="testNonExistentUser()">Test Non-existent User</button>
+                    </form>
+                    <div id="loginOutput" class="output" style="display:none;"></div>
+                </div>
+
+                <div class="warning">
+                    <strong>⚠️ Security Note:</strong> Never reveal whether email or password was wrong - always say "Invalid credentials". This prevents enumeration attacks where hackers test which emails exist.
+                </div>
+            </div>
+
+            <!-- Section 3: JWT Token Structure -->
+            <div class="section">
+                <h2>3. JWT Token Deep Dive</h2>
+                
+                <div class="concept">
+                    <strong>Core Concept:</strong> JWT (JSON Web Token) has 3 parts: Header (algorithm), Payload (user data), Signature (verification). It's stateless - server doesn't store sessions.
+                </div>
+                
+                <div class="analogy">
+                    JWT is like an Aadhaar card with a hologram. The card has your details (payload), a government stamp (header), and a secure hologram (signature) that proves it's authentic. Anyone can read your details, but only the government can create the hologram. Similarly, anyone can decode JWT, but only the server with the secret key can create valid signatures.
+                </div>
+
+                <h3>JWT Structure & Verification</h3>
+                <pre><code>// JWT Middleware (middleware/auth.js)
+const jwt = require('jsonwebtoken');
+const User = require('../models/User');
+
+const protect = async (req, res, next) => {
+  try {
+    let token;
+    
+    // 1. Extract token from cookie or Authorization header
+    if (req.cookies.token) {
+      token = req.cookies.token;
+    } else if (req.headers.authorization?.startsWith('Bearer')) {
+      token = req.headers.authorization.split(' ')[1];
+    }
+    
+    // 2. Check if token exists
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authorized - No token provided'
+      });
+    }
+    
+    // 3. Verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
+    // 4. Check if user still exists
+    const user = await User.findById(decoded.id);
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: 'User no longer exists'
+      });
+    }
+    
+    // 5. Attach user to request object
+    req.user = user;
+    next();
+    
+  } catch (error) {
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid token'
+      });
+    }
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({
+        success: false,
+        message: 'Token expired'
+      });
+    }
+    res.status(500).json({
+      success: false,
+      message: 'Token verification failed'
+    });
+  }
+};
+
+module.exports = { protect };</code></pre>
+
+                <pre><code>// Using the middleware in protected routes
+const { protect } = require('../middleware/auth');
+
+// Protected route example
+router.get('/profile', protect, async (req, res) => {
+  res.status(200).json({
+    success: true,
+    data: req.user
+  });
+});</code></pre>
+
+                <div class="interactive-demo">
+                    <div class="demo-title">🎮 JWT Token Decoder</div>
+                    <div class="form-group">
+                        <label>Paste JWT Token:</label>
+                        <input type="text" id="jwtToken" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
+                    </div>
+                    <button onclick="decodeJWT()">Decode Token</button>
+                    <button onclick="generateSampleToken()">Generate Sample Token</button>
+                    <div id="jwtOutput" class="output" style="display:none;"></div>
+                </div>
+
+                <div class="tip">
+                    <strong>💡 JWT Best Practices:</strong>
+                    <ul style="margin-top: 10px; margin-left: 20px;">
+                        <li>Keep expiration time reasonable (7-30 days)</li>
+                        <li>Store JWT_SECRET in environment variables</li>
+                        <li>Use HTTP-only cookies for web apps (prevents XSS)</li>
+                        <li>Implement token refresh mechanism for better security</li>
+                        <li>Don't store sensitive data in JWT payload (it's readable!)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Section 4: Error Handling & Status Codes -->
+            <div class="section">
+                <h2>4. HTTP Status Codes & Error Handling</h2>
+                
+                <div class="concept">
+                    <strong>Core Concept:</strong> Proper status codes communicate what went wrong - 400 (bad input), 401 (unauthorized), 409 (conflict), 500 (server error). Consistent error response format helps frontend handle errors gracefully.
+                </div>
+                
+                <div class="tabs">
+                    <button class="tab active" onclick="switchTab('status-codes')">Status Codes</button>
+                    <button class="tab" onclick="switchTab('error-handling')">Error Handling</button>
+                    <button class="tab" onclick="switchTab('response-format')">Response Format</button>
+                </div>
+                
+                <div id="status-codes" class="tab-content active">
+                    <h3>Common Status Codes for Auth</h3>
+                    <pre><code>// Registration Endpoint Status Codes
+201 - Created (successful registration)
+400 - Bad Request (validation errors, missing fields)
+409 - Conflict (email already exists)
+500 - Internal Server Error
+
+// Login Endpoint Status Codes
+200 - OK (successful login)
+400 - Bad Request (missing email/password)
+401 - Unauthorized (wrong credentials)
+500 - Internal Server Error
+
+// Protected Routes Status Codes
+200 - OK (authorized, successful request)
+401 - Unauthorized (no token, invalid token, expired token)
+403 - Forbidden (valid token but insufficient permissions)
+404 - Not Found (resource doesn't exist)</code></pre>
+                </div>
+                
+                <div id="error-handling" class="tab-content">
+                    <h3>Centralized Error Handler</h3>
+                    <pre><code>// middleware/errorHandler.js
+const errorHandler = (err, req, res, next) => {
+  console.error('Error:', err);
+  
+  // Mongoose validation error
+  if (err.name === 'ValidationError') {
+    const messages = Object.values(err.errors).map(e => e.message);
+    return res.status(400).json({
+      success: false,
+      message: 'Validation Error',
+      errors: messages
+    });
+  }
+  
+  // Mongoose duplicate key error
+  if (err.code === 11000) {
+    const field = Object.keys(err.keyValue)[0];
+    return res.status(409).json({
+      success: false,
+      message: `${field} already exists`
+    });
+  }
+  
+  // JWT errors
+  if (err.name === 'JsonWebTokenError') {
+    return res.status(401).json({
+      success: false,
+      message: 'Invalid token'
+    });
+  }
+  
+  if (err.name === 'TokenExpiredError') {
+    return res.status(401).json({
+      success: false,
+      message: 'Token expired'
+    });
+  }
+  
+  // Default error
+  res.status(err.statusCode || 500).json({
+    success: false,
+    message: err.message || 'Internal Server Error'
+  });
+};
+
+module.exports = errorHandler;
+
+// In app.js
+app.use(errorHandler);</code></pre>
+                </div>
+                
+                <div id="response-format" class="tab-content">
+                    <h3>Consistent Response Format</h3>
+                    <pre><code>// Success Response Format
+{
+  "success": true,
+  "message": "Operation successful",
+  "data": {
+    // Actual data here
+  },
+  "token": "eyJhbGc..." // Optional for login
+}
+
+// Error Response Format
+{
+  "success": false,
+  "message": "Error description",
+  "errors": ["Detail 1", "Detail 2"] // Optional array
+}
+
+// Example: Successful Registration
+{
+  "success": true,
+  "message": "User registered successfully",
+  "data": {
+    "id": "507f1f77bcf86cd799439011",
+    "name": "Rajesh Kumar",
+    "email": "rajesh@example.com",
+    "role": "user"
+  }
+}
+
+// Example: Login Error
+{
+  "success": false,
+  "message": "Invalid credentials"
+}</code></pre>
+                </div>
+
+                <div class="interactive-demo">
+                    <div class="demo-title">🎮 Status Code Simulator</div>
+                    <div class="form-group">
+                        <label>Select Scenario:</label>
+                        <select id="scenarioSelect">
+                            <option value="success">✅ Successful Registration (201)</option>
+                            <option value="duplicate">⚠️ Duplicate Email (409)</option>
+                            <option value="validation">❌ Validation Error (400)</option>
+                            <option value="login-success">✅ Successful Login (200)</option>
+                            <option value="wrong-password">🔒 Wrong Password (401)</option>
+                            <option value="expired-token">⏱️ Expired Token (401)</option>
+                            <option value="server-error">💥 Server Error (500)</option>
+                        </select>
+                    </div>
+                    <button onclick="simulateResponse()">Simulate Response</button>
+                    <div id="statusOutput" class="output" style="display:none;"></div>
+                </div>
+            </div>
+
+            <!-- Section 5: Complete Auth Flow -->
+            <div class="section">
+                <h2>5. Complete Authentication Flow</h2>
+                
+                <div class="concept">
+                    <strong>Core Concept:</strong> Real-world auth flow involves registration → login → token storage → protected route access → token refresh → logout. Each step requires specific HTTP methods, headers, and error handling.
+                </div>
+                
+                <h3>Full App Structure</h3>
+                <pre><code>// app.js - Main Express Application
+const express = require('express');
+const mongoose = require('mongoose');
+const cookieParser = require('cookie-parser');
+const authRoutes = require('./routes/auth');
+const errorHandler = require('./middleware/errorHandler');
+require('dotenv').config();
+
+const app = express();
+
+// Middleware
+app.use(express.json());
+app.use(cookieParser());
+
+// Connect to MongoDB
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log('MongoDB Connected'))
+  .catch(err => console.log('MongoDB Error:', err));
+
+// Routes
+app.use('/api/auth', authRoutes);
+
+// Error handler (must be last)
+app.use(errorHandler);
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server on port ${PORT}`));</code></pre>
+
+                <pre><code>// .env file
+MONGO_URI=mongodb://localhost:27017/auth_demo
+JWT_SECRET=your_super_secret_key_change_this_in_production
+NODE_ENV=development
+PORT=5000</code></pre>
+
+                <h3>Additional Auth Routes</h3>
+                <pre><code>// Logout Route
+router.post('/logout', (req, res) => {
+  res.cookie('token', '', {
+    httpOnly: true,
+    expires: new Date(0)
+  });
+  res.status(200).json({
+    success: true,
+    message: 'Logged out successfully'
+  });
+});
+
+// Get Current User Route (Protected)
+router.get('/me', protect, async (req, res) => {
+  res.status(200).json({
+    success: true,
+    data: req.user
+  });
+});
+
+// Update Password Route (Protected)
+router.put('/updatepassword', protect, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    
+    const user = await User.findById(req.user.id).select('+password');
+    const isMatch = await user.comparePassword(currentPassword);
+    
+    if (!isMatch) {
+      return res.status(401).json({
+        success: false,
+        message: 'Current password is incorrect'
+      });
+    }
+    
+    user.password = newPassword;
+    await user.save();
+    
+    res.status(200).json({
+      success: true,
+      message: 'Password updated successfully'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Password update failed'
+    });
+  }
+});</code></pre>
+
+                <div class="interactive-demo">
+                    <div class="demo-title">🎮 Complete Flow Visualizer</div>
+                    <div class="form-group">
+                        <label>Select Flow Step:</label>
+                        <select id="flowStep">
+                            <option value="register">1. Register New User</option>
+                            <option value="login">2. Login User</option>
+                            <option value="access">3. Access Protected Route</option>
+                            <option value="refresh">4. Token Expired - Need Refresh</option>
+                            <option value="logout">5. Logout</option>
+                        </select>
+                    </div>
+                    <button onclick="visualizeFlow()">Visualize Step</button>
+                    <div id="flowOutput" class="output" style="display:none;"></div>
+                </div>
+
+                <div class="tip">
+                    <strong>💡 Production Checklist:</strong>
+                    <ul style="margin-top: 10px; margin-left: 20px;">
+                        <li>✅ Use HTTPS in production (secure cookies)</li>
+                        <li>✅ Implement rate limiting (prevent brute force)</li>
+                        <li>✅ Add email verification for registration</li>
+                        <li>✅ Implement password reset flow</li>
+                        <li>✅ Use refresh tokens for long sessions</li>
+                        <li>✅ Log authentication events for security audit</li>
+                        <li>✅ Implement CORS properly for frontend</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Instructor Notes -->
+            <details class="instructor-notes">
+                <summary>🧑‍🏫 Instructor Notes</summary>
+                
+                <h3 style="margin-top: 20px;">Teaching Tips:</h3>
+                <ol style="margin-left: 20px; line-height: 1.8;">
+                    <li><strong>Demo Order:</strong> Start with registration (simpler), then login (adds JWT complexity), then protected routes (shows middleware). Build incrementally.</li>
+                    <li><strong>Common Mistakes:</strong> Students often forget to hash passwords before saving, send passwords in responses, or use wrong status codes (409 vs 400). Use the interactive demos to show these mistakes in action.</li>
+                    <li><strong>Hands-on Exercise:</strong> Have students add a "forgot password" endpoint that generates a reset token and sends it via email. This reinforces token generation concepts and async operations.</li>
+                </ol>
+
+                <div class="quiz">
+                    <h3>📝 Quick Quiz Question:</h3>
+                    <p><strong>Q: Your Express login endpoint is returning 200 OK even when credentials are wrong. The user object is null but no error is thrown. What's the most likely cause?</strong></p>
+                    
+                    <div class="quiz-option" onclick="checkAnswer(this, false)">
+                        A) You forgot to use async/await with User.findOne()
+                    </div>
+                    <div class="quiz-option" onclick="checkAnswer(this, false)">
+                        B) The JWT_SECRET is not set in environment variables
+                    </div>
+                    <div class="quiz-option" onclick="checkAnswer(this, true)">
+                        C) You're not checking if user exists before comparing passwords, causing null.comparePassword() to fail silently in a try-catch that returns 200
+                    </div>
+                    <div class="quiz-option" onclick="checkAnswer(this, false)">
+                        D) Mongoose validation is disabled in your schema
+                    </div>
+                    
+                    <div id="quizFeedback" style="margin-top: 15px; font-weight: bold;"></div>
+                </div>
+
+                <h3 style="margin-top: 20px;">📚 Further Reading:</h3>
+                <ul style="margin-left: 20px; line-height: 1.8;">
+                    <li>OWASP Authentication Cheat Sheet - Security best practices</li>
+                    <li>JWT.io - Official JWT documentation and debugger</li>
+                    <li>Express.js Security Best Practices - Official Express docs</li>
+                    <li>Mongoose Middleware Documentation - Pre/post hooks explained</li>
+                    <li>bcrypt vs bcryptjs - Performance and compatibility comparison</li>
+                </ul>
+
+                <h3 style="margin-top: 20px;">🔧 Advanced Topics to Explore:</h3>
+                <ul style="margin-left: 20px; line-height: 1.8;">
+                    <li>OAuth 2.0 integration (Google, GitHub login)</li>
+                    <li>Refresh token rotation strategy</li>
+                    <li>Multi-factor authentication (2FA)</li>
+                    <li>Role-based access control (RBAC) middleware</li>
+                    <li>Redis session store for scalability</li>
+                </ul>
+            </details>
+        </div>
+    </div>
+
+    <script>
+        // Simulated user database (in-memory for demo)
+        let users = [];
+        let currentToken = null;
+
+        // Registration Form Handler
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = document.getElementById('regName').value;
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+            
+            const output = document.getElementById('registerOutput');
+            output.style.display = 'block';
+            
+            // Validation
+            if (!name || !email || !password) {
+                output.innerHTML = `<span class="error">HTTP 400 Bad Request</span>
+{
+  "success": false,
+  "message": "Please provide all required fields"
+}`;
+                return;
+            }
+            
+            if (password.length < 6) {
+                output.innerHTML = `<span class="error">HTTP 400 Bad Request</span>
+{
+  "success": false,
+  "message": "Password must be at least 6 characters"
+}`;
+                return;
+            }
+            
+            // Check duplicate
+            const existing = users.find(u => u.email === email);
+            if (existing) {
+                output.innerHTML = `<span class="error">HTTP 409 Conflict</span>
+{
+  "success": false,
+  "message": "User already exists with this email"
+}`;
+                return;
+            }
+            
+            // Create user (simulate hashing)
+            const userId = 'user_' + Math.random().toString(36).substr(2, 9);
+            const user = {
+                id: userId,
+                name: name,
+                email: email,
+                password: '••••••••', // Simulated hash
+                role: 'user',
+                createdAt: new Date().toISOString()
+            };
+            users.push(user);
+            
+            output.innerHTML = `<span class="success">HTTP 201 Created</span>
+{
+  "success": true,
+  "message": "User registered successfully",
+  "data": {
+    "id": "${user.id}",
+    "name": "${user.name}",
+    "email": "${user.email}",
+    "role": "${user.role}"
+  }
+}
+
+<span style="color: #68d391;">✅ User stored in database (password hashed with bcrypt)</span>
+<span style="color: #fbd38d;">📝 Total users in DB: ${users.length}</span>`;
+        });
+
+        function testDuplicateEmail() {
+            document.getElementById('regEmail').value = users.length > 0 ? users[0].email : 'test@example.com';
+            if (users.length === 0) {
+                // Create a user first
+                users.push({
+                    id: 'user_test',
+                    name: 'Test User',
+                    email: 'test@example.com',
+                    password: '••••••••',
+                    role: 'user'
+                });
+            }
+        }
+
+        function testValidationError() {
+            document.getElementById('regName').value = 'A'; // Too short
+            document.getElementById('regPassword').value = '123'; // Too short
+        }
+
+        // Login Form Handler
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            const output = document.getElementById('loginOutput');
+            output.style.display = 'block';
+            
+            // Validation
+            if (!email || !password) {
+                output.innerHTML = `<span class="error">HTTP 400 Bad Request</span>
+{
+  "success": false,
+  "message": "Please provide email and password"
+}`;
+                return;
+            }
+            
+            // Find user
+            const user = users.find(u => u.email === email);
+            if (!user) {
+                output.innerHTML = `<span class="error">HTTP 401 Unauthorized</span>
+{
+  "success": false,
+  "message": "Invalid credentials"
+}
+
+<span style="color: #fc8181;">🔒 Security Note: We don't reveal if email exists!</span>`;
+                return;
+            }
+            
+            // Simulate password check (in real app, use bcrypt.compare)
+            if (password.length < 6) {
+                output.innerHTML = `<span class="error">HTTP 401 Unauthorized</span>
+{
+  "success": false,
+  "message": "Invalid credentials"
+}`;
+                return;
+            }
+            
+            // Generate JWT token
+            const token = generateToken(user);
+            currentToken = token;
+            
+            output.innerHTML = `<span class="success">HTTP 200 OK</span>
+{
+  "success": true,
+  "message": "Login successful",
+  "token": "${token}",
+  "data": {
+    "id": "${user.id}",
+    "name": "${user.name}",
+    "email": "${user.email}",
+    "role": "${user.role}"
+  }
+}
+
+<span style="color: #68d391;">✅ JWT token generated and set in HTTP-only cookie</span>
+<span style="color: #fbd38d;">🔑 Token stored for protected route access</span>`;
+        });
+
+        function testWrongPassword() {
+            if (users.length === 0) {
+                alert('Please register a user first!');
+                return;
+            }
+            document.getElementById('loginEmail').value = users[0].email;
+            document.getElementById('loginPassword').value = 'wrongpass';
+        }
+
+        function testNonExistentUser() {
+            document.getElementById('loginEmail').value = 'nonexistent@example.com';
+            document.getElementById('loginPassword').value = 'password123';
+        }
+
+        // JWT Token Functions
+        function generateToken(user) {
+            // Simulated JWT (in real app, use jsonwebtoken library)
+            const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+            const payload = btoa(JSON.stringify({ 
+                id: user.id, 
+                email: user.email,
+                role: user.role,
+                exp: Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60) // 7 days
+            }));
+            const signature = btoa('simulated_signature_' + user.id);
+            return `${header}.${payload}.${signature}`;
+        }
+
+        function decodeJWT() {
+            const token = document.getElementById('jwtToken').value;
+            const output = document.getElementById('jwtOutput');
+            output.style.display = 'block';
+            
+            if (!token) {
+                output.innerHTML = '<span class="error">Please enter a token</span>';
+                return;
+            }
+            
+            try {
+                const parts = token.split('.');
+                if (parts.length !== 3) {
+                    throw new Error('Invalid token format');
+                }
+                
+                const header = JSON.parse(atob(parts[0]));
+                const payload = JSON.parse(atob(parts[1]));
+                
+                const exp = new Date(payload.exp * 1000);
+                const isExpired = exp < new Date();
+                
+                output.innerHTML = `<span class="success">Token Decoded Successfully!</span>
+
+<span style="color: #63b3ed;">📋 HEADER:</span>
+${JSON.stringify(header, null, 2)}
+
+<span style="color: #63b3ed;">📦 PAYLOAD:</span>
+${JSON.stringify(payload, null, 2)}
+
+<span style="color: #63b3ed;">🔏 SIGNATURE:</span>
+${parts[2].substring(0, 30)}... (verified with JWT_SECRET)
+
+<span style="color: ${isExpired ? '#fc8181' : '#68d391'};">⏱️ Expiration: ${exp.toLocaleString()}</span>
+<span style="color: ${isExpired ? '#fc8181' : '#68d391'};">${isExpired ? '❌ Token Expired!' : '✅ Token Valid'}</span>
+
+<span style="color: #fbd38d;">💡 Note: Payload is readable by anyone! Never store sensitive data.</span>`;
+            } catch (error) {
+                output.innerHTML = `<span class="error">Invalid JWT Token</span>
+Error: ${error.message}`;
+            }
+        }
+
+        function generateSampleToken() {
+            const sampleUser = {
+                id: 'user_demo123',
+                email: 'demo@example.com',
+                role: 'user'
+            };
+            const token = generateToken(sampleUser);
+            document.getElementById('jwtToken').value = token;
+            decodeJWT();
+        }
+
+        // Status Code Simulator
+        function simulateResponse() {
+            const scenario = document.getElementById('scenarioSelect').value;
+            const output = document.getElementById('statusOutput');
+            output.style.display = 'block';
+            
+            const responses = {
+                'success': `<span class="success">HTTP 201 Created</span>
+{
+  "success": true,
+  "message": "User registered successfully",
+  "data": {
+    "id": "507f1f77bcf86cd799439011",
+    "name": "Priya Sharma",
+    "email": "priya@example.com",
+    "role": "user"
+  }
+}`,
+                'duplicate': `<span class="error">HTTP 409 Conflict</span>
+{
+  "success": false,
+  "message": "User already exists with this email"
+}
+
+<span style="color: #fbd38d;">🔍 Mongoose duplicate key error caught</span>`,
+                'validation': `<span class="error">HTTP 400 Bad Request</span>
+{
+  "success": false,
+  "message": "Validation Error",
+  "errors": [
+    "Name must be at least 2 characters",
+    "Invalid email format",
+    "Password must be at least 6 characters"
+  ]
+}
+
+<span style="color: #fbd38d;">📝 Mongoose schema validation triggered</span>`,
+                'login-success': `<span class="success">HTTP 200 OK</span>
+{
+  "success": true,
+  "message": "Login successful",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjUwN2YxZjc3YmNmODZjZDc5OTQzOTAxMSIsImVtYWlsIjoicHJpeWFAZXhhbXBsZS5jb20iLCJyb2xlIjoidXNlciIsImV4cCI6MTczNTIwMDAwMH0.signature",
+  "data": {
+    "id": "507f1f77bcf86cd799439011",
+    "name": "Priya Sharma",
+    "email": "priya@example.com",
+    "role": "user"
+  }
+}
+
+<span style="color: #68d391;">✅ Set-Cookie: token=...; HttpOnly; Secure; SameSite=Strict</span>`,
+                'wrong-password': `<span class="error">HTTP 401 Unauthorized</span>
+{
+  "success": false,
+  "message": "Invalid credentials"
+}
+
+<span style="color: #fc8181;">🔒 bcrypt.compare() returned false</span>
+<span style="color: #fbd38d;">⚠️ Don't reveal which field was wrong!</span>`,
+                'expired-token': `<span class="error">HTTP 401 Unauthorized</span>
+{
+  "success": false,
+  "message": "Token expired"
+}
+
+<span style="color: #fc8181;">⏱️ jwt.verify() threw TokenExpiredError</span>
+<span style="color: #fbd38d;">💡 Client should refresh token or re-login</span>`,
+                'server-error': `<span class="error">HTTP 500 Internal Server Error</span>
+{
+  "success": false,
+  "message": "Server error during registration"
+}
+
+<span style="color: #fc8181;">💥 Uncaught exception in try-catch block</span>
+<span style="color: #fbd38d;">📊 Log to monitoring service (Sentry, LogRocket)</span>`
+            };
+            
+            output.innerHTML = responses[scenario];
+        }
+
+        // Flow Visualizer
+        function visualizeFlow() {
+            const step = document.getElementById('flowStep').value;
+            const output = document.getElementById('flowOutput');
+            output.style.display = 'block';
+            
+            const flows = {
+                'register': `<span style="color: #63b3ed; font-weight: bold;">Step 1: User Registration</span>
+
+<span style="color: #68d391;">CLIENT:</span>
+POST /api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Rajesh Kumar",
+  "email": "rajesh@example.com",
+  "password": "secure123"
+}
+
+<span style="color: #fbd38d;">SERVER PROCESSING:</span>
+1. ✅ Validate input (all fields present)
+2. ✅ Check email uniqueness (query MongoDB)
+3. ✅ Hash password with bcrypt (12 rounds)
+4. ✅ Save to database via Mongoose
+5. ✅ Return user data (exclude password!)
+
+<span style="color: #68d391;">SERVER RESPONSE:</span>
+HTTP 201 Created
+{
+  "success": true,
+  "message": "User registered successfully",
+  "data": { "id": "...", "name": "Rajesh Kumar", "email": "..." }
+}`,
+                'login': `<span style="color: #63b3ed; font-weight: bold;">Step 2: User Login</span>
+
+<span style="color: #68d391;">CLIENT:</span>
+POST /api/auth/login
+Content-Type: application/json
+
+{
+  "email": "rajesh@example.com",
+  "password": "secure123"
+}
+
+<span style="color: #fbd38d;">SERVER PROCESSING:</span>
+1. ✅ Find user by email (include +password field)
+2. ✅ Compare password with bcrypt.compare()
+3. ✅ Generate JWT token with user payload
+4. ✅ Set HTTP-only cookie with token
+5. ✅ Return token + user data
+
+<span style="color: #68d391;">SERVER RESPONSE:</span>
+HTTP 200 OK
+Set-Cookie: token=eyJhbGc...; HttpOnly; Secure
+{
+  "success": true,
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "data": { "id": "...", "name": "Rajesh Kumar" }
+}
+
+<span style="color: #68d391;">CLIENT STORES:</span>
+Token saved in cookie (automatic) OR localStorage (manual)`,
+                'access': `<span style="color: #63b3ed; font-weight: bold;">Step 3: Access Protected Route</span>
+
+<span style="color: #68d391;">CLIENT:</span>
+GET /api/auth/me
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+Cookie: token=eyJhbGc...
+
+<span style="color: #fbd38d;">SERVER MIDDLEWARE (protect):</span>
+1. ✅ Extract token from cookie or Auth header
+2. ✅ Verify token with jwt.verify(token, JWT_SECRET)
+3. ✅ Decode payload to get user ID
+4. ✅ Query database to ensure user still exists
+5. ✅ Attach user to req.user
+6. ✅ Call next() to proceed to route handler
+
+<span style="color: #fbd38d;">SERVER ROUTE HANDLER:</span>
+Return req.user data
+
+<span style="color: #68d391;">SERVER RESPONSE:</span>
+HTTP 200 OK
+{
+  "success": true,
+  "data": { "id": "...", "name": "Rajesh Kumar", "email": "..." }
+}`,
+                'refresh': `<span style="color: #63b3ed; font-weight: bold;">Step 4: Token Expired - Refresh Flow</span>
+
+<span style="color: #68d391;">CLIENT ATTEMPTS:</span>
+GET /api/auth/me
+Authorization: Bearer eyJhbGc... (expired token)
+
+<span style="color: #fbd38d;">SERVER MIDDLEWARE:</span>
+1. ❌ jwt.verify() throws TokenExpiredError
+2. ❌ Middleware catches error
+3. ❌ Returns 401 Unauthorized
+
+<span style="color: #fc8181;">SERVER RESPONSE:</span>
+HTTP 401 Unauthorized
+{
+  "success": false,
+  "message": "Token expired"
+}
+
+<span style="color: #fbd38d;">CLIENT HANDLES:</span>
+Option A: Use refresh token to get new access token
+Option B: Redirect user to login page
+
+<span style="color: #63b3ed;">REFRESH TOKEN FLOW (Advanced):</span>
+POST /api/auth/refresh
+Cookie: refreshToken=... (long-lived token)
+
+Server:
+1. Verify refresh token
+2. Generate new access token
+3. Return new access token
+4. Optionally rotate refresh token`,
+                'logout': `<span style="color: #63b3ed; font-weight: bold;">Step 5: User Logout</span>
+
+<span style="color: #68d391;">CLIENT:</span>
+POST /api/auth/logout
+Cookie: token=eyJhbGc...
+
+<span style="color: #fbd38d;">SERVER PROCESSING:</span>
+1. ✅ Clear the token cookie (set expiry to past)
+2. ✅ Optionally: blacklist token in Redis
+3. ✅ Return success message
+
+<span style="color: #68d391;">SERVER RESPONSE:</span>
+HTTP 200 OK
+Set-Cookie: token=; Expires=Thu, 01 Jan 1970 00:00:00 GMT
+{
+  "success": true,
+  "message": "Logged out successfully"
+}
+
+<span style="color: #68d391;">CLIENT CLEANUP:</span>
+1. Remove token from localStorage (if stored)
+2. Clear user state
+3. Redirect to login page
+
+<span style="color: #fbd38d;">💡 Note:</span> JWT is stateless - server can't "invalidate" tokens.
+For immediate invalidation, use token blacklist or shorter expiry times.`
+            };
+            
+            output.innerHTML = flows[step];
+        }
+
+        // Tab Switching
+        function switchTab(tabName) {
+            // Hide all tab contents
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => content.classList.remove('active'));
+            
+            // Remove active class from all tabs
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+
+        // Quiz Answer Checker
+        function checkAnswer(element, isCorrect) {
+            const feedback = document.getElementById('quizFeedback');
+            const options = document.querySelectorAll('.quiz-option');
+            
+            // Reset all options
+            options.forEach(opt => {
+                opt.style.background = 'white';
+                opt.style.borderColor = '#cbd5e0';
+            });
+            
+            if (isCorrect) {
+                element.style.background = '#f0fff4';
+                element.style.borderColor = '#48bb78';
+                feedback.innerHTML = '<span style="color: #48bb78;">✅ Correct!</span> Always check if the user exists before attempting method calls. Use proper null checks: <code>if (!user) return res.status(401)...</code>';
+                feedback.style.color = '#48bb78';
+            } else {
+                element.style.background = '#fff5f5';
+                element.style.borderColor = '#f56565';
+                feedback.innerHTML = '<span style="color: #f56565;">❌ Not quite.</span> Think about the order of operations in the login flow. What happens when you call a method on a null object?';
+                feedback.style.color = '#f56565';
+            }
+        }
+    </script>
+</body>
+</html>
