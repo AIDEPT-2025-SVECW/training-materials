@@ -1,0 +1,637 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Client-Server Communication — Interactive Demo</title>
+  <style>
+    /* --- visual styles kept from user's uploaded file --- */
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);padding:20px;line-height:1.6}
+    .container{max-width:1200px;margin:0 auto;background:white;border-radius:15px;padding:30px;box-shadow:0 20px 60px rgba(0,0,0,0.3)}
+    h1{text-align:center;color:#667eea;margin-bottom:10px;font-size:2.2em}
+    .subtitle{text-align:center;color:#666;margin-bottom:30px;font-style:italic}
+    .section{margin-bottom:40px;padding:25px;background:#f8f9fa;border-radius:10px;border-left:5px solid #667eea}
+    .section h2{color:#764ba2;margin-bottom:15px;display:flex;align-items:center;gap:10px}
+    .concept{background:#e3f2fd;padding:15px;border-radius:8px;margin-bottom:15px;border-left:4px solid #2196f3}
+    .analogy{background:#fff3e0;padding:15px;border-radius:8px;margin:15px 0;border-left:4px solid #ff9800}
+    .analogy::before{content:"💡 Analogy: ";font-weight:700;color:#ff9800}
+    .demo-box{background:white;padding:20px;border-radius:8px;margin:20px 0;border:2px solid #667eea}
+    .demo-box h3{color:#667eea;margin-bottom:12px}
+    button{background:#667eea;color:white;border:none;padding:10px 14px;border-radius:6px;cursor:pointer;font-size:14px;transition:all .2s;margin:6px}
+    button:hover{background:#764ba2;transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.12)}
+    button:disabled{background:#ccc;cursor:not-allowed}
+    input,select,textarea{padding:10px;border:2px solid #ddd;border-radius:6px;font-size:14px;margin:6px 0;width:100%;max-width:420px}
+    pre{background:#2d2d2d;color:#f8f8f2;padding:12px;border-radius:8px;overflow:auto;margin:12px 0;font-size:13px}
+    code{font-family:Courier,monospace}
+    .message-flow{display:flex;align-items:center;justify-content:space-around;margin:16px 0;flex-wrap:wrap}
+    .endpoint{padding:18px;border-radius:10px;text-align:center;min-width:150px;box-shadow:0 4px 6px rgba(0,0,0,0.1)}
+    .client{background:#e3f2fd;border:3px solid #2196f3}
+    .server{background:#f3e5f5;border:3px solid #9c27b0}
+    .arrow{font-size:30px;color:#667eea;margin:10px;animation:pulse 1.5s infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+    .log-box{background:#1e1e1e;color:#00ff00;padding:12px;border-radius:8px;font-family:Courier,monospace;font-size:13px;max-height:300px;overflow-y:auto;margin-top:12px}
+    .log-entry{margin:6px 0;padding:6px;border-bottom:1px solid #333}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;margin:20px 0}
+    .card{background:white;padding:16px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.08);transition:transform .2s}
+    .card:hover{transform:translateY(-4px);box-shadow:0 6px 18px rgba(0,0,0,0.12)}
+    .hidden{display:none}
+    .tab-container{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+    .tab{padding:8px 12px;background:#e0e0e0;border:none;border-radius:6px;cursor:pointer}
+    .tab.active{background:#667eea;color:white}
+    .comparison-table{width:100%;border-collapse:collapse;margin:12px 0}
+    .comparison-table th,.comparison-table td{padding:10px;text-align:left;border:1px solid #ddd}
+    .comparison-table th{background:#667eea;color:white}
+    .quiz-option{padding:10px;margin:8px 0;border:2px solid #ddd;border-radius:6px;cursor:pointer}
+    .instructor-notes{background:#fff9c4;padding:16px;border-radius:8px;margin-top:18px;border:2px solid #fbc02d}
+    footer{text-align:center;margin-top:18px;color:#333}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🌐 Client-Server Communication</h1>
+    <p class="subtitle">Interactive Deep Dive into Browser / Mobile ↔ Server flows — ready for live classroom demo (Indian examples included)</p>
+
+    <!-- Section: HTTP Request Simulator -->
+    <div class="section">
+      <h2>📡 HTTP Request-Response Cycle</h2>
+
+      <div class="concept"><strong>Concept:</strong> The client initiates a request; the server responds with status, headers and body. We will simulate server behavior locally in this page so you can explore interactions without network access.</div>
+
+      <div class="analogy">Think of it like ordering food on Swiggy — you (client) send an order (request), the restaurant (server) prepares the food (response body) and a delivery status (status code + headers).</div>
+
+      <div class="demo-box">
+        <h3>🎯 Interactive Demo: HTTP Request Simulator</h3>
+
+        <div class="message-flow">
+          <div class="endpoint client"><h4>📱 Client</h4><p>Browser / Mobile App</p></div>
+          <div class="arrow" id="requestArrow">→</div>
+          <div class="endpoint server"><h4>🖥️ Server</h4><p>Backend API (mock)</p></div>
+          <div class="arrow" id="responseArrow">←</div>
+        </div>
+
+        <div style="max-width:720px">
+          <label><strong>Request Method</strong></label>
+          <select id="httpMethod">
+            <option value="GET">GET - Retrieve</option>
+            <option value="POST">POST - Create</option>
+            <option value="PUT">PUT - Update</option>
+            <option value="DELETE">DELETE - Remove</option>
+          </select>
+
+          <label><strong>Endpoint</strong></label>
+          <input id="endpoint" type="text" value="/api/users" placeholder="/api/users or /api/users/123">
+
+          <label><strong>Body (JSON for POST/PUT)</strong></label>
+          <textarea id="requestBody" rows="3" placeholder='{"name":"Raj","city":"Mumbai"}'></textarea>
+
+          <div style="margin-top:10px">
+            <button id="btnSendRequest">🚀 Send Request</button>
+            <button id="btnClearRequestLog">🗑️ Clear Log</button>
+          </div>
+
+          <div class="log-box" id="requestLog"><div class="log-entry">→ Ready to send requests (mock server inside page).</div></div>
+        </div>
+
+        <pre><code>// Example: front-end code uses fetch()
+async function send() {
+  const resp = await fetch('/api/users', { method: 'GET' });
+  const data = await resp.json();
+  console.log(data);
+}</code></pre>
+      </div>
+    </div>
+
+    <!-- Section: CRUD Methods -->
+    <div class="section">
+      <h2>🔧 HTTP Methods (Practical CRUD)</h2>
+
+      <div class="concept"><strong>Concept:</strong> Methods (GET, POST, PUT, DELETE) express intent. We'll exercise each with a mock in-page server.</div>
+
+      <div class="analogy">Think of a library: GET = read a book, POST = add a book, PUT = replace a book, DELETE = remove a book.</div>
+
+      <div class="demo-box">
+        <h3>🎯 Interactive Demo: CRUD Operations</h3>
+        <div class="grid">
+          <div class="card">
+            <h4>📖 GET</h4>
+            <p>Retrieve all users</p>
+            <button onclick="performCRUD('GET')">Try GET</button>
+          </div>
+          <div class="card">
+            <h4>➕ POST</h4>
+            <p>Create a new user (sample provided below)</p>
+            <button onclick="performCRUD('POST')">Try POST</button>
+          </div>
+          <div class="card">
+            <h4>🔄 PUT</h4>
+            <p>Update user (ID: 1) — full replace</p>
+            <button onclick="performCRUD('PUT')">Try PUT</button>
+          </div>
+          <div class="card">
+            <h4>🗑️ DELETE</h4>
+            <p>Delete user (ID: 1)</p>
+            <button onclick="performCRUD('DELETE')">Try DELETE</button>
+          </div>
+        </div>
+
+        <div class="log-box" id="crudLog"><div class="log-entry">→ CRUD log will appear here.</div></div>
+
+        <pre><code>// Instructors: show how server maps DB rows -> JSON and returns proper codes (201 for create, 200/204 for updates, 404 for not found)</code></pre>
+      </div>
+    </div>
+
+    <!-- Section: Status Codes -->
+    <div class="section">
+      <h2>📊 HTTP Status Codes</h2>
+
+      <div class="concept"><strong>Concept:</strong> Status codes signal success or type of failure. Clients respond accordingly (retry, login, show message).</div>
+
+      <div class="analogy">Like train announcements: 200 = on time, 404 = wrong platform, 500 = signal failure.</div>
+
+      <div class="demo-box">
+        <h3>🎯 Interactive Demo: Status Code Explorer</h3>
+        <table class="comparison-table">
+          <thead><tr><th>Code</th><th>Name</th><th>Meaning</th><th>Action</th></tr></thead>
+          <tbody>
+            <tr><td><strong>200</strong></td><td>OK</td><td>Success</td><td><button onclick="simulateStatus(200)">Simulate</button></td></tr>
+            <tr><td><strong>201</strong></td><td>Created</td><td>Resource created</td><td><button onclick="simulateStatus(201)">Simulate</button></td></tr>
+            <tr><td><strong>400</strong></td><td>Bad Request</td><td>Client error</td><td><button onclick="simulateStatus(400)">Simulate</button></td></tr>
+            <tr><td><strong>401</strong></td><td>Unauthorized</td><td>Auth required</td><td><button onclick="simulateStatus(401)">Simulate</button></td></tr>
+            <tr><td><strong>404</strong></td><td>Not Found</td><td>Resource missing</td><td><button onclick="simulateStatus(404)">Simulate</button></td></tr>
+            <tr><td><strong>500</strong></td><td>Server Error</td><td>Server crashed</td><td><button onclick="simulateStatus(500)">Simulate</button></td></tr>
+          </tbody>
+        </table>
+
+        <div class="log-box" id="statusLog"><div class="log-entry">→ Status log</div></div>
+      </div>
+    </div>
+
+    <!-- Section: Headers -->
+    <div class="section">
+      <h2>📋 Headers: Metadata of Communication</h2>
+
+      <div class="concept"><strong>Concept:</strong> Headers convey metadata (Content-Type, Authorization, Cache-Control). They affect behavior without touching body content.</div>
+
+      <div class="analogy">Headers = envelope and stamps on a postal letter; the body is the letter content.</div>
+
+      <div class="demo-box">
+        <h3>🎯 Interactive Demo: Request / Response Headers</h3>
+
+        <div class="tab-container">
+          <button class="tab active" id="tabRequest" onclick="switchHeaderTab('request')">Request Headers</button>
+          <button class="tab" id="tabResponse" onclick="switchHeaderTab('response')">Response Headers</button>
+        </div>
+
+        <div id="requestHeaders">
+          <table class="comparison-table">
+            <thead><tr><th>Header</th><th>Purpose</th><th>Example</th></tr></thead>
+            <tbody>
+              <tr><td>Content-Type</td><td>Body format</td><td>application/json</td></tr>
+              <tr><td>Authorization</td><td>Authentication</td><td>Bearer abc123</td></tr>
+              <tr><td>Accept</td><td>Desired format</td><td>application/json</td></tr>
+              <tr><td>User-Agent</td><td>Client info</td><td>Mozilla/5.0</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div id="responseHeaders" class="hidden">
+          <table class="comparison-table">
+            <thead><tr><th>Header</th><th>Purpose</th><th>Example</th></tr></thead>
+            <tbody>
+              <tr><td>Content-Type</td><td>Response format</td><td>application/json</td></tr>
+              <tr><td>Set-Cookie</td><td>Store session</td><td>sessionId=xyz; HttpOnly</td></tr>
+              <tr><td>Cache-Control</td><td>Caching rules</td><td>max-age=120</td></tr>
+              <tr><td>ETag</td><td>Resource version</td><td>W/"v1"</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div style="margin-top:10px">
+          <button onclick="simulateHeaders()">📤 Simulate Headers</button>
+        </div>
+
+        <div class="log-box" id="headersLog"><div class="log-entry">→ Headers log</div></div>
+      </div>
+    </div>
+
+    <!-- Section: Body Formats -->
+    <div class="section">
+      <h2>📦 Request & Response Body Formats</h2>
+
+      <div class="concept"><strong>Concept:</strong> Body carries the payload. Common formats: JSON, FormData, XML, plain text.</div>
+
+      <div class="analogy">If headers are the envelope, the body is the actual letter — it can be text, images, or forms.</div>
+
+      <div class="demo-box">
+        <h3>🎯 Interactive Demo: Different Body Formats</h3>
+
+        <label><strong>Select Data Format</strong></label>
+        <select id="bodyFormat" onchange="updateBodyExample()">
+          <option value="json">JSON</option>
+          <option value="formdata">Form Data</option>
+          <option value="text">Plain Text</option>
+          <option value="xml">XML</option>
+        </select>
+
+        <div id="bodyExample" style="margin-top:12px"></div>
+
+        <div style="margin-top:10px">
+          <button onclick="sendBodyExample()">🚀 Send Example Body</button>
+        </div>
+
+        <div class="log-box" id="bodyLog"><div class="log-entry">→ Body log</div></div>
+      </div>
+    </div>
+
+    <!-- Section: Sync vs Async -->
+    <div class="section">
+      <h2>⏱️ Synchronous vs Asynchronous Requests</h2>
+
+      <div class="concept"><strong>Concept:</strong> Synchronous blocks UI; asynchronous doesn't. Use async for good UX.</div>
+
+      <div class="analogy">Synchronous is like standing at an ATM waiting; asynchronous is ordering online and continuing work until it arrives.</div>
+
+      <div class="demo-box">
+        <h3>🎯 Interactive Demo: Blocking vs Non-Blocking</h3>
+
+        <div class="grid">
+          <div class="card">
+            <h4>🔒 Synchronous (Blocking)</h4>
+            <p>Attempts a synchronous (blocking) request to demonstrate UI freeze. Note: synchronous XHR is discouraged in production — used here for demo only.</p>
+            <button onclick="synchronousDemo()">Try Synchronous</button>
+            <div id="syncStatus" style="margin-top:8px"></div>
+          </div>
+
+          <div class="card">
+            <h4>🔓 Asynchronous (Non-Blocking)</h4>
+            <p>Uses async fetch + setTimeout to demonstrate non-blocking behavior.</p>
+            <button onclick="asynchronousDemo()">Try Asynchronous</button>
+            <div id="asyncStatus" style="margin-top:8px"></div>
+          </div>
+        </div>
+
+        <div class="log-box" id="asyncLog"><div class="log-entry">→ Try both demos to see the difference.</div></div>
+      </div>
+    </div>
+
+    <!-- Instructor notes / quiz -->
+    <div class="instructor-notes">
+      <h3>🧑‍🏫 Instructor Notes</h3>
+      <div style="margin-top:10px">
+        <ul>
+          <li><strong>Tip 1:</strong> While demoing, open DevTools → Network to show headers & body, and contrast payload sizes when toggling body format or mobile header.</li>
+          <li><strong>Tip 2:</strong> Use the CRUD demo to explain status codes (201 for create, 204 for successful delete with no body, 404 for not found).</li>
+          <li><strong>Tip 3:</strong> Show how ResultSetMetaData in Java can be used to produce dynamic JSON keys so client code doesn't break when new DB columns are added.</li>
+        </ul>
+
+        <hr style="margin:12px 0">
+
+        <strong>Quick MCQ</strong>
+        <p>Q: If server returns an unexpected extra JSON field 'pantry', how should a well-written client behave?</p>
+        <ol>
+          <li>A — Crash</li>
+          <li>B — Ignore unknown fields and continue</li>
+          <li>C — Ask server to remove field</li>
+          <li>D — Reinstall the app</li>
+        </ol>
+        <p><strong>Answer:</strong> B — Clients typically ignore extra fields (forward-compatible).</p>
+
+        <hr style="margin:12px 0">
+
+        <div><strong>Further Reading</strong>: (Placeholder) JDBC ResultSetMetaData, HTTP caching, REST design, JSON mapping libraries (Jackson / Gson), Content negotiation.</div>
+      </div>
+    </div>
+
+    <footer>Demo file — copy/paste into a file (demo.html) and open in your browser. 🇮🇳</footer>
+  </div>
+
+  <!-- --- JavaScript: mock server + UI interactions --- -->
+  <script>
+    /* ============================================================
+       Mock in-page "server" and UI handlers
+       - This completes missing functions referenced by HTML.
+       - All responses are simulated locally (no real network).
+       - Inline comments explain behavior for class demonstration.
+       ============================================================ */
+
+    (function () {
+      // Simple in-memory "database" of users (for CRUD demo)
+      let usersDB = [
+        { id: 1, name: "Amit Kumar", city: "Mumbai", email: "amit.k@example.com" },
+        { id: 2, name: "Priya Sharma", city: "Bengaluru", email: "priya.s@example.com" }
+      ];
+      let nextUserId = 3;
+
+      // Utility: Logging helper (for many boxes we use different logs)
+      function appendLog(containerId, text, kind) {
+        // kind: info / success / error - add simple prefix color text
+        const box = document.getElementById(containerId);
+        const entry = document.createElement('div');
+        entry.className = 'log-entry';
+        const time = new Date().toLocaleTimeString();
+        entry.innerText = `[${time}] ${text}`;
+        box.prepend(entry);
+      }
+
+      // ---------- Mock fetch (simulate server routes) ----------
+      // Accepts path and options, returns a Promise resolving to object similar to fetch Response
+      function mockFetch(path, options = {}) {
+        // options: { method, headers, body }
+        appendLog('requestLog', `REQUEST ${options.method || 'GET'} ${path} headers=${JSON.stringify(options.headers||{})}`);
+        return new Promise((resolve) => {
+          setTimeout(() => {
+            try {
+              // route: /api/users or /api/users/:id
+              const url = new URL('http://local' + path);
+              const parts = url.pathname.split('/').filter(Boolean); // ['api','users', '123'?]
+              // Handle /api/users
+              if (parts.length >= 2 && parts[0] === 'api' && parts[1] === 'users') {
+                const idPart = parts[2]; // may be undefined
+                const method = (options.method || 'GET').toUpperCase();
+
+                // Simulate headers affecting responses (e.g., Accept)
+                const isCompact = options.headers && (options.headers['X-App'] === 'true');
+
+                if (!idPart) {
+                  // collection operations
+                  if (method === 'GET') {
+                    // if compact requested by header, return small payload
+                    const rows = isCompact ? usersDB.map(u => ({ id: u.id, name: u.name })) : usersDB.slice();
+                    const meta = deriveMeta(rows);
+                    resolve({ status: 200, ok: true, json: () => Promise.resolve({ meta, rows, total: usersDB.length }) , headers: new Map([['Content-Type','application/json']]) });
+                    return;
+                  } else if (method === 'POST') {
+                    // create new user. options.body expected as JSON string
+                    let bodyObj;
+                    try { bodyObj = options.body ? JSON.parse(options.body) : {}; } catch(e){ bodyObj = {}; }
+                    const user = { id: nextUserId++, name: bodyObj.name || `User${nextUserId}`, city: bodyObj.city || 'Unknown', email: bodyObj.email || '' };
+                    usersDB.push(user);
+                    resolve({ status: 201, ok: true, json: () => Promise.resolve(user), headers: new Map([['Content-Type','application/json']]) });
+                    return;
+                  } else {
+                    resolve({ status: 405, ok: false, json: () => Promise.resolve({ error: 'Method Not Allowed' }), headers: new Map() });
+                    return;
+                  }
+                } else {
+                  // operations on /api/users/:id
+                  const id = parseInt(idPart, 10);
+                  const idx = usersDB.findIndex(u => u.id === id);
+                  if (method === 'GET') {
+                    if (idx === -1) return resolve({ status: 404, ok:false, json: ()=> Promise.resolve({ error: 'Not Found'}) });
+                    return resolve({ status:200, ok:true, json: ()=> Promise.resolve(usersDB[idx]) , headers: new Map([['Content-Type','application/json']]) });
+                  } else if (method === 'PUT') {
+                    if (idx === -1) return resolve({ status:404, ok:false, json: ()=> Promise.resolve({ error:'Not Found' }) });
+                    let bodyObj;
+                    try { bodyObj = options.body ? JSON.parse(options.body) : {}; } catch(e){ bodyObj = {}; }
+                    // Replace fully (for demo keep id)
+                    usersDB[idx] = { id: id, name: bodyObj.name || usersDB[idx].name, city: bodyObj.city || usersDB[idx].city, email: bodyObj.email || usersDB[idx].email };
+                    return resolve({ status:200, ok:true, json: ()=> Promise.resolve(usersDB[idx]) , headers: new Map([['Content-Type','application/json']]) });
+                  } else if (method === 'DELETE') {
+                    if (idx === -1) return resolve({ status:404, ok:false, json: ()=> Promise.resolve({ error:'Not Found' }) });
+                    usersDB.splice(idx,1);
+                    return resolve({ status:204, ok:true, json: ()=> Promise.resolve({}) , headers: new Map() });
+                  } else {
+                    return resolve({ status:405, ok:false, json: ()=> Promise.resolve({ error:'Method Not Allowed' }) });
+                  }
+                }
+              }
+
+              // default unknown route
+              resolve({ status:404, ok:false, json: ()=> Promise.resolve({ error:'Unknown endpoint' }) });
+            } catch (err) {
+              appendLog('requestLog', `MOCK ERROR: ${err.message}`);
+              resolve({ status:500, ok:false, json: ()=> Promise.resolve({ error:'Internal Server Error' }) });
+            }
+          }, 400 + Math.random()*300); // random latency 400-700ms
+        });
+      }
+
+      // Helper: derive simple metadata from rows (simulate ResultSetMetaData)
+      function deriveMeta(rows) {
+        if (!rows || rows.length === 0) return { columns: [] };
+        const keys = Object.keys(rows[0]);
+        return { columns: keys.map(k => ({ label: k, type: typeof rows[0][k] })) };
+      }
+
+      // ---------- UI functions referenced by HTML ----------
+
+      // sendRequest() - used by Request Simulator
+      async function sendRequest() {
+        const method = document.getElementById('httpMethod').value;
+        const endpoint = document.getElementById('endpoint').value.trim() || '/api/users';
+        const bodyTxt = document.getElementById('requestBody').value.trim();
+        // Choose headers example
+        const headers = { 'Content-Type': 'application/json', 'X-App': 'false' }; // default
+        // For demo, if endpoint contains "/compact" treat as mobile
+        if (endpoint.includes('compact')) headers['X-App'] = 'true';
+
+        appendLog('requestLog', `Sending ${method} ${endpoint} ...`);
+        // call mockFetch to simulate server
+        const resp = await mockFetch(endpoint, { method, headers, body: (method==='POST'||method==='PUT') ? bodyTxt : undefined });
+        appendLog('requestLog', `Response ${resp.status} ${resp.ok ? '(OK)' : '(Error)'} `);
+        try {
+          const payload = await resp.json();
+          appendLog('requestLog', `Payload: ${JSON.stringify(payload)}`);
+        } catch (e) {
+          appendLog('requestLog', `No payload (status ${resp.status})`);
+        }
+      }
+      // expose as global for inline onclick
+      window.sendRequest = sendRequest;
+
+      function clearLog() {
+        document.getElementById('requestLog').innerHTML = '';
+        appendLog('requestLog', 'Cleared logs.');
+      }
+      window.clearLog = clearLog;
+
+      // performCRUD(method)
+      async function performCRUD(method) {
+        const m = (method || 'GET').toUpperCase();
+        appendLog('crudLog', `Performing ${m} on /api/users`);
+        if (m === 'GET') {
+          const resp = await mockFetch('/api/users', { method: 'GET' });
+          const payload = await resp.json();
+          appendLog('crudLog', `Status ${resp.status} — rows: ${payload.rows.length}`);
+          appendLog('crudLog', `Meta: ${JSON.stringify(payload.meta)}`);
+        } else if (m === 'POST') {
+          const sample = { name: 'Rajesh Kumar', city: 'Hyderabad', email: 'rajesh.k@example.com' };
+          const resp = await mockFetch('/api/users', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(sample) });
+          const created = await resp.json();
+          appendLog('crudLog', `Created user id=${created.id} name=${created.name} (status ${resp.status})`);
+        } else if (m === 'PUT') {
+          // update user with id 1 for demo
+          const updated = { name: 'Amit Kumar (Updated)', city: 'Pune', email: 'amit.updated@example.com' };
+          const resp = await mockFetch('/api/users/1', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updated) });
+          if (resp.status === 200) {
+            const body = await resp.json();
+            appendLog('crudLog', `Updated user: ${JSON.stringify(body)}`);
+          } else {
+            const err = await resp.json();
+            appendLog('crudLog', `Error ${resp.status}: ${JSON.stringify(err)}`);
+          }
+        } else if (m === 'DELETE') {
+          const resp = await mockFetch('/api/users/1', { method: 'DELETE' });
+          if (resp.status === 204) {
+            appendLog('crudLog', `Deleted user id=1 (status 204).`);
+          } else {
+            const err = await resp.json();
+            appendLog('crudLog', `Error ${resp.status}: ${JSON.stringify(err)}`);
+          }
+        } else {
+          appendLog('crudLog', `Method ${m} not implemented in demo.`);
+        }
+      }
+      window.performCRUD = performCRUD;
+
+      // simulateStatus(code) — used by status table
+      function simulateStatus(code) {
+        const msg = `Simulated status ${code}`;
+        appendLog('statusLog', msg);
+        // simple handling examples
+        if (code >= 200 && code < 300) {
+          appendLog('statusLog', 'Client: treat as success.');
+        } else if (code >= 400 && code < 500) {
+          appendLog('statusLog', 'Client: client-side error — maybe fix request.');
+        } else if (code >= 500) {
+          appendLog('statusLog', 'Client: server-side error — retry later or show friendly message.');
+        }
+      }
+      window.simulateStatus = simulateStatus;
+
+      // switchHeaderTab
+      function switchHeaderTab(tab) {
+        document.getElementById('requestHeaders').classList.toggle('hidden', tab !== 'request');
+        document.getElementById('responseHeaders').classList.toggle('hidden', tab !== 'response');
+        document.getElementById('tabRequest').classList.toggle('active', tab === 'request');
+        document.getElementById('tabResponse').classList.toggle('active', tab === 'response');
+      }
+      window.switchHeaderTab = switchHeaderTab;
+
+      // simulateHeaders() — demonstrates request + response headers
+      function simulateHeaders() {
+        const req = { 'Content-Type': 'application/json', 'Authorization': 'Bearer demo-token', 'Accept-Language': 'en-IN' };
+        const resp = { 'Content-Type': 'application/json', 'Cache-Control': 'max-age=120', 'ETag': 'W/"v1-demo"' };
+        appendLog('headersLog', `Sent Request Headers: ${JSON.stringify(req)}`);
+        // mock server responds
+        setTimeout(() => {
+          appendLog('headersLog', `Received Response Headers: ${JSON.stringify(resp)}`);
+        }, 450);
+      }
+      window.simulateHeaders = simulateHeaders;
+
+      // Body examples
+      function updateBodyExample() {
+        const fmt = document.getElementById('bodyFormat').value;
+        const container = document.getElementById('bodyExample');
+        if (fmt === 'json') {
+          container.innerHTML = `<pre><code>${JSON.stringify({ name: "Asha R", city: "Delhi", age: 26 }, null, 2)}</code></pre>`;
+        } else if (fmt === 'formdata') {
+          container.innerHTML = `<div class="mini">Form Data (simulate): name=Sunil, photo=<file></div>`;
+        } else if (fmt === 'text') {
+          container.innerHTML = `<pre><code>Simple plain text message for server processing.</code></pre>`;
+        } else if (fmt === 'xml') {
+          container.innerHTML = `<pre><code>&lt;user&gt;\n  &lt;name&gt;Kavita&lt;/name&gt;\n  &lt;city&gt;Kolkata&lt;/city&gt;\n&lt;/user&gt;</code></pre>`;
+        } else container.innerHTML = '';
+      }
+      window.updateBodyExample = updateBodyExample;
+      updateBodyExample(); // initialize
+
+      async function sendBodyExample() {
+        const fmt = document.getElementById('bodyFormat').value;
+        appendLog('bodyLog', `Sending body with format: ${fmt}`);
+        // simulate a request using mockFetch
+        let headers = {};
+        let body;
+        if (fmt === 'json') {
+          headers['Content-Type'] = 'application/json';
+          body = JSON.stringify({ name: "Asha R", city: "Delhi", age: 26 });
+        } else if (fmt === 'formdata') {
+          // FormData can't be represented directly in our mock; we'll send a simple object
+          headers['Content-Type'] = 'multipart/form-data';
+          body = JSON.stringify({ name: "Sunil", file: "<binary>" });
+        } else if (fmt === 'text') {
+          headers['Content-Type'] = 'text/plain';
+          body = 'Simple plain text payload';
+        } else if (fmt === 'xml') {
+          headers['Content-Type'] = 'application/xml';
+          body = '<user><name>Kavita</name><city>Kolkata</city></user>';
+        }
+        const resp = await mockFetch('/api/users', { method: 'POST', headers, body });
+        appendLog('bodyLog', `Response status: ${resp.status}`);
+        try {
+          const payload = await resp.json();
+          appendLog('bodyLog', `Response payload: ${JSON.stringify(payload)}`);
+        } catch (e) {
+          appendLog('bodyLog', 'No JSON payload returned.');
+        }
+      }
+      window.sendBodyExample = sendBodyExample;
+
+      // synchronousDemo: demonstrate blocking synchronous XHR (deprecated but works in many browsers)
+      function synchronousDemo() {
+        appendLog('asyncLog', 'Starting synchronous (blocking) XHR for 2 seconds...');
+        const statusEl = document.getElementById('syncStatus');
+        statusEl.innerText = 'Synchronous request running... (UI will appear frozen)';
+        try {
+          // We use synchronous XHR to freeze UI — note: many browsers may warn or block this.
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/api/users?sync=1', false); // false => synchronous
+          // Our mockFetch isn't used here; to simulate blocking we use a busy-wait fallback
+          // Because XHR to non-existent path would be blocked, we simulate blocking via busy-wait for 2000ms:
+          const start = performance.now();
+          while (performance.now() - start < 2000) {
+            // busy loop to demonstrate freeze (do NOT use in production)
+          }
+          // After busy-wait, update status
+          appendLog('asyncLog', 'Synchronous demo complete (busy-wait used).');
+          statusEl.innerText = 'Synchronous demo finished.';
+        } catch (err) {
+          appendLog('asyncLog', 'Synchronous XHR blocked by browser: ' + err.message);
+          statusEl.innerText = 'Synchronous demo failed: ' + err.message;
+        }
+      }
+      window.synchronousDemo = synchronousDemo;
+
+      // asynchronousDemo: non-blocking demonstration
+      async function asynchronousDemo() {
+        appendLog('asyncLog', 'Starting asynchronous demo (non-blocking).');
+        const statusEl = document.getElementById('asyncStatus');
+        statusEl.innerText = 'Asynchronous request in-flight... you can still interact with the page.';
+        // Simulate async network call
+        await new Promise(r => setTimeout(r, 1500));
+        appendLog('asyncLog', 'Asynchronous demo completed.');
+        statusEl.innerText = 'Asynchronous demo finished.';
+      }
+      window.asynchronousDemo = asynchronousDemo;
+
+      // Hook up top-level send button and clear button for request simulator
+      document.getElementById('btnSendRequest').addEventListener('click', sendRequest);
+      document.getElementById('btnClearRequestLog').addEventListener('click', () => {
+        document.getElementById('requestLog').innerHTML = '';
+        appendLog('requestLog', 'Cleared request log.');
+      });
+
+      // Initial welcome logs
+      appendLog('requestLog', 'Mock server ready. Use controls above to simulate traffic.');
+      appendLog('crudLog', 'CRUD demo ready.');
+      appendLog('statusLog', 'Status explorer ready.');
+      appendLog('headersLog', 'Headers demo ready.');
+      appendLog('bodyLog', 'Body formats demo ready.');
+      appendLog('asyncLog', 'Sync/Async demo ready.');
+
+      // Expose some functions globally for inline HTML onclick attributes (for robustness)
+      window.performCRUD = performCRUD;
+      window.simulateStatus = simulateStatus;
+      window.simulateHeaders = simulateHeaders;
+      window.updateBodyExample = updateBodyExample;
+      window.sendBodyExample = sendBodyExample;
+      window.synchronousDemo = synchronousDemo;
+      window.asynchronousDemo = asynchronousDemo;
+      window.switchHeaderTab = switchHeaderTab;
+
+    })();
+  </script>
+</body>
+</html>
