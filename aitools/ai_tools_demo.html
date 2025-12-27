@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>AI Tools Interactive Guide — Layman + Deep Dive + Comparison</title>
+    <style>
+      /* Reset & base */
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        font-family: "Segoe UI", Roboto, system-ui, -apple-system,
+          "Helvetica Neue", Arial;
+        background: linear-gradient(135deg, #eef2ff 0%, #fdfbfb 100%);
+        color: #222;
+        padding: 24px;
+      }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      h1 {
+        text-align: center;
+        margin-bottom: 18px;
+        color: #1f2340;
+        font-size: 2rem;
+      }
+      p.lead {
+        text-align: center;
+        color: #444;
+        margin-bottom: 24px;
+      }
+
+      /* tool cards */
+      .tools-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 14px;
+        margin-bottom: 20px;
+      }
+      .tool-card {
+        background: white;
+        border-radius: 12px;
+        padding: 16px;
+        box-shadow: 0 6px 18px rgba(30, 40, 80, 0.07);
+        cursor: pointer;
+        transition: transform 0.18s ease, box-shadow 0.18s ease;
+        text-align: center;
+      }
+      .tool-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 18px 30px rgba(30, 40, 80, 0.09);
+      }
+      .tool-card.active {
+        background: linear-gradient(90deg, #667eea, #764ba2);
+        color: white;
+        box-shadow: 0 20px 40px rgba(100, 80, 200, 0.12);
+      }
+      .tool-card h3 {
+        margin-bottom: 6px;
+        font-size: 1.05rem;
+      }
+      .tool-card p {
+        font-size: 0.9rem;
+        opacity: 0.85;
+      }
+
+      /* content area */
+      .content-area {
+        background: white;
+        border-radius: 12px;
+        padding: 28px;
+        box-shadow: 0 8px 24px rgba(30, 40, 80, 0.06);
+        min-height: 360px;
+        display: none;
+        margin-bottom: 18px;
+      }
+      .content-area.active {
+        display: block;
+        animation: fadeIn 0.32s ease;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+
+      .section {
+        margin-bottom: 22px;
+      }
+      .section h2 {
+        color: #2c4aa6;
+        margin-bottom: 10px;
+        font-size: 1.15rem;
+        border-bottom: 3px solid rgba(44, 74, 166, 0.08);
+        padding-bottom: 8px;
+        display: inline-block;
+      }
+      .section .hl {
+        font-weight: 700;
+        color: #0b1020;
+        margin-bottom: 8px;
+        display: block;
+      }
+      .section .explain {
+        color: #333;
+        line-height: 1.65;
+        margin-top: 8px;
+      }
+
+      .highlight {
+        background: #f6f9ff;
+        border-left: 4px solid #667eea;
+        padding: 12px;
+        border-radius: 6px;
+        margin-top: 10px;
+      }
+
+      .tech-badges {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+      }
+      .badge {
+        background: #eef2ff;
+        color: #124;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 0.85rem;
+      }
+
+      .integration-list {
+        margin-top: 10px;
+        list-style: none;
+        padding-left: 0;
+      }
+      .integration-list li {
+        padding: 8px;
+        background: #fbfbff;
+        border-radius: 6px;
+        margin-bottom: 8px;
+        border: 1px solid rgba(10, 20, 80, 0.03);
+      }
+
+      /* Comparison section */
+      .comparison {
+        display: flex;
+        gap: 18px;
+        flex-wrap: wrap;
+      }
+      .comp-left {
+        flex: 1 1 480px;
+        min-width: 320px;
+        background: white;
+        border-radius: 12px;
+        padding: 18px;
+        box-shadow: 0 8px 24px rgba(30, 40, 80, 0.06);
+      }
+      table.comp-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.95rem;
+      }
+      table.comp-table th,
+      table.comp-table td {
+        padding: 10px 8px;
+        text-align: left;
+        border-bottom: 1px solid #f1f3fb;
+      }
+      table.comp-table th {
+        background: #fbfbff;
+        color: #1b2a6b;
+        font-weight: 700;
+      }
+      table.comp-table td .small {
+        color: #666;
+        font-size: 0.85rem;
+        display: block;
+        margin-top: 4px;
+      }
+
+      .comp-right {
+        width: 420px;
+        min-width: 280px;
+        background: white;
+        border-radius: 12px;
+        padding: 18px;
+        box-shadow: 0 8px 24px rgba(30, 40, 80, 0.06);
+      }
+      .chart-row {
+        margin-bottom: 12px;
+      }
+      .chart-label {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.9rem;
+        margin-bottom: 6px;
+      }
+      .bar-bg {
+        background: #f1f4ff;
+        border-radius: 8px;
+        height: 18px;
+        overflow: hidden;
+      }
+      .bar-fill {
+        height: 100%;
+        border-radius: 8px;
+        display: block;
+        transition: width 0.5s ease;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+      }
+
+      /* small utilities */
+      .note {
+        font-size: 0.9rem;
+        color: #555;
+        margin-top: 6px;
+      }
+      .legend {
+        display: flex;
+        gap: 10px;
+        margin-top: 12px;
+        font-size: 0.9rem;
+        align-items: center;
+      }
+      .legend .k {
+        width: 12px;
+        height: 12px;
+        border-radius: 3px;
+        display: inline-block;
+      }
+      .k-hf {
+        background: #6f8ae0;
+      }
+      .k-sd {
+        background: #9b6fe2;
+      }
+      .k-auto {
+        background: #4bb18b;
+      }
+      .k-gpt {
+        background: #f59b1f;
+      }
+      .k-cop {
+        background: #ef6a8f;
+      }
+
+      /* responsive */
+      @media (max-width: 900px) {
+        .comp-right {
+          width: 100%;
+        }
+        .comparison {
+          flex-direction: column;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🤖 AI Tools Interactive Guide</h1>
+      <p class="lead">
+        First — quick, layman-friendly summaries of what each tool *actually
+        does* (2–3 lines). Then deep-dive sections. Finally, a comparison with
+        visual charts.
+      </p>
+
+      <!-- Tool cards -->
+      <div class="tools-grid" id="toolCards">
+        <div class="tool-card" data-target="gpt4">
+          <h3>GPT-4</h3>
+          <p>Advanced conversational & general-purpose language model.</p>
+        </div>
+        <div class="tool-card" data-target="huggingface">
+          <h3>Hugging Face</h3>
+          <p>Model hub & tooling — reuseable AI models and libraries.</p>
+        </div>
+        <div class="tool-card" data-target="stablediffusion">
+          <h3>Stable Diffusion</h3>
+          <p>Text → Image generator (AI artist).</p>
+        </div>
+        <div class="tool-card" data-target="copilot">
+          <h3>GitHub Copilot</h3>
+          <p>AI pair programmer that suggests code.</p>
+        </div>
+        <div class="tool-card" data-target="automl">
+          <h3>Google AutoML</h3>
+          <p>Auto-build ML models for non-experts (point-and-click).</p>
+        </div>
+        <div class="tool-card" data-target="comparison">
+          <h3>Comparison</h3>
+          <p>Side-by-side visual comparison of all tools.</p>
+        </div>
+      </div>
+
+      <!-- Placeholder -->
+      <div id="placeholder" class="content-area active">
+        <div class="section">
+          <h2>👋 Start here (High-level view)</h2>
+          <p class="explain">
+            Click a tool to open a two-part page: (1) a **Layman summary** — a
+            short explanation of what the tool *does* and *why you'd care*;
+            followed by (2) a deeper technical overview, strengths and
+            integration options.
+          </p>
+          <div class="highlight">
+            <strong>Tip for teachers:</strong> Use the layman summary first when
+            introducing students — it builds intuition before the technical
+            details.
+          </div>
+        </div>
+      </div>
+
+      <!-- GPT-4 -->
+      <div id="gpt4" class="content-area">
+        <div class="section">
+          <h2>GPT-4 — Quick Layman Summary</h2>
+          <div class="explain">
+            <span class="hl">Layman:</span>
+            <div>
+              GPT-4 is like a very smart text assistant — you can chat with it,
+              ask it to write or summarize text, get code help, or ask it to
+              reason through problems.
+            </div>
+          </div>
+          <div class="highlight">
+            Use when you want human-like language, explanations, or code
+            assistance quickly.
+          </div>
+        </div>
+
+        <div class="section">
+          <h2>Deep-dive: What & Why (GPT-4)</h2>
+          <div class="explain">
+            GPT-4 is a transformer-based large language model that understands
+            and generates text (and in many versions, images). It's suited for
+            content generation, coding help, conversation, and analysis.
+          </div>
+          <div class="tech-badges" style="margin-top: 12px">
+            <span class="badge">Transformer</span>
+            <span class="badge">RLHF</span>
+            <span class="badge">Multi-modal</span>
+          </div>
+        </div>
+
+        <div class="section">
+          <h2>What it's good at</h2>
+          <ul class="integration-list">
+            <li>Conversational assistants, drafting, editing</li>
+            <li>Code generation & explanation</li>
+            <li>Summarization and multi-turn tasks</li>
+          </ul>
+        </div>
+
+        <div class="section">
+          <h2>How to use</h2>
+          <ul class="integration-list">
+            <li>OpenAI API (REST) with SDKs</li>
+            <li>Chat web interface (for non-developers)</li>
+            <li>Azure OpenAI for enterprise deployment</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Hugging Face -->
+      <div id="huggingface" class="content-area">
+        <div class="section">
+          <h2>Hugging Face — Quick Layman Summary</h2>
+          <div class="explain">
+            <span class="hl">Layman:</span>
+            <div>
+              Hugging Face is like a giant library where people publish and
+              share ready-made AI brains (models). You can borrow or fine-tune
+              those brains for your own app.
+            </div>
+          </div>
+          <div class="highlight">
+            Use when you want reusable models, experiment quickly, or host/serve
+            models yourself.
+          </div>
+        </div>
+
+        <div class="section">
+          <h2>Deep-dive: What & Why (Hugging Face)</h2>
+          <div class="explain">
+            Provides a model hub, libraries (Transformers, Datasets), and
+            deployment tools so teams can reuse and manage ML models easily.
+          </div>
+          <div class="tech-badges">
+            <span class="badge">Transformers</span>
+            <span class="badge">PyTorch/TensorFlow</span>
+            <span class="badge">Model Hub</span>
+          </div>
+        </div>
+
+        <div class="section">
+          <h2>What it's good at</h2>
+          <ul class="integration-list">
+            <li>NLP tasks (classification, translation, summarization)</li>
+            <li>Hosting and sharing models (Spaces)</li>
+            <li>Fine-tuning & research experiments</li>
+          </ul>
+        </div>
+
+        <div class="section">
+          <h2>How to use</h2>
+          <ul class="integration-list">
+            <li>pip install transformers</li>
+            <li>Use pipelines for quick inference</li>
+            <li>Deploy via Inference API or Spaces</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Stable Diffusion -->
+      <div id="stablediffusion" class="content-area">
+        <div class="section">
+          <h2>Stable Diffusion — Quick Layman Summary</h2>
+          <div class="explain">
+            <span class="hl">Layman:</span>
+            <div>
+              Stable Diffusion is an AI artist — you describe a scene in words
+              and it paints an image for you.
+            </div>
+          </div>
+          <div class="highlight">
+            Use when you want to quickly generate or iterate on visual concepts
+            from text prompts.
+          </div>
+        </div>
+
+        <div class="section">
+          <h2>Deep-dive: What & Why (Stable Diffusion)</h2>
+          <div class="explain">
+            An open-source text-to-image model that runs locally or via cloud
+            APIs. Uses latent diffusion to produce images from textual prompts.
+          </div>
+          <div class="tech-badges">
+            <span class="badge">Latent Diffusion</span>
+            <span class="badge">U-Net</span>
+            <span class="badge">CLIP</span>
+          </div>
+        </div>
+
+        <div class="section">
+          <h2>What it's good at</h2>
+          <ul class="integration-list">
+            <li>Text-to-image, inpainting, style transfer</li>
+            <li>Fine-tuning custom styles (LoRA, Dreambooth)</li>
+            <li>Local generation for privacy</li>
+          </ul>
+        </div>
+
+        <div class="section">
+          <h2>How to use</h2>
+          <ul class="integration-list">
+            <li>Web UIs: AUTOMATIC1111, ComfyUI</li>
+            <li>Hugging Face diffusers library</li>
+            <li>Hosted APIs: Stability.ai, Replicate</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- GitHub Copilot -->
+      <div id="copilot" class="content-area">
+        <div class="section">
+          <h2>GitHub Copilot — Quick Layman Summary</h2>
+          <div class="explain">
+            <span class="hl">Layman:</span>
+            <div>
+              GitHub Copilot is like an on-screen coding buddy: it suggests code
+              as you type and helps you write functions faster.
+            </div>
+          </div>
+          <div class="highlight">
+            Use when you want to speed up coding, get examples, or learn by
+            seeing suggested code.
+          </div>
+        </div>
+
+        <div class="section">
+          <h2>Deep-dive: What & Why (Copilot)</h2>
+          <div class="explain">
+            Integrated into IDEs, Copilot uses large code-focused models to
+            offer inline suggestions, convert comments to code, and generate
+            tests.
+          </div>
+          <div class="tech-badges">
+            <span class="badge">Codex/GPT</span>
+            <span class="badge">IDE Extensions</span>
+            <span class="badge">Context-aware</span>
+          </div>
+        </div>
+
+        <div class="section">
+          <h2>What it's good at</h2>
+          <ul class="integration-list">
+            <li>Autocompletion, templates, test generation</li>
+            <li>Language translations and refactors</li>
+            <li>Onboarding new languages/frameworks</li>
+          </ul>
+        </div>
+
+        <div class="section">
+          <h2>How to use</h2>
+          <ul class="integration-list">
+            <li>Install VS Code / JetBrains extension</li>
+            <li>Use Copilot Chat for natural language queries</li>
+            <li>Accept/refine suggestions inline</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Google AutoML -->
+      <div id="automl" class="content-area">
+        <div class="section">
+          <h2>Google AutoML — Quick Layman Summary</h2>
+          <div class="explain">
+            <span class="hl">Layman:</span>
+            <div>
+              Google AutoML is a "build-AI-for-you" tool: upload examples and
+              Google will try many models and pick/train the best one
+              automatically.
+            </div>
+          </div>
+          <div class="highlight">
+            Use when you want ML without writing complex code — point-and-click
+            model building.
+          </div>
+        </div>
+
+        <div class="section">
+          <h2>Deep-dive: What & Why (AutoML)</h2>
+          <div class="explain">
+            Combines neural architecture search, transfer learning and automated
+            hyperparameter tuning to produce production-ready models via Vertex
+            AI or AutoML UI.
+          </div>
+          <div class="tech-badges">
+            <span class="badge">NAS</span>
+            <span class="badge">Transfer Learning</span>
+            <span class="badge">Vertex AI</span>
+          </div>
+        </div>
+
+        <div class="section">
+          <h2>What it's good at</h2>
+          <ul class="integration-list">
+            <li>Image classification, object detection</li>
+            <li>Text classification, tabular predictions</li>
+            <li>Low-code model pipelines</li>
+          </ul>
+        </div>
+
+        <div class="section">
+          <h2>How to use</h2>
+          <ul class="integration-list">
+            <li>Google Cloud Console / Vertex AI</li>
+            <li>REST API & Python SDK</li>
+            <li>Export to TF, TFLite, or Cloud endpoints</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Comparison -->
+      <div id="comparison" class="content-area">
+        <div class="section">
+          <h2>🔍 Quick Comparison — Layman Snapshot</h2>
+          <div class="explain">
+            <strong>Layman summary:</strong>
+            <ul style="margin-top: 8px">
+              <li>
+                <strong>GPT-4:</strong> Best for conversation, drafting, and
+                coding help.
+              </li>
+              <li>
+                <strong>Hugging Face:</strong> Library & marketplace — get a
+                model you can reuse or adapt.
+              </li>
+              <li>
+                <strong>Stable Diffusion:</strong> Create images from words —
+                great for art & prototyping.
+              </li>
+              <li>
+                <strong>GitHub Copilot:</strong> Inline coding assistant —
+                speeds up developers.
+              </li>
+              <li>
+                <strong>Google AutoML:</strong> Build ML models via GUI — for
+                non-experts.
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="comparison">
+          <div class="comp-left">
+            <h3 style="margin-bottom: 10px">Comparison Table</h3>
+            <table class="comp-table">
+              <thead>
+                <tr>
+                  <th>Tool</th>
+                  <th>Best For</th>
+                  <th>Ease</th>
+                  <th>Cost (typ.)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <strong>GPT-4</strong>
+                    <div class="small">Language, chat, code</div>
+                  </td>
+                  <td>Conversations & content</td>
+                  <td>Medium</td>
+                  <td>Paid / API</td>
+                </tr>
+                <tr>
+                  <td>
+                    <strong>Hugging Face</strong>
+                    <div class="small">Model hub & fine-tune</div>
+                  </td>
+                  <td>Research & reuse</td>
+                  <td>Medium</td>
+                  <td>Free tier / Paid hosting</td>
+                </tr>
+                <tr>
+                  <td>
+                    <strong>Stable Diffusion</strong>
+                    <div class="small">Text→Image</div>
+                  </td>
+                  <td>Image generation</td>
+                  <td>Medium (tools vary)</td>
+                  <td>Often free (local) / Paid APIs</td>
+                </tr>
+                <tr>
+                  <td>
+                    <strong>Copilot</strong>
+                    <div class="small">Coding assistant</div>
+                  </td>
+                  <td>Developer productivity</td>
+                  <td>High (IDE plugin)</td>
+                  <td>Subscription</td>
+                </tr>
+                <tr>
+                  <td>
+                    <strong>AutoML</strong>
+                    <div class="small">No-code ML</div>
+                  </td>
+                  <td>Business ML with little code</td>
+                  <td>High</td>
+                  <td>Paid cloud</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div style="margin-top: 12px" class="note">
+              <strong>Note:</strong> "Ease" reflects how quickly a non-expert
+              can get started. "Cost" is general — check vendor pricing for
+              details.
+            </div>
+          </div>
+
+          <div class="comp-right">
+            <h3 style="margin-bottom: 10px">Visual Comparison (0–100)</h3>
+
+            <!-- Bars: Ease of Use -->
+            <div class="chart-row">
+              <div class="chart-label">
+                <span>Ease of Use</span><strong>0–100</strong>
+              </div>
+              <div class="bar-bg">
+                <span
+                  class="bar-fill"
+                  style="width: 82%"
+                  title="GPT-4 Ease"
+                ></span>
+              </div>
+              <div
+                style="
+                  display: flex;
+                  gap: 6px;
+                  margin-top: 6px;
+                  font-size: 0.84rem;
+                "
+              >
+                <span class="k k-gpt" style="margin-right: 8px"></span> GPT-4 82
+              </div>
+            </div>
+
+            <!-- Bars for each tool as grouped small bars -->
+            <div class="chart-row">
+              <div class="chart-label">
+                <span>Ease: Hugging Face</span><strong>65</strong>
+              </div>
+              <div class="bar-bg">
+                <span
+                  class="bar-fill"
+                  style="
+                    width: 65%;
+                    background: linear-gradient(90deg, #6f8ae0, #4c6fe0);
+                  "
+                ></span>
+              </div>
+            </div>
+
+            <div class="chart-row">
+              <div class="chart-label">
+                <span>Ease: Stable Diffusion</span><strong>60</strong>
+              </div>
+              <div class="bar-bg">
+                <span
+                  class="bar-fill"
+                  style="
+                    width: 60%;
+                    background: linear-gradient(90deg, #9b6fe2, #7b4fe0);
+                  "
+                ></span>
+              </div>
+            </div>
+
+            <div class="chart-row">
+              <div class="chart-label">
+                <span>Ease: Copilot</span><strong>88</strong>
+              </div>
+              <div class="bar-bg">
+                <span
+                  class="bar-fill"
+                  style="
+                    width: 88%;
+                    background: linear-gradient(90deg, #ef6a8f, #ff8ab0);
+                  "
+                ></span>
+              </div>
+            </div>
+
+            <div class="chart-row">
+              <div class="chart-label">
+                <span>Ease: AutoML</span><strong>90</strong>
+              </div>
+              <div class="bar-bg">
+                <span
+                  class="bar-fill"
+                  style="
+                    width: 90%;
+                    background: linear-gradient(90deg, #4bb18b, #2fa46a);
+                  "
+                ></span>
+              </div>
+            </div>
+
+            <div class="legend">
+              <div style="display: flex; gap: 8px; flex-wrap: wrap">
+                <div style="display: flex; align-items: center; gap: 8px">
+                  <span class="k k-gpt"></span> GPT-4
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px">
+                  <span class="k k-hf"></span> Hugging Face
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px">
+                  <span class="k k-sd"></span> Stable Diffusion
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px">
+                  <span class="k k-cop"></span> Copilot
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px">
+                  <span class="k k-auto"></span> AutoML
+                </div>
+              </div>
+            </div>
+
+            <div class="note" style="margin-top: 14px">
+              These numbers are illustrative to compare relative strengths —
+              adjust for your audience or local tests.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Manage card click -> show content
+      const cards = document.querySelectorAll(".tool-card");
+      const contents = document.querySelectorAll(".content-area");
+      const placeholder = document.getElementById("placeholder");
+
+      function deactivateAll() {
+        cards.forEach((c) => c.classList.remove("active"));
+        contents.forEach((cnt) => cnt.classList.remove("active"));
+        placeholder.classList.remove("active");
+      }
+
+      cards.forEach((card) => {
+        card.addEventListener("click", (ev) => {
+          const id = card.getAttribute("data-target");
+          deactivateAll();
+          card.classList.add("active");
+          const el = document.getElementById(id);
+          if (el) {
+            el.classList.add("active");
+            // scroll into view smoothly
+            setTimeout(
+              () => el.scrollIntoView({ behavior: "smooth", block: "start" }),
+              80
+            );
+          } else {
+            placeholder.classList.add("active");
+          }
+        });
+      });
+
+      // Small keyboard navigation improvement
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "1") cards[0].click();
+        if (e.key === "2") cards[1].click();
+        if (e.key === "3") cards[2].click();
+        if (e.key === "4") cards[3].click();
+        if (e.key === "5") cards[4].click();
+        if (e.key === "6") cards[5].click();
+      });
+
+      // Accessibility: highlight first card at load
+      window.addEventListener("load", () => {
+        if (cards.length) cards[0].classList.add("active");
+        // don't automatically open content; keep placeholder until user clicks
+      });
+    </script>
+  </body>
+</html>
