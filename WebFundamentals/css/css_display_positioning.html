@@ -1,303 +1,354 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CSS Display & Positioning Deep Dive</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 20px;
-            color: #333;
-        }
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.6;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 20px;
+        color: #333;
+      }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 15px;
-            padding: 40px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 15px;
+        padding: 40px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      }
 
-        h1 {
-            color: #667eea;
-            text-align: center;
-            margin-bottom: 10px;
-            font-size: 2.5em;
-        }
+      h1 {
+        color: #667eea;
+        text-align: center;
+        margin-bottom: 10px;
+        font-size: 2.5em;
+      }
 
-        .subtitle {
-            text-align: center;
-            color: #666;
-            margin-bottom: 40px;
-            font-style: italic;
-        }
+      .subtitle {
+        text-align: center;
+        color: #666;
+        margin-bottom: 40px;
+        font-style: italic;
+      }
 
-        .section {
-            margin-bottom: 50px;
-            padding: 30px;
-            background: #f8f9fa;
-            border-radius: 10px;
-            border-left: 5px solid #667eea;
-        }
+      .section {
+        margin-bottom: 50px;
+        padding: 30px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        border-left: 5px solid #667eea;
+      }
 
-        h2 {
-            color: #764ba2;
-            margin-bottom: 15px;
-            font-size: 1.8em;
-        }
+      h2 {
+        color: #764ba2;
+        margin-bottom: 15px;
+        font-size: 1.8em;
+      }
 
-        h3 {
-            color: #667eea;
-            margin: 20px 0 10px 0;
-            font-size: 1.3em;
-        }
+      h3 {
+        color: #667eea;
+        margin: 20px 0 10px 0;
+        font-size: 1.3em;
+      }
 
-        .concept {
-            background: #e3f2fd;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            border-left: 4px solid #2196F3;
-        }
+      .concept {
+        background: #e3f2fd;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        border-left: 4px solid #2196f3;
+      }
 
-        .analogy {
-            background: #fff3e0;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 15px 0;
-            border-left: 4px solid #ff9800;
-        }
+      .analogy {
+        background: #fff3e0;
+        padding: 15px;
+        border-radius: 8px;
+        margin: 15px 0;
+        border-left: 4px solid #ff9800;
+      }
 
-        .analogy::before {
-            content: "💡 Analogy: ";
-            font-weight: bold;
-            color: #ff9800;
-        }
+      .analogy::before {
+        content: "💡 Analogy: ";
+        font-weight: bold;
+        color: #ff9800;
+      }
 
-        .demo-box {
-            background: white;
-            border: 2px solid #ddd;
-            padding: 20px;
-            margin: 20px 0;
-            border-radius: 8px;
-        }
+      .demo-box {
+        background: white;
+        border: 2px solid #ddd;
+        padding: 20px;
+        margin: 20px 0;
+        border-radius: 8px;
+      }
 
-        .interactive-controls {
-            margin: 15px 0;
-            padding: 15px;
-            background: #f0f0f0;
-            border-radius: 5px;
-        }
+      .interactive-controls {
+        margin: 15px 0;
+        padding: 15px;
+        background: #f0f0f0;
+        border-radius: 5px;
+      }
 
-        button {
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            margin: 5px;
-            font-size: 14px;
-            transition: background 0.3s;
-        }
+      button {
+        background: #667eea;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin: 5px;
+        font-size: 14px;
+        transition: background 0.3s;
+      }
 
-        button:hover {
-            background: #764ba2;
-        }
+      button:hover {
+        background: #764ba2;
+      }
 
-        button.active {
-            background: #764ba2;
-            box-shadow: 0 0 10px rgba(118, 75, 162, 0.5);
-        }
+      button.active {
+        background: #764ba2;
+        box-shadow: 0 0 10px rgba(118, 75, 162, 0.5);
+      }
 
-        pre {
-            background: #2d2d2d;
-            color: #f8f8f2;
-            padding: 15px;
-            border-radius: 5px;
-            overflow-x: auto;
-            margin: 15px 0;
-            font-size: 14px;
-        }
+      pre {
+        background: #2d2d2d;
+        color: #f8f8f2;
+        padding: 15px;
+        border-radius: 5px;
+        overflow-x: auto;
+        margin: 15px 0;
+        font-size: 14px;
+      }
 
-        code {
-            font-family: 'Courier New', monospace;
-        }
+      code {
+        font-family: "Courier New", monospace;
+      }
 
-        /* Demo Elements */
-        .demo-element {
-            background: #4CAF50;
-            color: white;
-            padding: 15px;
-            margin: 5px;
-            border-radius: 5px;
-            text-align: center;
-            font-weight: bold;
-        }
+      /* Demo Elements */
+      .demo-element {
+        background: #4caf50;
+        color: white;
+        padding: 15px;
+        margin: 5px;
+        border-radius: 5px;
+        text-align: center;
+        font-weight: bold;
+      }
 
-        .display-demo .demo-element {
-            transition: all 0.3s;
-        }
+      .display-demo .demo-element {
+        transition: all 0.3s;
+      }
 
-        /* Display Types */
-        .block-demo { display: block; }
-        .inline-demo { display: inline; }
-        .inline-block-demo { display: inline-block; }
+      /* Display Types */
+      .block-demo {
+        display: block;
+      }
+      .inline-demo {
+        display: inline;
+      }
+      .inline-block-demo {
+        display: inline-block;
+      }
 
-        /* Position Demo Container */
-        .position-container {
-            position: relative;
-            height: 400px;
-            background: linear-gradient(to bottom, #e3f2fd 0%, #bbdefb 100%);
-            border: 3px dashed #2196F3;
-            margin: 20px 0;
-            overflow: auto;
-        }
+      /* Position Demo Container */
+      .position-container {
+        position: relative;
+        height: 400px;
+        background: linear-gradient(to bottom, #e3f2fd 0%, #bbdefb 100%);
+        border: 3px dashed #2196f3;
+        margin: 20px 0;
+        overflow: auto;
+      }
 
-        .position-element {
-            background: #FF5722;
-            color: white;
-            padding: 20px;
-            border-radius: 8px;
-            font-weight: bold;
-            width: 150px;
-            text-align: center;
-            cursor: move;
-        }
+      .position-element {
+        background: #ff5722;
+        color: white;
+        padding: 20px;
+        border-radius: 8px;
+        font-weight: bold;
+        width: 150px;
+        text-align: center;
+        cursor: move;
+      }
 
-        /* Railway Track Visual */
-        .railway-track {
-            background: repeating-linear-gradient(
-                90deg,
-                #8b4513 0px,
-                #8b4513 10px,
-                transparent 10px,
-                transparent 20px
-            );
-            height: 60px;
-            position: relative;
-            margin: 20px 0;
-            border: 2px solid #654321;
-        }
+      /* Railway Track Visual */
+      .railway-track {
+        background: repeating-linear-gradient(
+          90deg,
+          #8b4513 0px,
+          #8b4513 10px,
+          transparent 10px,
+          transparent 20px
+        );
+        height: 60px;
+        position: relative;
+        margin: 20px 0;
+        border: 2px solid #654321;
+      }
 
-        .train {
-            background: #1976D2;
-            color: white;
-            padding: 15px;
-            border-radius: 5px;
-            position: absolute;
-            font-weight: bold;
-            transition: all 0.5s;
-        }
+      .train {
+        background: #1976d2;
+        color: white;
+        padding: 15px;
+        border-radius: 5px;
+        position: absolute;
+        font-weight: bold;
+        transition: all 0.5s;
+      }
 
-        /* Sticky Demo Scroll Container */
-        .sticky-scroll-container {
-            height: 300px;
-            overflow-y: scroll;
-            border: 3px solid #667eea;
-            border-radius: 8px;
-            position: relative;
-        }
+      /* Sticky Demo Scroll Container */
+      .sticky-scroll-container {
+        height: 300px;
+        overflow-y: scroll;
+        border: 3px solid #667eea;
+        border-radius: 8px;
+        position: relative;
+      }
 
-        .sticky-header {
-            background: #FF9800;
-            color: white;
-            padding: 15px;
-            font-weight: bold;
-            text-align: center;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
+      .sticky-header {
+        background: #ff9800;
+        color: white;
+        padding: 15px;
+        font-weight: bold;
+        text-align: center;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
 
-        .scroll-content {
-            padding: 20px;
-            line-height: 2;
-        }
+      .scroll-content {
+        padding: 20px;
+        line-height: 2;
+      }
 
-        /* Visual Grid for positioning */
-        .grid-bg {
-            background-image: 
-                linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px);
-            background-size: 30px 30px;
-        }
+      /* Visual Grid for positioning */
+      .grid-bg {
+        background-image:
+          linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+        background-size: 30px 30px;
+      }
 
-        .highlight {
-            animation: pulse 1s infinite;
-        }
+      .highlight {
+        animation: pulse 1s infinite;
+      }
 
-        @keyframes pulse {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.7); }
-            50% { box-shadow: 0 0 20px 10px rgba(102, 126, 234, 0); }
+      @keyframes pulse {
+        0%,
+        100% {
+          box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.7);
         }
+        50% {
+          box-shadow: 0 0 20px 10px rgba(102, 126, 234, 0);
+        }
+      }
 
-        .info-box {
-            background: #e8f5e9;
-            border-left: 4px solid #4CAF50;
-            padding: 15px;
-            margin: 15px 0;
-            border-radius: 5px;
-        }
+      .info-box {
+        background: #e8f5e9;
+        border-left: 4px solid #4caf50;
+        padding: 15px;
+        margin: 15px 0;
+        border-radius: 5px;
+      }
 
-        .warning-box {
-            background: #fff3e0;
-            border-left: 4px solid #FF9800;
-            padding: 15px;
-            margin: 15px 0;
-            border-radius: 5px;
-        }
+      .warning-box {
+        background: #fff3e0;
+        border-left: 4px solid #ff9800;
+        padding: 15px;
+        margin: 15px 0;
+        border-radius: 5px;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <h1>🎨 CSS Display & Positioning Deep Dive</h1>
-        <p class="subtitle">Understanding how elements behave and position themselves in the browser</p>
+      <h1>🎨 CSS Display & Positioning Deep Dive</h1>
+      <p class="subtitle">
+        Understanding how elements behave and position themselves in the browser
+      </p>
 
-        <!-- Display Property Section -->
-        <div class="section">
-            <h2>📦 Display Property: The Building Blocks</h2>
-            
-            <div class="concept">
-                <strong>Core Concept:</strong> The display property controls how an element behaves in the document flow and how it interacts with other elements.
+      <!-- GitHub Reference Section -->
+      <div class="concept" style="margin: 25px auto; max-width: 900px">
+        <strong>📂 Student Reference (GitHub)</strong>
+        <p style="margin-top: 8px">
+          Explore the complete source code, experiments, and practice demos
+          related to this topic here:
+        </p>
+        <p style="margin-top: 5px">
+          👉
+          <a
+            href="https://github.com/AIDEPT-2025-SVECW/CSS-Demo/tree/master/css-display-position"
+            target="_blank"
+            style="color: #667eea; font-weight: bold"
+          >
+            View on GitHub
+          </a>
+        </p>
+      </div>
+
+      <!-- Display Property Section -->
+      <div class="section">
+        <h2>📦 Display Property: The Building Blocks</h2>
+
+        <div class="concept">
+          <strong>Core Concept:</strong> The display property controls how an
+          element behaves in the document flow and how it interacts with other
+          elements.
+        </div>
+
+        <div class="analogy">
+          Think of display types like different types of shops in a Mumbai
+          bazaar:
+          <ul style="margin-top: 10px">
+            <li>
+              <strong>Block:</strong> Large shops that occupy an entire row - no
+              other shop can be beside them
+            </li>
+            <li>
+              <strong>Inline:</strong> Small street vendors who sit side by side
+              in the same row
+            </li>
+            <li>
+              <strong>Inline-block:</strong> Medium shops that can sit beside
+              each other but have proper structure
+            </li>
+          </ul>
+        </div>
+
+        <h3>🔷 Block Display</h3>
+        <div class="concept">
+          Block elements take full width available and start on a new line. They
+          respect width, height, and all margin/padding.
+        </div>
+
+        <div class="demo-box">
+          <div class="interactive-controls">
+            <label><strong>Block Elements Demo:</strong></label>
+          </div>
+          <div id="blockDemo">
+            <div class="demo-element block-demo">
+              Block Element 1 (I take full width)
             </div>
-
-            <div class="analogy">
-                Think of display types like different types of shops in a Mumbai bazaar:
-                <ul style="margin-top: 10px;">
-                    <li><strong>Block:</strong> Large shops that occupy an entire row - no other shop can be beside them</li>
-                    <li><strong>Inline:</strong> Small street vendors who sit side by side in the same row</li>
-                    <li><strong>Inline-block:</strong> Medium shops that can sit beside each other but have proper structure</li>
-                </ul>
+            <div class="demo-element block-demo">
+              Block Element 2 (I'm on a new line)
             </div>
-
-            <h3>🔷 Block Display</h3>
-            <div class="concept">
-                Block elements take full width available and start on a new line. They respect width, height, and all margin/padding.
+            <div class="demo-element block-demo" style="width: 50%">
+              Block Element 3 (width: 50%)
             </div>
+          </div>
+        </div>
 
-            <div class="demo-box">
-                <div class="interactive-controls">
-                    <label><strong>Block Elements Demo:</strong></label>
-                </div>
-                <div id="blockDemo">
-                    <div class="demo-element block-demo">Block Element 1 (I take full width)</div>
-                    <div class="demo-element block-demo">Block Element 2 (I'm on a new line)</div>
-                    <div class="demo-element block-demo" style="width: 50%;">Block Element 3 (width: 50%)</div>
-                </div>
-            </div>
-
-            <pre><code>&lt;div style="display: block; width: 100%;"&gt;
+        <pre><code>&lt;div style="display: block; width: 100%;"&gt;
     I take the full width available
 &lt;/div&gt;
 &lt;div style="display: block;"&gt;
@@ -306,59 +357,78 @@
 
 /* Common block elements: div, p, h1-h6, section, article */</code></pre>
 
-            <h3>🔹 Inline Display</h3>
-            <div class="concept">
-                Inline elements flow with text, don't break lines, and ignore width/height. Only horizontal padding/margin work.
-            </div>
+        <h3>🔹 Inline Display</h3>
+        <div class="concept">
+          Inline elements flow with text, don't break lines, and ignore
+          width/height. Only horizontal padding/margin work.
+        </div>
 
-            <div class="demo-box">
-                <div class="interactive-controls">
-                    <label><strong>Inline Elements Demo:</strong></label>
-                </div>
-                <div id="inlineDemo">
-                    These are <span class="demo-element inline-demo">Inline 1</span> and 
-                    <span class="demo-element inline-demo">Inline 2</span> and 
-                    <span class="demo-element inline-demo">Inline 3</span> elements flowing in text.
-                </div>
-                <div style="margin-top: 15px;">
-                    <span class="demo-element inline-demo" style="width: 200px; height: 100px;">
-                        Width & Height ignored!
-                    </span>
-                </div>
-            </div>
+        <div class="demo-box">
+          <div class="interactive-controls">
+            <label><strong>Inline Elements Demo:</strong></label>
+          </div>
+          <div id="inlineDemo">
+            These are <span class="demo-element inline-demo">Inline 1</span> and
+            <span class="demo-element inline-demo">Inline 2</span> and
+            <span class="demo-element inline-demo">Inline 3</span> elements
+            flowing in text.
+          </div>
+          <div style="margin-top: 15px">
+            <span
+              class="demo-element inline-demo"
+              style="width: 200px; height: 100px"
+            >
+              Width & Height ignored!
+            </span>
+          </div>
+        </div>
 
-            <pre><code>&lt;span style="display: inline;"&gt;I flow with text&lt;/span&gt;
+        <pre><code>&lt;span style="display: inline;"&gt;I flow with text&lt;/span&gt;
 &lt;span style="display: inline; width: 200px;"&gt;
     Width is ignored!
 &lt;/span&gt;
 
 /* Common inline elements: span, a, strong, em, img */</code></pre>
 
-            <h3>🔸 Inline-Block Display</h3>
-            <div class="concept">
-                Best of both worlds: flows inline but respects width, height, and all padding/margin like block elements.
-            </div>
+        <h3>🔸 Inline-Block Display</h3>
+        <div class="concept">
+          Best of both worlds: flows inline but respects width, height, and all
+          padding/margin like block elements.
+        </div>
 
-            <div class="demo-box">
-                <div class="interactive-controls">
-                    <button onclick="toggleDisplay('inline-block')">Show Inline-Block</button>
-                    <button onclick="toggleDisplay('inline')">Compare with Inline</button>
-                    <button onclick="toggleDisplay('block')">Compare with Block</button>
-                </div>
-                <div id="inlineBlockDemo">
-                    <div class="demo-element inline-block-demo" style="width: 150px; height: 80px;">
-                        Box 1<br>150x80px
-                    </div>
-                    <div class="demo-element inline-block-demo" style="width: 200px; height: 80px;">
-                        Box 2<br>200x80px
-                    </div>
-                    <div class="demo-element inline-block-demo" style="width: 180px; height: 80px;">
-                        Box 3<br>180x80px
-                    </div>
-                </div>
+        <div class="demo-box">
+          <div class="interactive-controls">
+            <button onclick="toggleDisplay('inline-block')">
+              Show Inline-Block
+            </button>
+            <button onclick="toggleDisplay('inline')">
+              Compare with Inline
+            </button>
+            <button onclick="toggleDisplay('block')">Compare with Block</button>
+          </div>
+          <div id="inlineBlockDemo">
+            <div
+              class="demo-element inline-block-demo"
+              style="width: 150px; height: 80px"
+            >
+              Box 1<br />150x80px
             </div>
+            <div
+              class="demo-element inline-block-demo"
+              style="width: 200px; height: 80px"
+            >
+              Box 2<br />200x80px
+            </div>
+            <div
+              class="demo-element inline-block-demo"
+              style="width: 180px; height: 80px"
+            >
+              Box 3<br />180x80px
+            </div>
+          </div>
+        </div>
 
-            <pre><code>&lt;div style="display: inline-block; width: 150px; height: 80px;"&gt;
+        <pre><code>&lt;div style="display: inline-block; width: 150px; height: 80px;"&gt;
     I respect dimensions AND sit beside others!
 &lt;/div&gt;
 
@@ -369,72 +439,142 @@
     padding: 10px;
 }</code></pre>
 
-            <div class="info-box">
-                <strong>🎯 Real-World Use Case:</strong> E-commerce product cards are typically inline-block - they sit side by side, have specific dimensions, but wrap to the next line when space runs out (like products on Flipkart or Amazon).
-            </div>
+        <div class="info-box">
+          <strong>🎯 Real-World Use Case:</strong> E-commerce product cards are
+          typically inline-block - they sit side by side, have specific
+          dimensions, but wrap to the next line when space runs out (like
+          products on Flipkart or Amazon).
+        </div>
+      </div>
+
+      <!-- Position Property Section -->
+      <div class="section">
+        <h2>🎯 Position Property: Controlling Element Placement</h2>
+
+        <div class="concept">
+          <strong>Core Concept:</strong> Position property determines how an
+          element is positioned in the document and whether it affects the flow
+          of other elements.
         </div>
 
-        <!-- Position Property Section -->
-        <div class="section">
-            <h2>🎯 Position Property: Controlling Element Placement</h2>
-            
-            <div class="concept">
-                <strong>Core Concept:</strong> Position property determines how an element is positioned in the document and whether it affects the flow of other elements.
-            </div>
+        <div class="analogy">
+          <strong
+            >Think of CSS Position like students sitting in a classroom
+            🏫</strong
+          >
 
-            <div class="analogy">
-                Think of positioning like passengers on an Indian train:
-                <ul style="margin-top: 10px;">
-                    <li><strong>Static:</strong> Reserved seat passenger - sits in assigned place, everyone flows normally</li>
-                    <li><strong>Relative:</strong> Passenger who shifts a bit from their seat but the seat is still "occupied"</li>
-                    <li><strong>Absolute:</strong> Passenger who stands and moves freely in the coach (relative to coach)</li>
-                    <li><strong>Fixed:</strong> Ticket collector who stays visible even when train moves</li>
-                    <li><strong>Sticky:</strong> Newspaper vendor who walks with you until they reach their limit</li>
-                </ul>
-            </div>
+          <ul style="margin-top: 10px">
+            <li>
+              <strong>Static (Default):</strong><br />
+              A student sits on their bench and
+              <strong>does not move at all</strong>, even if the teacher says
+              “move left or right”. They follow the normal seating order. (<em
+                >No movement, normal flow</em
+              >)
+            </li>
 
-            <h3>🚂 Static Position (Default)</h3>
-            <div class="concept">
-                Default positioning. Element flows naturally in the document. top, right, bottom, left have NO effect.
-            </div>
+            <li>
+              <strong>Relative (VERY IMPORTANT):</strong><br />
+              A student sits on their bench but
+              <strong>shifts a little left or right</strong>
+              to be comfortable.
+              <br />
+              👉 The bench is still considered occupied, so no other student can
+              sit there. (<em>Moves from own position, space remains</em>)
+            </li>
 
-            <div class="demo-box">
-                <div class="railway-track">
-                    <div class="train" style="position: static; left: 0;">
-                        Static Train (left: 0 has no effect!)
-                    </div>
-                </div>
-            </div>
+            <li>
+              <strong>Absolute:</strong><br />
+              A student stands up and sits
+              <strong>anywhere inside the classroom</strong>
+              wherever the teacher points.
+              <br />
+              👉 Their original bench becomes empty. (<em
+                >Removed from flow, positioned inside parent</em
+              >)
+            </li>
 
-            <pre><code>/* Static is the default - you rarely set it explicitly */
+            <li>
+              <strong>Fixed:</strong><br />
+              The blackboard or wall clock in the classroom. Even if students
+              move or the class changes, it
+              <strong>always stays in the same place</strong>. (<em
+                >Fixed to screen</em
+              >)
+            </li>
+
+            <li>
+              <strong>Sticky:</strong><br />
+              A student walking normally, but when they reach the poster showing
+              favorite hero, they <strong>stop and stay there</strong>. (<em
+                >Moves first, then sticks</em
+              >)
+            </li>
+          </ul>
+
+          <p style="margin-top: 10px">
+            🧠 <strong>Easy Memory Line:</strong><br />
+            Static sits • Relative shifts • Absolute escapes • Fixed freezes •
+            Sticky sticks
+          </p>
+        </div>
+
+        <h3>🚂 Static Position (Default)</h3>
+        <div class="concept">
+          Default positioning. Element flows naturally in the document. top,
+          right, bottom, left have NO effect.
+        </div>
+
+        <div class="demo-box">
+          <div class="railway-track">
+            <div class="train" style="position: static; left: 0">
+              Static Train (left: 0 has no effect!)
+            </div>
+          </div>
+        </div>
+
+        <pre><code>/* Static is the default - you rarely set it explicitly */
 .element {
     position: static;
     top: 50px;    /* ❌ Ignored */
     left: 100px;  /* ❌ Ignored */
 }</code></pre>
 
-            <h3>🔄 Relative Position</h3>
-            <div class="concept">
-                Element moves relative to its ORIGINAL position, but its original space is RESERVED (other elements don't fill it).
-            </div>
+        <h3>🔄 Relative Position</h3>
+        <div class="concept">
+          Element moves relative to its ORIGINAL position, but its original
+          space is RESERVED (other elements don't fill it).
+        </div>
 
-            <div class="demo-box">
-                <div class="interactive-controls">
-                    <button onclick="moveRelative(0, 0)">Reset</button>
-                    <button onclick="moveRelative(50, 0)">Move Right 50px</button>
-                    <button onclick="moveRelative(0, 30)">Move Down 30px</button>
-                    <button onclick="moveRelative(50, 30)">Move Right 50px & Down 30px</button>
-                </div>
-                <div style="border: 2px dashed #999; padding: 20px; position: relative;">
-                    <div class="demo-element" style="background: #2196F3;">Element Before</div>
-                    <div id="relativeElement" class="demo-element" style="background: #FF5722; position: relative;">
-                        Relative Element (moves but space reserved)
-                    </div>
-                    <div class="demo-element" style="background: #2196F3;">Element After (stays in place!)</div>
-                </div>
+        <div class="demo-box">
+          <div class="interactive-controls">
+            <button onclick="moveRelative(0, 0)">Reset</button>
+            <button onclick="moveRelative(50, 0)">Move Right 50px</button>
+            <button onclick="moveRelative(0, 30)">Move Down 30px</button>
+            <button onclick="moveRelative(50, 30)">
+              Move Right 50px & Down 30px
+            </button>
+          </div>
+          <div
+            style="border: 2px dashed #999; padding: 20px; position: relative"
+          >
+            <div class="demo-element" style="background: #2196f3">
+              Element Before
             </div>
+            <div
+              id="relativeElement"
+              class="demo-element"
+              style="background: #ff5722; position: relative"
+            >
+              Relative Element (moves but space reserved)
+            </div>
+            <div class="demo-element" style="background: #2196f3">
+              Element After (stays in place!)
+            </div>
+          </div>
+        </div>
 
-            <pre><code>.shift-element {
+        <pre><code>.shift-element {
     position: relative;
     top: 30px;    /* Moves 30px down from original position */
     left: 50px;   /* Moves 50px right from original position */
@@ -442,38 +582,63 @@
 
 /* Original space is RESERVED - other elements don't move */</code></pre>
 
-            <div class="warning-box">
-                <strong>⚠️ Common Mistake:</strong> Relative positioning is often used as a reference point for absolutely positioned children, not for moving the element itself.
-            </div>
+        <div class="warning-box">
+          <strong>⚠️ Common Mistake:</strong> Relative positioning is often used
+          as a reference point for absolutely positioned children, not for
+          moving the element itself.
+        </div>
 
-            <h3>📍 Absolute Position</h3>
-            <div class="concept">
-                Element is REMOVED from normal flow and positioned relative to its nearest positioned ancestor (parent with position other than static). If none, it's relative to the document body.
-            </div>
+        <h3>📍 Absolute Position</h3>
+        <div class="concept">
+          Element is REMOVED from normal flow and positioned relative to its
+          nearest positioned ancestor (parent with position other than static).
+          If none, it's relative to the document body.
+        </div>
 
-            <div class="demo-box">
-                <div class="interactive-controls">
-                    <button onclick="moveAbsolute(10, 10)">Top-Left</button>
-                    <button onclick="moveAbsolute(10, null, null, 10)">Top-Right</button>
-                    <button onclick="moveAbsolute(null, null, 10, 10)">Bottom-Right</button>
-                    <button onclick="moveAbsolute(null, null, 10, null, 10)">Bottom-Left</button>
-                    <button onclick="moveAbsolute(50, null, null, null, 50)">Center-ish</button>
-                </div>
-                <div class="position-container grid-bg">
-                    <div style="padding: 20px;">
-                        <div class="demo-element" style="background: #2196F3;">Normal Element 1</div>
-                        <div class="demo-element" style="background: #2196F3;">Normal Element 2</div>
-                        <div id="absoluteElement" class="position-element" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
-                            Absolute Element (Drag me!)
-                        </div>
-                        <div class="demo-element" style="background: #2196F3;">
-                            Normal Element 3 (flows as if absolute doesn't exist)
-                        </div>
-                    </div>
-                </div>
+        <div class="demo-box">
+          <div class="interactive-controls">
+            <button onclick="moveAbsolute(10, 10)">Top-Left</button>
+            <button onclick="moveAbsolute(10, null, null, 10)">
+              Top-Right
+            </button>
+            <button onclick="moveAbsolute(null, null, 10, 10)">
+              Bottom-Right
+            </button>
+            <button onclick="moveAbsolute(null, null, 10, null, 10)">
+              Bottom-Left
+            </button>
+            <button onclick="moveAbsolute(50, null, null, null, 50)">
+              Center-ish
+            </button>
+          </div>
+          <div class="position-container grid-bg">
+            <div style="padding: 20px">
+              <div class="demo-element" style="background: #2196f3">
+                Normal Element 1
+              </div>
+              <div class="demo-element" style="background: #2196f3">
+                Normal Element 2
+              </div>
+              <div
+                id="absoluteElement"
+                class="position-element"
+                style="
+                  position: absolute;
+                  top: 50%;
+                  left: 50%;
+                  transform: translate(-50%, -50%);
+                "
+              >
+                Absolute Element (Drag me!)
+              </div>
+              <div class="demo-element" style="background: #2196f3">
+                Normal Element 3 (flows as if absolute doesn't exist)
+              </div>
             </div>
+          </div>
+        </div>
 
-            <pre><code>/* Parent must have position: relative/absolute/fixed */
+        <pre><code>/* Parent must have position: relative/absolute/fixed */
 .parent {
     position: relative;  /* Reference point */
     height: 400px;
@@ -492,34 +657,64 @@
     right: -10px;
 }</code></pre>
 
-            <h3>🔒 Fixed Position</h3>
-            <div class="concept">
-                Element is positioned relative to the VIEWPORT (browser window). It stays in the same place even when scrolling.
-            </div>
+        <h3>🔒 Fixed Position</h3>
+        <div class="concept">
+          Element is positioned relative to the VIEWPORT (browser window). It
+          stays in the same place even when scrolling.
+        </div>
 
-            <div class="demo-box">
-                <button onclick="toggleFixed()" id="fixedToggleBtn">Create Fixed Header</button>
-                <div id="fixedDemo" style="display: none; margin-top: 15px;">
-                    <div style="height: 300px; overflow-y: scroll; border: 3px solid #667eea; border-radius: 8px; position: relative;">
-                        <div id="fixedHeader" style="background: #FF5722; color: white; padding: 15px; text-align: center; font-weight: bold;">
-                            Fixed Header (Scroll content below!)
-                        </div>
-                        <div style="padding: 20px; padding-top: 60px;">
-                            <p>Scroll this content... 📜</p>
-                            <p>The header stays fixed at the top! 🎯</p>
-                            <p>This is how navigation bars work on websites.</p>
-                            <p style="padding: 20px; background: #f0f0f0; margin: 10px 0;">Content Block 1</p>
-                            <p style="padding: 20px; background: #e0e0e0; margin: 10px 0;">Content Block 2</p>
-                            <p style="padding: 20px; background: #f0f0f0; margin: 10px 0;">Content Block 3</p>
-                            <p style="padding: 20px; background: #e0e0e0; margin: 10px 0;">Content Block 4</p>
-                            <p style="padding: 20px; background: #f0f0f0; margin: 10px 0;">Content Block 5</p>
-                            <p>Notice the header never moves! ✨</p>
-                        </div>
-                    </div>
-                </div>
+        <div class="demo-box">
+          <button onclick="toggleFixed()" id="fixedToggleBtn">
+            Create Fixed Header
+          </button>
+          <div id="fixedDemo" style="display: none; margin-top: 15px">
+            <div
+              style="
+                height: 300px;
+                overflow-y: scroll;
+                border: 3px solid #667eea;
+                border-radius: 8px;
+                position: relative;
+              "
+            >
+              <div
+                id="fixedHeader"
+                style="
+                  background: #ff5722;
+                  color: white;
+                  padding: 15px;
+                  text-align: center;
+                  font-weight: bold;
+                "
+              >
+                Fixed Header (Scroll content below!)
+              </div>
+              <div style="padding: 20px; padding-top: 60px">
+                <p>Scroll this content... 📜</p>
+                <p>The header stays fixed at the top! 🎯</p>
+                <p>This is how navigation bars work on websites.</p>
+                <p style="padding: 20px; background: #f0f0f0; margin: 10px 0">
+                  Content Block 1
+                </p>
+                <p style="padding: 20px; background: #e0e0e0; margin: 10px 0">
+                  Content Block 2
+                </p>
+                <p style="padding: 20px; background: #f0f0f0; margin: 10px 0">
+                  Content Block 3
+                </p>
+                <p style="padding: 20px; background: #e0e0e0; margin: 10px 0">
+                  Content Block 4
+                </p>
+                <p style="padding: 20px; background: #f0f0f0; margin: 10px 0">
+                  Content Block 5
+                </p>
+                <p>Notice the header never moves! ✨</p>
+              </div>
             </div>
+          </div>
+        </div>
 
-            <pre><code>.fixed-header {
+        <pre><code>.fixed-header {
     position: fixed;
     top: 0;           /* Stick to top of viewport */
     left: 0;
@@ -535,41 +730,70 @@
     right: 20px;
 }</code></pre>
 
-            <div class="info-box">
-                <strong>🎯 Real-World Example:</strong> WhatsApp Web's chat interface uses fixed positioning for the header and message input box, allowing only the conversation area to scroll.
-            </div>
+        <div class="info-box">
+          <strong>🎯 Real-World Example:</strong> WhatsApp Web's chat interface
+          uses fixed positioning for the header and message input box, allowing
+          only the conversation area to scroll.
+        </div>
 
-            <h3>📌 Sticky Position</h3>
-            <div class="concept">
-                Hybrid of relative and fixed. Element behaves as relative until it reaches a scroll threshold, then becomes fixed WITHIN ITS CONTAINER.
-            </div>
+        <h3>📌 Sticky Position</h3>
+        <div class="concept">
+          Hybrid of relative and fixed. Element behaves as relative until it
+          reaches a scroll threshold, then becomes fixed WITHIN ITS CONTAINER.
+        </div>
 
-            <div class="demo-box">
-                <div class="sticky-scroll-container">
-                    <div class="sticky-header">
-                        🎯 I'm Sticky! (Scroll to see magic)
-                    </div>
-                    <div class="scroll-content">
-                        <h4>Section 1: Introduction</h4>
-                        <p>Sticky positioning is like a disciplined student who sits in their seat (relative) until the teacher walks by, then stands up (fixed) to answer but only within their row!</p>
-                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore.</p>
-                        
-                        <h4>Section 2: How It Works</h4>
-                        <p>The element stays in normal flow initially. When you scroll past its position, it sticks to the specified position (top: 0 in this case).</p>
-                        <p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque.</p>
-                        
-                        <h4>Section 3: Limitations</h4>
-                        <p>Sticky only works WITHIN its parent container! Once the container scrolls past, sticky stops.</p>
-                        <p>At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium.</p>
-                        
-                        <h4>Section 4: Use Cases</h4>
-                        <p>Perfect for table headers, section titles, or category labels that should stay visible while scrolling their section.</p>
-                        <p>Et harum quidem rerum facilis est et expedita distinctio. Nam libero tempore.</p>
-                    </div>
-                </div>
+        <div class="demo-box">
+          <div class="sticky-scroll-container">
+            <div class="sticky-header">
+              🎯 I'm Sticky! (Scroll to see magic)
             </div>
+            <div class="scroll-content">
+              <h4>Section 1: Introduction</h4>
+              <p>
+                Sticky positioning is like a disciplined student who sits in
+                their seat (relative) until the teacher walks by, then stands up
+                (fixed) to answer but only within their row!
+              </p>
+              <p>
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
+                eiusmod tempor incididunt ut labore.
+              </p>
 
-            <pre><code>.sticky-header {
+              <h4>Section 2: How It Works</h4>
+              <p>
+                The element stays in normal flow initially. When you scroll past
+                its position, it sticks to the specified position (top: 0 in
+                this case).
+              </p>
+              <p>
+                Sed ut perspiciatis unde omnis iste natus error sit voluptatem
+                accusantium doloremque.
+              </p>
+
+              <h4>Section 3: Limitations</h4>
+              <p>
+                Sticky only works WITHIN its parent container! Once the
+                container scrolls past, sticky stops.
+              </p>
+              <p>
+                At vero eos et accusamus et iusto odio dignissimos ducimus qui
+                blanditiis praesentium.
+              </p>
+
+              <h4>Section 4: Use Cases</h4>
+              <p>
+                Perfect for table headers, section titles, or category labels
+                that should stay visible while scrolling their section.
+              </p>
+              <p>
+                Et harum quidem rerum facilis est et expedita distinctio. Nam
+                libero tempore.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <pre><code>.sticky-header {
     position: sticky;
     top: 0;           /* Sticks when 0px from top */
     background: white;
@@ -587,301 +811,466 @@
 
 /* ⚠️ Parent must allow overflow (don't set overflow: hidden) */</code></pre>
 
-            <div class="warning-box">
-                <strong>⚠️ Sticky Gotchas:</strong>
-                <ul style="margin-top: 10px;">
-                    <li>Parent must NOT have <code>overflow: hidden</code></li>
-                    <li>Must specify at least one of: top, bottom, left, right</li>
-                    <li>Only sticks within its parent container</li>
-                    <li>Not supported in older IE browsers</li>
-                </ul>
+        <div class="warning-box">
+          <strong>⚠️ Sticky Gotchas:</strong>
+          <ul style="margin-top: 10px">
+            <li>Parent must NOT have <code>overflow: hidden</code></li>
+            <li>Must specify at least one of: top, bottom, left, right</li>
+            <li>Only sticks within its parent container</li>
+            <li>Not supported in older IE browsers</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Comparison Section -->
+      <div class="section">
+        <h2>⚖️ Position Properties Comparison</h2>
+
+        <div class="demo-box">
+          <table style="width: 100%; border-collapse: collapse">
+            <thead>
+              <tr style="background: #667eea; color: white">
+                <th style="padding: 12px; border: 1px solid #ddd">Position</th>
+                <th style="padding: 12px; border: 1px solid #ddd">
+                  Affects Flow?
+                </th>
+                <th style="padding: 12px; border: 1px solid #ddd">
+                  Positioned Relative To
+                </th>
+                <th style="padding: 12px; border: 1px solid #ddd">
+                  Common Use
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="padding: 12px; border: 1px solid #ddd">
+                  <strong>static</strong>
+                </td>
+                <td style="padding: 12px; border: 1px solid #ddd">✅ Yes</td>
+                <td style="padding: 12px; border: 1px solid #ddd">
+                  Normal flow
+                </td>
+                <td style="padding: 12px; border: 1px solid #ddd">
+                  Default (95% of elements)
+                </td>
+              </tr>
+              <tr style="background: #f9f9f9">
+                <td style="padding: 12px; border: 1px solid #ddd">
+                  <strong>relative</strong>
+                </td>
+                <td style="padding: 12px; border: 1px solid #ddd">
+                  ✅ Yes (reserves space)
+                </td>
+                <td style="padding: 12px; border: 1px solid #ddd">
+                  Its original position
+                </td>
+                <td style="padding: 12px; border: 1px solid #ddd">
+                  Parent for absolute children
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 12px; border: 1px solid #ddd">
+                  <strong>absolute</strong>
+                </td>
+                <td style="padding: 12px; border: 1px solid #ddd">
+                  ❌ No (removed from flow)
+                </td>
+                <td style="padding: 12px; border: 1px solid #ddd">
+                  Nearest positioned ancestor
+                </td>
+                <td style="padding: 12px; border: 1px solid #ddd">
+                  Tooltips, dropdowns, modals
+                </td>
+              </tr>
+              <tr style="background: #f9f9f9">
+                <td style="padding: 12px; border: 1px solid #ddd">
+                  <strong>fixed</strong>
+                </td>
+                <td style="padding: 12px; border: 1px solid #ddd">
+                  ❌ No (removed from flow)
+                </td>
+                <td style="padding: 12px; border: 1px solid #ddd">
+                  Viewport (browser window)
+                </td>
+                <td style="padding: 12px; border: 1px solid #ddd">
+                  Nav bars, chat widgets
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 12px; border: 1px solid #ddd">
+                  <strong>sticky</strong>
+                </td>
+                <td style="padding: 12px; border: 1px solid #ddd">
+                  ✅ Yes (until threshold)
+                </td>
+                <td style="padding: 12px; border: 1px solid #ddd">
+                  Scrolling container
+                </td>
+                <td style="padding: 12px; border: 1px solid #ddd">
+                  Table headers, section titles
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Practical Exercise -->
+      <div class="section">
+        <h2>🎮 Interactive Playground</h2>
+        <p style="margin-bottom: 15px">
+          Experiment with different combinations of display and position
+          properties:
+        </p>
+
+        <div class="demo-box">
+          <div class="interactive-controls">
+            <div style="margin-bottom: 10px">
+              <strong>Display:</strong>
+              <button onclick="setPlaygroundProperty('display', 'block')">
+                Block
+              </button>
+              <button onclick="setPlaygroundProperty('display', 'inline')">
+                Inline
+              </button>
+              <button
+                onclick="setPlaygroundProperty('display', 'inline-block')"
+              >
+                Inline-Block
+              </button>
             </div>
+            <div style="margin-bottom: 10px">
+              <strong>Position:</strong>
+              <button onclick="setPlaygroundProperty('position', 'static')">
+                Static
+              </button>
+              <button onclick="setPlaygroundProperty('position', 'relative')">
+                Relative
+              </button>
+              <button onclick="setPlaygroundProperty('position', 'absolute')">
+                Absolute
+              </button>
+            </div>
+            <div>
+              <strong>Offset:</strong>
+              <button onclick="setPlaygroundOffset(20, 20)">
+                top:20px, left:20px
+              </button>
+              <button onclick="setPlaygroundOffset(0, 0, 0, 0)">
+                top:0, right:0, bottom:0, left:0
+              </button>
+              <button onclick="resetPlayground()">Reset</button>
+            </div>
+          </div>
+          <div
+            style="
+              position: relative;
+              border: 2px dashed #999;
+              padding: 40px;
+              min-height: 250px;
+              background: #f9f9f9;
+            "
+          >
+            <div class="demo-element" style="background: #9c27b0">
+              Element Before
+            </div>
+            <div
+              id="playgroundElement"
+              class="demo-element"
+              style="background: #ff5722"
+            >
+              Playground Element
+            </div>
+            <div class="demo-element" style="background: #9c27b0">
+              Element After
+            </div>
+          </div>
+          <div
+            style="
+              margin-top: 15px;
+              padding: 15px;
+              background: #2d2d2d;
+              color: #4caf50;
+              border-radius: 5px;
+              font-family: monospace;
+            "
+          >
+            <div id="playgroundCode">display: block; position: static;</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Key Takeaways -->
+      <div
+        class="section"
+        style="
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          border: none;
+        "
+      >
+        <h2 style="color: white">🎯 Key Takeaways</h2>
+
+        <div
+          style="
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+          "
+        >
+          <h3 style="color: white">Display Property:</h3>
+          <ul style="line-height: 2">
+            <li>
+              <strong>Block:</strong> Full width, new line, respects all
+              dimensions → Use for containers, sections
+            </li>
+            <li>
+              <strong>Inline:</strong> Flows with text, ignores width/height →
+              Use for text styling
+            </li>
+            <li>
+              <strong>Inline-Block:</strong> Flows inline, respects dimensions →
+              Use for buttons, cards, galleries
+            </li>
+          </ul>
         </div>
 
-        <!-- Comparison Section -->
-        <div class="section">
-            <h2>⚖️ Position Properties Comparison</h2>
-            
-            <div class="demo-box">
-                <table style="width: 100%; border-collapse: collapse;">
-                    <thead>
-                        <tr style="background: #667eea; color: white;">
-                            <th style="padding: 12px; border: 1px solid #ddd;">Position</th>
-                            <th style="padding: 12px; border: 1px solid #ddd;">Affects Flow?</th>
-                            <th style="padding: 12px; border: 1px solid #ddd;">Positioned Relative To</th>
-                            <th style="padding: 12px; border: 1px solid #ddd;">Common Use</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td style="padding: 12px; border: 1px solid #ddd;"><strong>static</strong></td>
-                            <td style="padding: 12px; border: 1px solid #ddd;">✅ Yes</td>
-                            <td style="padding: 12px; border: 1px solid #ddd;">Normal flow</td>
-                            <td style="padding: 12px; border: 1px solid #ddd;">Default (95% of elements)</td>
-                        </tr>
-                        <tr style="background: #f9f9f9;">
-                            <td style="padding: 12px; border: 1px solid #ddd;"><strong>relative</strong></td>
-                            <td style="padding: 12px; border: 1px solid #ddd;">✅ Yes (reserves space)</td>
-                            <td style="padding: 12px; border: 1px solid #ddd;">Its original position</td>
-                            <td style="padding: 12px; border: 1px solid #ddd;">Parent for absolute children</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 12px; border: 1px solid #ddd;"><strong>absolute</strong></td>
-                            <td style="padding: 12px; border: 1px solid #ddd;">❌ No (removed from flow)</td>
-                            <td style="padding: 12px; border: 1px solid #ddd;">Nearest positioned ancestor</td>
-                            <td style="padding: 12px; border: 1px solid #ddd;">Tooltips, dropdowns, modals</td>
-                        </tr>
-                        <tr style="background: #f9f9f9;">
-                            <td style="padding: 12px; border: 1px solid #ddd;"><strong>fixed</strong></td>
-                            <td style="padding: 12px; border: 1px solid #ddd;">❌ No (removed from flow)</td>
-                            <td style="padding: 12px; border: 1px solid #ddd;">Viewport (browser window)</td>
-                            <td style="padding: 12px; border: 1px solid #ddd;">Nav bars, chat widgets</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 12px; border: 1px solid #ddd;"><strong>sticky</strong></td>
-                            <td style="padding: 12px; border: 1px solid #ddd;">✅ Yes (until threshold)</td>
-                            <td style="padding: 12px; border: 1px solid #ddd;">Scrolling container</td>
-                            <td style="padding: 12px; border: 1px solid #ddd;">Table headers, section titles</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+        <div
+          style="
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 8px;
+          "
+        >
+          <h3 style="color: white">Position Property:</h3>
+          <ul style="line-height: 2">
+            <li>
+              <strong>Static:</strong> Default flow → 95% of your elements
+            </li>
+            <li>
+              <strong>Relative:</strong> Shifts from original + reserves space →
+              Parent for absolute children
+            </li>
+            <li>
+              <strong>Absolute:</strong> Removed from flow + positioned to
+              ancestor → Tooltips, dropdowns
+            </li>
+            <li>
+              <strong>Fixed:</strong> Stuck to viewport → Navigation bars, chat
+              widgets
+            </li>
+            <li>
+              <strong>Sticky:</strong> Relative then fixed within container →
+              Table headers, section titles
+            </li>
+          </ul>
         </div>
 
-        <!-- Practical Exercise -->
-        <div class="section">
-            <h2>🎮 Interactive Playground</h2>
-            <p style="margin-bottom: 15px;">Experiment with different combinations of display and position properties:</p>
-            
-            <div class="demo-box">
-                <div class="interactive-controls">
-                    <div style="margin-bottom: 10px;">
-                        <strong>Display:</strong>
-                        <button onclick="setPlaygroundProperty('display', 'block')">Block</button>
-                        <button onclick="setPlaygroundProperty('display', 'inline')">Inline</button>
-                        <button onclick="setPlaygroundProperty('display', 'inline-block')">Inline-Block</button>
-                    </div>
-                    <div style="margin-bottom: 10px;">
-                        <strong>Position:</strong>
-                        <button onclick="setPlaygroundProperty('position', 'static')">Static</button>
-                        <button onclick="setPlaygroundProperty('position', 'relative')">Relative</button>
-                        <button onclick="setPlaygroundProperty('position', 'absolute')">Absolute</button>
-                    </div>
-                    <div>
-                        <strong>Offset:</strong>
-                        <button onclick="setPlaygroundOffset(20, 20)">top:20px, left:20px</button>
-                        <button onclick="setPlaygroundOffset(0, 0, 0, 0)">top:0, right:0, bottom:0, left:0</button>
-                        <button onclick="resetPlayground()">Reset</button>
-                    </div>
-                </div>
-                <div style="position: relative; border: 2px dashed #999; padding: 40px; min-height: 250px; background: #f9f9f9;">
-                    <div class="demo-element" style="background: #9C27B0;">Element Before</div>
-                    <div id="playgroundElement" class="demo-element" style="background: #FF5722;">
-                        Playground Element
-                    </div>
-                    <div class="demo-element" style="background: #9C27B0;">Element After</div>
-                </div>
-                <div style="margin-top: 15px; padding: 15px; background: #2d2d2d; color: #4CAF50; border-radius: 5px; font-family: monospace;">
-                    <div id="playgroundCode">display: block; position: static;</div>
-                </div>
-            </div>
+        <div
+          style="
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+          "
+        >
+          <strong>💡 Pro Tip:</strong> 90% of layout issues come from
+          misunderstanding whether an element is IN or OUT of the document flow.
+          Remember: absolute and fixed are OUT, everything else is IN!
         </div>
+      </div>
 
-        <!-- Key Takeaways -->
-        <div class="section" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
-            <h2 style="color: white;">🎯 Key Takeaways</h2>
-            
-            <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 8px; margin-bottom: 15px;">
-                <h3 style="color: white;">Display Property:</h3>
-                <ul style="line-height: 2;">
-                    <li><strong>Block:</strong> Full width, new line, respects all dimensions → Use for containers, sections</li>
-                    <li><strong>Inline:</strong> Flows with text, ignores width/height → Use for text styling</li>
-                    <li><strong>Inline-Block:</strong> Flows inline, respects dimensions → Use for buttons, cards, galleries</li>
-                </ul>
-            </div>
-
-            <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 8px;">
-                <h3 style="color: white;">Position Property:</h3>
-                <ul style="line-height: 2;">
-                    <li><strong>Static:</strong> Default flow → 95% of your elements</li>
-                    <li><strong>Relative:</strong> Shifts from original + reserves space → Parent for absolute children</li>
-                    <li><strong>Absolute:</strong> Removed from flow + positioned to ancestor → Tooltips, dropdowns</li>
-                    <li><strong>Fixed:</strong> Stuck to viewport → Navigation bars, chat widgets</li>
-                    <li><strong>Sticky:</strong> Relative then fixed within container → Table headers, section titles</li>
-                </ul>
-            </div>
-
-            <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 8px; margin-top: 15px;">
-                <strong>💡 Pro Tip:</strong> 90% of layout issues come from misunderstanding whether an element is IN or OUT of the document flow. Remember: absolute and fixed are OUT, everything else is IN!
-            </div>
-        </div>
-
-        <!-- Footer -->
-        <div style="text-align: center; margin-top: 40px; padding: 20px; background: #f8f9fa; border-radius: 10px;">
-            <p style="font-size: 1.2em; color: #667eea; font-weight: bold;">🚀 Practice Makes Perfect!</p>
-            <p style="color: #666; margin-top: 10px;">Open your browser's Developer Tools (F12) and experiment with these properties on real websites. Try changing the position of elements and observe the behavior!</p>
-        </div>
+      <!-- Footer -->
+      <div
+        style="
+          text-align: center;
+          margin-top: 40px;
+          padding: 20px;
+          background: #f8f9fa;
+          border-radius: 10px;
+        "
+      >
+        <p style="font-size: 1.2em; color: #667eea; font-weight: bold">
+          🚀 Practice Makes Perfect!
+        </p>
+        <p style="color: #666; margin-top: 10px">
+          Open your browser's Developer Tools (F12) and experiment with these
+          properties on real websites. Try changing the position of elements and
+          observe the behavior!
+        </p>
+      </div>
     </div>
 
     <script>
-        // Display Toggle Function
-        function toggleDisplay(displayType) {
-            const elements = document.querySelectorAll('#inlineBlockDemo .demo-element');
-            elements.forEach(el => {
-                el.style.display = displayType;
-            });
+      // Display Toggle Function
+      function toggleDisplay(displayType) {
+        const elements = document.querySelectorAll(
+          "#inlineBlockDemo .demo-element",
+        );
+        elements.forEach((el) => {
+          el.style.display = displayType;
+        });
 
-            // Visual feedback on button
-            const buttons = document.querySelectorAll('.interactive-controls button');
-            buttons.forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
+        // Visual feedback on button
+        const buttons = document.querySelectorAll(
+          ".interactive-controls button",
+        );
+        buttons.forEach((btn) => btn.classList.remove("active"));
+        event.target.classList.add("active");
+      }
+
+      // Relative Position Movement
+      function moveRelative(left, top) {
+        const element = document.getElementById("relativeElement");
+        element.style.left = left + "px";
+        element.style.top = top + "px";
+        element.style.transition = "all 0.3s";
+      }
+
+      // Absolute Position Movement
+      function moveAbsolute(top, right, bottom, left, leftAlt) {
+        const element = document.getElementById("absoluteElement");
+        element.style.top = top !== null ? top + "px" : "auto";
+        element.style.right = right !== null ? right + "px" : "auto";
+        element.style.bottom = bottom !== null ? bottom + "px" : "auto";
+        element.style.left =
+          left !== null ? left : leftAlt !== null ? leftAlt : "auto";
+        if (typeof element.style.left === "number" || leftAlt !== null) {
+          element.style.left = (left !== null ? left : leftAlt) + "px";
         }
+        element.style.transform = "none";
+        element.style.transition = "all 0.5s";
+      }
 
-        // Relative Position Movement
-        function moveRelative(left, top) {
-            const element = document.getElementById('relativeElement');
-            element.style.left = left + 'px';
-            element.style.top = top + 'px';
-            element.style.transition = 'all 0.3s';
+      // Fixed Position Toggle
+      let fixedActive = false;
+      function toggleFixed() {
+        const demo = document.getElementById("fixedDemo");
+        const header = document.getElementById("fixedHeader");
+        const btn = document.getElementById("fixedToggleBtn");
+
+        if (!fixedActive) {
+          demo.style.display = "block";
+          header.style.position = "fixed";
+          header.style.width = "calc(100% - 6px)";
+          header.style.top = "0";
+          header.style.zIndex = "100";
+          btn.textContent = "Remove Fixed Header";
+          btn.classList.add("active");
+          fixedActive = true;
+        } else {
+          demo.style.display = "none";
+          btn.textContent = "Create Fixed Header";
+          btn.classList.remove("active");
+          fixedActive = false;
         }
+      }
 
-        // Absolute Position Movement
-        function moveAbsolute(top, right, bottom, left, leftAlt) {
-            const element = document.getElementById('absoluteElement');
-            element.style.top = top !== null ? top + 'px' : 'auto';
-            element.style.right = right !== null ? right + 'px' : 'auto';
-            element.style.bottom = bottom !== null ? bottom + 'px' : 'auto';
-            element.style.left = (left !== null ? left : leftAlt !== null ? leftAlt : 'auto');
-            if (typeof element.style.left === 'number' || leftAlt !== null) {
-                element.style.left = (left !== null ? left : leftAlt) + 'px';
-            }
-            element.style.transform = 'none';
-            element.style.transition = 'all 0.5s';
-        }
+      // Playground Functions
+      let playgroundStyles = {
+        display: "block",
+        position: "static",
+        top: "auto",
+        right: "auto",
+        bottom: "auto",
+        left: "auto",
+      };
 
-        // Fixed Position Toggle
-        let fixedActive = false;
-        function toggleFixed() {
-            const demo = document.getElementById('fixedDemo');
-            const header = document.getElementById('fixedHeader');
-            const btn = document.getElementById('fixedToggleBtn');
-            
-            if (!fixedActive) {
-                demo.style.display = 'block';
-                header.style.position = 'fixed';
-                header.style.width = 'calc(100% - 6px)';
-                header.style.top = '0';
-                header.style.zIndex = '100';
-                btn.textContent = 'Remove Fixed Header';
-                btn.classList.add('active');
-                fixedActive = true;
-            } else {
-                demo.style.display = 'none';
-                btn.textContent = 'Create Fixed Header';
-                btn.classList.remove('active');
-                fixedActive = false;
-            }
-        }
-
-        // Playground Functions
-        let playgroundStyles = {
-            display: 'block',
-            position: 'static',
-            top: 'auto',
-            right: 'auto',
-            bottom: 'auto',
-            left: 'auto'
-        };
-
-        function setPlaygroundProperty(property, value) {
-            playgroundStyles[property] = value;
-            updatePlayground();
-        }
-
-        function setPlaygroundOffset(top, left, bottom, right) {
-            playgroundStyles.top = top !== undefined ? top + 'px' : 'auto';
-            playgroundStyles.left = left !== undefined ? left + 'px' : 'auto';
-            playgroundStyles.bottom = bottom !== undefined ? bottom + 'px' : 'auto';
-            playgroundStyles.right = right !== undefined ? right + 'px' : 'auto';
-            updatePlayground();
-        }
-
-        function resetPlayground() {
-            playgroundStyles = {
-                display: 'block',
-                position: 'static',
-                top: 'auto',
-                right: 'auto',
-                bottom: 'auto',
-                left: 'auto'
-            };
-            updatePlayground();
-        }
-
-        function updatePlayground() {
-            const element = document.getElementById('playgroundElement');
-            const codeDisplay = document.getElementById('playgroundCode');
-            
-            // Apply styles
-            element.style.display = playgroundStyles.display;
-            element.style.position = playgroundStyles.position;
-            element.style.top = playgroundStyles.top;
-            element.style.right = playgroundStyles.right;
-            element.style.bottom = playgroundStyles.bottom;
-            element.style.left = playgroundStyles.left;
-            
-            // Update code display
-            let codeText = `display: ${playgroundStyles.display}; position: ${playgroundStyles.position};`;
-            
-            if (playgroundStyles.position !== 'static') {
-                const offsets = [];
-                if (playgroundStyles.top !== 'auto') offsets.push(`top: ${playgroundStyles.top}`);
-                if (playgroundStyles.right !== 'auto') offsets.push(`right: ${playgroundStyles.right}`);
-                if (playgroundStyles.bottom !== 'auto') offsets.push(`bottom: ${playgroundStyles.bottom}`);
-                if (playgroundStyles.left !== 'auto') offsets.push(`left: ${playgroundStyles.left}`);
-                
-                if (offsets.length > 0) {
-                    codeText += ' ' + offsets.join('; ') + ';';
-                }
-            }
-            
-            codeDisplay.textContent = codeText;
-        }
-
-        // Make absolute element draggable
-        const absoluteEl = document.getElementById('absoluteElement');
-        let isDragging = false;
-        let currentX, currentY, initialX, initialY;
-
-        absoluteEl.addEventListener('mousedown', dragStart);
-        document.addEventListener('mousemove', drag);
-        document.addEventListener('mouseup', dragEnd);
-
-        function dragStart(e) {
-            if (absoluteEl.style.position === 'absolute') {
-                initialX = e.clientX - absoluteEl.offsetLeft;
-                initialY = e.clientY - absoluteEl.offsetTop;
-                isDragging = true;
-                absoluteEl.style.transform = 'none';
-            }
-        }
-
-        function drag(e) {
-            if (isDragging) {
-                e.preventDefault();
-                currentX = e.clientX - initialX;
-                currentY = e.clientY - initialY;
-                absoluteEl.style.left = currentX + 'px';
-                absoluteEl.style.top = currentY + 'px';
-            }
-        }
-
-        function dragEnd() {
-            isDragging = false;
-        }
-
-        // Initialize playground
+      function setPlaygroundProperty(property, value) {
+        playgroundStyles[property] = value;
         updatePlayground();
+      }
+
+      function setPlaygroundOffset(top, left, bottom, right) {
+        playgroundStyles.top = top !== undefined ? top + "px" : "auto";
+        playgroundStyles.left = left !== undefined ? left + "px" : "auto";
+        playgroundStyles.bottom = bottom !== undefined ? bottom + "px" : "auto";
+        playgroundStyles.right = right !== undefined ? right + "px" : "auto";
+        updatePlayground();
+      }
+
+      function resetPlayground() {
+        playgroundStyles = {
+          display: "block",
+          position: "static",
+          top: "auto",
+          right: "auto",
+          bottom: "auto",
+          left: "auto",
+        };
+        updatePlayground();
+      }
+
+      function updatePlayground() {
+        const element = document.getElementById("playgroundElement");
+        const codeDisplay = document.getElementById("playgroundCode");
+
+        // Apply styles
+        element.style.display = playgroundStyles.display;
+        element.style.position = playgroundStyles.position;
+        element.style.top = playgroundStyles.top;
+        element.style.right = playgroundStyles.right;
+        element.style.bottom = playgroundStyles.bottom;
+        element.style.left = playgroundStyles.left;
+
+        // Update code display
+        let codeText = `display: ${playgroundStyles.display}; position: ${playgroundStyles.position};`;
+
+        if (playgroundStyles.position !== "static") {
+          const offsets = [];
+          if (playgroundStyles.top !== "auto")
+            offsets.push(`top: ${playgroundStyles.top}`);
+          if (playgroundStyles.right !== "auto")
+            offsets.push(`right: ${playgroundStyles.right}`);
+          if (playgroundStyles.bottom !== "auto")
+            offsets.push(`bottom: ${playgroundStyles.bottom}`);
+          if (playgroundStyles.left !== "auto")
+            offsets.push(`left: ${playgroundStyles.left}`);
+
+          if (offsets.length > 0) {
+            codeText += " " + offsets.join("; ") + ";";
+          }
+        }
+
+        codeDisplay.textContent = codeText;
+      }
+
+      // Make absolute element draggable
+      const absoluteEl = document.getElementById("absoluteElement");
+      let isDragging = false;
+      let currentX, currentY, initialX, initialY;
+
+      absoluteEl.addEventListener("mousedown", dragStart);
+      document.addEventListener("mousemove", drag);
+      document.addEventListener("mouseup", dragEnd);
+
+      function dragStart(e) {
+        if (absoluteEl.style.position === "absolute") {
+          initialX = e.clientX - absoluteEl.offsetLeft;
+          initialY = e.clientY - absoluteEl.offsetTop;
+          isDragging = true;
+          absoluteEl.style.transform = "none";
+        }
+      }
+
+      function drag(e) {
+        if (isDragging) {
+          e.preventDefault();
+          currentX = e.clientX - initialX;
+          currentY = e.clientY - initialY;
+          absoluteEl.style.left = currentX + "px";
+          absoluteEl.style.top = currentY + "px";
+        }
+      }
+
+      function dragEnd() {
+        isDragging = false;
+      }
+
+      // Initialize playground
+      updatePlayground();
     </script>
-</body>
+  </body>
 </html>
