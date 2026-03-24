@@ -1,0 +1,1864 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RegEx Learn — Indian Context</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;800&family=JetBrains+Mono:wght@400;700&family=Hind:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --saffron: #ff6700;
+        --saffron-light: #ff8c42;
+        --green: #138808;
+        --green-light: #1aab09;
+        --navy: #000080;
+        --cream: #fff8ec;
+        --card-bg: #ffffff;
+        --text: #1a1a2e;
+        --text-muted: #5a5a7a;
+        --border: #e8e0d0;
+        --match-bg: #ffe082;
+        --match-border: #ff6700;
+        --success: #138808;
+        --fail: #c0392b;
+        --code-bg: #1a1a2e;
+        --tag-bg: #fff3e0;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Hind", sans-serif;
+        background: var(--cream);
+        color: var(--text);
+        min-height: 100vh;
+      }
+
+      .tricolor-bar {
+        height: 6px;
+        background: linear-gradient(
+          to right,
+          var(--saffron) 33.3%,
+          #ffffff 33.3% 66.6%,
+          var(--green) 66.6%
+        );
+      }
+
+      header {
+        background: var(--navy);
+        color: white;
+        padding: 28px 40px 24px;
+        position: relative;
+        overflow: hidden;
+      }
+      header::after {
+        content: "RegEx";
+        position: absolute;
+        right: -10px;
+        top: -20px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 120px;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.05);
+        pointer-events: none;
+        user-select: none;
+      }
+      .header-inner {
+        max-width: 1100px;
+        margin: 0 auto;
+      }
+      .header-tag {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        background: var(--saffron);
+        color: white;
+        padding: 3px 10px;
+        border-radius: 20px;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        display: inline-block;
+        margin-bottom: 10px;
+      }
+      header h1 {
+        font-family: "Baloo 2", cursive;
+        font-size: 2.8rem;
+        font-weight: 800;
+        line-height: 1;
+        margin-bottom: 6px;
+      }
+      header h1 span {
+        color: var(--saffron);
+      }
+      header p {
+        font-size: 1rem;
+        color: rgba(255, 255, 255, 0.65);
+        max-width: 560px;
+      }
+
+      nav {
+        background: white;
+        border-bottom: 2px solid var(--border);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+      }
+      .nav-inner {
+        max-width: 1100px;
+        margin: 0 auto;
+        display: flex;
+        overflow-x: auto;
+      }
+      .nav-btn {
+        padding: 14px 22px;
+        border: none;
+        background: none;
+        font-family: "Hind", sans-serif;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        cursor: pointer;
+        border-bottom: 3px solid transparent;
+        transition: all 0.2s;
+        white-space: nowrap;
+      }
+      .nav-btn:hover {
+        color: var(--saffron);
+      }
+      .nav-btn.active {
+        color: var(--saffron);
+        border-bottom-color: var(--saffron);
+      }
+
+      main {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 36px 24px 60px;
+      }
+
+      .section {
+        display: none;
+        animation: fadeIn 0.3s ease;
+      }
+      .section.active {
+        display: block;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .section-title {
+        font-family: "Baloo 2", cursive;
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: var(--navy);
+        margin-bottom: 6px;
+      }
+      .section-subtitle {
+        color: var(--text-muted);
+        margin-bottom: 28px;
+        font-size: 0.95rem;
+      }
+
+      .card {
+        background: var(--card-bg);
+        border: 1.5px solid var(--border);
+        border-radius: 14px;
+        padding: 24px 28px;
+        margin-bottom: 20px;
+      }
+      .card-title {
+        font-family: "Baloo 2", cursive;
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--navy);
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .card-title .icon {
+        width: 32px;
+        height: 32px;
+        background: var(--saffron);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 16px;
+        flex-shrink: 0;
+      }
+
+      .anatomy {
+        display: flex;
+        align-items: stretch;
+        border: 2px solid var(--navy);
+        border-radius: 10px;
+        overflow: hidden;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 1.05rem;
+        margin: 18px 0;
+      }
+      .anatomy-part {
+        flex: 1;
+        padding: 14px 10px;
+        text-align: center;
+      }
+      .anatomy-part:not(:last-child) {
+        border-right: 2px solid var(--navy);
+      }
+      .anatomy-part.slash {
+        background: #f5f5ff;
+        font-weight: 700;
+        color: var(--navy);
+        max-width: 44px;
+        flex: none;
+      }
+      .anatomy-part.pattern {
+        background: #fff3e0;
+        color: #b34700;
+        font-weight: 700;
+      }
+      .anatomy-part.flags {
+        background: #e8f5e9;
+        color: var(--green);
+        max-width: 80px;
+        flex: none;
+      }
+      .anatomy-label {
+        display: block;
+        font-family: "Hind", sans-serif;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--text-muted);
+        margin-top: 4px;
+      }
+
+      .cheat-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+      }
+      .cheat-table th {
+        background: var(--navy);
+        color: white;
+        padding: 10px 14px;
+        text-align: left;
+        font-family: "Baloo 2", cursive;
+        font-size: 0.85rem;
+      }
+      .cheat-table th:first-child {
+        border-radius: 8px 0 0 0;
+      }
+      .cheat-table th:last-child {
+        border-radius: 0 8px 0 0;
+      }
+      .cheat-table td {
+        padding: 9px 14px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+      .cheat-table tr:hover td {
+        background: #f9f5ff;
+      }
+      .cheat-table tr:last-child td {
+        border-bottom: none;
+      }
+      .mono {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.88rem;
+        color: #b34700;
+        background: #fff3e0;
+        padding: 2px 6px;
+        border-radius: 4px;
+      }
+
+      .patterns-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 18px;
+      }
+      .pattern-card {
+        background: var(--card-bg);
+        border: 1.5px solid var(--border);
+        border-radius: 14px;
+        padding: 20px 22px;
+        transition:
+          box-shadow 0.2s,
+          border-color 0.2s;
+      }
+      .pattern-card:hover {
+        border-color: var(--saffron);
+        box-shadow: 0 4px 20px rgba(255, 103, 0, 0.1);
+      }
+      .pattern-name {
+        font-family: "Baloo 2", cursive;
+        font-weight: 700;
+        font-size: 1rem;
+        color: var(--navy);
+        margin-bottom: 4px;
+      }
+      .pattern-desc {
+        font-size: 0.83rem;
+        color: var(--text-muted);
+        margin-bottom: 12px;
+      }
+      .pattern-regex {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.88rem;
+        background: var(--code-bg);
+        color: #ffd54f;
+        padding: 8px 14px;
+        border-radius: 7px;
+        margin-bottom: 10px;
+        word-break: break-all;
+      }
+      .pattern-example {
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        margin-bottom: 10px;
+      }
+      .pattern-example span.valid {
+        color: var(--success);
+        font-weight: 600;
+      }
+      .pattern-example span.invalid {
+        color: var(--fail);
+        font-weight: 600;
+      }
+      .try-btn {
+        background: var(--saffron);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        padding: 6px 14px;
+        font-family: "Hind", sans-serif;
+        font-size: 0.82rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .try-btn:hover {
+        background: var(--saffron-light);
+      }
+
+      .tester-layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+      @media (max-width: 700px) {
+        .tester-layout {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .input-group {
+        margin-bottom: 16px;
+      }
+      .input-label {
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        margin-bottom: 6px;
+        display: block;
+      }
+      .regex-input-wrapper {
+        display: flex;
+        align-items: center;
+        background: var(--code-bg);
+        border-radius: 9px;
+        border: 2px solid transparent;
+        overflow: hidden;
+        transition: border-color 0.2s;
+      }
+      .regex-input-wrapper:focus-within {
+        border-color: var(--saffron);
+      }
+      .regex-slash {
+        color: #888;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 1.2rem;
+        padding: 0 10px;
+        user-select: none;
+      }
+      .regex-input-field {
+        flex: 1;
+        background: none;
+        border: none;
+        outline: none;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 1rem;
+        color: #ffd54f;
+        padding: 11px 0;
+      }
+      .flags-input {
+        background: none;
+        border: none;
+        border-left: 1px solid #333;
+        outline: none;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 1rem;
+        color: #a5d6a7;
+        padding: 11px 12px;
+        width: 54px;
+      }
+      .test-textarea {
+        width: 100%;
+        min-height: 140px;
+        border: 2px solid var(--border);
+        border-radius: 9px;
+        padding: 12px 14px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.9rem;
+        resize: vertical;
+        outline: none;
+        transition: border-color 0.2s;
+        background: white;
+        line-height: 1.6;
+      }
+      .test-textarea:focus {
+        border-color: var(--saffron);
+      }
+      .test-btn {
+        background: var(--navy);
+        color: white;
+        border: none;
+        border-radius: 9px;
+        padding: 12px 28px;
+        font-family: "Baloo 2", cursive;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background 0.2s;
+        width: 100%;
+        margin-bottom: 16px;
+      }
+      .test-btn:hover {
+        background: var(--saffron);
+      }
+
+      .result-box {
+        background: white;
+        border: 1.5px solid var(--border);
+        border-radius: 9px;
+        padding: 16px;
+        min-height: 140px;
+      }
+      .result-header {
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--text-muted);
+        margin-bottom: 10px;
+      }
+      .highlighted-text {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.9rem;
+        line-height: 1.8;
+        word-break: break-all;
+      }
+      .highlight {
+        background: var(--match-bg);
+        border-bottom: 2px solid var(--match-border);
+        border-radius: 3px;
+        padding: 0 2px;
+      }
+      .match-count {
+        display: inline-block;
+        background: var(--green);
+        color: white;
+        border-radius: 20px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        padding: 2px 10px;
+        margin-bottom: 10px;
+      }
+      .no-match {
+        color: var(--fail);
+        font-size: 0.88rem;
+      }
+      .error-msg {
+        color: var(--fail);
+        font-size: 0.85rem;
+        font-family: "JetBrains Mono", monospace;
+      }
+
+      .flags-row {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+      }
+      .flag-chip {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.82rem;
+        background: var(--tag-bg);
+        border: 1px solid #ffd0a0;
+        border-radius: 20px;
+        padding: 3px 12px;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .flag-chip:hover {
+        background: #ffd0a0;
+      }
+      .flag-chip.active {
+        background: var(--saffron);
+        color: white;
+        border-color: var(--saffron);
+      }
+
+      .quiz-card {
+        background: white;
+        border: 1.5px solid var(--border);
+        border-radius: 14px;
+        padding: 28px;
+        margin-bottom: 20px;
+      }
+      .quiz-q {
+        font-family: "Baloo 2", cursive;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--navy);
+        margin-bottom: 16px;
+      }
+      .quiz-input {
+        width: 100%;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 1rem;
+        padding: 10px 14px;
+        border: 2px solid var(--border);
+        border-radius: 8px;
+        outline: none;
+        margin-bottom: 10px;
+        transition: border-color 0.2s;
+      }
+      .quiz-input:focus {
+        border-color: var(--saffron);
+      }
+      .quiz-check-btn {
+        background: var(--green);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 9px 22px;
+        font-family: "Hind", sans-serif;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .quiz-check-btn:hover {
+        background: var(--green-light);
+      }
+      .quiz-result {
+        margin-top: 10px;
+        font-size: 0.9rem;
+        padding: 8px 14px;
+        border-radius: 7px;
+        display: none;
+      }
+      .quiz-result.pass {
+        background: #e8f5e9;
+        color: var(--success);
+        border: 1px solid #a5d6a7;
+        display: block;
+      }
+      .quiz-result.fail {
+        background: #ffebee;
+        color: var(--fail);
+        border: 1px solid #ffcdd2;
+        display: block;
+      }
+
+      .callout {
+        background: #fff3e0;
+        border-left: 4px solid var(--saffron);
+        border-radius: 0 8px 8px 0;
+        padding: 14px 18px;
+        margin-bottom: 20px;
+        font-size: 0.9rem;
+      }
+      .callout strong {
+        color: var(--saffron);
+      }
+
+      .step-list {
+        list-style: none;
+      }
+      .step-list li {
+        display: flex;
+        gap: 14px;
+        margin-bottom: 14px;
+        align-items: flex-start;
+      }
+      .step-num {
+        flex-shrink: 0;
+        width: 28px;
+        height: 28px;
+        background: var(--navy);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "Baloo 2", cursive;
+        font-weight: 700;
+        font-size: 0.9rem;
+      }
+      .step-text {
+        font-size: 0.92rem;
+        line-height: 1.6;
+        padding-top: 3px;
+      }
+
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: var(--cream);
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #c0b8a8;
+        border-radius: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="tricolor-bar"></div>
+
+    <header>
+      <div class="header-inner">
+        <div class="header-tag">🇮🇳 India Edition</div>
+        <h1>Learn <span>RegEx</span></h1>
+        <p>
+          Master Regular Expressions using everyday Indian examples — Aadhaar,
+          PAN, mobile numbers, PIN codes and more.
+        </p>
+      </div>
+    </header>
+
+    <nav>
+      <div class="nav-inner">
+        <button class="nav-btn active" onclick="showSection('basics', this)">
+          📖 What is RegEx?
+        </button>
+        <button class="nav-btn" onclick="showSection('syntax', this)">
+          ✏️ Syntax Guide
+        </button>
+        <button class="nav-btn" onclick="showSection('patterns', this)">
+          🇮🇳 India Patterns
+        </button>
+        <button class="nav-btn" onclick="showSection('tester', this)">
+          🧪 Live Tester
+        </button>
+        <button class="nav-btn" onclick="showSection('quiz', this)">
+          🎯 Practice Quiz
+        </button>
+      </div>
+    </nav>
+
+    <main>
+      <!-- ===== BASICS ===== -->
+      <section id="basics" class="section active">
+        <div class="section-title">What is a Regular Expression?</div>
+        <div class="section-subtitle">
+          A special pattern that searches, matches, and validates text — one of
+          the most powerful tools in a developer's toolkit.
+        </div>
+
+        <div class="callout">
+          <strong>Simple Analogy:</strong> Think of a regex like a
+          <em>stencil</em>. Just as a stencil lets you draw a specific shape
+          repeatedly, a regex lets you find and match specific text patterns —
+          as many times as they appear in a document.
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span class="icon">🔍</span>Anatomy of a RegEx
+          </div>
+          <p
+            style="
+              font-size: 0.9rem;
+              color: var(--text-muted);
+              margin-bottom: 14px;
+            "
+          >
+            Every regex expression has three parts — here is a real example for
+            an Indian mobile number:
+          </p>
+          <div class="anatomy">
+            <div class="anatomy-part slash">
+              /<span class="anatomy-label">Start</span>
+            </div>
+            <div class="anatomy-part pattern">
+              [6-9]\d{9}<span class="anatomy-label">Pattern</span>
+            </div>
+            <div class="anatomy-part slash">
+              /<span class="anatomy-label">End</span>
+            </div>
+            <div class="anatomy-part flags">
+              gi<span class="anatomy-label">Flags</span>
+            </div>
+          </div>
+          <ul class="step-list" style="margin-top: 16px">
+            <li>
+              <div class="step-num">1</div>
+              <div class="step-text">
+                <strong>Forward Slashes ( / / )</strong> — The boundary of a
+                regex. In JavaScript, the pattern is written between these two
+                slashes.
+              </div>
+            </li>
+            <li>
+              <div class="step-num">2</div>
+              <div class="step-text">
+                <strong>Pattern</strong> — The actual matching rules are written
+                here. This is the core of what we will learn.
+              </div>
+            </li>
+            <li>
+              <div class="step-num">3</div>
+              <div class="step-text">
+                <strong>Flags</strong> — Optional modifiers. <code>g</code> =
+                find all matches (global), <code>i</code> = ignore
+                uppercase/lowercase, <code>m</code> = multiline mode.
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span class="icon">💡</span>Real-Life Use Cases
+          </div>
+          <table class="cheat-table">
+            <thead>
+              <tr>
+                <th>Use Case</th>
+                <th>Indian Example</th>
+                <th>Why Regex?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Form Validation</td>
+                <td>Aadhaar number on a registration form</td>
+                <td>Ensure exactly 12 digits are entered</td>
+              </tr>
+              <tr>
+                <td>Search &amp; Extract</td>
+                <td>Find all phone numbers in a document</td>
+                <td>Pull numbers from a large block of text</td>
+              </tr>
+              <tr>
+                <td>Data Cleaning</td>
+                <td>Remove extra spaces from addresses</td>
+                <td>Standardize messy data files</td>
+              </tr>
+              <tr>
+                <td>Password Rules</td>
+                <td>Strong password for banking apps</td>
+                <td>Verify uppercase, digits, special characters</td>
+              </tr>
+              <tr>
+                <td>URL Parsing</td>
+                <td>Extract .in domains from web logs</td>
+                <td>Filter and analyze Indian website traffic</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span class="icon">🚦</span>How Does RegEx Work? — Step by Step
+          </div>
+          <ul class="step-list">
+            <li>
+              <div class="step-num">1</div>
+              <div class="step-text">
+                You write a <strong>pattern</strong> that describes the text
+                structure you are looking for (for example, the format of a
+                10-digit mobile number).
+              </div>
+            </li>
+            <li>
+              <div class="step-num">2</div>
+              <div class="step-text">
+                The regex engine scans the input text from
+                <strong>left to right</strong>, testing your pattern at every
+                position.
+              </div>
+            </li>
+            <li>
+              <div class="step-num">3</div>
+              <div class="step-text">
+                Whenever the pattern <strong>matches</strong> a portion of the
+                text, the engine records that position and the matched value.
+              </div>
+            </li>
+            <li>
+              <div class="step-num">4</div>
+              <div class="step-text">
+                You can then use the result to
+                <strong>validate, extract, or replace</strong> text inside your
+                program.
+              </div>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ===== SYNTAX ===== -->
+      <section id="syntax" class="section">
+        <div class="section-title">Regex Syntax Guide</div>
+        <div class="section-subtitle">
+          Learn these building blocks and everything else will fall into place.
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span class="icon">🔤</span>Character Classes — "What Characters to
+            Match?"
+          </div>
+          <table class="cheat-table">
+            <thead>
+              <tr>
+                <th>Symbol</th>
+                <th>Meaning</th>
+                <th>Example</th>
+                <th>Matches</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="mono">.</span></td>
+                <td>Any single character (except newline)</td>
+                <td><span class="mono">a.c</span></td>
+                <td>abc, a1c, a@c</td>
+              </tr>
+              <tr>
+                <td><span class="mono">\d</span></td>
+                <td>Any digit — same as [0-9]</td>
+                <td><span class="mono">\d\d</span></td>
+                <td>12, 45, 99</td>
+              </tr>
+              <tr>
+                <td><span class="mono">\D</span></td>
+                <td>Any NON-digit character</td>
+                <td><span class="mono">\D+</span></td>
+                <td>abc, @#$, hello</td>
+              </tr>
+              <tr>
+                <td><span class="mono">\w</span></td>
+                <td>Word character (a-z, A-Z, 0-9, _)</td>
+                <td><span class="mono">\w+</span></td>
+                <td>hello, user_1, Ram</td>
+              </tr>
+              <tr>
+                <td><span class="mono">\W</span></td>
+                <td>Non-word character (spaces, symbols)</td>
+                <td><span class="mono">\W</span></td>
+                <td>space, @, !</td>
+              </tr>
+              <tr>
+                <td><span class="mono">\s</span></td>
+                <td>Whitespace (space, tab, newline)</td>
+                <td><span class="mono">hello\sworld</span></td>
+                <td>"hello world"</td>
+              </tr>
+              <tr>
+                <td><span class="mono">[abc]</span></td>
+                <td>Either a, b, or c — a set of options</td>
+                <td><span class="mono">[aeiou]</span></td>
+                <td>a, e, i, o, u</td>
+              </tr>
+              <tr>
+                <td><span class="mono">[^abc]</span></td>
+                <td>Anything except a, b, or c</td>
+                <td><span class="mono">[^0-9]</span></td>
+                <td>letters, symbols</td>
+              </tr>
+              <tr>
+                <td><span class="mono">[a-z]</span></td>
+                <td>Any character in a range</td>
+                <td><span class="mono">[A-Z]</span></td>
+                <td>A, B, C … Z</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span class="icon">🔢</span>Quantifiers — "How Many Times?"
+          </div>
+          <table class="cheat-table">
+            <thead>
+              <tr>
+                <th>Symbol</th>
+                <th>Meaning</th>
+                <th>Example</th>
+                <th>Matches</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="mono">*</span></td>
+                <td>Zero or more times</td>
+                <td><span class="mono">go*d</span></td>
+                <td>gd, god, good, goood</td>
+              </tr>
+              <tr>
+                <td><span class="mono">+</span></td>
+                <td>One or more times</td>
+                <td><span class="mono">go+d</span></td>
+                <td>god, good — but NOT gd</td>
+              </tr>
+              <tr>
+                <td><span class="mono">?</span></td>
+                <td>Zero or one time (makes it optional)</td>
+                <td><span class="mono">colou?r</span></td>
+                <td>color, colour</td>
+              </tr>
+              <tr>
+                <td><span class="mono">{n}</span></td>
+                <td>Exactly n times</td>
+                <td><span class="mono">\d{4}</span></td>
+                <td>1234, 9876</td>
+              </tr>
+              <tr>
+                <td><span class="mono">{n,}</span></td>
+                <td>n or more times</td>
+                <td><span class="mono">\d{6,}</span></td>
+                <td>123456, 12345678</td>
+              </tr>
+              <tr>
+                <td><span class="mono">{n,m}</span></td>
+                <td>Between n and m times (inclusive)</td>
+                <td><span class="mono">\d{6,10}</span></td>
+                <td>Any 6 to 10 digit number</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span class="icon">⚓</span>Anchors &amp; Boundaries — "Where to
+            Match?"
+          </div>
+          <table class="cheat-table">
+            <thead>
+              <tr>
+                <th>Symbol</th>
+                <th>Meaning</th>
+                <th>Example</th>
+                <th>Effect</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="mono">^</span></td>
+                <td>Start of the string</td>
+                <td><span class="mono">^\d{10}</span></td>
+                <td>Must begin with 10 digits</td>
+              </tr>
+              <tr>
+                <td><span class="mono">$</span></td>
+                <td>End of the string</td>
+                <td><span class="mono">\d{10}$</span></td>
+                <td>Must end with 10 digits</td>
+              </tr>
+              <tr>
+                <td><span class="mono">^…$</span></td>
+                <td>Full string match (start to end)</td>
+                <td><span class="mono">^\d{10}$</span></td>
+                <td>Entire string must be 10 digits</td>
+              </tr>
+              <tr>
+                <td><span class="mono">\b</span></td>
+                <td>Word boundary</td>
+                <td><span class="mono">\bcat\b</span></td>
+                <td>Matches "cat" but not "catch"</td>
+              </tr>
+              <tr>
+                <td><span class="mono">|</span></td>
+                <td>OR — matches either side</td>
+                <td><span class="mono">cat|dog</span></td>
+                <td>cat or dog</td>
+              </tr>
+              <tr>
+                <td><span class="mono">()</span></td>
+                <td>Group — treat as a single unit</td>
+                <td><span class="mono">(ab)+</span></td>
+                <td>ab, abab, ababab</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ===== INDIA PATTERNS ===== -->
+      <section id="patterns" class="section">
+        <div class="section-title">🇮🇳 Indian Context Patterns</div>
+        <div class="section-subtitle">
+          Ready-made regex patterns for real Indian documents and data formats.
+        </div>
+
+        <div class="callout">
+          <strong>Tip:</strong> Click the "Try It →" button on any card to
+          automatically load that pattern and sample data into the Live Tester
+          tab!
+        </div>
+
+        <div class="patterns-grid">
+          <div class="pattern-card">
+            <div class="pattern-name">📱 Indian Mobile Number</div>
+            <div class="pattern-desc">
+              10-digit number starting with 6, 7, 8, or 9 — the only valid
+              Indian mobile prefixes.
+            </div>
+            <div class="pattern-regex">/^[6-9]\d{9}$/</div>
+            <div class="pattern-example">
+              ✅ Valid: <span class="valid">9876543210</span><br />
+              ❌ Invalid: <span class="invalid">1234567890</span> (starts with
+              1)
+            </div>
+            <button
+              class="try-btn"
+              onclick="
+                loadToTester(
+                  '^[6-9]\\d{9}$',
+                  '9876543210\n1234567890\n8123456789\n5555555555',
+                )
+              "
+            >
+              Try It →
+            </button>
+          </div>
+
+          <div class="pattern-card">
+            <div class="pattern-name">🪪 Aadhaar Number</div>
+            <div class="pattern-desc">
+              12-digit unique ID issued by UIDAI. Spaces between groups are
+              optional.
+            </div>
+            <div class="pattern-regex">/^\d{4}\s?\d{4}\s?\d{4}$/</div>
+            <div class="pattern-example">
+              ✅ Valid: <span class="valid">1234 5678 9012</span><br />
+              ❌ Invalid: <span class="invalid">12345678</span> (only 8 digits)
+            </div>
+            <button
+              class="try-btn"
+              onclick="
+                loadToTester(
+                  '^\\d{4}\\s?\\d{4}\\s?\\d{4}$',
+                  '1234 5678 9012\n123456789012\n1234-5678-9012\n12345678',
+                )
+              "
+            >
+              Try It →
+            </button>
+          </div>
+
+          <div class="pattern-card">
+            <div class="pattern-name">📋 PAN Card Number</div>
+            <div class="pattern-desc">
+              5 uppercase letters + 4 digits + 1 uppercase letter. Format:
+              AAAAA0000A
+            </div>
+            <div class="pattern-regex">/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/</div>
+            <div class="pattern-example">
+              ✅ Valid: <span class="valid">ABCDE1234F</span><br />
+              ❌ Invalid: <span class="invalid">ABC123456F</span> (only 3
+              letters at start)
+            </div>
+            <button
+              class="try-btn"
+              onclick="
+                loadToTester(
+                  '^[A-Z]{5}[0-9]{4}[A-Z]{1}$',
+                  'ABCDE1234F\nRAMES1234K\nABC123456F\nXYZPQ9876T',
+                  'i',
+                )
+              "
+            >
+              Try It →
+            </button>
+          </div>
+
+          <div class="pattern-card">
+            <div class="pattern-name">📮 Indian PIN Code</div>
+            <div class="pattern-desc">
+              6-digit postal code. First digit must be 1–9 (PIN codes never
+              start with 0).
+            </div>
+            <div class="pattern-regex">/^[1-9][0-9]{5}$/</div>
+            <div class="pattern-example">
+              ✅ Valid: <span class="valid">110001</span> (New Delhi)<br />
+              ❌ Invalid: <span class="invalid">012345</span> (starts with 0)
+            </div>
+            <button
+              class="try-btn"
+              onclick="
+                loadToTester(
+                  '^[1-9][0-9]{5}$',
+                  '110001\n400001\n012345\n560034\n700001',
+                )
+              "
+            >
+              Try It →
+            </button>
+          </div>
+
+          <div class="pattern-card">
+            <div class="pattern-name">📧 Email Address</div>
+            <div class="pattern-desc">
+              Standard email format. Works for Gmail, Yahoo, and Indian .co.in
+              domains.
+            </div>
+            <div class="pattern-regex">/^[\w.-]+@[\w.-]+\.\w{2,}$/</div>
+            <div class="pattern-example">
+              ✅ Valid: <span class="valid">ram.sharma@gmail.com</span><br />
+              ❌ Invalid: <span class="invalid">ram@.com</span> (dot right after
+              @)
+            </div>
+            <button
+              class="try-btn"
+              onclick="
+                loadToTester(
+                  '^[\\w.-]+@[\\w.-]+\\.\\w{2,}$',
+                  'ram.sharma@gmail.com\npriya@yahoo.co.in\ntest@.com\nno-at-sign.com',
+                )
+              "
+            >
+              Try It →
+            </button>
+          </div>
+
+          <div class="pattern-card">
+            <div class="pattern-name">🚗 Vehicle Registration Number</div>
+            <div class="pattern-desc">
+              2-letter state code + 2-digit RTO code + 1–2 letter series +
+              4-digit number.
+            </div>
+            <div class="pattern-regex">
+              /^[A-Z]{2}[0-9]{2}[A-Z]{1,2}[0-9]{4}$/
+            </div>
+            <div class="pattern-example">
+              ✅ Valid: <span class="valid">MH01AB1234</span><br />
+              ❌ Invalid: <span class="invalid">MHAB1234</span> (missing RTO
+              digits)
+            </div>
+            <button
+              class="try-btn"
+              onclick="
+                loadToTester(
+                  '^[A-Z]{2}[0-9]{2}[A-Z]{1,2}[0-9]{4}$',
+                  'MH01AB1234\nDL04CAF3456\nKA05MX7890\nMHAB1234',
+                  'i',
+                )
+              "
+            >
+              Try It →
+            </button>
+          </div>
+
+          <div class="pattern-card">
+            <div class="pattern-name">🏦 IFSC Code</div>
+            <div class="pattern-desc">
+              4-letter bank code + literal 0 + 6 alphanumeric branch characters.
+            </div>
+            <div class="pattern-regex">/^[A-Z]{4}0[A-Z0-9]{6}$/</div>
+            <div class="pattern-example">
+              ✅ Valid: <span class="valid">SBIN0001234</span> (SBI branch)<br />
+              ❌ Invalid: <span class="invalid">SBI001234</span> (too short)
+            </div>
+            <button
+              class="try-btn"
+              onclick="
+                loadToTester(
+                  '^[A-Z]{4}0[A-Z0-9]{6}$',
+                  'SBIN0001234\nHDFC0001234\nICIC0000123\nSBI001234',
+                  'i',
+                )
+              "
+            >
+              Try It →
+            </button>
+          </div>
+
+          <div class="pattern-card">
+            <div class="pattern-name">📅 Indian Date Format</div>
+            <div class="pattern-desc">
+              DD/MM/YYYY — the standard date format used across India.
+            </div>
+            <div class="pattern-regex">
+              /^(0[1-9]|[12]\d|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/
+            </div>
+            <div class="pattern-example">
+              ✅ Valid: <span class="valid">15/08/1947</span> (Independence
+              Day)<br />
+              ❌ Invalid: <span class="invalid">1947-08-15</span> (wrong format)
+            </div>
+            <button
+              class="try-btn"
+              onclick="
+                loadToTester(
+                  '^(0[1-9]|[12]\\d|3[01])\\/(0[1-9]|1[0-2])\\/\\d{4}$',
+                  '26/01/2024\n15/08/1947\n1947-08-15\n32/13/2024',
+                )
+              "
+            >
+              Try It →
+            </button>
+          </div>
+
+          <div class="pattern-card">
+            <div class="pattern-name">💰 Indian Rupee Amount</div>
+            <div class="pattern-desc">
+              Indian number format with lakhs and crores (e.g., ₹1,50,000 not
+              ₹150,000).
+            </div>
+            <div class="pattern-regex">
+              /^₹?\d{1,2}(,\d{2})*,\d{3}(\.\d{2})?$/
+            </div>
+            <div class="pattern-example">
+              ✅ Valid: <span class="valid">₹1,50,000</span> (1.5 lakh)<br />
+              ✅ Valid: <span class="valid">₹45,00,000</span> (45 lakh)
+            </div>
+            <button
+              class="try-btn"
+              onclick="
+                loadToTester(
+                  '^₹?\\d{1,2}(,\\d{2})*,\\d{3}(\\.\\d{2})?$',
+                  '₹1,50,000\n₹45,00,000\n₹2,50,00,000\n1000000',
+                )
+              "
+            >
+              Try It →
+            </button>
+          </div>
+
+          <div class="pattern-card">
+            <div class="pattern-name">🌐 Indian Domain (.in / .co.in)</div>
+            <div class="pattern-desc">
+              Matches Indian TLD domains including government and educational
+              domains.
+            </div>
+            <div class="pattern-regex">
+              /^[\w-]+\.(in|co\.in|gov\.in|edu\.in)$/
+            </div>
+            <div class="pattern-example">
+              ✅ Valid: <span class="valid">mygov.in</span>,
+              <span class="valid">cbse.gov.in</span><br />
+              ❌ Invalid: <span class="invalid">google.com</span> (not .in)
+            </div>
+            <button
+              class="try-btn"
+              onclick="
+                loadToTester(
+                  '^[\\w-]+\\.(in|co\\.in|gov\\.in|edu\\.in)$',
+                  'mygov.in\nirctc.co.in\ncbse.gov.in\niit.edu.in\ngoogle.com',
+                  'i',
+                )
+              "
+            >
+              Try It →
+            </button>
+          </div>
+
+          <div class="pattern-card">
+            <div class="pattern-name">📊 GST Number (GSTIN)</div>
+            <div class="pattern-desc">
+              15-character Goods and Services Tax Identification Number format.
+            </div>
+            <div class="pattern-regex">
+              /^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/
+            </div>
+            <div class="pattern-example">
+              ✅ Valid: <span class="valid">27AAAPL1234C1ZV</span><br />
+              ❌ Invalid: <span class="invalid">27AAPL1234C1ZV</span> (only 4
+              letters)
+            </div>
+            <button
+              class="try-btn"
+              onclick="
+                loadToTester(
+                  '^\\d{2}[A-Z]{5}\\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$',
+                  '27AAAPL1234C1ZV\n29ABCDE1234F1ZA\n27AAPL1234C1ZV',
+                  'i',
+                )
+              "
+            >
+              Try It →
+            </button>
+          </div>
+
+          <div class="pattern-card">
+            <div class="pattern-name">🔑 Strong Password</div>
+            <div class="pattern-desc">
+              Minimum 8 characters with at least 1 uppercase letter, 1 digit,
+              and 1 special character.
+            </div>
+            <div class="pattern-regex">
+              /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
+            </div>
+            <div class="pattern-example">
+              ✅ Valid: <span class="valid">India@2024!</span><br />
+              ❌ Invalid: <span class="invalid">password</span> (no uppercase or
+              digit)
+            </div>
+            <button
+              class="try-btn"
+              onclick="
+                loadToTester(
+                  '^(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$',
+                  'India@2024!\nBharat2024$\npassword\nSimple1',
+                )
+              "
+            >
+              Try It →
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== TESTER ===== -->
+      <section id="tester" class="section">
+        <div class="section-title">🧪 Live Regex Tester</div>
+        <div class="section-subtitle">
+          Write your own pattern and test it instantly — matches are highlighted
+          in real time.
+        </div>
+
+        <div class="tester-layout">
+          <div>
+            <div class="input-group">
+              <span class="input-label">Regular Expression</span>
+              <div class="regex-input-wrapper">
+                <span class="regex-slash">/</span>
+                <input
+                  class="regex-input-field"
+                  id="regexInput"
+                  type="text"
+                  placeholder="[6-9]\d{9}"
+                  value="[6-9]\d{9}"
+                  spellcheck="false"
+                />
+                <span class="regex-slash">/</span>
+                <input
+                  class="flags-input"
+                  id="flagsInput"
+                  type="text"
+                  placeholder="g"
+                  value="g"
+                  spellcheck="false"
+                  maxlength="5"
+                />
+              </div>
+              <div class="flags-row">
+                <span
+                  style="
+                    font-size: 0.78rem;
+                    color: var(--text-muted);
+                    align-self: center;
+                  "
+                  >Flags:</span
+                >
+                <span
+                  class="flag-chip active"
+                  onclick="toggleFlag('g')"
+                  id="flag-g"
+                  >g — global</span
+                >
+                <span class="flag-chip" onclick="toggleFlag('i')" id="flag-i"
+                  >i — ignore case</span
+                >
+                <span class="flag-chip" onclick="toggleFlag('m')" id="flag-m"
+                  >m — multiline</span
+                >
+              </div>
+            </div>
+
+            <div class="input-group">
+              <span class="input-label"
+                >Test String — Enter your text below</span
+              >
+              <textarea
+                class="test-textarea"
+                id="testInput"
+                placeholder="Type or paste your test text here..."
+              >
+9876543210
+1234567890
+8123456789
+0987654321</textarea
+              >
+            </div>
+
+            <button class="test-btn" onclick="runTest()">▶ Run Test</button>
+
+            <div class="card" style="margin-top: 0">
+              <div class="card-title" style="font-size: 0.95rem">
+                <span class="icon">💡</span>Quick Tips
+              </div>
+              <ul
+                style="
+                  font-size: 0.83rem;
+                  color: var(--text-muted);
+                  padding-left: 16px;
+                  line-height: 1.9;
+                "
+              >
+                <li>
+                  Use <code>^</code> and <code>$</code> to match the full string
+                  from start to end
+                </li>
+                <li>
+                  <code>\d</code> is shorthand for <code>[0-9]</code> — any
+                  single digit
+                </li>
+                <li>
+                  <code>{n}</code> means exactly n times — use
+                  <code>{n,m}</code> for a range
+                </li>
+                <li>
+                  <code>[ ]</code> defines a set of allowed characters (e.g.,
+                  <code>[6-9]</code>)
+                </li>
+                <li>
+                  <code>?</code> makes the preceding character or group optional
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div>
+            <div class="result-box" id="resultBox">
+              <div class="result-header">Match Results</div>
+              <div
+                id="resultContent"
+                style="color: var(--text-muted); font-size: 0.88rem"
+              >
+                Enter a pattern and test string, then click Run Test to see
+                results here ✨
+              </div>
+            </div>
+
+            <div class="card" style="margin-top: 18px">
+              <div class="card-title" style="font-size: 0.95rem">
+                <span class="icon">📊</span>Matched Values
+              </div>
+              <div
+                id="matchDetails"
+                style="font-size: 0.85rem; color: var(--text-muted)"
+              >
+                No matches yet.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== QUIZ ===== -->
+      <section id="quiz" class="section">
+        <div class="section-title">🎯 Practice Quiz</div>
+        <div class="section-subtitle">
+          Write regex patterns for these Indian real-world scenarios and check
+          your answers.
+        </div>
+
+        <div class="quiz-card">
+          <div class="quiz-q">
+            1. 🎓 CBSE Roll Number — Write a pattern that matches exactly 6
+            digits (like a Class 10 board exam roll number).
+          </div>
+          <div
+            style="
+              font-size: 0.82rem;
+              color: var(--text-muted);
+              margin-bottom: 10px;
+            "
+          >
+            Hint: <span class="mono">\d</span> = any digit &nbsp;|&nbsp;
+            <span class="mono">{n}</span> = exactly n times
+          </div>
+          <input
+            class="quiz-input"
+            id="q1"
+            type="text"
+            placeholder="Type your regex here (e.g.  \d{6} )"
+            spellcheck="false"
+          />
+          <button
+            class="quiz-check-btn"
+            onclick="
+              checkQuiz(
+                1,
+                ['\\d{6}', '^\\d{6}$', '[0-9]{6}', '^[0-9]{6}$'],
+                '\\d{6}',
+              )
+            "
+          >
+            Check Answer ✓
+          </button>
+          <div class="quiz-result" id="q1-result"></div>
+        </div>
+
+        <div class="quiz-card">
+          <div class="quiz-q">
+            2. 📱 Any 10-Digit Number — Match any 10-digit number with no
+            restriction on the starting digit.
+          </div>
+          <div
+            style="
+              font-size: 0.82rem;
+              color: var(--text-muted);
+              margin-bottom: 10px;
+            "
+          >
+            Hint: <span class="mono">\d{10}</span> matches exactly 10 digits
+          </div>
+          <input
+            class="quiz-input"
+            id="q2"
+            type="text"
+            placeholder="Type your regex here"
+            spellcheck="false"
+          />
+          <button
+            class="quiz-check-btn"
+            onclick="
+              checkQuiz(
+                2,
+                ['\\d{10}', '^\\d{10}$', '[0-9]{10}', '^[0-9]{10}$'],
+                '\\d{10}',
+              )
+            "
+          >
+            Check Answer ✓
+          </button>
+          <div class="quiz-result" id="q2-result"></div>
+        </div>
+
+        <div class="quiz-card">
+          <div class="quiz-q">
+            3. 📮 PIN Code — Exactly 6 digits where the first digit must NOT be
+            0 (Indian PIN codes never start with zero).
+          </div>
+          <div
+            style="
+              font-size: 0.82rem;
+              color: var(--text-muted);
+              margin-bottom: 10px;
+            "
+          >
+            Hint: Use <span class="mono">[1-9]</span> for the first digit, then
+            <span class="mono">[0-9]{5}</span> for the remaining five
+          </div>
+          <input
+            class="quiz-input"
+            id="q3"
+            type="text"
+            placeholder="Type your regex here"
+            spellcheck="false"
+          />
+          <button
+            class="quiz-check-btn"
+            onclick="
+              checkQuiz(
+                3,
+                [
+                  '[1-9][0-9]{5}',
+                  '^[1-9][0-9]{5}$',
+                  '[1-9]\\d{5}',
+                  '^[1-9]\\d{5}$',
+                ],
+                '[1-9][0-9]{5}',
+              )
+            "
+          >
+            Check Answer ✓
+          </button>
+          <div class="quiz-result" id="q3-result"></div>
+        </div>
+
+        <div class="quiz-card">
+          <div class="quiz-q">
+            4. 🔡 App Username — Only letters (a-z, A-Z), digits (0-9), and
+            underscore (_). Minimum 3 characters, maximum 15 characters.
+          </div>
+          <div
+            style="
+              font-size: 0.82rem;
+              color: var(--text-muted);
+              margin-bottom: 10px;
+            "
+          >
+            Hint: <span class="mono">\w</span> matches word characters
+            &nbsp;|&nbsp; <span class="mono">{3,15}</span> means between 3 and
+            15 &nbsp;|&nbsp; Use <span class="mono">^</span> and
+            <span class="mono">$</span> to anchor the full string
+          </div>
+          <input
+            class="quiz-input"
+            id="q4"
+            type="text"
+            placeholder="Type your regex here"
+            spellcheck="false"
+          />
+          <button
+            class="quiz-check-btn"
+            onclick="
+              checkQuiz(
+                4,
+                ['^\\w{3,15}$', '^[a-zA-Z0-9_]{3,15}$'],
+                '^\\w{3,15}$',
+              )
+            "
+          >
+            Check Answer ✓
+          </button>
+          <div class="quiz-result" id="q4-result"></div>
+        </div>
+
+        <div class="quiz-card">
+          <div class="quiz-q">
+            5. 🏦 Bank Transaction Amount — Only plain digits, no commas, no ₹
+            symbol. Between 1 and 10 digits total (e.g., 500 or 9999999999).
+          </div>
+          <div
+            style="
+              font-size: 0.82rem;
+              color: var(--text-muted);
+              margin-bottom: 10px;
+            "
+          >
+            Hint: Use <span class="mono">^</span> to anchor the start,
+            <span class="mono">\d{1,10}</span> for the digit range, and
+            <span class="mono">$</span> to anchor the end
+          </div>
+          <input
+            class="quiz-input"
+            id="q5"
+            type="text"
+            placeholder="Type your regex here"
+            spellcheck="false"
+          />
+          <button
+            class="quiz-check-btn"
+            onclick="
+              checkQuiz(5, ['^\\d{1,10}$', '^[0-9]{1,10}$'], '^\\d{1,10}$')
+            "
+          >
+            Check Answer ✓
+          </button>
+          <div class="quiz-result" id="q5-result"></div>
+        </div>
+      </section>
+    </main>
+
+    <div class="tricolor-bar" style="margin-top: 20px"></div>
+
+    <script>
+      function showSection(id, btn) {
+        document
+          .querySelectorAll(".section")
+          .forEach((s) => s.classList.remove("active"));
+        document
+          .querySelectorAll(".nav-btn")
+          .forEach((b) => b.classList.remove("active"));
+        document.getElementById(id).classList.add("active");
+        btn.classList.add("active");
+      }
+
+      function toggleFlag(f) {
+        const inp = document.getElementById("flagsInput");
+        const chip = document.getElementById("flag-" + f);
+        let flags = inp.value;
+        if (flags.includes(f)) {
+          flags = flags.replace(f, "");
+          chip.classList.remove("active");
+        } else {
+          flags += f;
+          chip.classList.add("active");
+        }
+        inp.value = flags;
+        runTest();
+      }
+
+      function loadToTester(pattern, testStr, flags) {
+        flags = flags || "g";
+        document.getElementById("regexInput").value = pattern;
+        document.getElementById("flagsInput").value = flags;
+        document.getElementById("testInput").value = testStr;
+        ["g", "i", "m"].forEach(function (f) {
+          var chip = document.getElementById("flag-" + f);
+          if (flags.includes(f)) chip.classList.add("active");
+          else chip.classList.remove("active");
+        });
+        document
+          .querySelectorAll(".section")
+          .forEach((s) => s.classList.remove("active"));
+        document
+          .querySelectorAll(".nav-btn")
+          .forEach((b) => b.classList.remove("active"));
+        document.getElementById("tester").classList.add("active");
+        document.querySelectorAll(".nav-btn")[3].classList.add("active");
+        runTest();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      function runTest() {
+        var pattern = document.getElementById("regexInput").value.trim();
+        var flags = document.getElementById("flagsInput").value.trim();
+        var text = document.getElementById("testInput").value;
+        var resultContent = document.getElementById("resultContent");
+        var matchDetails = document.getElementById("matchDetails");
+
+        if (!pattern) {
+          resultContent.innerHTML =
+            '<span style="color:var(--text-muted);">Enter a pattern above to see your results here.</span>';
+          return;
+        }
+
+        var regex;
+        try {
+          regex = new RegExp(pattern, flags);
+        } catch (e) {
+          resultContent.innerHTML =
+            '<span class="error-msg">&#10060; Invalid RegEx: ' +
+            e.message +
+            "</span>";
+          matchDetails.innerHTML =
+            '<span style="color:var(--fail);">Please check your pattern and try again.</span>';
+          return;
+        }
+
+        var lines = text.split("\n");
+        var allMatches = [];
+        var highlighted = "";
+
+        lines.forEach(function (line) {
+          var lineHtml = "";
+          var lastIndex = 0;
+          var localFlags = flags.includes("g") ? flags : flags + "g";
+          var localRegex = new RegExp(pattern, localFlags);
+          var match;
+
+          while ((match = localRegex.exec(line)) !== null) {
+            lineHtml += escapeHtml(line.slice(lastIndex, match.index));
+            lineHtml +=
+              '<span class="highlight">' + escapeHtml(match[0]) + "</span>";
+            lastIndex = match.index + match[0].length;
+            allMatches.push(match[0]);
+            if (!flags.includes("g")) break;
+          }
+          lineHtml += escapeHtml(line.slice(lastIndex));
+          highlighted +=
+            '<div style="padding:2px 0;">' + (lineHtml || "&nbsp;") + "</div>";
+        });
+
+        if (allMatches.length === 0) {
+          resultContent.innerHTML =
+            '<div class="no-match">&#128269; No matches found. Check your pattern or update the test string.</div>';
+          matchDetails.innerHTML =
+            '<span style="color:var(--fail);">0 matches</span>';
+        } else {
+          var count = allMatches.length;
+          resultContent.innerHTML =
+            '<span class="match-count">&#10003; ' +
+            count +
+            " match" +
+            (count > 1 ? "es" : "") +
+            " found</span>" +
+            '<div class="highlighted-text">' +
+            highlighted +
+            "</div>";
+          var unique = allMatches.filter(function (v, i, a) {
+            return a.indexOf(v) === i;
+          });
+          matchDetails.innerHTML =
+            '<div style="margin-bottom:8px; color:var(--text); font-weight:600; font-size:0.88rem;">Matched Values:</div>' +
+            unique
+              .map(function (m) {
+                return (
+                  '<span class="mono" style="display:inline-block; margin:2px 4px 2px 0;">' +
+                  escapeHtml(m) +
+                  "</span>"
+                );
+              })
+              .join("");
+        }
+      }
+
+      function escapeHtml(str) {
+        return str
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+      }
+
+      function checkQuiz(num, acceptedAnswers, hint) {
+        var raw = document.getElementById("q" + num).value.trim();
+        var input = raw
+          .replace(/^\//, "")
+          .replace(/\/[gimu]*$/, "")
+          .replace(/\s/g, "");
+        var resultEl = document.getElementById("q" + num + "-result");
+
+        var isCorrect = acceptedAnswers.some(function (ans) {
+          return input === ans.replace(/\s/g, "");
+        });
+
+        if (isCorrect) {
+          resultEl.className = "quiz-result pass";
+          resultEl.innerHTML = "&#127881; Correct! Well done! &#10003;";
+        } else {
+          resultEl.className = "quiz-result fail";
+          resultEl.innerHTML =
+            "&#10060; Not quite right. The answer should look like: <code>" +
+            hint +
+            "</code> &mdash; give it another try!";
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        document
+          .getElementById("regexInput")
+          .addEventListener("input", runTest);
+        document
+          .getElementById("flagsInput")
+          .addEventListener("input", runTest);
+        document.getElementById("testInput").addEventListener("input", runTest);
+        runTest();
+      });
+    </script>
+  </body>
+</html>
