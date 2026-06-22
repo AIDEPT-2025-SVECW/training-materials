@@ -1,0 +1,2300 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Python Operators — Deep Dive</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Caveat:wght@500;700&family=IBM+Plex+Mono:wght@400;600&family=DM+Sans:wght@300;400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* ═══════════════════════ CSS RESET & VARIABLES ═══════════════════ */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --cream: #faf6f0;
+        --paper: #fff9f2;
+        --warm: #f0e6d3;
+        --border: #d9c9b0;
+        --ink: #1e1812;
+        --ink2: #4a3f35;
+        --ink3: #7a6e64;
+        --red: #c0392b;
+        --orange: #d4622a;
+        --teal: #1a7a6e;
+        --blue: #1a4a7a;
+        --gold: #b8860b;
+        --green: #2d6a2d;
+        --radius: 8px;
+        --shadow: 0 2px 12px rgba(30, 24, 18, 0.09);
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        background: var(--cream);
+        color: var(--ink);
+        font-family: "DM Sans", sans-serif;
+        font-size: 15.5px;
+        line-height: 1.7;
+        background-image:
+          radial-gradient(
+            circle at 15% 20%,
+            rgba(180, 140, 80, 0.06) 0%,
+            transparent 50%
+          ),
+          radial-gradient(
+            circle at 85% 70%,
+            rgba(26, 122, 110, 0.05) 0%,
+            transparent 50%
+          );
+      }
+
+      /* ═══════════════════════ SCROLLBAR ══════════════════════════════ */
+      ::-webkit-scrollbar {
+        width: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: var(--warm);
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 10px;
+      }
+
+      /* ═══════════════════════ HEADER ══════════════════════════════════ */
+      header {
+        background: var(--ink);
+        color: #faf6f0;
+        padding: 0;
+        position: relative;
+        overflow: hidden;
+      }
+      .header-inner {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 52px 28px 46px;
+        position: relative;
+        z-index: 1;
+      }
+      .header-rule {
+        height: 4px;
+        background: linear-gradient(
+          90deg,
+          var(--orange),
+          var(--gold),
+          var(--teal)
+        );
+      }
+      .header-kicker {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.7rem;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--gold);
+        margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .header-kicker::after {
+        content: "";
+        flex: 0 0 40px;
+        height: 1px;
+        background: var(--gold);
+        opacity: 0.4;
+      }
+      header h1 {
+        font-family: "DM Serif Display", serif;
+        font-size: clamp(2.2rem, 5vw, 3.6rem);
+        line-height: 1.1;
+        margin-bottom: 16px;
+        font-weight: 400;
+      }
+      header h1 em {
+        font-style: italic;
+        color: #f0c080;
+      }
+      header p {
+        color: #b8ad9e;
+        max-width: 520px;
+        font-size: 0.97rem;
+        font-weight: 300;
+      }
+      /* Decorative grid lines */
+      header::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        background-size: 48px 48px;
+      }
+      /* Decorative number */
+      .header-deco {
+        position: absolute;
+        right: -10px;
+        top: -20px;
+        font-family: "DM Serif Display", serif;
+        font-size: 200px;
+        color: rgba(255, 255, 255, 0.03);
+        line-height: 1;
+        user-select: none;
+      }
+
+      /* ═══════════════════════ NAV PILLS ══════════════════════════════ */
+      .nav-bar {
+        background: var(--paper);
+        border-bottom: 1px solid var(--border);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        padding: 10px 0;
+        box-shadow: 0 2px 8px rgba(30, 24, 18, 0.06);
+      }
+      .nav-inner {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 0 24px;
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .nav-inner a {
+        font-size: 0.78rem;
+        font-weight: 500;
+        color: var(--ink3);
+        text-decoration: none;
+        padding: 5px 14px;
+        border-radius: 20px;
+        border: 1px solid transparent;
+        transition: all 0.2s;
+        white-space: nowrap;
+      }
+      .nav-inner a:hover {
+        border-color: var(--border);
+        color: var(--ink);
+        background: var(--warm);
+      }
+
+      /* ═══════════════════════ LAYOUT ══════════════════════════════════ */
+      .container {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 0 24px;
+      }
+
+      section {
+        padding: 56px 0 8px;
+      }
+
+      .sec-marker {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 6px;
+      }
+      .sec-num {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.68rem;
+        color: var(--ink3);
+        letter-spacing: 0.1em;
+      }
+      .sec-line {
+        flex: 0 0 28px;
+        height: 1px;
+        background: var(--border);
+      }
+      .sec-tag {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.65rem;
+        padding: 2px 8px;
+        border-radius: 3px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+      .tag-red {
+        background: rgba(192, 57, 43, 0.1);
+        color: var(--red);
+        border: 1px solid rgba(192, 57, 43, 0.2);
+      }
+      .tag-teal {
+        background: rgba(26, 122, 110, 0.1);
+        color: var(--teal);
+        border: 1px solid rgba(26, 122, 110, 0.2);
+      }
+      .tag-blue {
+        background: rgba(26, 74, 122, 0.1);
+        color: var(--blue);
+        border: 1px solid rgba(26, 74, 122, 0.2);
+      }
+      .tag-gold {
+        background: rgba(184, 134, 11, 0.1);
+        color: var(--gold);
+        border: 1px solid rgba(184, 134, 11, 0.2);
+      }
+      .tag-green {
+        background: rgba(45, 106, 45, 0.1);
+        color: var(--green);
+        border: 1px solid rgba(45, 106, 45, 0.2);
+      }
+      .tag-orange {
+        background: rgba(212, 98, 42, 0.1);
+        color: var(--orange);
+        border: 1px solid rgba(212, 98, 42, 0.2);
+      }
+
+      h2 {
+        font-family: "DM Serif Display", serif;
+        font-size: 1.85rem;
+        font-weight: 400;
+        margin-bottom: 4px;
+        line-height: 1.2;
+      }
+      .sec-sub {
+        color: var(--ink3);
+        font-size: 0.93rem;
+        margin-bottom: 24px;
+        font-weight: 300;
+      }
+
+      /* ═══════════════════════ CARDS ══════════════════════════════════ */
+      .card {
+        background: var(--paper);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 22px 26px;
+        margin-bottom: 16px;
+        box-shadow: var(--shadow);
+      }
+      .card h3 {
+        font-family: "DM Serif Display", serif;
+        font-size: 1.05rem;
+        font-weight: 400;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      /* ═══════════════════════ ANALOGY ════════════════════════════════ */
+      .analogy {
+        background: #fffbf0;
+        border: 1px solid rgba(184, 134, 11, 0.25);
+        border-left: 3px solid var(--gold);
+        border-radius: var(--radius);
+        padding: 16px 20px;
+        margin: 18px 0;
+        position: relative;
+      }
+      .analogy-label {
+        font-family: "Caveat", cursive;
+        font-size: 1rem;
+        color: var(--gold);
+        font-weight: 700;
+        margin-bottom: 6px;
+        display: block;
+      }
+      .analogy p {
+        font-size: 0.93rem;
+        color: var(--ink2);
+      }
+
+      /* ═══════════════════════ CODE BLOCKS ═══════════════════════════ */
+      .code-wrap {
+        margin: 14px 0;
+        border-radius: var(--radius);
+        overflow: hidden;
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow);
+      }
+      .code-header {
+        background: var(--ink);
+        padding: 8px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .code-header span {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.7rem;
+        color: #7a6e64;
+        letter-spacing: 0.06em;
+      }
+      .code-dots {
+        display: flex;
+        gap: 5px;
+      }
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+      }
+      .dot-r {
+        background: #c0392b;
+      }
+      .dot-y {
+        background: #d4ac0d;
+      }
+      .dot-g {
+        background: #27ae60;
+      }
+      pre {
+        background: #1a1612;
+        padding: 18px 20px;
+        overflow-x: auto;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.8rem;
+        line-height: 1.8;
+        margin: 0;
+      }
+      code {
+        font-family: "IBM Plex Mono", monospace;
+      }
+      /* syntax colours */
+      .kw {
+        color: #f0a060;
+      }
+      .fn {
+        color: #79c8e0;
+      }
+      .str {
+        color: #98c97c;
+      }
+      .num {
+        color: #e8c07a;
+      }
+      .cm {
+        color: #5a7060;
+        font-style: italic;
+      }
+      .op {
+        color: #e88080;
+      }
+      .var {
+        color: #d4c8b8;
+      }
+
+      /* ═══════════════════════ DATA TABLE ════════════════════════════ */
+      .op-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.875rem;
+        margin: 14px 0;
+        background: var(--paper);
+        border-radius: var(--radius);
+        overflow: hidden;
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow);
+      }
+      .op-table thead {
+        background: var(--ink);
+        color: var(--cream);
+      }
+      .op-table thead th {
+        padding: 10px 16px;
+        text-align: left;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.7rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        font-weight: 600;
+      }
+      .op-table tbody td {
+        padding: 9px 16px;
+        border-bottom: 1px solid var(--warm);
+      }
+      .op-table tbody tr:last-child td {
+        border-bottom: none;
+      }
+      .op-table tbody tr:hover td {
+        background: var(--warm);
+      }
+      code.pill {
+        background: var(--warm);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        padding: 1px 6px;
+        font-size: 0.78rem;
+        color: var(--orange);
+        font-family: "IBM Plex Mono", monospace;
+      }
+
+      /* ═══════════════════════ PLAYGROUND ════════════════════════════ */
+      .playground {
+        background: var(--paper);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+        margin: 18px 0;
+        box-shadow: var(--shadow);
+      }
+      .pg-header {
+        background: var(--warm);
+        border-bottom: 1px solid var(--border);
+        padding: 10px 18px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .pg-header .pg-title {
+        font-family: "Caveat", cursive;
+        font-size: 1.1rem;
+        color: var(--ink2);
+        font-weight: 700;
+      }
+      .pg-live {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.68rem;
+        color: var(--green);
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .pg-live::before {
+        content: "";
+        width: 6px;
+        height: 6px;
+        background: var(--green);
+        border-radius: 50%;
+        animation: pulse 1.4s infinite;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 0.5;
+          transform: scale(0.85);
+        }
+      }
+      .pg-body {
+        padding: 20px 22px;
+      }
+      .pg-row {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        margin-bottom: 14px;
+      }
+      .pg-group {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+      .pg-group label {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.68rem;
+        color: var(--ink3);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+      input[type="number"],
+      input[type="text"],
+      select {
+        background: var(--cream);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        color: var(--ink);
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.85rem;
+        padding: 8px 12px;
+        width: 110px;
+        outline: none;
+        transition:
+          border-color 0.2s,
+          box-shadow 0.2s;
+      }
+      select {
+        width: 130px;
+      }
+      input:focus,
+      select:focus {
+        border-color: var(--teal);
+        box-shadow: 0 0 0 3px rgba(26, 122, 110, 0.1);
+      }
+      .btn-run {
+        background: var(--ink);
+        color: var(--cream);
+        border: none;
+        border-radius: 6px;
+        font-family: "DM Sans", sans-serif;
+        font-weight: 700;
+        font-size: 0.85rem;
+        padding: 9px 22px;
+        cursor: pointer;
+        transition:
+          background 0.2s,
+          transform 0.1s;
+        letter-spacing: 0.02em;
+      }
+      .btn-run:hover {
+        background: var(--ink2);
+      }
+      .btn-run:active {
+        transform: scale(0.97);
+      }
+      .btn-sec {
+        background: transparent;
+        color: var(--ink3);
+        border: 1px solid var(--border);
+      }
+      .btn-sec:hover {
+        background: var(--warm);
+        color: var(--ink);
+      }
+      .output-label {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.68rem;
+        color: var(--ink3);
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+      .output-box {
+        background: var(--ink);
+        border-radius: 6px;
+        padding: 12px 16px;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.83rem;
+        color: #98c97c;
+        min-height: 44px;
+        white-space: pre-wrap;
+        line-height: 1.6;
+      }
+      .output-box.err {
+        color: #e88080;
+      }
+
+      /* ═══════════════════════ IDENTITY DIAGRAM ═══════════════════════ */
+      .id-diagram {
+        display: flex;
+        align-items: flex-start;
+        gap: 20px;
+        flex-wrap: wrap;
+        margin: 16px 0;
+        padding: 20px;
+        background: var(--paper);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+      }
+      .id-var-col {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .id-var {
+        background: var(--warm);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 8px 16px;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.8rem;
+        text-align: center;
+        position: relative;
+      }
+      .id-arrows {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-around;
+        padding: 8px 0;
+        gap: 10px;
+      }
+      .arrow-line {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.8rem;
+        color: var(--ink3);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .id-mem-col {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+      .mem-box {
+        border: 2px solid var(--border);
+        border-radius: 6px;
+        padding: 10px 16px;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.78rem;
+        text-align: center;
+        min-width: 140px;
+      }
+      .mem-box.same {
+        border-color: var(--teal);
+        background: rgba(26, 122, 110, 0.06);
+      }
+      .mem-box.diff {
+        border-color: var(--border);
+        background: var(--cream);
+      }
+      .mem-addr {
+        font-size: 0.65rem;
+        color: var(--ink3);
+        margin-bottom: 3px;
+      }
+      .mem-val {
+        color: var(--blue);
+        font-weight: 600;
+      }
+
+      /* ═══════════════════════ WALRUS COMPARE ════════════════════════ */
+      .two-col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin: 16px 0;
+      }
+      @media (max-width: 600px) {
+        .two-col {
+          grid-template-columns: 1fr;
+        }
+      }
+      .col-label {
+        font-family: "Caveat", cursive;
+        font-size: 0.95rem;
+        font-weight: 700;
+        margin-bottom: 8px;
+        padding: 4px 0;
+      }
+      .col-bad {
+        color: var(--red);
+      }
+      .col-good {
+        color: var(--green);
+      }
+
+      /* ═══════════════════════ PRECEDENCE LADDER ════════════════════ */
+      .prec-ladder {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+        margin: 16px 0;
+      }
+      .prec-row {
+        display: flex;
+        align-items: center;
+        border-bottom: 1px solid var(--warm);
+        transition: background 0.15s;
+      }
+      .prec-row:last-child {
+        border-bottom: none;
+      }
+      .prec-row:hover {
+        background: var(--warm);
+      }
+      .prec-rank {
+        background: var(--ink);
+        color: var(--cream);
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.7rem;
+        padding: 10px 14px;
+        min-width: 42px;
+        text-align: center;
+        align-self: stretch;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .prec-ops {
+        padding: 10px 16px;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.82rem;
+        color: var(--orange);
+        flex: 0 0 200px;
+      }
+      .prec-desc {
+        padding: 10px 16px;
+        font-size: 0.85rem;
+        color: var(--ink2);
+      }
+
+      /* ═══════════════════════ EXPERIMENT ════════════════════════════ */
+      .experiment-box {
+        background: #1a1612;
+        border-radius: var(--radius);
+        overflow: hidden;
+        margin: 16px 0;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        box-shadow: var(--shadow);
+      }
+      .exp-header {
+        background: #2a2218;
+        padding: 10px 18px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      }
+      .exp-header span {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.72rem;
+        color: #7a6e64;
+      }
+      .exp-repl {
+        padding: 16px 20px;
+      }
+      .exp-input-row {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 14px;
+      }
+      .exp-input {
+        flex: 1;
+        background: #0e0c08;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 6px;
+        color: #d4c8b8;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.85rem;
+        padding: 9px 14px;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+      .exp-input:focus {
+        border-color: var(--teal);
+      }
+      .exp-history {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        max-height: 240px;
+        overflow-y: auto;
+      }
+      .exp-entry {
+        padding: 5px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.79rem;
+      }
+      .exp-in {
+        color: #79c8e0;
+      }
+      .exp-out {
+        color: #98c97c;
+        padding-left: 14px;
+      }
+      .exp-err {
+        color: #e88080;
+        padding-left: 14px;
+      }
+      .exp-prompt {
+        color: #5a7060;
+        margin-right: 6px;
+      }
+
+      .challenge-card {
+        background: var(--paper);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 20px 24px;
+        margin: 16px 0;
+        box-shadow: var(--shadow);
+      }
+      .challenge-card h3 {
+        font-family: "Caveat", cursive;
+        font-size: 1.25rem;
+        color: var(--teal);
+        margin-bottom: 14px;
+        font-weight: 700;
+      }
+      .challenge-list {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .challenge-list li {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        font-size: 0.9rem;
+        color: var(--ink2);
+      }
+      .ch-num {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.72rem;
+        background: var(--warm);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        padding: 1px 7px;
+        color: var(--ink3);
+        flex-shrink: 0;
+        margin-top: 2px;
+      }
+
+      /* ═══════════════════════ QUIZ ══════════════════════════════════ */
+      .quiz-card {
+        background: var(--paper);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 22px 26px;
+        margin-bottom: 16px;
+        box-shadow: var(--shadow);
+        transition: border-color 0.3s;
+      }
+      .quiz-card.state-correct {
+        border-color: var(--green);
+        background: #f0fff4;
+      }
+      .quiz-card.state-wrong {
+        border-color: var(--red);
+        background: #fff5f5;
+      }
+      .quiz-q-text {
+        font-weight: 600;
+        margin-bottom: 16px;
+        font-size: 0.97rem;
+        line-height: 1.5;
+      }
+      .quiz-opts {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .quiz-opt {
+        background: var(--cream);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        color: var(--ink);
+        cursor: pointer;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.83rem;
+        padding: 9px 16px;
+        text-align: left;
+        transition: all 0.18s;
+      }
+      .quiz-opt:hover:not(:disabled) {
+        border-color: var(--teal);
+        background: rgba(26, 122, 110, 0.05);
+        color: var(--teal);
+      }
+      .quiz-opt.opt-correct {
+        background: rgba(45, 106, 45, 0.1);
+        border-color: var(--green);
+        color: var(--green);
+      }
+      .quiz-opt.opt-wrong {
+        background: rgba(192, 57, 43, 0.08);
+        border-color: var(--red);
+        color: var(--red);
+      }
+      .quiz-opt:disabled {
+        cursor: default;
+      }
+      .quiz-feedback {
+        margin-top: 12px;
+        font-size: 0.85rem;
+        font-style: italic;
+        line-height: 1.5;
+      }
+      .quiz-feedback.fb-ok {
+        color: var(--green);
+      }
+      .quiz-feedback.fb-err {
+        color: var(--red);
+      }
+      #quiz-score {
+        background: var(--ink);
+        color: var(--cream);
+        border-radius: var(--radius);
+        padding: 20px 26px;
+        font-family: "DM Serif Display", serif;
+        font-size: 1.2rem;
+        display: none;
+        margin-top: 8px;
+      }
+
+      /* ═══════════════════════ DIVIDER ════════════════════════════════ */
+      .divider {
+        border: none;
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          var(--border),
+          transparent
+        );
+        margin: 48px 0 0;
+      }
+
+      /* ═══════════════════════ FOOTER ═════════════════════════════════ */
+      footer {
+        margin-top: 60px;
+        padding: 30px 24px;
+        border-top: 1px solid var(--border);
+        text-align: center;
+        color: var(--ink3);
+        font-size: 0.82rem;
+      }
+
+      /* ═══════════════════════ REVEAL ANIMATION ══════════════════════ */
+      .reveal {
+        opacity: 0;
+        transform: translateY(18px);
+        transition:
+          opacity 0.55s ease,
+          transform 0.55s ease;
+      }
+      .reveal.visible {
+        opacity: 1;
+        transform: none;
+      }
+
+      @media (max-width: 600px) {
+        .pg-row {
+          flex-direction: column;
+        }
+        input[type="number"],
+        input[type="text"],
+        select {
+          width: 100%;
+        }
+        .prec-ops {
+          flex: 0 0 130px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ══════════════════════════ HEADER ════════════════════════════ -->
+    <div class="header-rule"></div>
+    <header>
+      <div class="header-deco">Py</div>
+      <div class="header-inner">
+        <div class="header-kicker">Python Deep Dive · Module 03</div>
+        <h1>All About<br /><em>Operators</em></h1>
+        <p>
+          Seven families. Live playgrounds. Gotchas your textbook glossed over.
+          Built for the classroom.
+        </p>
+      </div>
+    </header>
+
+    <!-- ══════════════════════════ NAV ═══════════════════════════════ -->
+    <nav class="nav-bar">
+      <div class="nav-inner">
+        <a href="#arithmetic">① Arithmetic</a>
+        <a href="#comparison">② Comparison</a>
+        <a href="#logical">③ Logical</a>
+        <a href="#bitwise">④ Bitwise</a>
+        <a href="#assignment">⑤ Assignment</a>
+        <a href="#identity">⑥ Identity & Membership</a>
+        <a href="#walrus">⑦ Walrus :=</a>
+        <a href="#precedence">⑧ Precedence</a>
+        <a href="#experiment">🔬 Experiment</a>
+        <a href="#quiz">📝 Quiz</a>
+      </div>
+    </nav>
+
+    <div class="container">
+      <!-- ══════════════════════ §1 ARITHMETIC ════════════════════════ -->
+      <section id="arithmetic" class="reveal">
+        <div class="sec-marker">
+          <span class="sec-num">01</span>
+          <span class="sec-line"></span>
+          <span class="sec-tag tag-red">Operator Family</span>
+        </div>
+        <h2>Arithmetic Operators</h2>
+        <p class="sec-sub">
+          The calculators you know — plus two Python-specific ones worth a
+          closer look.
+        </p>
+
+        <table class="op-table">
+          <thead>
+            <tr>
+              <th>Operator</th>
+              <th>Symbol</th>
+              <th>Example</th>
+              <th>Result</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Addition</td>
+              <td><code class="pill">+</code></td>
+              <td><code class="pill">10 + 3</code></td>
+              <td>13</td>
+              <td>Works on strings too (concatenation)</td>
+            </tr>
+            <tr>
+              <td>Subtraction</td>
+              <td><code class="pill">-</code></td>
+              <td><code class="pill">10 - 3</code></td>
+              <td>7</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>Multiplication</td>
+              <td><code class="pill">*</code></td>
+              <td><code class="pill">10 * 3</code></td>
+              <td>30</td>
+              <td>
+                <code class="pill">"ha"*3</code> →
+                <code class="pill">"hahaha"</code>
+              </td>
+            </tr>
+            <tr>
+              <td>Division</td>
+              <td><code class="pill">/</code></td>
+              <td><code class="pill">10 / 3</code></td>
+              <td>3.333…</td>
+              <td>Always returns float</td>
+            </tr>
+            <tr>
+              <td><strong>Floor Division</strong></td>
+              <td><code class="pill">//</code></td>
+              <td><code class="pill">10 // 3</code></td>
+              <td>3</td>
+              <td>Rounds toward negative infinity</td>
+            </tr>
+            <tr>
+              <td><strong>Modulus</strong></td>
+              <td><code class="pill">%</code></td>
+              <td><code class="pill">10 % 3</code></td>
+              <td>1</td>
+              <td>The "leftover" — vital in algorithms</td>
+            </tr>
+            <tr>
+              <td>Exponentiation</td>
+              <td><code class="pill">**</code></td>
+              <td><code class="pill">2 ** 10</code></td>
+              <td>1024</td>
+              <td>
+                Faster than <code class="pill">pow()</code> for simple cases
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="analogy">
+          <span class="analogy-label"
+            >💡 Analogy — Floor Division & Modulus</span
+          >
+          <p>
+            Imagine you're distributing <strong>10 laddoos</strong> equally
+            among <strong>3 friends</strong> at a wedding.<br />
+            <code class="pill">10 // 3 → 3</code> &nbsp;— each friend gets
+            <strong>3 laddoos</strong> (whole pieces only, no crumbling).<br />
+            <code class="pill">10 % 3 → 1</code> &nbsp;—
+            <strong>1 laddoo remains</strong> on the plate.<br />
+            Floor division = the fair share. Modulus = what's left on the plate.
+          </p>
+        </div>
+
+        <div class="code-wrap">
+          <div class="code-header">
+            <div class="code-dots">
+              <div class="dot dot-r"></div>
+              <div class="dot dot-y"></div>
+              <div class="dot dot-g"></div>
+            </div>
+            <span>arithmetic_demo.py</span>
+          </div>
+          <pre><code><span class="cm"># Real-world: splitting a ₹1,450 restaurant bill among 4 friends</span>
+bill    = <span class="num">1450</span>
+friends = <span class="num">4</span>
+
+per_head = bill <span class="op">//</span> friends    <span class="cm"># ₹362 each (whole rupees only)</span>
+leftover = bill <span class="op">%</span>  friends    <span class="cm"># ₹2 remaining on the table</span>
+
+<span class="fn">print</span>(<span class="str">f"Each pays ₹{per_head}, leftover ₹{leftover}"</span>)
+<span class="cm"># → Each pays ₹362, leftover ₹2</span>
+
+<span class="cm"># Modulus trick: even/odd check</span>
+<span class="kw">for</span> n <span class="kw">in</span> range(<span class="num">1</span>, <span class="num">6</span>):
+    label = <span class="str">"even"</span> <span class="kw">if</span> n <span class="op">%</span> <span class="num">2</span> <span class="op">==</span> <span class="num">0</span> <span class="kw">else</span> <span class="str">"odd"</span>
+    <span class="fn">print</span>(n, <span class="str">"→"</span>, label)
+
+<span class="cm"># Exponent: compound interest for 5 years @ 8%</span>
+principal = <span class="num">10000</span>
+amount    = principal <span class="op">*</span> (<span class="num">1.08</span> <span class="op">**</span> <span class="num">5</span>)
+<span class="fn">print</span>(<span class="str">f"₹{amount:.2f}"</span>)   <span class="cm"># ₹14693.28</span></code></pre>
+        </div>
+
+        <!-- PLAYGROUND -->
+        <div class="playground">
+          <div class="pg-header">
+            <span class="pg-title">🎮 Arithmetic Playground</span>
+            <span class="pg-live">live</span>
+          </div>
+          <div class="pg-body">
+            <div class="pg-row">
+              <div class="pg-group">
+                <label>a</label>
+                <input type="number" id="ar-a" value="17" />
+              </div>
+              <div class="pg-group">
+                <label>operator</label>
+                <select id="ar-op">
+                  <option>+</option>
+                  <option>-</option>
+                  <option>*</option>
+                  <option>/</option>
+                  <option value="//">//</option>
+                  <option>%</option>
+                  <option value="**">**</option>
+                </select>
+              </div>
+              <div class="pg-group">
+                <label>b</label>
+                <input type="number" id="ar-b" value="5" />
+              </div>
+              <button class="btn-run" onclick="doArithmetic()">▶ Run</button>
+            </div>
+            <div class="output-label"># output</div>
+            <div class="output-box" id="ar-out">—</div>
+          </div>
+        </div>
+      </section>
+
+      <hr class="divider" />
+
+      <!-- ══════════════════════ §2 COMPARISON ════════════════════════ -->
+      <section id="comparison" class="reveal">
+        <div class="sec-marker">
+          <span class="sec-num">02</span>
+          <span class="sec-line"></span>
+          <span class="sec-tag tag-teal">Operator Family</span>
+        </div>
+        <h2>Comparison Operators</h2>
+        <p class="sec-sub">
+          Always return <code class="pill">True</code> or
+          <code class="pill">False</code>. The gatekeeper of every
+          <code class="pill">if</code> statement.
+        </p>
+
+        <div class="code-wrap">
+          <div class="code-header">
+            <div class="code-dots">
+              <div class="dot dot-r"></div>
+              <div class="dot dot-y"></div>
+              <div class="dot dot-g"></div>
+            </div>
+            <span>comparison_demo.py</span>
+          </div>
+          <pre><code><span class="cm"># India vs Australia Test match scores</span>
+ind = <span class="num">287</span>
+aus = <span class="num">265</span>
+
+<span class="fn">print</span>(ind <span class="op">></span>  aus)   <span class="cm"># True</span>
+<span class="fn">print</span>(ind <span class="op">>=</span> aus)   <span class="cm"># True</span>
+<span class="fn">print</span>(ind <span class="op">==</span> aus)   <span class="cm"># False</span>
+<span class="fn">print</span>(ind <span class="op">!=</span> aus)   <span class="cm"># True</span>
+
+<span class="cm"># 🔥 Python allows chaining — very readable!</span>
+marks = <span class="num">75</span>
+<span class="fn">print</span>(<span class="num">60</span> <span class="op"><=</span> marks <span class="op"><</span> <span class="num">80</span>)   <span class="cm"># True  → B grade</span>
+<span class="fn">print</span>(<span class="num">80</span> <span class="op"><=</span> marks <span class="op"><</span> <span class="num">90</span>)   <span class="cm"># False → not A grade</span>
+
+<span class="cm"># In C/Java you'd need:  marks >= 60 && marks < 80</span>
+<span class="cm"># Python chaining is cleaner and closer to maths notation</span></code></pre>
+        </div>
+
+        <div class="playground">
+          <div class="pg-header">
+            <span class="pg-title">🎮 Comparison Playground</span>
+            <span class="pg-live">live</span>
+          </div>
+          <div class="pg-body">
+            <div class="pg-row">
+              <div class="pg-group">
+                <label>a</label><input type="number" id="cm-a" value="287" />
+              </div>
+              <div class="pg-group">
+                <label>operator</label>
+                <select id="cm-op">
+                  <option>==</option>
+                  <option>!=</option>
+                  <option>></option>
+                  <option>>=</option>
+                  <option value="lt">&lt;</option>
+                  <option value="lte">&lt;=</option>
+                </select>
+              </div>
+              <div class="pg-group">
+                <label>b</label><input type="number" id="cm-b" value="265" />
+              </div>
+              <button class="btn-run" onclick="doComparison()">▶ Run</button>
+            </div>
+            <div class="output-label"># output</div>
+            <div class="output-box" id="cm-out">—</div>
+          </div>
+        </div>
+      </section>
+
+      <hr class="divider" />
+
+      <!-- ══════════════════════ §3 LOGICAL ═══════════════════════════ -->
+      <section id="logical" class="reveal">
+        <div class="sec-marker">
+          <span class="sec-num">03</span>
+          <span class="sec-line"></span>
+          <span class="sec-tag tag-blue">Operator Family</span>
+        </div>
+        <h2>Logical Operators</h2>
+        <p class="sec-sub">
+          <code class="pill">and</code> &nbsp;<code class="pill">or</code>
+          &nbsp;<code class="pill">not</code> — combine conditions. Python's
+          logical operators have a superpower: short-circuit evaluation.
+        </p>
+
+        <div class="analogy">
+          <span class="analogy-label"
+            >💡 Analogy — Short-Circuit Evaluation</span
+          >
+          <p>
+            Think of a <strong>UPI payment gate</strong>: first it checks if
+            your balance is sufficient. <em>Only if yes</em> does it verify the
+            PIN.<br />
+            With <code class="pill">and</code>, Python stops the moment it hits
+            a <code class="pill">False</code> — no need to check further (like
+            the UPI gate blocking you on insufficient balance before asking for
+            the PIN).<br />
+            With <code class="pill">or</code>, it stops the moment it finds a
+            <code class="pill">True</code> — job done, no further checks
+            needed.<br />
+            This isn't just efficiency — Python actually
+            <strong>returns the deciding value</strong>, not just True/False!
+          </p>
+        </div>
+
+        <div class="code-wrap">
+          <div class="code-header">
+            <div class="code-dots">
+              <div class="dot dot-r"></div>
+              <div class="dot dot-y"></div>
+              <div class="dot dot-g"></div>
+            </div>
+            <span>logical_demo.py</span>
+          </div>
+          <pre><code><span class="cm"># Basic usage: exam eligibility</span>
+marks      = <span class="num">72</span>
+attendance = <span class="num">80</span>
+eligible   = marks <span class="op">>=</span> <span class="num">60</span> <span class="kw">and</span> attendance <span class="op">>=</span> <span class="num">75</span>
+<span class="fn">print</span>(eligible)   <span class="cm"># True</span>
+
+<span class="cm"># College closed on weekend OR holiday</span>
+is_weekend = <span class="kw">False</span>
+is_holiday = <span class="kw">True</span>
+<span class="fn">print</span>(is_weekend <span class="kw">or</span> is_holiday)   <span class="cm"># True</span>
+
+<span class="cm"># ⚠️  The Gotcha: logical ops return VALUES, not just booleans</span>
+<span class="fn">print</span>(<span class="num">0</span>    <span class="kw">or</span>  <span class="str">"default"</span>)  <span class="cm"># "default" — 0 is falsy, so evaluates right</span>
+<span class="fn">print</span>(<span class="num">42</span>   <span class="kw">and</span> <span class="str">"yes"</span>)      <span class="cm"># "yes"     — 42 is truthy, returns right side</span>
+<span class="fn">print</span>(<span class="num">0</span>    <span class="kw">and</span> <span class="str">"yes"</span>)      <span class="cm"># 0         — short-circuits at 0</span>
+<span class="fn">print</span>(<span class="kw">None</span> <span class="kw">or</span>  <span class="str">"fallback"</span>) <span class="cm"># "fallback" — common config pattern!</span>
+
+<span class="cm"># Falsy values in Python:</span>
+<span class="cm"># False, 0, 0.0, "", [], {}, (), None, set()</span></code></pre>
+        </div>
+
+        <div class="playground">
+          <div class="pg-header">
+            <span class="pg-title">🎮 Short-Circuit Visualiser</span>
+            <span class="pg-live">live</span>
+          </div>
+          <div class="pg-body">
+            <div class="pg-row">
+              <div class="pg-group">
+                <label>left value</label>
+                <input type="text" id="lg-a" value="0" style="width: 120px" />
+              </div>
+              <div class="pg-group">
+                <label>operator</label>
+                <select id="lg-op" style="width: 90px">
+                  <option>and</option>
+                  <option>or</option>
+                </select>
+              </div>
+              <div class="pg-group">
+                <label>right value</label>
+                <input
+                  type="text"
+                  id="lg-b"
+                  value='"Chennai"'
+                  style="width: 130px"
+                />
+              </div>
+              <button class="btn-run" onclick="doLogical()">▶ Run</button>
+            </div>
+            <div class="output-label"># output + explanation</div>
+            <div class="output-box" id="lg-out">—</div>
+          </div>
+        </div>
+      </section>
+
+      <hr class="divider" />
+
+      <!-- ══════════════════════ §4 BITWISE ═══════════════════════════ -->
+      <section id="bitwise" class="reveal">
+        <div class="sec-marker">
+          <span class="sec-num">04</span>
+          <span class="sec-line"></span>
+          <span class="sec-tag tag-gold">Operator Family</span>
+        </div>
+        <h2>Bitwise Operators</h2>
+        <p class="sec-sub">
+          Operate directly on binary bits. Used in networking, cryptography,
+          embedded systems, and game engines.
+        </p>
+
+        <div class="analogy">
+          <span class="analogy-label"
+            >💡 Analogy — Bitwise AND as an Access Permission Mask</span
+          >
+          <p>
+            Imagine a college gate with <strong>8 switches</strong>, each
+            controlling one access permission (hostel, lab, library, canteen…).
+            Your ID card has a pattern: ON/OFF for each switch.<br />
+            The gate also holds an "allowed pattern".<br />
+            <code class="pill">&</code> (AND) is like physically overlapping
+            both punch-card patterns —
+            <em>only holes that align in BOTH cards let light through.</em
+            ><br />
+            That's exactly how Unix file permissions (<code class="pill"
+              >chmod 755</code
+            >) and subnet masks work.
+          </p>
+        </div>
+
+        <div class="code-wrap">
+          <div class="code-header">
+            <div class="code-dots">
+              <div class="dot dot-r"></div>
+              <div class="dot dot-y"></div>
+              <div class="dot dot-g"></div>
+            </div>
+            <span>bitwise_demo.py</span>
+          </div>
+          <pre><code>a = <span class="num">12</span>   <span class="cm"># binary: 0000 1100</span>
+b = <span class="num">10</span>   <span class="cm"># binary: 0000 1010</span>
+
+<span class="fn">print</span>(a <span class="op">&</span>  b)    <span class="cm"># AND  →  8  (0000 1000) — both bits must be 1</span>
+<span class="fn">print</span>(a <span class="op">|</span>  b)    <span class="cm"># OR   → 14  (0000 1110) — either bit is 1</span>
+<span class="fn">print</span>(a <span class="op">^</span>  b)    <span class="cm"># XOR  →  6  (0000 0110) — bits differ</span>
+<span class="fn">print</span>(<span class="op">~</span>a)        <span class="cm"># NOT  → -13             — flips all bits</span>
+<span class="fn">print</span>(a <span class="op"><<</span> <span class="num">1</span>)    <span class="cm"># LEFT SHIFT  → 24 (×2 each shift)</span>
+<span class="fn">print</span>(a <span class="op">>></span> <span class="num">1</span>)    <span class="cm"># RIGHT SHIFT →  6 (÷2 each shift)</span>
+
+<span class="cm"># 🎯 Practical: check if bit N is set (e.g. permission flag)</span>
+permissions = <span class="num">0b10110101</span>   <span class="cm"># some permission byte</span>
+bit3_set    = (permissions <span class="op">></span><span class="op">></span> <span class="num">3</span>) <span class="op">&</span> <span class="num">1</span>
+<span class="fn">print</span>(<span class="str">f"Bit 3 is {'set' if bit3_set else 'not set'}"</span>)</code></pre>
+        </div>
+
+        <div class="playground">
+          <div class="pg-header">
+            <span class="pg-title">🎮 Binary Bit Visualiser</span>
+            <span class="pg-live">live</span>
+          </div>
+          <div class="pg-body">
+            <div class="pg-row">
+              <div class="pg-group">
+                <label>a (0–255)</label
+                ><input type="number" id="bw-a" value="12" min="0" max="255" />
+              </div>
+              <div class="pg-group">
+                <label>b (0–255)</label
+                ><input type="number" id="bw-b" value="10" min="0" max="255" />
+              </div>
+              <button class="btn-run" onclick="doBitwise()">▶ Run</button>
+            </div>
+            <div class="output-label"># binary breakdown</div>
+            <div
+              class="output-box"
+              id="bw-out"
+              style="font-size: 0.76rem; line-height: 2"
+            >
+              —
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <hr class="divider" />
+
+      <!-- ══════════════════════ §5 ASSIGNMENT ════════════════════════ -->
+      <section id="assignment" class="reveal">
+        <div class="sec-marker">
+          <span class="sec-num">05</span>
+          <span class="sec-line"></span>
+          <span class="sec-tag tag-orange">Operator Family</span>
+        </div>
+        <h2>Assignment Operators</h2>
+        <p class="sec-sub">
+          Shorthand to update a variable in-place. Same result, cleaner code.
+        </p>
+
+        <div class="code-wrap">
+          <div class="code-header">
+            <div class="code-dots">
+              <div class="dot dot-r"></div>
+              <div class="dot dot-y"></div>
+              <div class="dot dot-g"></div>
+            </div>
+            <span>assignment_demo.py</span>
+          </div>
+          <pre><code>score = <span class="num">100</span>
+
+score <span class="op">+=</span>  <span class="num">10</span>   <span class="cm"># 110  — scored 10 bonus points</span>
+score <span class="op">-=</span>   <span class="num">5</span>   <span class="cm"># 105  — penalty</span>
+score <span class="op">*=</span>   <span class="num">2</span>   <span class="cm"># 210  — double points round</span>
+score <span class="op">//=</span>  <span class="num">3</span>   <span class="cm">#  70  — floor divide</span>
+score <span class="op">**=</span>  <span class="num">2</span>   <span class="cm"># 4900 — squared!</span>
+score <span class="op">%=</span> <span class="num">100</span>   <span class="cm">#    0 — modulus</span>
+
+<span class="cm"># All bitwise ops have augmented assignment forms too:</span>
+flags <span class="op">=</span> <span class="num">0b0000</span>
+flags <span class="op">|=</span> <span class="num">0b0100</span>   <span class="cm"># set bit 2  → 0b0100</span>
+flags <span class="op">&=</span> <span class="num">0b1110</span>   <span class="cm"># clear bit 0 (already 0 here)</span>
+flags <span class="op">^=</span> <span class="num">0b0001</span>   <span class="cm"># toggle bit 0</span></code></pre>
+        </div>
+
+        <div class="playground">
+          <div class="pg-header">
+            <span class="pg-title">🎮 Assignment Stepper</span>
+            <span class="pg-live">live</span>
+          </div>
+          <div class="pg-body">
+            <div class="pg-row">
+              <div class="pg-group">
+                <label>start value</label
+                ><input type="number" id="as-start" value="100" />
+              </div>
+              <div class="pg-group">
+                <label>operator</label>
+                <select id="as-op">
+                  <option>+=</option>
+                  <option>-=</option>
+                  <option>*=</option>
+                  <option>/=</option>
+                  <option>//=</option>
+                  <option>%=</option>
+                  <option>**=</option>
+                </select>
+              </div>
+              <div class="pg-group">
+                <label>operand</label
+                ><input type="number" id="as-val" value="10" />
+              </div>
+              <button class="btn-run" onclick="doAssignment()">▶ Run</button>
+            </div>
+            <div class="output-label"># output</div>
+            <div class="output-box" id="as-out">—</div>
+          </div>
+        </div>
+      </section>
+
+      <hr class="divider" />
+
+      <!-- ══════════════════════ §6 IDENTITY & MEMBERSHIP ═════════════ -->
+      <section id="identity" class="reveal">
+        <div class="sec-marker">
+          <span class="sec-num">06</span>
+          <span class="sec-line"></span>
+          <span class="sec-tag tag-green">Operator Family</span>
+        </div>
+        <h2>Identity &amp; Membership Operators</h2>
+        <p class="sec-sub">
+          The most common Python gotcha: <code class="pill">is</code> vs
+          <code class="pill">==</code>.
+        </p>
+
+        <div class="analogy">
+          <span class="analogy-label"
+            >💡 Analogy —
+            <code
+              style="
+                font-family:
+                  IBM Plex Mono,
+                  monospace;
+              "
+              >is</code
+            >
+            vs
+            <code
+              style="
+                font-family:
+                  IBM Plex Mono,
+                  monospace;
+              "
+              >==</code
+            ></span
+          >
+          <p>
+            Imagine <strong>two identical Aadhaar cards</strong> printed for
+            twins — Ravi and Suresh.<br />
+            <code class="pill">==</code> asks:
+            <em>"Do the details on both cards look the same?"</em> →
+            <strong>Yes</strong>.<br />
+            <code class="pill">is</code> asks:
+            <em
+              >"Is this literally the same physical card (same Aadhaar
+              UID)?"</em
+            >
+            → <strong>No</strong>.<br />
+            <code class="pill">==</code> compares <strong>values</strong>.
+            &nbsp; <code class="pill">is</code> compares
+            <strong>identity (memory address)</strong>.
+          </p>
+        </div>
+
+        <div class="id-diagram">
+          <div class="id-var-col">
+            <div class="id-var">a = [1, 2, 3]</div>
+            <div class="id-var">b = [1, 2, 3]</div>
+            <div class="id-var">c = a</div>
+          </div>
+          <div class="id-arrows">
+            <div class="arrow-line">──────────▶</div>
+            <div class="arrow-line">──────────▶</div>
+            <div class="arrow-line" style="color: var(--teal)">──────────▶</div>
+          </div>
+          <div class="id-mem-col">
+            <div class="mem-box same">
+              <div class="mem-addr">0x7f1a2b3c ← a &amp; c share this</div>
+              <div class="mem-val">[1, 2, 3]</div>
+            </div>
+            <div class="mem-box diff">
+              <div class="mem-addr">0x7f4d5e6f ← b alone</div>
+              <div class="mem-val">[1, 2, 3]</div>
+            </div>
+          </div>
+          <div
+            style="
+              font-size: 0.82rem;
+              color: var(--ink3);
+              align-self: center;
+              max-width: 200px;
+              line-height: 1.6;
+            "
+          >
+            <strong style="color: var(--teal)">a is c → True</strong> (same
+            object)<br />
+            <strong style="color: var(--red)">a is b → False</strong> (different
+            objects)<br />
+            <strong style="color: var(--green)">a == b → True</strong> (same
+            values)
+          </div>
+        </div>
+
+        <div class="code-wrap">
+          <div class="code-header">
+            <div class="code-dots">
+              <div class="dot dot-r"></div>
+              <div class="dot dot-y"></div>
+              <div class="dot dot-g"></div>
+            </div>
+            <span>identity_demo.py</span>
+          </div>
+          <pre><code>a = [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>]
+b = [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>]
+c = a
+
+<span class="fn">print</span>(a <span class="op">==</span> b)    <span class="cm"># True  — same values</span>
+<span class="fn">print</span>(a <span class="kw">is</span> b)    <span class="cm"># False — different objects in RAM</span>
+<span class="fn">print</span>(a <span class="kw">is</span> c)    <span class="cm"># True  — c is just another name for a</span>
+
+<span class="cm"># ⚠️  CPython integer caching quirk (-5 to 256 are cached)</span>
+x, y = <span class="num">256</span>, <span class="num">256</span>
+<span class="fn">print</span>(x <span class="kw">is</span> y)    <span class="cm"># True  — CPython reuses the same object</span>
+x, y = <span class="num">257</span>, <span class="num">257</span>
+<span class="fn">print</span>(x <span class="kw">is</span> y)    <span class="cm"># False — outside cache range (implementation detail!)</span>
+
+<span class="cm"># Membership operators</span>
+states = [<span class="str">"Tamil Nadu"</span>, <span class="str">"Maharashtra"</span>, <span class="str">"Kerala"</span>]
+<span class="fn">print</span>(<span class="str">"Tamil Nadu"</span>  <span class="kw">in</span>     states)  <span class="cm"># True</span>
+<span class="fn">print</span>(<span class="str">"West Bengal"</span> <span class="kw">not in</span> states)  <span class="cm"># True</span>
+
+<span class="cm"># 'in' on strings checks substrings!</span>
+<span class="fn">print</span>(<span class="str">"nai"</span> <span class="kw">in</span> <span class="str">"Chennai"</span>)  <span class="cm"># True</span></code></pre>
+        </div>
+      </section>
+
+      <hr class="divider" />
+
+      <!-- ══════════════════════ §7 WALRUS ════════════════════════════ -->
+      <section id="walrus" class="reveal">
+        <div class="sec-marker">
+          <span class="sec-num">07</span>
+          <span class="sec-line"></span>
+          <span class="sec-tag tag-red">Python 3.8+</span>
+        </div>
+        <h2>
+          Walrus Operator
+          <code
+            style="
+              color: var(--orange);
+              font-family: &quot;IBM Plex Mono&quot;, monospace;
+            "
+            >:=</code
+          >
+        </h2>
+        <p class="sec-sub">
+          Assign AND use a value in the same expression. Called "walrus" because
+          <code class="pill">:=</code> looks like walrus eyes.
+        </p>
+
+        <div class="analogy">
+          <span class="analogy-label">💡 Analogy — Named Expressions</span>
+          <p>
+            At a supermarket billing counter, the cashier scans each item —
+            which <em>simultaneously</em> records the price on the receipt AND
+            adds it to the running total. One swipe, two things happen.<br />
+            <code class="pill">:=</code> works the same way: it evaluates the
+            expression, <strong>stores it in a variable</strong>, and
+            <strong>uses it right there</strong> — no need to scan twice.
+          </p>
+        </div>
+
+        <div class="two-col">
+          <div>
+            <div class="col-label col-bad">❌ Without walrus (verbose)</div>
+            <div class="code-wrap">
+              <div class="code-header">
+                <div class="code-dots">
+                  <div class="dot dot-r"></div>
+                  <div class="dot dot-y"></div>
+                  <div class="dot dot-g"></div>
+                </div>
+                <span>without_walrus.py</span>
+              </div>
+              <pre><code><span class="cm"># read, assign, THEN check</span>
+data = <span class="fn">input</span>(<span class="str">"Enter: "</span>)
+<span class="kw">while</span> data <span class="op">!=</span> <span class="str">"quit"</span>:
+    <span class="fn">print</span>(<span class="str">"Got:"</span>, data)
+    data = <span class="fn">input</span>(<span class="str">"Enter: "</span>)
+<span class="cm"># input() called in 2 places — messy!</span></code></pre>
+            </div>
+          </div>
+          <div>
+            <div class="col-label col-good">✅ With walrus (clean)</div>
+            <div class="code-wrap">
+              <div class="code-header">
+                <div class="code-dots">
+                  <div class="dot dot-r"></div>
+                  <div class="dot dot-y"></div>
+                  <div class="dot dot-g"></div>
+                </div>
+                <span>with_walrus.py</span>
+              </div>
+              <pre><code><span class="cm"># assign AND check in one line</span>
+<span class="kw">while</span> (data := <span class="fn">input</span>(<span class="str">"Enter: "</span>)) <span class="op">!=</span> <span class="str">"quit"</span>:
+    <span class="fn">print</span>(<span class="str">"Got:"</span>, data)
+<span class="cm"># input() called once — DRY!</span>
+<span class="cm">
+</span></code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="code-wrap">
+          <div class="code-header">
+            <div class="code-dots">
+              <div class="dot dot-r"></div>
+              <div class="dot dot-y"></div>
+              <div class="dot dot-g"></div>
+            </div>
+            <span>walrus_comprehension.py</span>
+          </div>
+          <pre><code><span class="cm"># Walrus shines in list comprehensions — compute-once, use-twice</span>
+scores = [<span class="num">45</span>, <span class="num">82</span>, <span class="num">60</span>, <span class="num">91</span>, <span class="num">38</span>, <span class="num">74</span>]
+
+results = [
+    (s, grade)
+    <span class="kw">for</span> s <span class="kw">in</span> scores
+    <span class="kw">if</span> (grade := <span class="str">"A"</span> <span class="kw">if</span> s <span class="op">>=</span> <span class="num">80</span> <span class="kw">else</span> <span class="str">"B"</span> <span class="kw">if</span> s <span class="op">>=</span> <span class="num">60</span> <span class="kw">else</span> <span class="str">"F"</span>) <span class="op">!=</span> <span class="str">"F"</span>
+]
+<span class="fn">print</span>(results)
+<span class="cm"># [(82,'A'), (60,'B'), (91,'A'), (74,'B')]  — failed students filtered out</span></code></pre>
+        </div>
+      </section>
+
+      <hr class="divider" />
+
+      <!-- ══════════════════════ §8 PRECEDENCE ════════════════════════ -->
+      <section id="precedence" class="reveal">
+        <div class="sec-marker">
+          <span class="sec-num">08</span>
+          <span class="sec-line"></span>
+          <span class="sec-tag tag-teal">Reference</span>
+        </div>
+        <h2>Operator Precedence</h2>
+        <p class="sec-sub">
+          BODMAS but for Python. Higher number = evaluated first. When in doubt
+          — use parentheses!
+        </p>
+
+        <div class="prec-ladder">
+          <div class="prec-row">
+            <div class="prec-rank">1st</div>
+            <div class="prec-ops">**</div>
+            <div class="prec-desc">Exponentiation (right-associative!)</div>
+          </div>
+          <div class="prec-row">
+            <div class="prec-rank">2nd</div>
+            <div class="prec-ops">~x, +x, -x</div>
+            <div class="prec-desc">Unary NOT, unary plus, unary minus</div>
+          </div>
+          <div class="prec-row">
+            <div class="prec-rank">3rd</div>
+            <div class="prec-ops">* / // %</div>
+            <div class="prec-desc">
+              Multiplication, Division, Floor, Modulus
+            </div>
+          </div>
+          <div class="prec-row">
+            <div class="prec-rank">4th</div>
+            <div class="prec-ops">+ -</div>
+            <div class="prec-desc">Addition, Subtraction</div>
+          </div>
+          <div class="prec-row">
+            <div class="prec-rank">5th</div>
+            <div class="prec-ops">&lt;&lt; &gt;&gt;</div>
+            <div class="prec-desc">Bitwise shifts</div>
+          </div>
+          <div class="prec-row">
+            <div class="prec-rank">6th</div>
+            <div class="prec-ops">&amp;</div>
+            <div class="prec-desc">Bitwise AND</div>
+          </div>
+          <div class="prec-row">
+            <div class="prec-rank">7th</div>
+            <div class="prec-ops">^</div>
+            <div class="prec-desc">Bitwise XOR</div>
+          </div>
+          <div class="prec-row">
+            <div class="prec-rank">8th</div>
+            <div class="prec-ops">|</div>
+            <div class="prec-desc">Bitwise OR</div>
+          </div>
+          <div class="prec-row">
+            <div class="prec-rank">9th</div>
+            <div class="prec-ops">== != &gt; &lt; is in…</div>
+            <div class="prec-desc">Comparisons, Identity, Membership</div>
+          </div>
+          <div class="prec-row">
+            <div class="prec-rank">10th</div>
+            <div class="prec-ops">not</div>
+            <div class="prec-desc">Logical NOT</div>
+          </div>
+          <div class="prec-row">
+            <div class="prec-rank">11th</div>
+            <div class="prec-ops">and</div>
+            <div class="prec-desc">Logical AND</div>
+          </div>
+          <div class="prec-row">
+            <div class="prec-rank">12th</div>
+            <div class="prec-ops">or</div>
+            <div class="prec-desc">Logical OR (lowest!)</div>
+          </div>
+        </div>
+
+        <div class="code-wrap">
+          <div class="code-header">
+            <div class="code-dots">
+              <div class="dot dot-r"></div>
+              <div class="dot dot-y"></div>
+              <div class="dot dot-g"></div>
+            </div>
+            <span>precedence_gotchas.py</span>
+          </div>
+          <pre><code><span class="cm"># Gotcha 1: * before +</span>
+<span class="fn">print</span>(<span class="num">2</span> <span class="op">+</span> <span class="num">3</span> <span class="op">*</span> <span class="num">4</span>)           <span class="cm"># 14  — NOT 20!  (* evaluated first)</span>
+
+<span class="cm"># Gotcha 2: ** is RIGHT-associative</span>
+<span class="fn">print</span>(<span class="num">2</span> <span class="op">**</span> <span class="num">3</span> <span class="op">**</span> <span class="num">2</span>)          <span class="cm"># 512 — 2**(3**2) = 2**9, NOT (2**3)**2 = 64</span>
+
+<span class="cm"># Gotcha 3: not binds tighter than or</span>
+<span class="fn">print</span>(<span class="kw">not</span> <span class="kw">True</span> <span class="kw">or</span> <span class="kw">False</span>)    <span class="cm"># False — (not True) or False = False or False</span>
+
+<span class="cm"># Gotcha 4: comparison before and/or</span>
+<span class="fn">print</span>(<span class="num">5</span> <span class="op">></span> <span class="num">3</span> <span class="kw">and</span> <span class="num">2</span> <span class="op"><</span> <span class="num">4</span>)      <span class="cm"># True — both comparisons done first</span>
+
+<span class="cm"># When in doubt — parentheses are FREE and make code readable</span>
+<span class="fn">print</span>((<span class="num">2</span> <span class="op">+</span> <span class="num">3</span>) <span class="op">*</span> <span class="num">4</span>)          <span class="cm"># 20  — unambiguous</span></code></pre>
+        </div>
+      </section>
+
+      <hr class="divider" />
+
+      <!-- ══════════════════════ EXPERIMENT ═══════════════════════════ -->
+      <section id="experiment" class="reveal">
+        <div class="sec-marker">
+          <span class="sec-num">EXP</span>
+          <span class="sec-line"></span>
+          <span class="sec-tag tag-green">Try It</span>
+        </div>
+        <h2>🔬 Experiment Station</h2>
+        <p class="sec-sub">
+          Type any single Python expression and see the result. Press Enter or
+          click Run.
+        </p>
+
+        <div class="experiment-box">
+          <div class="exp-header">
+            <div class="code-dots">
+              <div class="dot dot-r"></div>
+              <div class="dot dot-y"></div>
+              <div class="dot dot-g"></div>
+            </div>
+            <span>python3 — interactive</span>
+          </div>
+          <div class="exp-repl">
+            <div class="exp-input-row">
+              <span
+                class="exp-prompt"
+                style="
+                  font-family: &quot;IBM Plex Mono&quot;, monospace;
+                  color: #5a7060;
+                  align-self: center;
+                  font-size: 0.85rem;
+                "
+                >>>></span
+              >
+              <input
+                type="text"
+                class="exp-input"
+                id="exp-in"
+                placeholder="2 ** 10 + 3 * 4"
+                value="2 ** 10 + 3 * 4"
+              />
+              <button class="btn-run" onclick="runExp()">▶ Run</button>
+              <button
+                class="btn-run btn-sec"
+                onclick="clearExp()"
+                style="padding: 9px 14px"
+              >
+                ✕ Clear
+              </button>
+            </div>
+            <div class="exp-history" id="exp-hist"></div>
+          </div>
+        </div>
+
+        <div class="challenge-card">
+          <h3>🎯 Challenges for Students</h3>
+          <ol class="challenge-list">
+            <li>
+              <span class="ch-num">01</span>Check if the year 2024 is a leap
+              year using <code class="pill">%</code> (divisible by 4, not 100,
+              or by 400).
+            </li>
+            <li>
+              <span class="ch-num">02</span>What is
+              <code class="pill">255 & 15</code>? Draw the bits first, then
+              verify.
+            </li>
+            <li>
+              <span class="ch-num">03</span>Try
+              <code class="pill">True + True + False</code> — what does Python
+              do with boolean arithmetic?
+            </li>
+            <li>
+              <span class="ch-num">04</span>Is
+              <code class="pill">-7 % 3</code> in Python the same as in C?
+              (Hint: it's not. Try it and think about why.)
+            </li>
+            <li>
+              <span class="ch-num">05</span>What does
+              <code class="pill">1 << n</code> always equal? Try n = 0, 1, 2, 3,
+              8. Spot the pattern.
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <hr class="divider" />
+
+      <!-- ══════════════════════ QUIZ ══════════════════════════════════ -->
+      <section id="quiz" class="reveal">
+        <div class="sec-marker">
+          <span class="sec-num">QUIZ</span>
+          <span class="sec-line"></span>
+          <span class="sec-tag tag-blue">Revalidate</span>
+        </div>
+        <h2>📝 Quick Quiz</h2>
+        <p class="sec-sub">
+          5 questions. Click to answer — instant feedback below each question.
+        </p>
+
+        <div id="quiz-wrap"></div>
+        <div id="quiz-score"></div>
+      </section>
+    </div>
+    <!-- /container -->
+
+    <footer>
+      Python Operators · Deep Dive Demo · Built for Engineering Classrooms 🐍 ·
+      Chennai Edition
+    </footer>
+
+    <!-- ═══════════════════════════ JAVASCRIPT ═══════════════════════ -->
+    <script>
+      // ── Scroll reveal observer ────────────────────────────────────────
+      const obs = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => {
+            if (e.isIntersecting) e.target.classList.add("visible");
+          });
+        },
+        { threshold: 0.07 },
+      );
+      document.querySelectorAll(".reveal").forEach((el) => obs.observe(el));
+
+      // ── Arithmetic playground ─────────────────────────────────────────
+      function doArithmetic() {
+        const a = parseFloat(document.getElementById("ar-a").value);
+        const b = parseFloat(document.getElementById("ar-b").value);
+        const op = document.getElementById("ar-op").value;
+        const box = document.getElementById("ar-out");
+
+        let res,
+          note = "";
+        try {
+          if (op === "+") res = a + b;
+          else if (op === "-") res = a - b;
+          else if (op === "*") res = a * b;
+          else if (op === "/") {
+            res = a / b;
+            note = "  # float division";
+          } else if (op === "//") {
+            res = Math.floor(a / b);
+            note = "  # floor division";
+          } else if (op === "%") {
+            res = (((a % b) + Math.abs(b)) % b) * Math.sign(b);
+            note = "  # modulus";
+          } else if (op === "**") res = Math.pow(a, b);
+          box.textContent = `>>> ${a} ${op} ${b}\n${res}${note}`;
+          box.classList.remove("err");
+        } catch (e) {
+          box.textContent = `Error: ${e.message}`;
+          box.classList.add("err");
+        }
+      }
+
+      // ── Comparison playground ─────────────────────────────────────────
+      function doComparison() {
+        const a = parseFloat(document.getElementById("cm-a").value);
+        const b = parseFloat(document.getElementById("cm-b").value);
+        const op = document.getElementById("cm-op").value;
+        const box = document.getElementById("cm-out");
+
+        let res;
+        if (op === "==") res = a === b;
+        else if (op === "!=") res = a !== b;
+        else if (op === ">") res = a > b;
+        else if (op === ">=") res = a >= b;
+        else if (op === "lt") res = a < b;
+        else if (op === "lte") res = a <= b;
+
+        const opDisplay = op === "lt" ? "<" : op === "lte" ? "<=" : op;
+        box.textContent = `>>> ${a} ${opDisplay} ${b}\n${res}`;
+        box.classList.remove("err");
+      }
+
+      // ── Logical playground ────────────────────────────────────────────
+      function doLogical() {
+        const rawA = document.getElementById("lg-a").value.trim();
+        const rawB = document.getElementById("lg-b").value.trim();
+        const op = document.getElementById("lg-op").value;
+        const box = document.getElementById("lg-out");
+
+        // Parse Python-style literals
+        function parse(v) {
+          if (v === "True") return true;
+          if (v === "False") return false;
+          if (v === "None") return null;
+          if (!isNaN(v) && v !== "") return Number(v);
+          if (
+            (v.startsWith('"') && v.endsWith('"')) ||
+            (v.startsWith("'") && v.endsWith("'"))
+          )
+            return v.slice(1, -1);
+          return v;
+        }
+
+        const a = parse(rawA),
+          b = parse(rawB);
+        let result, explain;
+
+        // Python semantics: return the deciding operand, not True/False
+        if (op === "and") {
+          result = a ? b : a;
+          explain = a
+            ? `Left "${rawA}" is TRUTHY → evaluates right → returns right: ${JSON.stringify(b)}`
+            : `Left "${rawA}" is FALSY  → short-circuits  → returns left:  ${JSON.stringify(a)}`;
+        } else {
+          result = a ? a : b;
+          explain = a
+            ? `Left "${rawA}" is TRUTHY → short-circuits  → returns left:  ${JSON.stringify(a)}`
+            : `Left "${rawA}" is FALSY  → evaluates right → returns right: ${JSON.stringify(b)}`;
+        }
+
+        box.textContent = `>>> ${rawA} ${op} ${rawB}\n${JSON.stringify(result)}\n\n# ${explain}`;
+        box.classList.remove("err");
+      }
+
+      // ── Bitwise visualiser ────────────────────────────────────────────
+      function doBitwise() {
+        const a = Math.max(
+          0,
+          Math.min(255, parseInt(document.getElementById("bw-a").value) || 0),
+        );
+        const b = Math.max(
+          0,
+          Math.min(255, parseInt(document.getElementById("bw-b").value) || 0),
+        );
+
+        // Pad to 8-bit binary string
+        const bin = (n) => (n >>> 0).toString(2).padStart(8, "0");
+
+        const ops = [
+          { expr: `${a} & ${b}`, result: a & b, label: "AND" },
+          { expr: `${a} | ${b}`, result: a | b, label: "OR " },
+          { expr: `${a} ^ ${b}`, result: a ^ b, label: "XOR" },
+          { expr: `~${a}`, result: ~a, label: "NOT a" },
+          { expr: `${a} << 1`, result: a << 1, label: "L.SHIFT" },
+          { expr: `${a} >> 1`, result: a >> 1, label: "R.SHIFT" },
+        ];
+
+        let out = `  a = ${String(a).padStart(3)}  →  ${bin(a)}\n`;
+        out += `  b = ${String(b).padStart(3)}  →  ${bin(b)}\n`;
+        out += `  ${"─".repeat(36)}\n`;
+        ops.forEach(({ expr, result, label }) => {
+          // Handle ~a which can be negative — show two's complement for display
+          const displayBin = bin(result < 0 ? result >>> 0 : result);
+          out += `  (${label}) ${expr.padEnd(10)} = ${String(result).padStart(5)}  →  ${displayBin}\n`;
+        });
+
+        document.getElementById("bw-out").textContent = out;
+        document.getElementById("bw-out").classList.remove("err");
+      }
+
+      // ── Assignment playground ─────────────────────────────────────────
+      function doAssignment() {
+        let val = parseFloat(document.getElementById("as-start").value);
+        const op = document.getElementById("as-op").value;
+        const rhs = parseFloat(document.getElementById("as-val").value);
+        const box = document.getElementById("as-out");
+        const original = val;
+
+        try {
+          if (op === "+=") val += rhs;
+          else if (op === "-=") val -= rhs;
+          else if (op === "*=") val *= rhs;
+          else if (op === "/=") val /= rhs;
+          else if (op === "//=") val = Math.floor(val / rhs);
+          else if (op === "%=") val %= rhs;
+          else if (op === "**=") val = Math.pow(val, rhs);
+          box.textContent = `>>> score = ${original}\n>>> score ${op} ${rhs}\n>>> print(score)\n${val}`;
+          box.classList.remove("err");
+        } catch (e) {
+          box.textContent = `Error: ${e.message}`;
+          box.classList.add("err");
+        }
+      }
+
+      // ── Experiment REPL ───────────────────────────────────────────────
+      const history = [];
+
+      function runExp() {
+        const raw = document.getElementById("exp-in").value.trim();
+        if (!raw) return;
+
+        // Translate Python literals and operators to JavaScript
+        let jsExpr = raw
+          .replace(/\bTrue\b/g, "true")
+          .replace(/\bFalse\b/g, "false")
+          .replace(/\bNone\b/g, "null")
+          .replace(/\band\b/g, "&&")
+          .replace(/\bor\b/g, "||")
+          .replace(/\bnot\b\s*/g, "!")
+          // Floor division: number // number  →  Math.floor(number / number)
+          .replace(
+            /(-?\d+\.?\d*)\s*\/\/\s*(-?\d+\.?\d*)/g,
+            (_, a, b) => `Math.floor(${a} / ${b})`,
+          );
+
+        let result,
+          isErr = false;
+        try {
+          result = eval(jsExpr);
+          // Format like Python: show string quotes, boolean capitalisation
+          if (typeof result === "string") result = `'${result}'`;
+          else if (result === true) result = "True";
+          else if (result === false) result = "False";
+          else if (result === null) result = "None";
+        } catch (e) {
+          result = `${e.constructor.name}: ${e.message}`;
+          isErr = true;
+        }
+
+        // Store and render history (most recent first)
+        history.unshift({ expr: raw, result, isErr });
+        const hist = document.getElementById("exp-hist");
+        hist.innerHTML = history
+          .slice(0, 8)
+          .map(
+            (h, i) => `
+    <div class="exp-entry">
+      <div class="exp-in"><span class="exp-prompt">>>></span>${h.expr}</div>
+      <div class="${h.isErr ? "exp-err" : "exp-out"}">${h.result}</div>
+    </div>
+  `,
+          )
+          .join("");
+      }
+
+      function clearExp() {
+        history.length = 0;
+        document.getElementById("exp-hist").innerHTML = "";
+        document.getElementById("exp-in").value = "";
+        document.getElementById("exp-in").focus();
+      }
+
+      // Enter key support for experiment
+      document.getElementById("exp-in").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") runExp();
+      });
+
+      // ── Quiz data ─────────────────────────────────────────────────────
+      const QUESTIONS = [
+        {
+          q: "What does <code class='pill'>10 % 3</code> evaluate to?",
+          opts: ["3", "1", "0", "3.33"],
+          correct: 1,
+          explain:
+            "Modulus gives the remainder. 10 = (3×3) + 1, so the remainder is 1.",
+        },
+        {
+          q: "Evaluate: <code class='pill'>2 ** 3 ** 2</code>",
+          opts: ["64", "512", "256", "128"],
+          correct: 1,
+          explain: "** is RIGHT-associative: 3**2 = 9 first, then 2**9 = 512.",
+        },
+        {
+          q: "What does <code class='pill'>0 or 'Namaste'</code> return in Python?",
+          opts: ["False", "True", "'Namaste'", "0"],
+          correct: 2,
+          explain:
+            "0 is falsy, so Python evaluates the right side and returns it: 'Namaste'. Logical operators return the deciding value, not just True/False.",
+        },
+        {
+          q: "Which operator checks if two variables point to the <em>same object in memory</em>?",
+          opts: ["==", "===", "is", "eq()"],
+          correct: 2,
+          explain:
+            "`is` compares object identity (memory address). `==` compares the values. Use `is` only for None checks in production code.",
+        },
+        {
+          q: "What is <code class='pill'>12 & 10</code>?  (12 = 1100, 10 = 1010 in binary)",
+          opts: ["14", "6", "8", "2"],
+          correct: 2,
+          explain:
+            "AND: 1100 & 1010 = 1000 = 8. Only positions where BOTH bits are 1 give 1.",
+        },
+      ];
+
+      let answered = 0,
+        score = 0;
+
+      function buildQuiz() {
+        const wrap = document.getElementById("quiz-wrap");
+        wrap.innerHTML = QUESTIONS.map(
+          (q, qi) => `
+    <div class="quiz-card" id="qcard-${qi}">
+      <div class="quiz-q-text">Q${qi + 1}. ${q.q}</div>
+      <div class="quiz-opts" id="qopts-${qi}">
+        ${q.opts
+          .map(
+            (opt, oi) => `
+          <button class="quiz-opt" onclick="answerQ(${qi}, ${oi})">
+            ${opt}
+          </button>
+        `,
+          )
+          .join("")}
+      </div>
+      <div class="quiz-feedback" id="qfb-${qi}"></div>
+    </div>
+  `,
+        ).join("");
+      }
+
+      function answerQ(qi, oi) {
+        const q = QUESTIONS[qi];
+        const card = document.getElementById(`qcard-${qi}`);
+        const opts = document
+          .getElementById(`qopts-${qi}`)
+          .querySelectorAll(".quiz-opt");
+        const fb = document.getElementById(`qfb-${qi}`);
+
+        // Disable all options for this question
+        opts.forEach((b) => (b.disabled = true));
+        answered++;
+
+        if (oi === q.correct) {
+          opts[oi].classList.add("opt-correct");
+          card.classList.add("state-correct");
+          fb.textContent = `✅ Correct! ${q.explain}`;
+          fb.className = "quiz-feedback fb-ok";
+          score++;
+        } else {
+          opts[oi].classList.add("opt-wrong");
+          opts[q.correct].classList.add("opt-correct");
+          card.classList.add("state-wrong");
+          fb.textContent = `❌ Not quite. ${q.explain}`;
+          fb.className = "quiz-feedback fb-err";
+        }
+
+        // Show score when all questions answered
+        if (answered === QUESTIONS.length) {
+          const pct = Math.round((score / QUESTIONS.length) * 100);
+          const emoji =
+            pct === 100 ? "🏆" : pct >= 80 ? "🎉" : pct >= 60 ? "👍" : "📖";
+          const msg =
+            pct === 100
+              ? "Perfect score!"
+              : pct >= 60
+                ? "Good work!"
+                : "Review the sections above and try again!";
+          const box = document.getElementById("quiz-score");
+          box.style.display = "block";
+          box.textContent = `${emoji}  ${score} / ${QUESTIONS.length}  (${pct}%)  —  ${msg}`;
+          box.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }
+
+      // ── Initialise ────────────────────────────────────────────────────
+      buildQuiz();
+      // Run default calculations so playgrounds show output on load
+      doArithmetic();
+      doComparison();
+      doBitwise();
+    </script>
+  </body>
+</html>

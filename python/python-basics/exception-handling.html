@@ -1,0 +1,1704 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Python Exception Handling — Deep Dive</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* ─── Design System ──────────────────────────────────────── */
+      :root {
+        --bg: #0d0f1a;
+        --surface: #141726;
+        --card: #1b1f35;
+        --border: #272c48;
+        --accent: #f7c948; /* saffron-gold */
+        --accent2: #e05c3a; /* terracotta */
+        --accent3: #4ecdc4; /* teal */
+        --green: #52e07a;
+        --red: #ff5f5f;
+        --purple: #a78bfa;
+        --text: #e8eaf6;
+        --muted: #8892b0;
+        --code-bg: #0a0c17;
+        --radius: 14px;
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: "Lora", Georgia, serif;
+        line-height: 1.7;
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+
+      /* ─── Noise texture overlay ──────────────────────────────── */
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+        pointer-events: none;
+        z-index: 0;
+        opacity: 0.5;
+      }
+
+      /* ─── Header ─────────────────────────────────────────────── */
+      header {
+        position: relative;
+        padding: 60px 40px 50px;
+        border-bottom: 1px solid var(--border);
+        background: linear-gradient(135deg, #141726 0%, #1a1040 100%);
+        overflow: hidden;
+      }
+      header::after {
+        content: "⚠";
+        position: absolute;
+        right: -20px;
+        top: -30px;
+        font-size: 220px;
+        opacity: 0.04;
+        pointer-events: none;
+      }
+      .badge {
+        display: inline-block;
+        background: var(--accent);
+        color: #0d0f1a;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 2px;
+        padding: 4px 12px;
+        border-radius: 4px;
+        margin-bottom: 18px;
+        text-transform: uppercase;
+      }
+      header h1 {
+        font-family: "Syne", sans-serif;
+        font-size: clamp(28px, 5vw, 52px);
+        font-weight: 800;
+        line-height: 1.1;
+        color: #fff;
+      }
+      header h1 span {
+        color: var(--accent);
+      }
+      header p.sub {
+        margin-top: 14px;
+        color: var(--muted);
+        font-size: 16px;
+        max-width: 560px;
+      }
+
+      /* ─── Nav pills ──────────────────────────────────────────── */
+      nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 24px 40px;
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+      nav a {
+        font-family: "Syne", sans-serif;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--muted);
+        text-decoration: none;
+        padding: 7px 16px;
+        border-radius: 50px;
+        border: 1px solid var(--border);
+        transition: all 0.2s;
+      }
+      nav a:hover,
+      nav a.active {
+        background: var(--accent);
+        color: #0d0f1a;
+        border-color: var(--accent);
+      }
+
+      /* ─── Main layout ────────────────────────────────────────── */
+      main {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 40px 24px 80px;
+      }
+
+      /* ─── Sections ───────────────────────────────────────────── */
+      section {
+        margin-bottom: 64px;
+        scroll-margin-top: 80px;
+      }
+      .section-label {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        color: var(--accent);
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+      }
+      section h2 {
+        font-family: "Syne", sans-serif;
+        font-size: 26px;
+        font-weight: 800;
+        color: #fff;
+        margin-bottom: 18px;
+      }
+      section p {
+        color: var(--muted);
+        font-size: 15.5px;
+        margin-bottom: 14px;
+      }
+
+      /* ─── Analogy box ────────────────────────────────────────── */
+      .analogy {
+        background: linear-gradient(135deg, #1e1540, #1a2040);
+        border-left: 4px solid var(--purple);
+        border-radius: var(--radius);
+        padding: 22px 26px;
+        margin: 22px 0;
+        position: relative;
+      }
+      .analogy::before {
+        content: "💡";
+        font-size: 22px;
+        position: absolute;
+        top: -12px;
+        left: 16px;
+      }
+      .analogy-title {
+        font-family: "Syne", sans-serif;
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--purple);
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+        padding-top: 4px;
+      }
+      .analogy p {
+        color: #c4c8e8;
+        font-size: 15px;
+        margin: 0;
+      }
+
+      /* ─── Code blocks ────────────────────────────────────────── */
+      pre {
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 24px;
+        overflow-x: auto;
+        margin: 18px 0;
+        position: relative;
+      }
+      pre code {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 13.5px;
+        line-height: 1.8;
+        color: #c9d1d9;
+      }
+      .kw {
+        color: #ff79c6;
+      } /* keyword */
+      .fn {
+        color: #8be9fd;
+      } /* function */
+      .st {
+        color: #f1fa8c;
+      } /* string */
+      .cm {
+        color: #6272a4;
+        font-style: italic;
+      } /* comment */
+      .nb {
+        color: #ffb86c;
+      } /* built-in / class */
+      .err {
+        color: #ff5555;
+      } /* error */
+      .gr {
+        color: #50fa7b;
+      } /* green / success */
+
+      .copy-btn {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        background: var(--border);
+        border: none;
+        color: var(--muted);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        padding: 4px 10px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .copy-btn:hover {
+        background: var(--accent);
+        color: #000;
+      }
+
+      /* ─── Cards grid ─────────────────────────────────────────── */
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+        margin: 22px 0;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 20px;
+        transition:
+          transform 0.2s,
+          box-shadow 0.2s;
+      }
+      .card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 30px #0005;
+      }
+      .card-icon {
+        font-size: 28px;
+        margin-bottom: 10px;
+      }
+      .card h4 {
+        font-family: "Syne", sans-serif;
+        font-size: 15px;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 6px;
+      }
+      .card p {
+        font-size: 13.5px;
+        margin: 0;
+      }
+
+      /* ─── Exception Hierarchy ────────────────────────────────── */
+      .tree {
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 24px 28px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 13px;
+        line-height: 2;
+        overflow-x: auto;
+      }
+      .tree .node {
+        cursor: pointer;
+      }
+      .tree .node:hover .node-name {
+        color: var(--accent);
+      }
+      .tree .node-name {
+        transition: color 0.2s;
+      }
+      .tree .child {
+        padding-left: 28px;
+        border-left: 1px dashed var(--border);
+        margin-left: 8px;
+      }
+
+      /* ─── Interactive Simulator ──────────────────────────────── */
+      .simulator {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+      }
+      .sim-toolbar {
+        background: var(--surface);
+        padding: 14px 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border-bottom: 1px solid var(--border);
+      }
+      .sim-toolbar span {
+        font-family: "Syne", sans-serif;
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--accent);
+      }
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+      }
+      .dot-r {
+        background: #ff5f57;
+      }
+      .dot-y {
+        background: #febc2e;
+      }
+      .dot-g {
+        background: #28c840;
+      }
+
+      .sim-body {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+      }
+      @media (max-width: 640px) {
+        .sim-body {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .sim-input {
+        padding: 20px;
+        border-right: 1px solid var(--border);
+      }
+      .sim-input label {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px;
+        color: var(--muted);
+        display: block;
+        margin-bottom: 8px;
+      }
+      .sim-input select,
+      .sim-input input {
+        width: 100%;
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 13px;
+        padding: 10px 14px;
+        margin-bottom: 14px;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+      .sim-input select:focus,
+      .sim-input input:focus {
+        border-color: var(--accent);
+      }
+      .run-btn {
+        width: 100%;
+        background: var(--accent);
+        color: #0d0f1a;
+        border: none;
+        border-radius: 8px;
+        font-family: "Syne", sans-serif;
+        font-size: 14px;
+        font-weight: 800;
+        padding: 12px;
+        cursor: pointer;
+        transition:
+          opacity 0.2s,
+          transform 0.1s;
+        letter-spacing: 1px;
+      }
+      .run-btn:hover {
+        opacity: 0.85;
+      }
+      .run-btn:active {
+        transform: scale(0.97);
+      }
+
+      .sim-output {
+        padding: 20px;
+      }
+      .sim-output label {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px;
+        color: var(--muted);
+        display: block;
+        margin-bottom: 8px;
+      }
+      .output-box {
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 16px;
+        min-height: 160px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 13px;
+        line-height: 1.8;
+        white-space: pre-wrap;
+        transition: all 0.3s;
+      }
+      .output-ok {
+        border-color: var(--green);
+        color: var(--green);
+      }
+      .output-err {
+        border-color: var(--red);
+        color: var(--red);
+      }
+      .output-info {
+        border-color: var(--accent3);
+        color: var(--accent3);
+      }
+
+      /* ─── Comparison table ───────────────────────────────────── */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+        margin: 20px 0;
+      }
+      th {
+        background: var(--surface);
+        font-family: "Syne", sans-serif;
+        font-size: 12px;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: var(--accent);
+        padding: 14px 18px;
+        text-align: left;
+        border-bottom: 2px solid var(--border);
+      }
+      td {
+        padding: 13px 18px;
+        border-bottom: 1px solid var(--border);
+        color: var(--muted);
+        vertical-align: top;
+      }
+      tr:hover td {
+        background: #ffffff06;
+      }
+      td:first-child {
+        color: #fff;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 13px;
+      }
+
+      /* ─── Highlight pill ─────────────────────────────────────── */
+      .pill {
+        display: inline-block;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11.5px;
+        padding: 2px 9px;
+        border-radius: 4px;
+        margin: 1px;
+      }
+      .pill-y {
+        background: #f7c94820;
+        color: var(--accent);
+        border: 1px solid #f7c94840;
+      }
+      .pill-r {
+        background: #ff5f5f20;
+        color: var(--red);
+        border: 1px solid #ff5f5f40;
+      }
+      .pill-g {
+        background: #52e07a20;
+        color: var(--green);
+        border: 1px solid #52e07a40;
+      }
+      .pill-b {
+        background: #4ecdc420;
+        color: var(--accent3);
+        border: 1px solid #4ecdc440;
+      }
+
+      /* ─── Info callout ───────────────────────────────────────── */
+      .callout {
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 18px 22px;
+        margin: 18px 0;
+        display: flex;
+        gap: 14px;
+        align-items: flex-start;
+      }
+      .callout-icon {
+        font-size: 22px;
+        flex-shrink: 0;
+        margin-top: 2px;
+      }
+      .callout p {
+        margin: 0;
+        font-size: 14.5px;
+      }
+      .callout-warn {
+        background: #f7c94810;
+        border-color: #f7c94830;
+      }
+      .callout-tip {
+        background: #52e07a10;
+        border-color: #52e07a30;
+      }
+      .callout-info {
+        background: #4ecdc410;
+        border-color: #4ecdc430;
+      }
+
+      /* ─── Quiz ───────────────────────────────────────────────── */
+      .quiz-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 26px;
+        margin-bottom: 18px;
+        transition: border-color 0.3s;
+      }
+      .quiz-card.correct-card {
+        border-color: var(--green);
+      }
+      .quiz-card.wrong-card {
+        border-color: var(--red);
+      }
+
+      .quiz-q {
+        font-family: "Syne", sans-serif;
+        font-size: 16px;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 16px;
+      }
+      .quiz-options {
+        display: grid;
+        gap: 10px;
+      }
+      .quiz-opt {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 12px 18px;
+        cursor: pointer;
+        font-size: 14px;
+        color: var(--muted);
+        transition: all 0.2s;
+        text-align: left;
+        font-family: "Lora", Georgia, serif;
+      }
+      .quiz-opt:hover:not(:disabled) {
+        background: var(--border);
+        color: var(--text);
+      }
+      .quiz-opt.correct {
+        background: #52e07a20;
+        border-color: var(--green);
+        color: var(--green);
+      }
+      .quiz-opt.wrong {
+        background: #ff5f5f20;
+        border-color: var(--red);
+        color: var(--red);
+      }
+      .quiz-opt:disabled {
+        cursor: default;
+      }
+
+      .quiz-feedback {
+        margin-top: 12px;
+        font-size: 13.5px;
+        min-height: 20px;
+        font-family: "JetBrains Mono", monospace;
+        padding: 8px 14px;
+        border-radius: 6px;
+        display: none;
+      }
+      .feedback-correct {
+        background: #52e07a15;
+        color: var(--green);
+        display: block;
+      }
+      .feedback-wrong {
+        background: #ff5f5f15;
+        color: var(--red);
+        display: block;
+      }
+
+      #quiz-score {
+        font-family: "Syne", sans-serif;
+        font-size: 22px;
+        font-weight: 800;
+        text-align: center;
+        padding: 28px;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        display: none;
+        color: var(--accent);
+      }
+
+      /* ─── Experiment section ─────────────────────────────────── */
+      .experiment {
+        background: linear-gradient(135deg, #0d1f2d, #1a1f40);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 28px;
+      }
+      .exp-title {
+        font-family: "Syne", sans-serif;
+        font-size: 18px;
+        font-weight: 800;
+        color: var(--accent3);
+        margin-bottom: 8px;
+      }
+      textarea#exp-code {
+        width: 100%;
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        color: #c9d1d9;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 13px;
+        padding: 18px;
+        resize: vertical;
+        min-height: 180px;
+        outline: none;
+        line-height: 1.8;
+        transition: border-color 0.2s;
+        margin: 14px 0;
+      }
+      textarea#exp-code:focus {
+        border-color: var(--accent3);
+      }
+      .exp-run {
+        background: var(--accent3);
+        color: #0d0f1a;
+        border: none;
+        border-radius: 8px;
+        font-family: "Syne", sans-serif;
+        font-size: 14px;
+        font-weight: 800;
+        padding: 12px 28px;
+        cursor: pointer;
+        transition: opacity 0.2s;
+      }
+      .exp-run:hover {
+        opacity: 0.8;
+      }
+      #exp-output {
+        margin-top: 14px;
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 16px 20px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 13px;
+        min-height: 80px;
+        white-space: pre-wrap;
+        line-height: 1.8;
+        color: var(--accent3);
+      }
+
+      /* ─── Scroll reveal ──────────────────────────────────────── */
+      .reveal {
+        opacity: 0;
+        transform: translateY(20px);
+        transition:
+          opacity 0.5s ease,
+          transform 0.5s ease;
+      }
+      .reveal.visible {
+        opacity: 1;
+        transform: none;
+      }
+
+      /* ─── Progress bar (reading) ─────────────────────────────── */
+      #progress-bar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 3px;
+        background: var(--accent);
+        width: 0%;
+        z-index: 999;
+        transition: width 0.1s;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="progress-bar"></div>
+
+    <!-- ═══════════════════════════════ HEADER ═══════════════════════════════ -->
+    <header>
+      <div class="badge">Python Deep Dive · Exception Handling</div>
+      <h1>When Code Goes <span>Wrong</span> —<br />Handle It Gracefully</h1>
+      <p class="sub">
+        A hands-on guide to try/except, custom exceptions, context managers, and
+        more. Built for engineers who already know the basics.
+      </p>
+    </header>
+
+    <!-- ═══════════════════════════════ NAV ══════════════════════════════════ -->
+    <nav>
+      <a href="#why" class="active">Why?</a>
+      <a href="#hierarchy">Hierarchy</a>
+      <a href="#try-except">try/except</a>
+      <a href="#advanced">Advanced</a>
+      <a href="#custom">Custom Exceptions</a>
+      <a href="#context">Context Managers</a>
+      <a href="#experiment">🧪 Experiment</a>
+      <a href="#quiz">Quiz</a>
+    </nav>
+
+    <!-- ═══════════════════════════════ MAIN ═════════════════════════════════ -->
+    <main>
+      <!-- ── 1. WHY HANDLE EXCEPTIONS ─────────────────────────────────────── -->
+      <section id="why" class="reveal">
+        <div class="section-label">01 · Foundation</div>
+        <h2>Why Do We Need Exception Handling?</h2>
+        <p>
+          In real-world programs, things go wrong — a file is missing, a network
+          is down, a user types a word where a number was expected. Without
+          exception handling, Python prints an error and
+          <strong>crashes immediately</strong>.
+        </p>
+
+        <div class="cards">
+          <div class="card">
+            <div class="card-icon">🔌</div>
+            <h4>Runtime Errors</h4>
+            <p>
+              Errors that occur <em>while</em> the program runs — cannot be
+              caught at compile time.
+            </p>
+          </div>
+          <div class="card">
+            <div class="card-icon">🛡️</div>
+            <h4>Graceful Degradation</h4>
+            <p>Instead of crashing, show a useful message or try a fallback.</p>
+          </div>
+          <div class="card">
+            <div class="card-icon">📋</div>
+            <h4>Controlled Flow</h4>
+            <p>
+              Decide what to do when something breaks — log, retry, or raise
+              again.
+            </p>
+          </div>
+          <div class="card">
+            <div class="card-icon">🔒</div>
+            <h4>Resource Safety</h4>
+            <p>
+              Ensure files/DB connections close even if an error occurs
+              mid-operation.
+            </p>
+          </div>
+        </div>
+
+        <pre><button class="copy-btn" onclick="copyCode(this)">copy</button><code><span class="cm"># Without exception handling — program CRASHES</span>
+numerator = 100
+denominator = 0
+result = numerator / denominator   <span class="err"># ZeroDivisionError!</span>
+<span class="cm"># Everything below this line never runs</span>
+<span class="fn">print</span>(<span class="st">"Result:"</span>, result)
+</code></pre>
+
+        <pre><button class="copy-btn" onclick="copyCode(this)">copy</button><code><span class="cm"># With exception handling — program CONTINUES</span>
+<span class="kw">try</span>:
+    result = numerator / denominator
+<span class="kw">except</span> <span class="nb">ZeroDivisionError</span>:
+    <span class="fn">print</span>(<span class="st">"⚠️  Cannot divide by zero! Using default value."</span>)
+    result = 0
+
+<span class="fn">print</span>(<span class="st">"Result:"</span>, result)  <span class="cm"># This line executes safely</span>
+</code></pre>
+      </section>
+
+      <!-- ── 2. EXCEPTION HIERARCHY ────────────────────────────────────────── -->
+      <section id="hierarchy" class="reveal">
+        <div class="section-label">02 · Hierarchy</div>
+        <h2>The Exception Family Tree</h2>
+        <p>
+          All exceptions in Python inherit from
+          <code style="color: var(--accent)">BaseException</code>. Understanding
+          the hierarchy helps you catch the <em>right</em> level.
+        </p>
+
+        <div class="tree" id="tree">
+          <div>🌳 <span class="kw">BaseException</span></div>
+          <div class="child" id="tree-children">
+            <div class="node" onclick="toggleNode('n-sys')">
+              ├── <span class="node-name nb" id="n-sys-label">SystemExit</span>
+              <span class="cm">← raised by sys.exit()</span>
+            </div>
+            <div class="node" onclick="toggleNode('n-kb')">
+              ├──
+              <span class="node-name nb" id="n-kb-label"
+                >KeyboardInterrupt</span
+              >
+              <span class="cm">← Ctrl+C</span>
+            </div>
+            <div class="node" onclick="toggleNode('n-exc')">
+              └── <span class="node-name kw" id="n-exc-label">Exception</span>
+              <span class="cm">← most errors you'll handle ▾</span>
+            </div>
+            <div id="n-exc" class="child" style="display: none">
+              <div>
+                ├── <span class="nb">ArithmeticError</span>
+                <div class="child">
+                  <span class="muted cm"
+                    >├── ZeroDivisionError &nbsp; ← 10 / 0</span
+                  >
+                </div>
+                <div class="child">
+                  <span class="cm">└── OverflowError</span>
+                </div>
+              </div>
+              <div>
+                ├── <span class="nb">LookupError</span>
+                <div class="child">
+                  <span class="cm"
+                    >├── IndexError &nbsp; ← list[99] on 3-item list</span
+                  >
+                </div>
+                <div class="child">
+                  <span class="cm"
+                    >└── KeyError &nbsp; &nbsp; ← dict['missing_key']</span
+                  >
+                </div>
+              </div>
+              <div>
+                ├── <span class="nb">TypeError</span>
+                <span class="cm">&nbsp; ← wrong type operation</span>
+              </div>
+              <div>
+                ├── <span class="nb">ValueError</span>
+                <span class="cm">&nbsp;← right type, wrong value</span>
+              </div>
+              <div>
+                ├── <span class="nb">AttributeError</span>
+                <span class="cm">← obj has no attribute</span>
+              </div>
+              <div>├── <span class="nb">ImportError</span></div>
+              <div>├── <span class="nb">FileNotFoundError</span></div>
+              <div>├── <span class="nb">NameError</span></div>
+              <div>
+                └── <span class="gr">… and your custom exceptions!</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout callout-warn" style="margin-top: 20px">
+          <div class="callout-icon">⚠️</div>
+          <p>
+            <strong>Catch specific before general!</strong> If you catch
+            <code>Exception</code> before <code>ZeroDivisionError</code>, the
+            specific handler never runs. Python checks except clauses top to
+            bottom.
+          </p>
+        </div>
+      </section>
+
+      <!-- ── 3. TRY / EXCEPT ───────────────────────────────────────────────── -->
+      <section id="try-except" class="reveal">
+        <div class="section-label">03 · Core Syntax</div>
+        <h2>try / except / else / finally</h2>
+        <p>
+          The full structure has <strong>four optional parts</strong>. Each
+          serves a distinct purpose:
+        </p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Clause</th>
+              <th>When it runs</th>
+              <th>Typical use</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>try</td>
+              <td>Always (first)</td>
+              <td>The risky code</td>
+            </tr>
+            <tr>
+              <td>except</td>
+              <td>Only if an exception occurs</td>
+              <td>Handle the error</td>
+            </tr>
+            <tr>
+              <td>else</td>
+              <td>Only if NO exception occurred</td>
+              <td>Success path (keep try clean)</td>
+            </tr>
+            <tr>
+              <td>finally</td>
+              <td>Always (last), no matter what</td>
+              <td>Cleanup — close files, DB, network</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <pre><button class="copy-btn" onclick="copyCode(this)">copy</button><code><span class="cm"># Real-world example: Reading a student marks file</span>
+<span class="kw">def</span> <span class="fn">get_student_marks</span>(filename, student_name):
+    <span class="kw">try</span>:
+        f = <span class="fn">open</span>(filename, <span class="st">'r'</span>)
+        data = <span class="fn">eval</span>(f.read())          <span class="cm"># dict of name → marks</span>
+        marks = data[student_name]      <span class="cm"># could be KeyError</span>
+        percentage = marks / 500 * 100  <span class="cm"># could be TypeError</span>
+
+    <span class="kw">except</span> <span class="nb">FileNotFoundError</span>:
+        <span class="fn">print</span>(<span class="st">f"❌ File '{filename}' not found."</span>)
+        <span class="kw">return None</span>
+
+    <span class="kw">except</span> <span class="nb">KeyError</span>:
+        <span class="fn">print</span>(<span class="st">f"❌ Student '{student_name}' not in records."</span>)
+        <span class="kw">return None</span>
+
+    <span class="kw">except</span> (<span class="nb">TypeError</span>, <span class="nb">ValueError</span>) <span class="kw">as</span> e:
+        <span class="fn">print</span>(<span class="st">f"❌ Data error: {e}"</span>)
+        <span class="kw">return None</span>
+
+    <span class="kw">else</span>:
+        <span class="cm"># Only runs if no exception occurred</span>
+        <span class="fn">print</span>(<span class="st">f"✅ {student_name}: {marks}/500 ({percentage:.1f}%)"</span>)
+        <span class="kw">return</span> percentage
+
+    <span class="kw">finally</span>:
+        <span class="cm"># Always runs — clean up resources</span>
+        <span class="kw">try</span>: f.close()
+        <span class="kw">except</span>: <span class="kw">pass</span>
+        <span class="fn">print</span>(<span class="st">"📂 File operation complete."</span>)
+</code></pre>
+
+        <!-- ── Interactive Exception Simulator ─── -->
+        <div class="simulator" style="margin-top: 28px">
+          <div class="sim-toolbar">
+            <div class="dot dot-r"></div>
+            <div class="dot dot-y"></div>
+            <div class="dot dot-g"></div>
+            <span>&nbsp;Exception Simulator — Try it live</span>
+          </div>
+          <div class="sim-body">
+            <div class="sim-input">
+              <label>CHOOSE AN EXCEPTION TO TRIGGER</label>
+              <select id="sim-exc">
+                <option value="zero">ZeroDivisionError</option>
+                <option value="type">TypeError</option>
+                <option value="value">ValueError</option>
+                <option value="key">KeyError</option>
+                <option value="index">IndexError</option>
+                <option value="file">FileNotFoundError</option>
+                <option value="attr">AttributeError</option>
+                <option value="none">No Exception (success path)</option>
+              </select>
+              <label>CUSTOM MESSAGE (optional)</label>
+              <input type="text" id="sim-msg" placeholder="e.g. roll no. 42" />
+              <button class="run-btn" onclick="runSimulator()">
+                ▶ &nbsp;Run Simulation
+              </button>
+            </div>
+            <div class="sim-output">
+              <label>OUTPUT CONSOLE</label>
+              <div class="output-box" id="sim-out">
+                Click "Run Simulation" to see the output here...
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── 4. ADVANCED PATTERNS ──────────────────────────────────────────── -->
+      <section id="advanced" class="reveal">
+        <div class="section-label">04 · Advanced Patterns</div>
+        <h2>raise, re-raise &amp; Exception Chaining</h2>
+
+        <div class="analogy">
+          <div class="analogy-title">💡 Analogy — Exception Chaining</div>
+          <p>
+            Imagine a post office (your function) that receives a wrong-address
+            letter. The postman doesn't just say "delivery failed" — he staples
+            the original wrong address to the return slip so the sender knows
+            <em>exactly</em> what went wrong and where.
+            <code>raise X from Y</code> works the same way: it chains the
+            <em>cause</em> to the new exception so the full story is preserved.
+          </p>
+        </div>
+
+        <pre><button class="copy-btn" onclick="copyCode(this)">copy</button><code><span class="cm"># 1. raise — trigger an exception manually</span>
+<span class="kw">def</span> <span class="fn">withdraw</span>(balance, amount):
+    <span class="kw">if</span> amount &gt; balance:
+        <span class="kw">raise</span> <span class="nb">ValueError</span>(<span class="st">f"Cannot withdraw ₹{amount}. Balance: ₹{balance}"</span>)
+    <span class="kw">return</span> balance - amount
+
+<span class="cm"># 2. re-raise — catch, log, then bubble up</span>
+<span class="kw">def</span> <span class="fn">process_payment</span>(balance, amount):
+    <span class="kw">try</span>:
+        <span class="fn">withdraw</span>(balance, amount)
+    <span class="kw">except</span> <span class="nb">ValueError</span> <span class="kw">as</span> e:
+        <span class="fn">print</span>(<span class="st">"[LOG] Payment failed:"</span>, e)
+        <span class="kw">raise</span>   <span class="cm"># re-raise the same exception</span>
+
+<span class="cm"># 3. Exception chaining — from keyword</span>
+<span class="kw">def</span> <span class="fn">load_config</span>(path):
+    <span class="kw">try</span>:
+        <span class="kw">with</span> <span class="fn">open</span>(path) <span class="kw">as</span> f:
+            <span class="kw">return</span> <span class="fn">eval</span>(f.read())
+    <span class="kw">except</span> <span class="nb">FileNotFoundError</span> <span class="kw">as</span> e:
+        <span class="kw">raise</span> <span class="nb">RuntimeError</span>(<span class="st">"App cannot start without config"</span>) <span class="kw">from</span> e
+        <span class="cm"># Output shows: "The above exception was the direct cause of..."</span>
+</code></pre>
+
+        <h2 style="margin-top: 36px">
+          Multiple except Blocks &amp; Catching Groups
+        </h2>
+        <pre><button class="copy-btn" onclick="copyCode(this)">copy</button><code><span class="cm"># Catching multiple exception types in one block</span>
+<span class="kw">try</span>:
+    data = <span class="fn">int</span>(<span class="fn">input</span>(<span class="st">"Enter marks: "</span>))
+<span class="kw">except</span> (<span class="nb">ValueError</span>, <span class="nb">TypeError</span>):
+    <span class="fn">print</span>(<span class="st">"Please enter a valid integer."</span>)
+
+<span class="cm"># Inspect the exception object</span>
+<span class="kw">try</span>:
+    x = 1 / 0
+<span class="kw">except</span> <span class="nb">ZeroDivisionError</span> <span class="kw">as</span> e:
+    <span class="fn">print</span>(<span class="st">f"Type  : {type(e).__name__}"</span>)   <span class="cm"># ZeroDivisionError</span>
+    <span class="fn">print</span>(<span class="st">f"Args  : {e.args}"</span>)             <span class="cm"># ('division by zero',)</span>
+    <span class="fn">print</span>(<span class="st">f"Msg   : {e}"</span>)                  <span class="cm"># division by zero</span>
+
+<span class="cm"># Bare except — catches EVERYTHING including KeyboardInterrupt (avoid!)</span>
+<span class="kw">try</span>:
+    risky()
+<span class="kw">except</span>:            <span class="err"># ⚠ avoid bare except in production</span>
+    <span class="kw">pass</span>
+</code></pre>
+
+        <div class="callout callout-tip">
+          <div class="callout-icon">✅</div>
+          <p>
+            <strong>Best Practice:</strong> Always catch the most specific
+            exception first. Never use a bare <code>except:</code> in production
+            code — it swallows <code>KeyboardInterrupt</code> and
+            <code>SystemExit</code>, making your program impossible to stop
+            cleanly.
+          </p>
+        </div>
+      </section>
+
+      <!-- ── 5. CUSTOM EXCEPTIONS ──────────────────────────────────────────── -->
+      <section id="custom" class="reveal">
+        <div class="section-label">05 · Custom Exceptions</div>
+        <h2>Building Your Own Exception Classes</h2>
+        <p>
+          When built-in exceptions aren't descriptive enough for your domain
+          (banking, e-commerce, hospital systems…), create your own.
+        </p>
+
+        <pre><button class="copy-btn" onclick="copyCode(this)">copy</button><code><span class="cm"># ── Base custom exception for your application ──</span>
+<span class="kw">class</span> <span class="nb">BankingError</span>(<span class="nb">Exception</span>):
+    <span class="st">"""Base class for all banking-related errors."""</span>
+    <span class="kw">pass</span>
+
+<span class="kw">class</span> <span class="nb">InsufficientFundsError</span>(<span class="nb">BankingError</span>):
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, balance, amount):
+        self.balance = balance
+        self.amount  = amount
+        self.shortfall = amount - balance
+        super().__init__(
+            <span class="st">f"Need ₹{amount}, have ₹{balance}. Short by ₹{self.shortfall}."</span>
+        )
+
+<span class="kw">class</span> <span class="nb">AccountFrozenError</span>(<span class="nb">BankingError</span>):
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, account_id):
+        super().__init__(<span class="st">f"Account {account_id} is frozen. Contact branch."</span>)
+
+<span class="cm"># ── Using them ──</span>
+<span class="kw">def</span> <span class="fn">transfer</span>(from_acc, amount):
+    <span class="kw">if</span> from_acc.frozen:
+        <span class="kw">raise</span> <span class="nb">AccountFrozenError</span>(from_acc.id)
+    <span class="kw">if</span> from_acc.balance &lt; amount:
+        <span class="kw">raise</span> <span class="nb">InsufficientFundsError</span>(from_acc.balance, amount)
+    from_acc.balance -= amount
+
+<span class="kw">try</span>:
+    <span class="fn">transfer</span>(my_account, 50000)
+<span class="kw">except</span> <span class="nb">InsufficientFundsError</span> <span class="kw">as</span> e:
+    <span class="fn">print</span>(<span class="st">f"❌ {e}"</span>)
+    <span class="fn">print</span>(<span class="st">f"   You need ₹{e.shortfall} more."</span>)
+<span class="kw">except</span> <span class="nb">AccountFrozenError</span> <span class="kw">as</span> e:
+    <span class="fn">print</span>(<span class="st">f"🔒 {e}"</span>)
+<span class="kw">except</span> <span class="nb">BankingError</span> <span class="kw">as</span> e:
+    <span class="cm"># catches any banking error not caught above</span>
+    <span class="fn">print</span>(<span class="st">f"🏦 {e}"</span>)
+</code></pre>
+
+        <div class="cards" style="margin-top: 20px">
+          <div class="card">
+            <div class="card-icon">🎯</div>
+            <h4>Descriptive</h4>
+            <p>
+              Name tells you exactly what failed — no guessing from generic
+              messages.
+            </p>
+          </div>
+          <div class="card">
+            <div class="card-icon">📦</div>
+            <h4>Extra Attributes</h4>
+            <p>
+              Attach domain data (balance, shortfall) to the exception object
+              itself.
+            </p>
+          </div>
+          <div class="card">
+            <div class="card-icon">🌳</div>
+            <h4>Hierarchy-aware</h4>
+            <p>
+              Catch <code>BankingError</code> to handle all banking errors in
+              one place.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── 6. CONTEXT MANAGERS ───────────────────────────────────────────── -->
+      <section id="context" class="reveal">
+        <div class="section-label">06 · Context Managers</div>
+        <h2>The <code>with</code> Statement — Exception-safe Resources</h2>
+
+        <div class="analogy">
+          <div class="analogy-title">💡 Analogy — The Dhaba Thali</div>
+          <p>
+            When you sit down at a dhaba, the waiter sets your thali (opens a
+            resource). When you're done eating — whether you finished everything
+            or had to leave early (exception) — the waiter clears the table
+            (closes the resource). You don't have to remind him. The
+            <code>with</code> statement works exactly like this: guaranteed
+            setup and guaranteed cleanup, no matter what happens in between.
+          </p>
+        </div>
+
+        <pre><button class="copy-btn" onclick="copyCode(this)">copy</button><code><span class="cm"># ── Without context manager — risky! ──</span>
+f = <span class="fn">open</span>(<span class="st">'students.txt'</span>, <span class="st">'w'</span>)
+<span class="kw">try</span>:
+    f.write(<span class="st">"Ravi, 92\nPreeti, 88\nArjun, 76\n"</span>)
+<span class="kw">finally</span>:
+    f.close()   <span class="cm"># must remember this!</span>
+
+<span class="cm"># ── With context manager — clean &amp; safe ──</span>
+<span class="kw">with</span> <span class="fn">open</span>(<span class="st">'students.txt'</span>, <span class="st">'w'</span>) <span class="kw">as</span> f:
+    f.write(<span class="st">"Ravi, 92\nPreeti, 88\nArjun, 76\n"</span>)
+<span class="cm"># File is AUTOMATICALLY closed here — even if an exception occurred</span>
+
+<span class="cm"># ── Build your own context manager ──</span>
+<span class="kw">class</span> <span class="nb">DatabaseConnection</span>:
+    <span class="kw">def</span> <span class="fn">__enter__</span>(self):
+        <span class="fn">print</span>(<span class="st">"🔌 Connecting to database..."</span>)
+        self.conn = <span class="fn">create_connection</span>()
+        <span class="kw">return</span> self.conn   <span class="cm"># this is the 'as' variable</span>
+
+    <span class="kw">def</span> <span class="fn">__exit__</span>(self, exc_type, exc_val, exc_tb):
+        self.conn.close()
+        <span class="fn">print</span>(<span class="st">"🔒 Connection closed."</span>)
+        <span class="kw">return False</span>   <span class="cm"># False = don't suppress exceptions</span>
+
+<span class="kw">with</span> <span class="nb">DatabaseConnection</span>() <span class="kw">as</span> db:
+    db.query(<span class="st">"SELECT * FROM students"</span>)
+<span class="cm"># __exit__ called automatically ↑</span>
+
+<span class="cm"># ── Using contextlib — simpler approach ──</span>
+<span class="kw">from</span> contextlib <span class="kw">import</span> contextmanager
+
+<span class="nb">@contextmanager</span>
+<span class="kw">def</span> <span class="fn">managed_connection</span>():
+    <span class="fn">print</span>(<span class="st">"Connecting..."</span>)
+    conn = <span class="fn">create_connection</span>()
+    <span class="kw">try</span>:
+        <span class="kw">yield</span> conn        <span class="cm"># everything before yield = __enter__</span>
+    <span class="kw">finally</span>:
+        conn.close()      <span class="cm"># everything in finally = __exit__</span>
+        <span class="fn">print</span>(<span class="st">"Disconnected."</span>)
+</code></pre>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Approach</th>
+              <th>Pros</th>
+              <th>Best for</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>try/finally</td>
+              <td>Explicit, no imports</td>
+              <td>One-off cases</td>
+            </tr>
+            <tr>
+              <td>with + class</td>
+              <td>Reusable, full control</td>
+              <td>DB connections, locks</td>
+            </tr>
+            <tr>
+              <td>@contextmanager</td>
+              <td>Concise, generator-based</td>
+              <td>Simpler resources</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- ── 7. EXPERIMENT ─────────────────────────────────────────────────── -->
+      <section id="experiment" class="reveal">
+        <div class="section-label">07 · Try It Yourself</div>
+        <h2>🧪 Live Experiment Area</h2>
+        <p>
+          Choose a task below, modify the template code, and observe how
+          exception handling changes the program's behaviour.
+        </p>
+
+        <div class="cards" style="margin-bottom: 20px">
+          <div
+            class="card"
+            onclick="loadExperiment('bank')"
+            style="cursor: pointer; border-color: var(--accent)"
+          >
+            <div class="card-icon">🏦</div>
+            <h4>Bank Withdrawal</h4>
+            <p>Custom exception with extra attributes. Try triggering it.</p>
+          </div>
+          <div
+            class="card"
+            onclick="loadExperiment('file')"
+            style="cursor: pointer"
+          >
+            <div class="card-icon">📂</div>
+            <h4>File Read</h4>
+            <p>Handle missing file + finally cleanup. Modify the filename.</p>
+          </div>
+          <div
+            class="card"
+            onclick="loadExperiment('chain')"
+            style="cursor: pointer"
+          >
+            <div class="card-icon">🔗</div>
+            <h4>Exception Chaining</h4>
+            <p>raise X from Y — see the full cause chain.</p>
+          </div>
+        </div>
+
+        <div class="experiment">
+          <div class="exp-title">📝 Code Sandbox</div>
+          <p style="color: var(--muted); font-size: 13.5px">
+            Edit the code, then click Run to see output (simulated in browser).
+          </p>
+          <textarea id="exp-code">
+# Click a task card above to load a template
+# or write your own exception handling code here
+
+try:
+    x = int("abc")   # ValueError!
+except ValueError as e:
+    print(f"Caught: {e}")
+else:
+    print("No error occurred")
+finally:
+    print("Always executes")
+    </textarea
+          >
+          <button class="exp-run" onclick="runExperiment()">▶ Run Code</button>
+          <div id="exp-output">Output will appear here…</div>
+        </div>
+      </section>
+
+      <!-- ── 8. QUIZ ───────────────────────────────────────────────────────── -->
+      <section id="quiz" class="reveal">
+        <div class="section-label">08 · Revalidate</div>
+        <h2>Quick Quiz — 5 Questions</h2>
+        <p>
+          Test your understanding. Answers are revealed after each selection.
+        </p>
+
+        <div id="quiz-container"></div>
+        <div id="quiz-score"></div>
+      </section>
+    </main>
+
+    <!-- ══════════════════════════════ SCRIPTS ══════════════════════════════ -->
+    <script>
+      // ── Progress bar ───────────────────────────────────────────────────────
+      window.addEventListener("scroll", () => {
+        const scrollTop = document.documentElement.scrollTop;
+        const docHeight =
+          document.documentElement.scrollHeight - window.innerHeight;
+        document.getElementById("progress-bar").style.width =
+          (scrollTop / docHeight) * 100 + "%";
+      });
+
+      // ── Scroll reveal ──────────────────────────────────────────────────────
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => {
+            if (e.isIntersecting) e.target.classList.add("visible");
+          });
+        },
+        { threshold: 0.08 },
+      );
+      document
+        .querySelectorAll(".reveal")
+        .forEach((el) => observer.observe(el));
+
+      // ── Nav active state ───────────────────────────────────────────────────
+      const navLinks = document.querySelectorAll("nav a");
+      const sections = document.querySelectorAll("section");
+      window.addEventListener("scroll", () => {
+        let current = "";
+        sections.forEach((s) => {
+          if (window.scrollY >= s.offsetTop - 120) current = s.id;
+        });
+        navLinks.forEach((a) => {
+          a.classList.toggle(
+            "active",
+            a.getAttribute("href") === "#" + current,
+          );
+        });
+      });
+
+      // ── Copy code button ───────────────────────────────────────────────────
+      function copyCode(btn) {
+        const code = btn.parentElement.querySelector("code").innerText;
+        navigator.clipboard.writeText(code).then(() => {
+          btn.textContent = "copied!";
+          setTimeout(() => (btn.textContent = "copy"), 2000);
+        });
+      }
+
+      // ── Tree toggle ────────────────────────────────────────────────────────
+      function toggleNode(id) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const visible = el.style.display !== "none";
+        el.style.display = visible ? "none" : "block";
+        const lbl = document.getElementById(id + "-label");
+        if (lbl) lbl.style.color = visible ? "" : "var(--accent)";
+      }
+
+      // ── Exception Simulator ────────────────────────────────────────────────
+      function runSimulator() {
+        const exc = document.getElementById("sim-exc").value;
+        const msg = document.getElementById("sim-msg").value || "(your input)";
+        const box = document.getElementById("sim-out");
+
+        // Remove previous state classes
+        box.className = "output-box";
+
+        // Simulate what Python would print for each exception type
+        const scripts = {
+          zero: {
+            code: `try:\n    result = 100 / 0\nexcept ZeroDivisionError as e:\n    print(f"Caught: {e}")`,
+            out: `▶ Executing try block...\nTraceback intercepted!\n\n[except ZeroDivisionError]\nCaught: division by zero\n\n[finally]\nCleanup done.`,
+            cls: "output-err",
+          },
+          type: {
+            code: `try:\n    result = "₹500" + 100\nexcept TypeError as e:\n    print(f"Caught: {e}")`,
+            out: `▶ Executing try block...\nTraceback intercepted!\n\n[except TypeError]\nCaught: can only concatenate str (not "int") to str\n\n[finally]\nCleanup done.`,
+            cls: "output-err",
+          },
+          value: {
+            code: `try:\n    x = int("${msg}")\nexcept ValueError as e:\n    print(f"Caught: {e}")`,
+            out: `▶ Executing try block...\nTraceback intercepted!\n\n[except ValueError]\nCaught: invalid literal for int() with base 10: '${msg}'\n\n[finally]\nCleanup done.`,
+            cls: "output-err",
+          },
+          key: {
+            code: `marks = {"Ravi": 88}\ntry:\n    x = marks["${msg}"]\nexcept KeyError as e:\n    print(f"Caught: {e}")`,
+            out: `▶ Executing try block...\nTraceback intercepted!\n\n[except KeyError]\nCaught: '${msg}'\n\n[finally]\nCleanup done.`,
+            cls: "output-err",
+          },
+          index: {
+            code: `scores = [45, 78, 92]\ntry:\n    x = scores[10]\nexcept IndexError as e:\n    print(f"Caught: {e}")`,
+            out: `▶ Executing try block...\nTraceback intercepted!\n\n[except IndexError]\nCaught: list index out of range\n\n[finally]\nCleanup done.`,
+            cls: "output-err",
+          },
+          file: {
+            code: `try:\n    f = open("${msg}.txt")\nexcept FileNotFoundError as e:\n    print(f"Caught: {e}")`,
+            out: `▶ Executing try block...\nTraceback intercepted!\n\n[except FileNotFoundError]\nCaught: [Errno 2] No such file or directory: '${msg}.txt'\n\n[finally]\nFile handle closed (if open).`,
+            cls: "output-err",
+          },
+          attr: {
+            code: `try:\n    x = 42\n    x.upper()\nexcept AttributeError as e:\n    print(f"Caught: {e}")`,
+            out: `▶ Executing try block...\nTraceback intercepted!\n\n[except AttributeError]\nCaught: 'int' object has no attribute 'upper'\n\n[finally]\nCleanup done.`,
+            cls: "output-err",
+          },
+          none: {
+            code: `try:\n    result = 100 / 4\nexcept ZeroDivisionError:\n    print("Error!")\nelse:\n    print(f"Success: {result}")\nfinally:\n    print("Cleanup.")`,
+            out: `▶ Executing try block...\n\n[try] — No exception raised!\n\n[else]\nSuccess: 25.0\n\n[finally]\nCleanup done.`,
+            cls: "output-ok",
+          },
+        };
+
+        // Animate in the output
+        const s = scripts[exc];
+        box.className = "output-box " + s.cls;
+        box.textContent = "";
+
+        // Type-writer effect for output
+        let i = 0;
+        const text = s.out;
+        const timer = setInterval(() => {
+          box.textContent += text[i];
+          i++;
+          if (i >= text.length) clearInterval(timer);
+        }, 12);
+      }
+
+      // ── Experiment templates ───────────────────────────────────────────────
+      const experiments = {
+        bank: `class InsufficientFundsError(Exception):
+    def __init__(self, balance, amount):
+        self.shortfall = amount - balance
+        super().__init__(
+            f"Need ₹{amount}, have ₹{balance}. Short: ₹{self.shortfall}"
+        )
+
+def withdraw(balance, amount):
+    if amount > balance:
+        raise InsufficientFundsError(balance, amount)
+    return balance - amount
+
+try:
+    new_bal = withdraw(5000, 8500)
+except InsufficientFundsError as e:
+    print(f"❌ {e}")
+    print(f"   Deposit ₹{e.shortfall} to proceed.")
+else:
+    print(f"✅ Withdrawal successful! New balance: ₹{new_bal}")
+finally:
+    print("Transaction log saved.")`,
+
+        file: `def read_result(filename):
+    try:
+        f = open(filename, 'r')
+        content = f.read()
+        print("File contents:")
+        print(content)
+    except FileNotFoundError:
+        print(f"❌ '{filename}' not found.")
+        print("   Creating a default file...")
+    except PermissionError:
+        print(f"❌ No permission to read '{filename}'.")
+    else:
+        print("✅ File read successfully.")
+    finally:
+        try:
+            f.close()
+            print("📂 File closed.")
+        except:
+            pass
+
+read_result("marksheet.txt")   # change filename to test`,
+
+        chain: `def fetch_config(path):
+    try:
+        with open(path) as f:
+            return eval(f.read())
+    except FileNotFoundError as e:
+        raise RuntimeError(
+            "Application cannot start: config missing"
+        ) from e
+
+def start_app():
+    try:
+        config = fetch_config("app_config.py")
+        print("App started:", config)
+    except RuntimeError as e:
+        print(f"❌ Startup failed: {e}")
+        print(f"   Caused by: {e.__cause__}")
+
+start_app()`,
+      };
+
+      function loadExperiment(key) {
+        document.getElementById("exp-code").value = experiments[key];
+        document.getElementById("exp-output").textContent =
+          "Click ▶ Run Code to execute.";
+        // Highlight the clicked card
+        document
+          .querySelectorAll(
+            ".experiment ~ .cards .card, #experiment .cards .card",
+          )
+          .forEach((c) => {
+            c.style.borderColor = "";
+          });
+      }
+
+      // ── Experiment runner (simulated Python output) ────────────────────────
+      function runExperiment() {
+        const code = document.getElementById("exp-code").value;
+        const out = document.getElementById("exp-output");
+
+        // Simple pattern matching to simulate output (educational demo)
+        // In a real deployment this would call a sandboxed Python executor
+        let result = "";
+
+        if (
+          code.includes("InsufficientFundsError") &&
+          code.includes("withdraw(5000, 8500)")
+        ) {
+          result = `❌ Need ₹8500, have ₹5000. Short: ₹3500\n   Deposit ₹3500 to proceed.\nTransaction log saved.`;
+        } else if (
+          code.includes("read_result") &&
+          code.includes('"marksheet.txt"')
+        ) {
+          result = `❌ 'marksheet.txt' not found.\n   Creating a default file...`;
+        } else if (code.includes("start_app")) {
+          result = `❌ Startup failed: Application cannot start: config missing\n   Caused by: [Errno 2] No such file or directory: 'app_config.py'`;
+        } else if (code.includes('int("abc")')) {
+          result = `Caught: invalid literal for int() with base 10: 'abc'\nAlways executes`;
+        } else if (code.includes("1 / 0")) {
+          result = `Caught: division by zero`;
+        } else if (code.includes("raise")) {
+          result = `Exception raised as coded.\nCheck the except/finally blocks.`;
+        } else if (code.includes("try")) {
+          result = `Code pattern detected.\n\n[Simulated] Your try/except block ran.\nNote: This is a browser demo — actual Python needed for full execution.\nLogic structure looks correct!`;
+        } else {
+          result = `[Simulated output]\nNo recognized exception pattern found.\nTip: use a try/except block to handle errors.`;
+        }
+
+        out.style.color = "var(--accent3)";
+        out.textContent = "";
+        let i = 0;
+        const timer = setInterval(() => {
+          out.textContent += result[i];
+          i++;
+          if (i >= result.length) clearInterval(timer);
+        }, 10);
+      }
+
+      // ── Quiz ───────────────────────────────────────────────────────────────
+      const quizData = [
+        {
+          q: "Which clause in a try/except block runs ONLY when NO exception is raised?",
+          opts: ["except", "finally", "else", "raise"],
+          ans: 2,
+          exp: "✅ Correct! 'else' runs only when the try block succeeds without any exception.",
+        },
+        {
+          q: "You want to guarantee a file is closed even if an exception occurs. Which is the most Pythonic way?",
+          opts: [
+            "Wrap open() in a try/finally manually every time",
+            "Use 'with open(...) as f:' (context manager)",
+            "Call f.close() at the end of the function",
+            "Use a bare except to catch everything",
+          ],
+          ans: 1,
+          exp: "✅ The 'with' statement uses __enter__ and __exit__ to guarantee cleanup — even if an exception is raised mid-block.",
+        },
+        {
+          q: "What does 'raise ValueError(\"bad\") from original_error' do differently from just 'raise ValueError(\"bad\")'?",
+          opts: [
+            "Nothing — they are identical",
+            "It suppresses the original error completely",
+            "It chains the exceptions, so the original cause is preserved and visible in the traceback",
+            "It converts the original_error into a ValueError",
+          ],
+          ans: 2,
+          exp: "✅ Exception chaining with 'from' preserves the original exception as __cause__, giving full context in the traceback.",
+        },
+        {
+          q: "Which of these is a BAD practice in production code?",
+          opts: [
+            "except ValueError as e:",
+            "except (TypeError, ValueError):",
+            "except: (bare except)",
+            "except Exception as e:",
+          ],
+          ans: 2,
+          exp: "✅ Bare 'except:' catches everything including KeyboardInterrupt and SystemExit — making your program impossible to interrupt cleanly.",
+        },
+        {
+          q: "In Python's exception hierarchy, which is the CORRECT order from most general to most specific?",
+          opts: [
+            "ZeroDivisionError → ArithmeticError → Exception → BaseException",
+            "BaseException → Exception → ArithmeticError → ZeroDivisionError",
+            "Exception → BaseException → ZeroDivisionError → ArithmeticError",
+            "ArithmeticError → BaseException → ZeroDivisionError → Exception",
+          ],
+          ans: 1,
+          exp: "✅ BaseException is the root. Exception inherits from it. ArithmeticError inherits from Exception. ZeroDivisionError inherits from ArithmeticError.",
+        },
+      ];
+
+      let quizAnswered = 0;
+      let quizScore = 0;
+
+      function buildQuiz() {
+        const container = document.getElementById("quiz-container");
+        quizData.forEach((q, qi) => {
+          const card = document.createElement("div");
+          card.className = "quiz-card";
+          card.id = `qcard-${qi}`;
+
+          const question = document.createElement("div");
+          question.className = "quiz-q";
+          question.textContent = `Q${qi + 1}. ${q.q}`;
+          card.appendChild(question);
+
+          const opts = document.createElement("div");
+          opts.className = "quiz-options";
+          q.opts.forEach((opt, oi) => {
+            const btn = document.createElement("button");
+            btn.className = "quiz-opt";
+            btn.textContent = opt;
+            btn.onclick = () => answerQuiz(qi, oi, btn);
+            opts.appendChild(btn);
+          });
+          card.appendChild(opts);
+
+          const fb = document.createElement("div");
+          fb.className = "quiz-feedback";
+          fb.id = `fb-${qi}`;
+          card.appendChild(fb);
+
+          container.appendChild(card);
+        });
+      }
+
+      function answerQuiz(qi, chosen, btn) {
+        const q = quizData[qi];
+        const card = document.getElementById(`qcard-${qi}`);
+        const fb = document.getElementById(`fb-${qi}`);
+
+        // Disable all options for this question
+        card.querySelectorAll(".quiz-opt").forEach((b) => (b.disabled = true));
+
+        const correct = chosen === q.ans;
+        btn.classList.add(correct ? "correct" : "wrong");
+        card.querySelectorAll(".quiz-opt")[q.ans].classList.add("correct");
+
+        card.classList.add(correct ? "correct-card" : "wrong-card");
+
+        fb.textContent = correct ? q.exp : `❌ Not quite. ${q.exp}`;
+        fb.className =
+          "quiz-feedback " + (correct ? "feedback-correct" : "feedback-wrong");
+
+        if (correct) quizScore++;
+        quizAnswered++;
+
+        if (quizAnswered === quizData.length) showFinalScore();
+      }
+
+      function showFinalScore() {
+        const s = document.getElementById("quiz-score");
+        s.style.display = "block";
+        const pct = Math.round((quizScore / quizData.length) * 100);
+        const emoji = pct === 100 ? "🏆" : pct >= 60 ? "👍" : "📖";
+        s.innerHTML = `${emoji} You scored <span style="color:var(--green)">${quizScore} / ${quizData.length}</span> (${pct}%)<br>
+    <span style="font-size:14px;color:var(--muted);font-family:'Lora',serif;font-weight:400;">
+    ${pct === 100 ? "Perfect! You've mastered exception handling." : pct >= 60 ? "Good job! Review the ones you missed." : "Revisit the sections above and try again."}
+    </span>`;
+      }
+
+      // ── Init ───────────────────────────────────────────────────────────────
+      buildQuiz();
+    </script>
+  </body>
+</html>

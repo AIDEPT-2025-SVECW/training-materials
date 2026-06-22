@@ -1,0 +1,1198 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Learn Pandas: Series & DataFrame</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;600&family=Sora:wght@300;400;600;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0d1117;
+        --surface: #161b22;
+        --surface2: #21262d;
+        --border: #30363d;
+        --python-blue: #4b8bbe;
+        --python-yellow: #ffd43b;
+        --accent-green: #3fb950;
+        --accent-purple: #d2a8ff;
+        --accent-orange: #f0883e;
+        --text: #e6edf3;
+        --text-muted: #8b949e;
+        --radius: 12px;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: "Sora", sans-serif;
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+
+      /* HEADER */
+      header {
+        background: linear-gradient(
+          135deg,
+          #0d1117 0%,
+          #1a1f2e 50%,
+          #0d1117 100%
+        );
+        border-bottom: 1px solid var(--border);
+        padding: 60px 40px 50px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+      }
+      header::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(
+            ellipse at 30% 50%,
+            rgba(75, 139, 190, 0.12) 0%,
+            transparent 60%
+          ),
+          radial-gradient(
+            ellipse at 70% 50%,
+            rgba(255, 212, 59, 0.08) 0%,
+            transparent 60%
+          );
+      }
+      .snake-logo {
+        font-size: 72px;
+        line-height: 1;
+        margin-bottom: 16px;
+        animation: float 3s ease-in-out infinite;
+        position: relative;
+      }
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+      }
+      header h1 {
+        font-size: clamp(2rem, 5vw, 3.5rem);
+        font-weight: 800;
+        background: linear-gradient(
+          90deg,
+          var(--python-blue),
+          var(--python-yellow)
+        );
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        position: relative;
+      }
+      header p {
+        color: var(--text-muted);
+        margin-top: 12px;
+        font-size: 1.05rem;
+        font-weight: 300;
+        position: relative;
+      }
+
+      /* NAV */
+      nav {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: center;
+        padding: 20px 40px;
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        backdrop-filter: blur(12px);
+      }
+      nav a {
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 0.82rem;
+        font-weight: 600;
+        padding: 7px 14px;
+        border-radius: 20px;
+        border: 1px solid transparent;
+        transition: all 0.2s;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+      }
+      nav a:hover {
+        color: var(--python-yellow);
+        border-color: var(--python-yellow);
+        background: rgba(255, 212, 59, 0.07);
+      }
+
+      /* MAIN */
+      main {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 50px 24px 80px;
+        display: flex;
+        flex-direction: column;
+        gap: 50px;
+      }
+
+      /* SECTION */
+      section {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        overflow: hidden;
+        animation: fadeUp 0.5s ease both;
+      }
+      @keyframes fadeUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .section-header {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 22px 28px;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface2);
+      }
+      .section-icon {
+        font-size: 1.6rem;
+      }
+      .section-header h2 {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--text);
+      }
+      .section-body {
+        padding: 28px;
+      }
+
+      p {
+        line-height: 1.75;
+        color: var(--text);
+        margin-bottom: 14px;
+      }
+      p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* BADGES */
+      .badge-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin: 16px 0;
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 7px 14px;
+        border-radius: 20px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        border: 1px solid;
+      }
+      .badge.blue {
+        background: rgba(75, 139, 190, 0.12);
+        color: #79b8ff;
+        border-color: rgba(75, 139, 190, 0.3);
+      }
+      .badge.yellow {
+        background: rgba(255, 212, 59, 0.1);
+        color: var(--python-yellow);
+        border-color: rgba(255, 212, 59, 0.3);
+      }
+      .badge.green {
+        background: rgba(63, 185, 80, 0.1);
+        color: var(--accent-green);
+        border-color: rgba(63, 185, 80, 0.3);
+      }
+      .badge.purple {
+        background: rgba(210, 168, 255, 0.1);
+        color: var(--accent-purple);
+        border-color: rgba(210, 168, 255, 0.3);
+      }
+      .badge.orange {
+        background: rgba(240, 136, 62, 0.1);
+        color: var(--accent-orange);
+        border-color: rgba(240, 136, 62, 0.3);
+      }
+
+      /* CODE BLOCK */
+      .code-block {
+        background: #010409;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        margin: 16px 0;
+        overflow: hidden;
+      }
+      .code-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 16px;
+        background: var(--surface2);
+        border-bottom: 1px solid var(--border);
+      }
+      .code-dots {
+        display: flex;
+        gap: 6px;
+      }
+      .code-dots span {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+      }
+      .code-dots span:nth-child(1) {
+        background: #ff5f57;
+      }
+      .code-dots span:nth-child(2) {
+        background: #febc2e;
+      }
+      .code-dots span:nth-child(3) {
+        background: #28c840;
+      }
+      .code-label {
+        font-family: "Fira Code", monospace;
+        font-size: 0.78rem;
+        color: var(--text-muted);
+      }
+      pre {
+        padding: 20px;
+        font-family: "Fira Code", monospace;
+        font-size: 0.88rem;
+        line-height: 1.7;
+        overflow-x: auto;
+        color: #c9d1d9;
+      }
+      .kw {
+        color: #ff7b72;
+      }
+      .fn {
+        color: #d2a8ff;
+      }
+      .str {
+        color: #a5d6ff;
+      }
+      .cm {
+        color: #8b949e;
+        font-style: italic;
+      }
+      .num {
+        color: #79c0ff;
+      }
+      .op {
+        color: var(--python-yellow);
+      }
+
+      /* COMPARISON TABLE */
+      .compare-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 16px 0;
+        font-size: 0.9rem;
+      }
+      .compare-table th {
+        background: var(--surface2);
+        padding: 12px 16px;
+        text-align: left;
+        color: var(--python-yellow);
+        font-weight: 700;
+        border-bottom: 2px solid var(--border);
+      }
+      .compare-table td {
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border);
+        line-height: 1.5;
+        color: var(--text-muted);
+      }
+      .compare-table tr:hover td {
+        background: rgba(255, 255, 255, 0.02);
+        color: var(--text);
+      }
+      .compare-table td:first-child {
+        color: var(--text);
+        font-weight: 600;
+        font-family: "Fira Code", monospace;
+      }
+
+      /* FOLDER TREE */
+      .folder-tree {
+        background: #010409;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 20px;
+        font-family: "Fira Code", monospace;
+        font-size: 0.88rem;
+        line-height: 2;
+      }
+      .folder-tree .dir {
+        color: var(--python-yellow);
+      }
+      .folder-tree .file {
+        color: #c9d1d9;
+      }
+      .folder-tree .note {
+        color: var(--text-muted);
+        font-style: italic;
+        font-size: 0.8rem;
+      }
+
+      /* ANALOGY CARD */
+      .analogy-card {
+        background: linear-gradient(
+          135deg,
+          rgba(75, 139, 190, 0.08),
+          rgba(255, 212, 59, 0.05)
+        );
+        border: 1px solid rgba(75, 139, 190, 0.3);
+        border-radius: var(--radius);
+        padding: 24px;
+        margin: 16px 0;
+        position: relative;
+        overflow: hidden;
+      }
+      .analogy-card::before {
+        content: "";
+        position: absolute;
+        top: -30px;
+        right: -30px;
+        width: 100px;
+        height: 100px;
+        background: radial-gradient(
+          circle,
+          rgba(255, 212, 59, 0.15),
+          transparent 70%
+        );
+      }
+      .analogy-card .analogy-title {
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--python-yellow);
+        font-weight: 700;
+        margin-bottom: 10px;
+      }
+      .analogy-card p {
+        color: var(--text);
+        margin: 0;
+      }
+
+      /* STEPS */
+      .steps {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        margin: 16px 0;
+      }
+      .step {
+        display: flex;
+        gap: 16px;
+        align-items: flex-start;
+        padding: 16px;
+        background: var(--surface2);
+        border-radius: var(--radius);
+        border: 1px solid var(--border);
+      }
+      .step-num {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: var(--python-blue);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 0.85rem;
+        flex-shrink: 0;
+      }
+      .step-content h4 {
+        font-size: 0.95rem;
+        margin-bottom: 6px;
+        color: var(--text);
+      }
+      .step-content p {
+        margin: 0;
+        font-size: 0.88rem;
+        color: var(--text-muted);
+      }
+
+      /* TABS */
+      .tabs {
+        display: flex;
+        gap: 4px;
+        margin-bottom: -1px;
+      }
+      .tab-btn {
+        padding: 9px 18px;
+        background: transparent;
+        border: 1px solid var(--border);
+        border-bottom: none;
+        border-radius: 8px 8px 0 0;
+        color: var(--text-muted);
+        cursor: pointer;
+        font-family: "Sora", sans-serif;
+        font-size: 0.82rem;
+        font-weight: 600;
+        transition: all 0.2s;
+      }
+      .tab-btn.active {
+        background: #010409;
+        color: var(--python-yellow);
+        border-color: var(--border);
+      }
+      .tab-panel {
+        display: none;
+      }
+      .tab-panel.active {
+        display: block;
+      }
+
+      /* EXERCISE */
+      .exercise-area {
+        background: #010409;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+        margin: 16px 0;
+      }
+      .exercise-area textarea {
+        width: 100%;
+        min-height: 130px;
+        background: transparent;
+        border: none;
+        color: #c9d1d9;
+        font-family: "Fira Code", monospace;
+        font-size: 0.88rem;
+        padding: 18px;
+        resize: vertical;
+        outline: none;
+        line-height: 1.7;
+      }
+      .exercise-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 16px;
+        background: var(--surface2);
+        border-top: 1px solid var(--border);
+      }
+      .run-btn {
+        background: var(--accent-green);
+        color: #0d1117;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 6px;
+        font-family: "Sora", sans-serif;
+        font-weight: 700;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .run-btn:hover {
+        background: #56d364;
+        transform: translateY(-1px);
+      }
+      .output-box {
+        padding: 16px 18px;
+        font-family: "Fira Code", monospace;
+        font-size: 0.85rem;
+        color: var(--accent-green);
+        border-top: 1px solid var(--border);
+        min-height: 50px;
+        white-space: pre-wrap;
+        display: none;
+      }
+      .output-box.error {
+        color: #ff7b72;
+      }
+      .output-box.show {
+        display: block;
+      }
+
+      /* QUIZ */
+      .quiz-question {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 22px;
+        margin: 12px 0;
+        transition: border-color 0.3s;
+      }
+      .quiz-question.correct {
+        border-color: var(--accent-green);
+      }
+      .quiz-question.wrong {
+        border-color: #ff7b72;
+      }
+      .quiz-q {
+        font-weight: 600;
+        margin-bottom: 16px;
+        font-size: 0.95rem;
+      }
+      .quiz-options {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .quiz-opt {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 0.9rem;
+      }
+      .quiz-opt:hover {
+        border-color: var(--python-blue);
+        background: rgba(75, 139, 190, 0.07);
+      }
+      .quiz-opt input {
+        accent-color: var(--python-yellow);
+        width: 16px;
+        height: 16px;
+      }
+      .quiz-opt.correct-ans {
+        background: rgba(63, 185, 80, 0.1);
+        border-color: var(--accent-green);
+        color: var(--accent-green);
+      }
+      .quiz-opt.wrong-ans {
+        background: rgba(255, 123, 114, 0.1);
+        border-color: #ff7b72;
+        color: #ff7b72;
+      }
+      .quiz-feedback {
+        margin-top: 12px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        display: none;
+      }
+      .quiz-feedback.show {
+        display: block;
+      }
+      .quiz-feedback.correct {
+        color: var(--accent-green);
+      }
+      .quiz-feedback.wrong {
+        color: #ff7b72;
+      }
+
+      .submit-quiz-btn {
+        background: linear-gradient(
+          135deg,
+          var(--python-blue),
+          var(--python-yellow)
+        );
+        color: #0d1117;
+        border: none;
+        padding: 13px 32px;
+        border-radius: 8px;
+        font-family: "Sora", sans-serif;
+        font-weight: 800;
+        font-size: 1rem;
+        cursor: pointer;
+        margin-top: 20px;
+        transition: all 0.2s;
+        letter-spacing: 0.02em;
+      }
+      .submit-quiz-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(75, 139, 190, 0.3);
+      }
+
+      .score-card {
+        text-align: center;
+        padding: 30px;
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        margin-top: 20px;
+        display: none;
+      }
+      .score-card.show {
+        display: block;
+      }
+      .score-num {
+        font-size: 3.5rem;
+        font-weight: 800;
+        background: linear-gradient(
+          90deg,
+          var(--python-blue),
+          var(--python-yellow)
+        );
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      .score-msg {
+        color: var(--text-muted);
+        margin-top: 8px;
+        font-size: 1rem;
+      }
+
+      /* INFO CALLOUT */
+      .callout {
+        display: flex;
+        gap: 14px;
+        align-items: flex-start;
+        padding: 16px 18px;
+        border-radius: var(--radius);
+        margin: 14px 0;
+        font-size: 0.9rem;
+        line-height: 1.6;
+      }
+      .callout.tip {
+        background: rgba(63, 185, 80, 0.08);
+        border: 1px solid rgba(63, 185, 80, 0.25);
+      }
+      .callout.info {
+        background: rgba(75, 139, 190, 0.08);
+        border: 1px solid rgba(75, 139, 190, 0.25);
+      }
+      .callout.warn {
+        background: rgba(240, 136, 62, 0.08);
+        border: 1px solid rgba(240, 136, 62, 0.25);
+      }
+      .callout-icon {
+        font-size: 1.2rem;
+        flex-shrink: 0;
+      }
+      .callout p {
+        margin: 0;
+      }
+
+      /* INLINE CODE */
+      code {
+        font-family: "Fira Code", monospace;
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        padding: 2px 7px;
+        border-radius: 5px;
+        font-size: 0.85em;
+        color: var(--python-yellow);
+      }
+
+      /* PROGRESS INDICATOR */
+      .progress-bar {
+        height: 3px;
+        background: linear-gradient(
+          90deg,
+          var(--python-blue),
+          var(--python-yellow)
+        );
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 0;
+        z-index: 200;
+        transition: width 0.1s;
+      }
+
+      @media (max-width: 600px) {
+        header {
+          padding: 40px 20px 30px;
+        }
+        nav {
+          padding: 12px 16px;
+        }
+        main {
+          padding: 30px 14px 60px;
+        }
+        .section-body {
+          padding: 18px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="progress-bar" id="progress"></div>
+
+    <header>
+      <div class="snake-logo">🐼</div>
+      <h1>Series & DataFrame</h1>
+      <p>The two fundamental data structures of Pandas</p>
+    </header>
+
+    <nav>
+      <a href="series-dataframe.html">Series & DataFrame</a>
+      <a href="data-cleaning.html">Data Cleaning</a>
+      <a href="missing-data.html">Missing Data</a>
+      <a href="groupby-aggregation.html">GroupBy & Aggregation</a>
+      <a href="merge-join.html">Merging & Joining</a>
+      <a href="time-series.html">Time Series (Optional)</a>
+    </nav>
+
+    <main>
+
+      <section id="series">
+        <div class="section-header">
+          <span class="section-icon">🍱</span>
+          <h2>Series — Like a Single Column of a Register</h2>
+        </div>
+        <div class="section-body">
+          <p>
+            Think of a school attendance register. A <strong>Series</strong> in Pandas is exactly like one column of that register — for example, just the "Marks" column. Every row has a <em>label (index)</em> (the student's roll number) and a <em>value</em> (their marks).
+          </p>
+          <p>
+            A Series is a one-dimensional, labelled array. Unlike a NumPy array, each element has a custom label (index) in addition to its position.
+          </p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <div class="code-dots"><span></span><span></span><span></span></div>
+              <span class="code-label">series.py</span>
+            </div>
+            <pre><span class="kw">import</span> pandas <span class="kw">as</span> pd
+
+<span class="cm"># Creating a Series — like a single column in a register</span>
+<span class="fn">marks</span> = pd.Series(
+    [<span class="num">85</span>, <span class="num">92</span>, <span class="num">78</span>],
+    index=[<span class="str">"Arjun"</span>, <span class="str">"Priya"</span>, <span class="str">"Ravi"</span>]
+)
+
+<span class="kw">print</span>(marks[<span class="str">"Priya"</span>])  <span class="cm"># Output: 92  — access by label!</span>
+<span class="kw">print</span>(marks.mean())   <span class="cm"># Output: 85.0</span></pre>
+          </div>
+        </div>
+      </section>
+
+      <section id="dataframe">
+        <div class="section-header">
+          <span class="section-icon">📋</span>
+          <h2>DataFrame — The Complete Register</h2>
+        </div>
+        <div class="section-body">
+          <p>
+            If a Series is one column, a <strong>DataFrame</strong> is the entire register with multiple columns — Name, Roll No, Marks, Attendance, Grade — all tied together with a shared row index.
+          </p>
+          <p>
+            A DataFrame is a 2D labelled table. It is the most important object in Pandas. Internally, it is a collection of Series objects that all share the same index.
+          </p>
+
+          <div class="analogy-card">
+            <div class="analogy-title">Real-Life Analogy</div>
+            <p><strong>School Register:</strong> Each column is a Series (Name column, Marks column). The entire register with all columns combined is your DataFrame. Every row is identified by a unique index (like Roll Number).</p>
+          </div>
+
+          <div class="code-block">
+            <div class="code-header">
+              <div class="code-dots"><span></span><span></span><span></span></div>
+              <span class="code-label">dataframe.py</span>
+            </div>
+            <pre><span class="kw">import</span> pandas <span class="kw">as</span> pd
+
+<span class="fn">students</span> = pd.DataFrame({
+    <span class="str">"Name"</span>:   [<span class="str">"Arjun"</span>, <span class="str">"Priya"</span>, <span class="str">"Ravi"</span>],
+    <span class="str">"Marks"</span>:  [<span class="num">85</span>, <span class="num">92</span>, <span class="num">78</span>],
+    <span class="str">"Grade"</span>:  [<span class="str">"B"</span>, <span class="str">"A"</span>, <span class="str">"B"</span>]
+})
+
+<span class="kw">print</span>(students.head())       <span class="cm"># First 5 rows</span>
+<span class="kw">print</span>(students.shape)        <span class="cm"># (3, 3) — 3 rows, 3 columns</span>
+<span class="kw">print</span>(students.dtypes)       <span class="cm"># Data types of each column</span>
+<span class="kw">print</span>(students[<span class="str">"Marks"</span>])    <span class="cm"># Access a single column (Series)</span></pre>
+          </div>
+        </div>
+      </section>
+
+      <section id="explore">
+        <div class="section-header">
+          <span class="section-icon">🔍</span>
+          <h2>Exploring a DataFrame</h2>
+        </div>
+        <div class="section-body">
+          <table class="compare-table">
+            <tr>
+              <th>Method / Attribute</th>
+              <th>What It Does</th>
+            </tr>
+            <tr>
+              <td><code>df.head(n)</code></td>
+              <td>Shows the first n rows (default 5).</td>
+            </tr>
+            <tr>
+              <td><code>df.tail(n)</code></td>
+              <td>Shows the last n rows (default 5).</td>
+            </tr>
+            <tr>
+              <td><code>df.shape</code></td>
+              <td>Returns (rows, columns) as a tuple.</td>
+            </tr>
+            <tr>
+              <td><code>df.info()</code></td>
+              <td>Summary: column names, data types, missing values.</td>
+            </tr>
+            <tr>
+              <td><code>df.describe()</code></td>
+              <td>Statistical summary — mean, std, min, max, etc.</td>
+            </tr>
+            <tr>
+              <td><code>df.columns</code></td>
+              <td>List of all column names.</td>
+            </tr>
+          </table>
+        </div>
+      </section>
+
+      <!-- EXERCISE -->
+      <section id="exercise">
+        <div class="section-header">
+          <span class="section-icon">💻</span>
+          <h2>Try it Out: Build a Class Record</h2>
+        </div>
+        <div class="section-body">
+          <p>Create a DataFrame for 3 students with columns: <code>Name</code>, <code>Subject</code>, and <code>Score</code>.</p>
+          <div class="exercise-area">
+            <textarea id="code-editor" spellcheck="false">
+import pandas as pd
+
+# TODO: Create a DataFrame with 3 students
+# Columns: Name, Subject, Score
+data = {
+    "Name":    ["Meena", "Suresh", "Lakshmi"],
+    "Subject": [],   # fill in 3 subjects
+    "Score":   [],   # fill in 3 scores
+}
+df = pd.DataFrame(data)
+print(df)
+</textarea>
+            <div class="exercise-footer">
+              <span class="code-label">ClassRecord.py</span>
+              <button class="run-btn" onclick="runCode()">Run Code ▶</button>
+            </div>
+            <div class="output-box" id="output"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- QUIZ -->
+      <section id="quiz">
+        <div class="section-header">
+          <span class="section-icon">📝</span>
+          <h2>Quick Check</h2>
+        </div>
+        <div class="section-body">
+
+          <div class="quiz-question" id="q1">
+            <div class="quiz-q">1. What is the key difference between a Pandas Series and a DataFrame?</div>
+            <div class="quiz-options">
+              <label class="quiz-opt"><input type="radio" name="q1" value="a"> Series can hold strings; DataFrame cannot.</label>
+              <label class="quiz-opt"><input type="radio" name="q1" value="b"> Series is 1-dimensional (one column); DataFrame is 2-dimensional (multiple columns).</label>
+              <label class="quiz-opt"><input type="radio" name="q1" value="c"> DataFrame can only hold numbers.</label>
+            </div>
+            <div class="quiz-feedback" id="fb1"></div>
+          </div>
+
+          <div class="quiz-question" id="q2">
+            <div class="quiz-q">2. Which method gives you a quick statistical summary of a DataFrame?</div>
+            <div class="quiz-options">
+              <label class="quiz-opt"><input type="radio" name="q2" value="a"> df.info()</label>
+              <label class="quiz-opt"><input type="radio" name="q2" value="b"> df.head()</label>
+              <label class="quiz-opt"><input type="radio" name="q2" value="c"> df.describe()</label>
+            </div>
+            <div class="quiz-feedback" id="fb2"></div>
+          </div>
+
+          <div class="quiz-question" id="q3">
+            <div class="quiz-q">3. How do you select a single column named "Age" from a DataFrame <code>df</code>?</div>
+            <div class="quiz-options">
+              <label class="quiz-opt"><input type="radio" name="q3" value="a"> df.Age()</label>
+              <label class="quiz-opt"><input type="radio" name="q3" value="b"> df["Age"]</label>
+              <label class="quiz-opt"><input type="radio" name="q3" value="c"> df.column("Age")</label>
+            </div>
+            <div class="quiz-feedback" id="fb3"></div>
+          </div>
+
+          <button class="submit-quiz-btn" onclick="submitQuiz()">Submit Answers</button>
+          <div class="score-card" id="score-card">
+            <div class="score-num" id="score-display"></div>
+            <div class="score-msg" id="score-msg"></div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+
+    <script>
+      // ---- PROGRESS BAR ----
+      window.addEventListener("scroll", () => {
+        const el = document.getElementById("progress");
+        const scrollTop = window.scrollY;
+        const docH = document.documentElement.scrollHeight - window.innerHeight;
+        el.style.width = (scrollTop / docH) * 100 + "%";
+      });
+
+      // ---- TABS ----
+      function switchTab(e, id) {
+        document
+          .querySelectorAll(".tab-btn")
+          .forEach((b) => b.classList.remove("active"));
+        document
+          .querySelectorAll(".tab-panel")
+          .forEach((p) => p.classList.remove("active"));
+        e.target.classList.add("active");
+        document.getElementById("tab-" + id).classList.add("active");
+      }
+
+      // ---- SNIPPETS ----
+      const snippets = {
+        hello: `# Classic first program!\nprint("Hello, World!")\nprint("Welcome to Python 🐍")`,
+        loop: `# Counting with a for loop\nfor i in range(1, 6):\n    print(f"Count: {i}")\n\nprint("Done!")`,
+        func: `# Define and call a function\ndef greet(name):\n    return f"Hello, {name}! Welcome to Python."\n\nresult = greet("Student")\nprint(result)`,
+        list: `# Working with lists\nfruits = ["apple", "banana", "mango", "grape"]\n\nfor fruit in fruits:\n    print(f"🍓 {fruit}")\n\nprint(f"Total fruits: {len(fruits)}")`,
+        dict: `# Dictionaries — key:value pairs\nstudent = {\n    "name": "Alice",\n    "age": 20,\n    "grade": "A"\n}\n\nfor key, value in student.items():\n    print(f"{key}: {value}")`,
+      };
+
+      function loadSnippet(key) {
+        document.getElementById("code-input").value = snippets[key];
+        document.getElementById("output-box").classList.remove("show", "error");
+      }
+
+      // ---- CODE RUNNER (safe simulated interpreter) ----
+      function runCode() {
+        const code = document.getElementById("code-input").value.trim();
+        const out = document.getElementById("output-box");
+        out.classList.remove("error");
+
+        if (!code) {
+          out.textContent = "⚠ No code to run.";
+          out.classList.add("show", "error");
+          return;
+        }
+
+        try {
+          const lines = [];
+          const fakeEnv = { __lines: lines };
+
+          // Build a safe execution sandbox
+          const fn = new Function(
+            "print",
+            "range",
+            "len",
+            "str",
+            "int",
+            "float",
+            "list",
+            "dict",
+            "type",
+            transformCode(code),
+          );
+
+          fn(
+            (...args) =>
+              lines.push(
+                args
+                  .map((a) =>
+                    typeof a === "object" ? JSON.stringify(a) : String(a),
+                  )
+                  .join(" "),
+              ),
+            (a, b, c) => {
+              const r = [];
+              const s = b === undefined ? 0 : a,
+                e = b === undefined ? a : b,
+                st = c || 1;
+              for (let i = s; i < e; i += st) r.push(i);
+              return r;
+            },
+            (x) =>
+              Array.isArray(x)
+                ? x.length
+                : typeof x === "string"
+                  ? x.length
+                  : typeof x === "object"
+                    ? Object.keys(x).length
+                    : 0,
+            String,
+            Number,
+            parseFloat,
+            (x) => (Array.isArray(x) ? x : Array.from(x)),
+            (x) => (typeof x === "object" ? x : {}),
+            (x) => typeof x,
+          );
+
+          out.textContent = lines.length ? lines.join("\n") : "(no output)";
+          out.classList.remove("error");
+          out.classList.add("show");
+        } catch (e) {
+          out.textContent = "❌ Error: " + e.message;
+          out.classList.add("show", "error");
+        }
+      }
+
+      function transformCode(py) {
+        let js = py;
+        // Remove comments
+        js = js.replace(/#[^\n]*/g, "");
+        // f-strings: f"...{x}..." => `...${x}...`
+        js = js.replace(
+          /f"([^"]*)"/g,
+          (_, s) => "`" + s.replace(/\{([^}]+)\}/g, "${$1}") + "`",
+        );
+        js = js.replace(
+          /f'([^']*)'/g,
+          (_, s) => "`" + s.replace(/\{([^}]+)\}/g, "${$1}") + "`",
+        );
+        // def -> function
+        js = js.replace(/def (\w+)\(([^)]*)\):/g, "function $1($2) {");
+        // for x in range(...)
+        js = js.replace(
+          /for (\w+) in range\(([^)]+)\):/g,
+          "for (const $1 of range($2)) {",
+        );
+        // for x, y in dict.items()
+        js = js.replace(
+          /for (\w+), (\w+) in (\w+)\.items\(\):/g,
+          "for (const [$1, $2] of Object.entries($3)) {",
+        );
+        // for x in list
+        js = js.replace(/for (\w+) in (\w+):/g, "for (const $1 of $2) {");
+        // if/elif/else
+        js = js.replace(/elif (.+):/g, "} else if ($1) {");
+        js = js.replace(/if (.+):/g, "if ($1) {");
+        js = js.replace(/else:/g, "} else {");
+        // return
+        js = js.replace(/return (.+)/g, "return $1;");
+        // Strings
+        js = js.replace(/"([^"]*)"/g, '"$1"');
+        // Handle indentation -> braces (simple)
+        const lines = js.split("\n");
+        const result = [];
+        const indents = [0];
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i];
+          const stripped = line.trimStart();
+          if (!stripped) continue;
+          const indent = line.length - stripped.length;
+          if (indent > indents[indents.length - 1]) {
+            indents.push(indent);
+          } else {
+            while (indents.length > 1 && indent < indents[indents.length - 1]) {
+              indents.pop();
+              result.push("}");
+            }
+          }
+          result.push(
+            stripped.endsWith(":")
+              ? stripped.slice(0, -1) + " {"
+              : stripped + ";",
+          );
+        }
+        while (indents.length > 1) {
+          indents.pop();
+          result.push("}");
+        }
+        return result.join("\n");
+      }
+
+      // ---- QUIZ ----
+      const answers = {"q1": "b", "q2": "c", "q3": "b"};
+      const feedbacks = {
+  "q1": {
+    "b": "✅ Correct! A Series is one labelled column; a DataFrame is the full table.",
+    "wrong": "❌ Think of the school register: a Series is one column, a DataFrame is all columns together."
+  },
+  "q2": {
+    "c": "✅ Correct! `describe()` gives mean, std, min, max and percentiles.",
+    "wrong": "❌ `info()` shows types and NaNs; `describe()` gives statistical summaries."
+  },
+  "q3": {
+    "b": "✅ Correct! Bracket notation with the string column name is the standard way.",
+    "wrong": "❌ Use bracket notation: `df[\"Age\"]` to access a column."
+  }
+};
+
+      function submitQuiz() {
+        let score = 0;
+        const total = 6;
+
+        for (let i = 1; i <= total; i++) {
+          const qel = document.getElementById("q" + i);
+          const fbed = document.getElementById("fb" + i);
+          const sel = document.querySelector(`input[name="q${i}"]:checked`);
+          const correct = answers["q" + i];
+
+          qel.classList.remove("correct", "wrong");
+          document.querySelectorAll(`input[name="q${i}"]`).forEach((r) => {
+            r.closest(".quiz-opt").classList.remove("correct-ans", "wrong-ans");
+          });
+
+          if (!sel) {
+            fbed.textContent = "⚠ Please select an answer.";
+            fbed.className = "quiz-feedback show wrong";
+            continue;
+          }
+
+          const chosen = sel.value;
+          // Highlight correct answer always
+          document
+            .querySelector(`input[name="q${i}"][value="${correct}"]`)
+            .closest(".quiz-opt")
+            .classList.add("correct-ans");
+
+          if (chosen === correct) {
+            score++;
+            qel.classList.add("correct");
+            fbed.textContent = feedbacks["q" + i][correct];
+            fbed.className = "quiz-feedback show correct";
+          } else {
+            qel.classList.add("wrong");
+            sel.closest(".quiz-opt").classList.add("wrong-ans");
+            fbed.textContent = feedbacks["q" + i].wrong;
+            fbed.className = "quiz-feedback show wrong";
+          }
+        }
+
+        const sc = document.getElementById("score-card");
+        const disp = document.getElementById("score-display");
+        const msg = document.getElementById("score-msg");
+        disp.textContent = score + " / " + total;
+
+        const pct = score / total;
+        if (pct === 1)
+          msg.textContent = "🏆 Perfect score! You're a Python pro already!";
+        else if (pct >= 0.8)
+          msg.textContent =
+            "🎉 Excellent! You have a strong grasp of the basics.";
+        else if (pct >= 0.6)
+          msg.textContent =
+            "👍 Good job! Review the sections you missed and try again.";
+        else if (pct >= 0.4)
+          msg.textContent =
+            "📚 Keep studying! Go back through the material and retake the quiz.";
+        else
+          msg.textContent =
+            "🔁 Don't give up! Read each section carefully and try again.";
+
+        sc.classList.add("show");
+        sc.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    </script>
+  </body>
+</html>

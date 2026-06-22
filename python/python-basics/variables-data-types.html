@@ -1,0 +1,1752 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Python Variables & Data Types — Deep Dive</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0d1117;
+        --surface: #161b22;
+        --surface2: #1e2730;
+        --border: #30363d;
+        --accent: #f7c948;
+        --accent2: #58a6ff;
+        --accent3: #3fb950;
+        --accent4: #ff7b72;
+        --accent5: #d2a8ff;
+        --text: #e6edf3;
+        --muted: #8b949e;
+        --int-color: #58a6ff;
+        --float-color: #3fb950;
+        --str-color: #f7c948;
+        --bool-color: #ff7b72;
+        --none-color: #d2a8ff;
+        --list-color: #ffa657;
+        --dict-color: #79c0ff;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: "Syne", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+
+      /* Animated grid background */
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(88, 166, 255, 0.04) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(88, 166, 255, 0.04) 1px, transparent 1px);
+        background-size: 40px 40px;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .page-wrap {
+        position: relative;
+        z-index: 1;
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 40px 24px 80px;
+      }
+
+      /* ── HERO ── */
+      .hero {
+        text-align: center;
+        padding: 60px 0 50px;
+      }
+      .hero-badge {
+        display: inline-block;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.72rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--accent);
+        border: 1px solid rgba(247, 201, 72, 0.3);
+        padding: 4px 14px;
+        border-radius: 20px;
+        margin-bottom: 20px;
+      }
+      .hero h1 {
+        font-size: clamp(2.4rem, 6vw, 4rem);
+        font-weight: 800;
+        line-height: 1.1;
+        background: linear-gradient(135deg, #e6edf3 30%, #58a6ff 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 16px;
+      }
+      .hero p {
+        color: var(--muted);
+        font-size: 1.05rem;
+        max-width: 520px;
+        margin: 0 auto;
+        line-height: 1.7;
+      }
+
+      /* ── SECTION ── */
+      .section {
+        margin-bottom: 60px;
+      }
+      .section-label {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.7rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 8px;
+      }
+      .section-title {
+        font-size: 1.7rem;
+        font-weight: 800;
+        margin-bottom: 18px;
+        color: var(--text);
+      }
+
+      /* ── CARD ── */
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 20px;
+        transition: border-color 0.2s;
+      }
+      .card:hover {
+        border-color: rgba(88, 166, 255, 0.35);
+      }
+
+      /* ── CODE BLOCK ── */
+      pre {
+        background: #010409;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 18px 20px;
+        overflow-x: auto;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.88rem;
+        line-height: 1.7;
+        margin: 14px 0;
+        position: relative;
+      }
+      pre .kw {
+        color: #ff7b72;
+      }
+      pre .fn {
+        color: #d2a8ff;
+      }
+      pre .str {
+        color: #a5d6ff;
+      }
+      pre .num {
+        color: #79c0ff;
+      }
+      pre .cm {
+        color: #8b949e;
+        font-style: italic;
+      }
+      pre .var {
+        color: #ffa657;
+      }
+      pre .op {
+        color: #e6edf3;
+      }
+
+      /* ── ANALOGY BOX ── */
+      .analogy {
+        background: linear-gradient(
+          135deg,
+          rgba(247, 201, 72, 0.08),
+          rgba(247, 201, 72, 0.03)
+        );
+        border: 1px solid rgba(247, 201, 72, 0.25);
+        border-left: 4px solid var(--accent);
+        border-radius: 0 10px 10px 0;
+        padding: 18px 20px;
+        margin: 18px 0;
+        font-size: 0.97rem;
+        line-height: 1.7;
+        color: #cbb76a;
+      }
+      .analogy strong {
+        color: var(--accent);
+      }
+
+      /* ── TYPE BADGE GRID ── */
+      .type-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 14px;
+        margin: 20px 0;
+      }
+      .type-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 18px;
+        cursor: pointer;
+        transition: all 0.22s ease;
+        position: relative;
+        overflow: hidden;
+      }
+      .type-card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        transition: opacity 0.22s;
+      }
+      .type-card:hover {
+        transform: translateY(-3px);
+      }
+      .type-card:hover::before {
+        opacity: 1;
+      }
+      .type-card.int {
+        --tc: var(--int-color);
+      }
+      .type-card.float {
+        --tc: var(--float-color);
+      }
+      .type-card.str {
+        --tc: var(--str-color);
+      }
+      .type-card.bool {
+        --tc: var(--bool-color);
+      }
+      .type-card.none {
+        --tc: var(--none-color);
+      }
+      .type-card.list {
+        --tc: var(--list-color);
+      }
+      .type-card.dict {
+        --tc: var(--dict-color);
+      }
+      .type-card::before {
+        background: radial-gradient(
+          circle at 50% 0,
+          color-mix(in srgb, var(--tc) 15%, transparent),
+          transparent 70%
+        );
+      }
+      .type-card:hover {
+        border-color: var(--tc);
+      }
+
+      .type-name {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--tc);
+        margin-bottom: 6px;
+      }
+      .type-example {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.8rem;
+        color: var(--muted);
+        margin-bottom: 8px;
+      }
+      .type-desc {
+        font-size: 0.82rem;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      /* ── TYPE DETAIL PANEL ── */
+      #type-detail {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 24px;
+        margin-top: 6px;
+        display: none;
+        animation: slideIn 0.25s ease;
+      }
+      #type-detail.show {
+        display: block;
+      }
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      #type-detail h3 {
+        font-size: 1.1rem;
+        margin-bottom: 10px;
+      }
+
+      /* ── VARIABLE PLAYGROUND ── */
+      .playground {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+        margin: 20px 0;
+      }
+      .playground-header {
+        background: var(--surface2);
+        padding: 12px 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border-bottom: 1px solid var(--border);
+      }
+      .dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+      }
+      .dot.red {
+        background: #ff5f56;
+      }
+      .dot.yellow {
+        background: #ffbd2e;
+      }
+      .dot.green {
+        background: #27c93f;
+      }
+      .playground-title {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.8rem;
+        color: var(--muted);
+        margin-left: 8px;
+      }
+      .playground-body {
+        padding: 20px;
+      }
+
+      .input-row {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: 14px;
+      }
+      .input-row label {
+        font-size: 0.85rem;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+      .input-row input {
+        background: #010409;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        color: var(--text);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.9rem;
+        padding: 8px 12px;
+        flex: 1;
+        min-width: 140px;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+      .input-row input:focus {
+        border-color: var(--accent2);
+      }
+      .btn {
+        background: var(--accent);
+        color: #0d1117;
+        border: none;
+        border-radius: 6px;
+        padding: 8px 20px;
+        font-family: "Syne", sans-serif;
+        font-size: 0.88rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.18s;
+        white-space: nowrap;
+      }
+      .btn:hover {
+        background: #ffe082;
+        transform: scale(1.03);
+      }
+      .btn.secondary {
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--text);
+      }
+      .btn.secondary:hover {
+        border-color: var(--accent2);
+        color: var(--accent2);
+      }
+
+      .output-box {
+        background: #010409;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 16px 18px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.85rem;
+        min-height: 60px;
+        color: var(--accent3);
+        line-height: 1.8;
+      }
+      .output-box .out-var {
+        color: var(--accent);
+      }
+      .output-box .out-type {
+        color: var(--accent2);
+      }
+      .output-box .out-val {
+        color: var(--accent3);
+      }
+      .output-box .out-err {
+        color: var(--accent4);
+      }
+
+      /* ── MEMORY MODEL ── */
+      .memory-viz {
+        display: flex;
+        gap: 20px;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        margin: 20px 0;
+      }
+      .mem-box {
+        flex: 1;
+        min-width: 200px;
+      }
+      .mem-title {
+        font-size: 0.78rem;
+        font-family: "JetBrains Mono", monospace;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 10px;
+      }
+      .mem-row {
+        display: flex;
+        align-items: center;
+        gap: 0;
+        margin-bottom: 8px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.82rem;
+      }
+      .mem-name {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 6px 0 0 6px;
+        padding: 6px 12px;
+        color: var(--accent);
+        min-width: 80px;
+      }
+      .mem-arrow {
+        color: var(--muted);
+        padding: 0 4px;
+        background: var(--surface2);
+        border-top: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
+        padding: 6px 2px;
+      }
+      .mem-val {
+        background: #010409;
+        border: 1px solid var(--border);
+        border-radius: 0 6px 6px 0;
+        padding: 6px 12px;
+        color: var(--accent3);
+        flex: 1;
+      }
+      .mem-type-tag {
+        font-size: 0.72rem;
+        padding: 2px 7px;
+        border-radius: 4px;
+        margin-left: 8px;
+        font-weight: 700;
+      }
+
+      /* ── MUTABILITY DEMO ── */
+      .mut-demo {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin: 16px 0;
+      }
+      @media (max-width: 540px) {
+        .mut-demo {
+          grid-template-columns: 1fr;
+        }
+      }
+      .mut-panel {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 18px;
+      }
+      .mut-panel h4 {
+        font-size: 0.85rem;
+        font-weight: 700;
+        margin-bottom: 12px;
+      }
+      .mut-panel.immutable h4 {
+        color: var(--accent4);
+      }
+      .mut-panel.mutable h4 {
+        color: var(--accent3);
+      }
+
+      /* ── TYPE CONVERSION DEMO ── */
+      .conv-flow {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin: 14px 0;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.88rem;
+      }
+      .conv-box {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 10px 16px;
+        min-width: 70px;
+        text-align: center;
+      }
+      .conv-arrow {
+        color: var(--accent);
+        font-size: 1.2rem;
+      }
+
+      /* ── NAMING RULES ── */
+      .rule-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin: 16px 0;
+      }
+      @media (max-width: 500px) {
+        .rule-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .rule-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 12px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        line-height: 1.5;
+        font-family: "JetBrains Mono", monospace;
+      }
+      .rule-item.ok {
+        background: rgba(63, 185, 80, 0.08);
+        border: 1px solid rgba(63, 185, 80, 0.2);
+        color: var(--accent3);
+      }
+      .rule-item.bad {
+        background: rgba(255, 123, 114, 0.08);
+        border: 1px solid rgba(255, 123, 114, 0.2);
+        color: var(--accent4);
+      }
+      .rule-icon {
+        font-size: 1rem;
+      }
+
+      /* ── QUIZ ── */
+      .quiz-section {
+        margin-top: 60px;
+      }
+      .quiz-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 26px;
+        margin-bottom: 18px;
+        transition: border-color 0.2s;
+      }
+      .q-number {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.72rem;
+        letter-spacing: 0.15em;
+        color: var(--muted);
+        margin-bottom: 8px;
+        text-transform: uppercase;
+      }
+      .q-text {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 18px;
+        line-height: 1.5;
+      }
+      .q-code {
+        background: #010409;
+        border: 1px solid var(--border);
+        border-radius: 7px;
+        padding: 12px 16px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.85rem;
+        margin-bottom: 18px;
+        line-height: 1.7;
+        color: var(--accent3);
+      }
+      .options {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .opt-btn {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 12px 18px;
+        text-align: left;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.88rem;
+        cursor: pointer;
+        transition: all 0.18s;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .opt-btn:hover:not(:disabled) {
+        border-color: var(--accent2);
+        color: var(--accent2);
+      }
+      .opt-btn.correct {
+        background: rgba(63, 185, 80, 0.15);
+        border-color: var(--accent3);
+        color: var(--accent3);
+      }
+      .opt-btn.wrong {
+        background: rgba(255, 123, 114, 0.15);
+        border-color: var(--accent4);
+        color: var(--accent4);
+      }
+      .opt-btn:disabled {
+        cursor: default;
+      }
+      .opt-letter {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.72rem;
+        font-weight: 700;
+        flex-shrink: 0;
+      }
+      .q-feedback {
+        margin-top: 14px;
+        padding: 12px 16px;
+        border-radius: 8px;
+        font-size: 0.88rem;
+        line-height: 1.6;
+        display: none;
+      }
+      .q-feedback.show {
+        display: block;
+      }
+      .q-feedback.good {
+        background: rgba(63, 185, 80, 0.1);
+        border: 1px solid rgba(63, 185, 80, 0.25);
+        color: #7ee787;
+      }
+      .q-feedback.bad {
+        background: rgba(255, 123, 114, 0.1);
+        border: 1px solid rgba(255, 123, 114, 0.25);
+        color: #ffa198;
+      }
+
+      /* ── SCORE ── */
+      #score-board {
+        background: linear-gradient(
+          135deg,
+          rgba(247, 201, 72, 0.1),
+          rgba(88, 166, 255, 0.08)
+        );
+        border: 1px solid rgba(247, 201, 72, 0.3);
+        border-radius: 12px;
+        padding: 28px;
+        text-align: center;
+        display: none;
+        margin-top: 24px;
+      }
+      #score-board.show {
+        display: block;
+      }
+      #score-board .score-num {
+        font-size: 3.5rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      #score-board p {
+        color: var(--muted);
+        margin-top: 6px;
+      }
+
+      /* ── EXPERIMENT ── */
+      .experiment {
+        background: linear-gradient(
+          135deg,
+          rgba(88, 166, 255, 0.07),
+          rgba(63, 185, 80, 0.05)
+        );
+        border: 1px solid rgba(88, 166, 255, 0.2);
+        border-radius: 12px;
+        padding: 26px;
+        margin: 24px 0;
+      }
+      .experiment h3 {
+        color: var(--accent2);
+        font-size: 1.1rem;
+        margin-bottom: 6px;
+      }
+      .experiment p {
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin-bottom: 16px;
+      }
+      .exp-editor {
+        background: #010409;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 16px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.88rem;
+        color: var(--accent3);
+        width: 100%;
+        min-height: 120px;
+        resize: vertical;
+        outline: none;
+        line-height: 1.7;
+        transition: border-color 0.2s;
+      }
+      .exp-editor:focus {
+        border-color: var(--accent2);
+      }
+      .exp-output {
+        margin-top: 12px;
+        background: #010409;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 14px 16px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.83rem;
+        min-height: 50px;
+        color: var(--accent3);
+        line-height: 1.8;
+        white-space: pre-wrap;
+      }
+
+      /* ── DIVIDER ── */
+      .divider {
+        border: none;
+        border-top: 1px solid var(--border);
+        margin: 50px 0;
+      }
+
+      /* ── SCROLLBAR ── */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: var(--bg);
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page-wrap">
+      <!-- ── HERO ── -->
+      <div class="hero">
+        <div class="hero-badge">Python Deep Dive · Module 2</div>
+        <h1>Variables &amp; Data Types</h1>
+        <p>
+          You know Python runs. Now let's understand what Python
+          <em>remembers</em> — and how it decides what kind of thing something
+          is.
+        </p>
+      </div>
+
+      <!-- ── SECTION 1: VARIABLES ── -->
+      <div class="section">
+        <div class="section-label">01 / Foundation</div>
+        <div class="section-title">What Is a Variable?</div>
+
+        <div class="card">
+          <p
+            style="
+              color: var(--muted);
+              font-size: 0.95rem;
+              line-height: 1.7;
+              margin-bottom: 14px;
+            "
+          >
+            A variable is a
+            <strong style="color: var(--text)">named label</strong> that points
+            to a value stored in memory. Python does <em>not</em> require you to
+            declare a type — it figures it out at runtime.
+          </p>
+          <pre><span class="cm"># Three assignments — Python infers the type each time</span>
+<span class="var">student_name</span> <span class="op">=</span> <span class="str">"Priya Sharma"</span>
+<span class="var">marks</span>        <span class="op">=</span> <span class="num">95</span>
+<span class="var">percentage</span>   <span class="op">=</span> <span class="num">95.6</span>
+
+<span class="fn">print</span>(<span class="fn">type</span>(<span class="var">student_name</span>))  <span class="cm"># &lt;class 'str'&gt;</span>
+<span class="fn">print</span>(<span class="fn">type</span>(<span class="var">marks</span>))         <span class="cm"># &lt;class 'int'&gt;</span>
+<span class="fn">print</span>(<span class="fn">type</span>(<span class="var">percentage</span>))    <span class="cm"># &lt;class 'float'&gt;</span></pre>
+
+          <div class="analogy">
+            💡 <strong>Analogy — Post-it on a Box:</strong> In memory, Python
+            creates a <em>box</em> (object) that holds a value. A variable is
+            just a <em>post-it note</em> stuck on that box. Two variables can
+            stick their notes on the <em>same</em> box — and you can always peel
+            off a note and stick it on a new box. The box doesn't know or care
+            how many notes are on it.
+          </div>
+        </div>
+
+        <!-- Naming Rules -->
+        <div class="card">
+          <h3
+            style="font-size: 1rem; margin-bottom: 14px; color: var(--accent2)"
+          >
+            Variable Naming Rules
+          </h3>
+          <div class="rule-grid">
+            <div class="rule-item ok">
+              <span class="rule-icon">✓</span> student_marks
+            </div>
+            <div class="rule-item bad">
+              <span class="rule-icon">✗</span> 1student &nbsp;&nbsp;(starts with
+              digit)
+            </div>
+            <div class="rule-item ok">
+              <span class="rule-icon">✓</span> _private_var
+            </div>
+            <div class="rule-item bad">
+              <span class="rule-icon">✗</span> my-var
+              &nbsp;&nbsp;&nbsp;&nbsp;(hyphen not allowed)
+            </div>
+            <div class="rule-item ok">
+              <span class="rule-icon">✓</span> totalMarks
+            </div>
+            <div class="rule-item bad">
+              <span class="rule-icon">✗</span> class
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(reserved keyword)
+            </div>
+            <div class="rule-item ok">
+              <span class="rule-icon">✓</span> aadhaar_no
+            </div>
+            <div class="rule-item bad">
+              <span class="rule-icon">✗</span> my var
+              &nbsp;&nbsp;&nbsp;&nbsp;(space not allowed)
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SECTION 2: CORE TYPES ── -->
+      <div class="section">
+        <div class="section-label">02 / Core Types</div>
+        <div class="section-title">Python's Built-in Data Types</div>
+        <p style="color: var(--muted); font-size: 0.9rem; margin-bottom: 18px">
+          Click any type card to see details and examples.
+        </p>
+
+        <div class="type-grid" id="type-grid">
+          <div class="type-card int" onclick="showTypeDetail('int')">
+            <div class="type-name">int</div>
+            <div class="type-example">x = 42</div>
+            <div class="type-desc">
+              Whole numbers. No size limit in Python 3.
+            </div>
+          </div>
+          <div class="type-card float" onclick="showTypeDetail('float')">
+            <div class="type-name">float</div>
+            <div class="type-example">gpa = 8.5</div>
+            <div class="type-desc">
+              Decimal numbers. IEEE 754 double precision.
+            </div>
+          </div>
+          <div class="type-card str" onclick="showTypeDetail('str')">
+            <div class="type-name">str</div>
+            <div class="type-example">city = "Chennai"</div>
+            <div class="type-desc">
+              Sequence of Unicode characters. Immutable.
+            </div>
+          </div>
+          <div class="type-card bool" onclick="showTypeDetail('bool')">
+            <div class="type-name">bool</div>
+            <div class="type-example">is_passed = True</div>
+            <div class="type-desc">
+              True or False. Subclass of int (True==1).
+            </div>
+          </div>
+          <div class="type-card none" onclick="showTypeDetail('none')">
+            <div class="type-name">NoneType</div>
+            <div class="type-example">result = None</div>
+            <div class="type-desc">
+              Represents absence of value. Only one instance.
+            </div>
+          </div>
+          <div class="type-card list" onclick="showTypeDetail('list')">
+            <div class="type-name">list</div>
+            <div class="type-example">marks = [91,85,78]</div>
+            <div class="type-desc">Ordered, mutable sequence of any types.</div>
+          </div>
+          <div class="type-card dict" onclick="showTypeDetail('dict')">
+            <div class="type-name">dict</div>
+            <div class="type-example">student = {"name":"Ravi"}</div>
+            <div class="type-desc">
+              Key-value pairs. Fast lookup. Ordered (3.7+).
+            </div>
+          </div>
+        </div>
+
+        <div id="type-detail"></div>
+      </div>
+
+      <!-- ── SECTION 3: DYNAMIC TYPING ── -->
+      <div class="section">
+        <div class="section-label">03 / Dynamic Typing</div>
+        <div class="section-title">Python is Dynamically Typed</div>
+
+        <div class="card">
+          <p
+            style="
+              color: var(--muted);
+              font-size: 0.93rem;
+              line-height: 1.7;
+              margin-bottom: 12px;
+            "
+          >
+            The same variable name can point to objects of different types
+            during runtime. Python doesn't lock a variable to a type —
+            <strong style="color: var(--text)"
+              >the type belongs to the object, not the variable</strong
+            >.
+          </p>
+          <pre><span class="var">x</span> <span class="op">=</span> <span class="num">10</span>         <span class="cm"># x → int object</span>
+<span class="fn">print</span>(<span class="fn">type</span>(<span class="var">x</span>)) <span class="cm"># &lt;class 'int'&gt;</span>
+
+<span class="var">x</span> <span class="op">=</span> <span class="str">"IIT Madras"</span> <span class="cm"># x → str object now (the int is released)</span>
+<span class="fn">print</span>(<span class="fn">type</span>(<span class="var">x</span>)) <span class="cm"># &lt;class 'str'&gt;</span>
+
+<span class="var">x</span> <span class="op">=</span> [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>]   <span class="cm"># x → list object</span>
+<span class="fn">print</span>(<span class="fn">type</span>(<span class="var">x</span>)) <span class="cm"># &lt;class 'list'&gt;</span></pre>
+
+          <div class="analogy">
+            💡 <strong>Analogy — Auto-rickshaw Meter:</strong> Think of the
+            variable as a <em>rickshaw meter</em> and the type as the
+            <em>passenger inside</em>. The same rickshaw can carry a college
+            student, a software engineer, or a bag of vegetables — it doesn't
+            care. Python's variable is just the meter (the label); the passenger
+            (the type) can change every ride.
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SECTION 4: MUTABILITY ── -->
+      <div class="section">
+        <div class="section-label">04 / Key Concept</div>
+        <div class="section-title">Mutable vs Immutable</div>
+
+        <div class="analogy">
+          💡 <strong>Analogy — Marble Slab vs Whiteboard:</strong> An
+          <strong>immutable</strong> object is like text carved on a
+          <em>marble slab</em> — you cannot erase and re-carve it. If you want
+          new text, you need a brand-new slab. Python just moves your label to
+          that new slab. A <strong>mutable</strong> object is like a
+          <em>whiteboard</em> — you can erase and rewrite without replacing the
+          board. The label stays on the same board; only the content changes.
+        </div>
+
+        <div class="mut-demo">
+          <div class="mut-panel immutable">
+            <h4>🔒 Immutable — str, int, float, bool, tuple</h4>
+            <pre
+              style="margin: 0; font-size: 0.8rem"
+            ><span class="var">s</span> <span class="op">=</span> <span class="str">"Mumbai"</span>
+<span class="fn">print</span>(<span class="fn">id</span>(<span class="var">s</span>))   <span class="cm"># e.g. 140232</span>
+
+<span class="var">s</span> <span class="op">=</span> <span class="var">s</span> <span class="op">+</span> <span class="str">" CST"</span>
+<span class="fn">print</span>(<span class="fn">id</span>(<span class="var">s</span>))   <span class="cm"># DIFFERENT id!</span>
+<span class="cm"># New object was created</span></pre>
+          </div>
+          <div class="mut-panel mutable">
+            <h4>✏️ Mutable — list, dict, set</h4>
+            <pre
+              style="margin: 0; font-size: 0.8rem"
+            ><span class="var">nums</span> <span class="op">=</span> [<span class="num">10</span>, <span class="num">20</span>]
+<span class="fn">print</span>(<span class="fn">id</span>(<span class="var">nums</span>))  <span class="cm"># e.g. 140500</span>
+
+<span class="var">nums</span>.<span class="fn">append</span>(<span class="num">30</span>)
+<span class="fn">print</span>(<span class="fn">id</span>(<span class="var">nums</span>))  <span class="cm"># SAME id!</span>
+<span class="cm"># Same object, content changed</span></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SECTION 5: TYPE CHECKING & CONVERSION ── -->
+      <div class="section">
+        <div class="section-label">05 / Practical</div>
+        <div class="section-title">Type Checking &amp; Conversion</div>
+
+        <div class="card">
+          <h3
+            style="
+              font-size: 0.95rem;
+              color: var(--accent2);
+              margin-bottom: 12px;
+            "
+          >
+            Checking Types
+          </h3>
+          <pre><span class="var">roll_no</span> <span class="op">=</span> <span class="num">21BCS045</span>
+<span class="fn">print</span>(<span class="fn">type</span>(<span class="var">roll_no</span>))            <span class="cm"># &lt;class 'int'&gt;</span>
+<span class="fn">print</span>(<span class="fn">isinstance</span>(<span class="var">roll_no</span>, <span class="fn">int</span>)) <span class="cm"># True  ← preferred way</span>
+<span class="fn">print</span>(<span class="fn">isinstance</span>(<span class="var">roll_no</span>, <span class="fn">str</span>)) <span class="cm"># False</span></pre>
+
+          <h3
+            style="
+              font-size: 0.95rem;
+              color: var(--accent2);
+              margin: 18px 0 12px;
+            "
+          >
+            Type Conversion (Casting)
+          </h3>
+          <div class="conv-flow">
+            <div class="conv-box" style="color: var(--int-color)">int</div>
+            <div class="conv-arrow">⟷</div>
+            <div class="conv-box" style="color: var(--float-color)">float</div>
+            <div class="conv-arrow">⟷</div>
+            <div class="conv-box" style="color: var(--str-color)">str</div>
+            <div class="conv-arrow">⟷</div>
+            <div class="conv-box" style="color: var(--bool-color)">bool</div>
+          </div>
+          <pre><span class="var">fees</span>     <span class="op">=</span> <span class="str">"75000"</span>        <span class="cm"># str from form input</span>
+<span class="var">fees_int</span> <span class="op">=</span> <span class="fn">int</span>(<span class="var">fees</span>)      <span class="cm"># 75000  (int)</span>
+<span class="var">fees_flt</span> <span class="op">=</span> <span class="fn">float</span>(<span class="var">fees</span>)    <span class="cm"># 75000.0 (float)</span>
+
+<span class="var">cgpa</span>     <span class="op">=</span> <span class="num">8.9</span>
+<span class="var">cgpa_str</span> <span class="op">=</span> <span class="fn">str</span>(<span class="var">cgpa</span>)      <span class="cm"># "8.9"  (str)</span>
+
+<span class="cm"># Truthiness — every type has a bool value</span>
+<span class="fn">bool</span>(<span class="num">0</span>)   <span class="cm"># False</span>
+<span class="fn">bool</span>(<span class="str">""</span>)  <span class="cm"># False</span>
+<span class="fn">bool</span>([])  <span class="cm"># False — empty list is falsy</span>
+<span class="fn">bool</span>(<span class="num">42</span>)  <span class="cm"># True</span></pre>
+        </div>
+      </div>
+
+      <!-- ── LIVE PLAYGROUND ── -->
+      <div class="section">
+        <div class="section-label">06 / Interactive</div>
+        <div class="section-title">Variable Inspector Playground</div>
+        <p style="color: var(--muted); font-size: 0.9rem; margin-bottom: 18px">
+          Enter a Python value — the inspector will detect its type, show
+          truthiness, and display the memory model.
+        </p>
+
+        <div class="playground">
+          <div class="playground-header">
+            <div class="dot red"></div>
+            <div class="dot yellow"></div>
+            <div class="dot green"></div>
+            <span class="playground-title">variable_inspector.py</span>
+          </div>
+          <div class="playground-body">
+            <div class="input-row">
+              <label>var name:</label>
+              <input
+                type="text"
+                id="varName"
+                placeholder="my_var"
+                value="score"
+                style="max-width: 120px"
+              />
+              <label>=</label>
+              <input
+                type="text"
+                id="varValue"
+                placeholder='e.g. 95 or "Ravi" or True or [1,2,3]'
+                value="95"
+              />
+              <button class="btn" onclick="inspectVar()">Inspect →</button>
+            </div>
+            <div class="output-box" id="inspectOut">
+              <span style="color: var(--muted)">// output appears here …</span>
+            </div>
+
+            <!-- Memory model -->
+            <div
+              style="margin-top: 18px"
+              id="memModelWrap"
+              style="display: none"
+            >
+              <div class="mem-title">Memory Model</div>
+              <div class="memory-viz" id="memModel"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── EXPERIMENT ── -->
+      <div class="section">
+        <div class="section-label">07 / Experiment</div>
+        <div class="section-title">Try It Yourself</div>
+
+        <div class="experiment">
+          <h3>🧪 Live Variable Explorer</h3>
+          <p>
+            Write Python-like assignments below (one per line). The explorer
+            will parse and show each variable's type, value, and mutability
+            status. Try mixing types!
+          </p>
+          <textarea class="exp-editor" id="expEditor" spellcheck="false">
+student = "Karthik"
+cgpa = 8.75
+rank = 3
+is_placed = True
+subjects = ["Maths", "DSA", "OS"]
+profile = {"name": "Karthik", "cgpa": 8.75}</textarea
+          >
+          <div
+            style="margin-top: 12px; display: flex; gap: 10px; flex-wrap: wrap"
+          >
+            <button class="btn" onclick="runExperiment()">
+              ▶ Run Experiment
+            </button>
+            <button class="btn secondary" onclick="resetExperiment()">
+              ↺ Reset
+            </button>
+          </div>
+          <div class="exp-output" id="expOut">
+            // Click "Run Experiment" to inspect all variables …
+          </div>
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <!-- ── QUIZ ── -->
+      <div class="quiz-section">
+        <div class="section-label">08 / Assessment</div>
+        <div class="section-title">Quick Quiz — 5 Questions</div>
+        <p style="color: var(--muted); font-size: 0.9rem; margin-bottom: 28px">
+          Test your understanding. No retries — pick carefully!
+        </p>
+
+        <!-- Q1 -->
+        <div class="quiz-card" id="q1">
+          <div class="q-number">Question 01 of 05</div>
+          <div class="q-text">
+            What will
+            <code
+              style="
+                background: var(--surface2);
+                padding: 2px 7px;
+                border-radius: 4px;
+                font-family: &quot;JetBrains Mono&quot;, monospace;
+              "
+              >type(True)</code
+            >
+            return in Python?
+          </div>
+          <div class="options" id="opts1">
+            <button class="opt-btn" onclick="answer(1, 'A', 'B')">
+              <span class="opt-letter">A</span> &lt;class 'int'&gt;
+            </button>
+            <button class="opt-btn" onclick="answer(1, 'B', 'B')">
+              <span class="opt-letter">B</span> &lt;class 'bool'&gt;
+            </button>
+            <button class="opt-btn" onclick="answer(1, 'C', 'B')">
+              <span class="opt-letter">C</span> &lt;class 'str'&gt;
+            </button>
+            <button class="opt-btn" onclick="answer(1, 'D', 'B')">
+              <span class="opt-letter">D</span> &lt;class 'NoneType'&gt;
+            </button>
+          </div>
+          <div class="q-feedback" id="fb1"></div>
+        </div>
+
+        <!-- Q2 -->
+        <div class="quiz-card" id="q2">
+          <div class="q-number">Question 02 of 05</div>
+          <div class="q-text">What is the output of the following code?</div>
+          <div class="q-code">x = [1, 2, 3] y = x y.append(4) print(x)</div>
+          <div class="options" id="opts2">
+            <button class="opt-btn" onclick="answer(2, 'A', 'A')">
+              <span class="opt-letter">A</span> [1, 2, 3, 4]
+            </button>
+            <button class="opt-btn" onclick="answer(2, 'B', 'A')">
+              <span class="opt-letter">B</span> [1, 2, 3]
+            </button>
+            <button class="opt-btn" onclick="answer(2, 'C', 'A')">
+              <span class="opt-letter">C</span> Error
+            </button>
+            <button class="opt-btn" onclick="answer(2, 'D', 'A')">
+              <span class="opt-letter">D</span> None
+            </button>
+          </div>
+          <div class="q-feedback" id="fb2"></div>
+        </div>
+
+        <!-- Q3 -->
+        <div class="quiz-card" id="q3">
+          <div class="q-number">Question 03 of 05</div>
+          <div class="q-text">
+            Which of these is a valid Python variable name?
+          </div>
+          <div class="options" id="opts3">
+            <button class="opt-btn" onclick="answer(3, 'A', 'D')">
+              <span class="opt-letter">A</span> 2marks
+            </button>
+            <button class="opt-btn" onclick="answer(3, 'B', 'D')">
+              <span class="opt-letter">B</span> my-score
+            </button>
+            <button class="opt-btn" onclick="answer(3, 'C', 'D')">
+              <span class="opt-letter">C</span> class
+            </button>
+            <button class="opt-btn" onclick="answer(3, 'D', 'D')">
+              <span class="opt-letter">D</span> _roll_no
+            </button>
+          </div>
+          <div class="q-feedback" id="fb3"></div>
+        </div>
+
+        <!-- Q4 -->
+        <div class="quiz-card" id="q4">
+          <div class="q-number">Question 04 of 05</div>
+          <div class="q-text">
+            What does
+            <code
+              style="
+                background: var(--surface2);
+                padding: 2px 7px;
+                border-radius: 4px;
+                font-family: &quot;JetBrains Mono&quot;, monospace;
+              "
+              >bool("")</code
+            >
+            evaluate to?
+          </div>
+          <div class="options" id="opts4">
+            <button class="opt-btn" onclick="answer(4, 'A', 'B')">
+              <span class="opt-letter">A</span> True
+            </button>
+            <button class="opt-btn" onclick="answer(4, 'B', 'B')">
+              <span class="opt-letter">B</span> False
+            </button>
+            <button class="opt-btn" onclick="answer(4, 'C', 'B')">
+              <span class="opt-letter">C</span> None
+            </button>
+            <button class="opt-btn" onclick="answer(4, 'D', 'B')">
+              <span class="opt-letter">D</span> Error
+            </button>
+          </div>
+          <div class="q-feedback" id="fb4"></div>
+        </div>
+
+        <!-- Q5 -->
+        <div class="quiz-card" id="q5">
+          <div class="q-number">Question 05 of 05</div>
+          <div class="q-text">
+            After running the code below, what is the type of
+            <code
+              style="
+                background: var(--surface2);
+                padding: 2px 7px;
+                border-radius: 4px;
+                font-family: &quot;JetBrains Mono&quot;, monospace;
+              "
+              >x</code
+            >?
+          </div>
+          <div class="q-code">x = 10 x = "ten" x = 10.0</div>
+          <div class="options" id="opts5">
+            <button class="opt-btn" onclick="answer(5, 'A', 'C')">
+              <span class="opt-letter">A</span> int
+            </button>
+            <button class="opt-btn" onclick="answer(5, 'B', 'C')">
+              <span class="opt-letter">B</span> str
+            </button>
+            <button class="opt-btn" onclick="answer(5, 'C', 'C')">
+              <span class="opt-letter">C</span> float
+            </button>
+            <button class="opt-btn" onclick="answer(5, 'D', 'C')">
+              <span class="opt-letter">D</span> Error — cannot reassign types
+            </button>
+          </div>
+          <div class="q-feedback" id="fb5"></div>
+        </div>
+
+        <div id="score-board">
+          <div class="score-num" id="scoreNum">0/5</div>
+          <p id="scoreMsg"></p>
+          <button
+            class="btn secondary"
+            style="margin-top: 18px"
+            onclick="resetQuiz()"
+          >
+            ↺ Retake Quiz
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- end page-wrap -->
+
+    <script>
+      // ─────────────────────────────────────────────
+      // TYPE DETAIL DATA
+      // ─────────────────────────────────────────────
+      const typeDetails = {
+        int: {
+          color: "#58a6ff",
+          title: "int — Integer",
+          body: `<p style="color:var(--muted);font-size:0.9rem;margin-bottom:12px;">
+      Whole numbers with no size limit in Python 3. Can be <em>very</em> large (used in cryptography!).
+    </p>
+    <pre style="margin:0;font-size:0.83rem;"><span class="var">population</span> <span class="op">=</span> <span class="num">1_428_627_663</span>  <span class="cm"># underscores for readability</span>
+<span class="var">binary</span>     <span class="op">=</span> <span class="num">0b1010</span>           <span class="cm"># binary literal = 10</span>
+<span class="var">hexa</span>       <span class="op">=</span> <span class="num">0xFF</span>             <span class="cm"># hex literal = 255</span>
+<span class="fn">print</span>(<span class="var">population</span> <span class="op">**</span> <span class="num">2</span>)        <span class="cm"># huge numbers, no overflow!</span></pre>`,
+        },
+        float: {
+          color: "#3fb950",
+          title: "float — Floating Point",
+          body: `<p style="color:var(--muted);font-size:0.9rem;margin-bottom:12px;">
+      Decimal numbers, IEEE 754 double precision. Watch out for floating-point imprecision!
+    </p>
+    <pre style="margin:0;font-size:0.83rem;"><span class="var">cgpa</span>  <span class="op">=</span> <span class="num">9.1</span>
+<span class="var">rate</span>  <span class="op">=</span> <span class="num">8.5e-3</span>   <span class="cm"># scientific notation = 0.0085</span>
+
+<span class="cm"># Classic gotcha!</span>
+<span class="fn">print</span>(<span class="num">0.1</span> <span class="op">+</span> <span class="num">0.2</span>)   <span class="cm"># 0.30000000000000004 ⚠️</span>
+<span class="cm"># Use round() or decimal module for finance</span></pre>`,
+        },
+        str: {
+          color: "#f7c948",
+          title: "str — String",
+          body: `<p style="color:var(--muted);font-size:0.9rem;margin-bottom:12px;">
+      Ordered, immutable sequence of Unicode characters. Supports rich methods and f-strings.
+    </p>
+    <pre style="margin:0;font-size:0.83rem;"><span class="var">name</span>    <span class="op">=</span> <span class="str">"Ananya Krishnan"</span>
+<span class="var">college</span> <span class="op">=</span> <span class="str">'IIT Bombay'</span>
+
+<span class="cm"># f-string (Python 3.6+) — most readable way</span>
+<span class="var">msg</span> <span class="op">=</span> <span class="str">f"Welcome, {<span class="var">name</span>} from {<span class="var">college</span>}!"</span>
+
+<span class="cm"># String is immutable — this creates a NEW string</span>
+<span class="var">upper_name</span> <span class="op">=</span> <span class="var">name</span>.<span class="fn">upper</span>()  <span class="cm"># "ANANYA KRISHNAN"</span></pre>`,
+        },
+        bool: {
+          color: "#ff7b72",
+          title: "bool — Boolean",
+          body: `<p style="color:var(--muted);font-size:0.9rem;margin-bottom:12px;">
+      Subclass of int! True == 1 and False == 0. Every Python object has a boolean interpretation.
+    </p>
+    <pre style="margin:0;font-size:0.83rem;"><span class="var">is_admitted</span> <span class="op">=</span> <span class="kw">True</span>
+<span class="fn">print</span>(<span class="kw">True</span> <span class="op">+</span> <span class="kw">True</span>)    <span class="cm"># 2  (bool IS an int!)</span>
+<span class="fn">print</span>(<span class="kw">True</span> <span class="op">*</span> <span class="num">100</span>)     <span class="cm"># 100</span>
+
+<span class="cm"># Falsy values to remember:</span>
+<span class="cm"># 0, 0.0, "", [], {}, (), None → all False</span></pre>`,
+        },
+        none: {
+          color: "#d2a8ff",
+          title: "NoneType — None",
+          body: `<p style="color:var(--muted);font-size:0.9rem;margin-bottom:12px;">
+      Represents the intentional absence of a value. Only one None object exists in Python (singleton).
+    </p>
+    <pre style="margin:0;font-size:0.83rem;"><span class="var">result</span> <span class="op">=</span> <span class="kw">None</span>
+<span class="fn">print</span>(<span class="var">result</span> <span class="kw">is</span> <span class="kw">None</span>)  <span class="cm"># True  ← use 'is', not '=='</span>
+
+<span class="cm"># Functions without a return statement return None</span>
+<span class="kw">def</span> <span class="fn">greet</span>():
+    <span class="fn">print</span>(<span class="str">"Vanakkam!"</span>)
+
+<span class="var">val</span> <span class="op">=</span> <span class="fn">greet</span>()        <span class="cm"># val is None</span></pre>`,
+        },
+        list: {
+          color: "#ffa657",
+          title: "list — List",
+          body: `<p style="color:var(--muted);font-size:0.9rem;margin-bottom:12px;">
+      Ordered, mutable, heterogeneous sequence. Most versatile built-in collection.
+    </p>
+    <pre style="margin:0;font-size:0.83rem;"><span class="var">marks</span> <span class="op">=</span> [<span class="num">91</span>, <span class="num">85</span>, <span class="num">78</span>, <span class="num">96</span>]
+<span class="var">marks</span>.<span class="fn">append</span>(<span class="num">88</span>)      <span class="cm"># add to end</span>
+<span class="var">marks</span>.<span class="fn">sort</span>()           <span class="cm"># in-place sort</span>
+
+<span class="cm"># Mixed types are allowed</span>
+<span class="var">record</span> <span class="op">=</span> [<span class="str">"Ravi"</span>, <span class="num">21</span>, <span class="num">8.5</span>, <span class="kw">True</span>]
+
+<span class="cm"># List comprehension (Pythonic!)</span>
+<span class="var">squared</span> <span class="op">=</span> [<span class="var">x</span><span class="op">**</span><span class="num">2</span> <span class="kw">for</span> <span class="var">x</span> <span class="kw">in</span> <span class="var">marks</span>]</pre>`,
+        },
+        dict: {
+          color: "#79c0ff",
+          title: "dict — Dictionary",
+          body: `<p style="color:var(--muted);font-size:0.9rem;margin-bottom:12px;">
+      Key-value store. O(1) lookup. Keys must be immutable; values can be anything.
+    </p>
+    <pre style="margin:0;font-size:0.83rem;"><span class="var">student</span> <span class="op">=</span> {
+    <span class="str">"name"</span>  : <span class="str">"Meera"</span>,
+    <span class="str">"roll"</span>  : <span class="str">"22CS301"</span>,
+    <span class="str">"cgpa"</span>  : <span class="num">9.1</span>,
+    <span class="str">"placed"</span>: <span class="kw">True</span>
+}
+
+<span class="fn">print</span>(<span class="var">student</span>[<span class="str">"name"</span>])    <span class="cm"># "Meera"</span>
+<span class="var">student</span>[<span class="str">"company"</span>] <span class="op">=</span> <span class="str">"Infosys"</span>  <span class="cm"># add key</span>
+<span class="fn">print</span>(<span class="var">student</span>.<span class="fn">keys</span>())      <span class="cm"># all keys</span></pre>`,
+        },
+      };
+
+      // Show type detail panel when a type card is clicked
+      function showTypeDetail(typeName) {
+        const panel = document.getElementById("type-detail");
+        const data = typeDetails[typeName];
+        if (!data) return;
+
+        // Build the inner HTML for the detail panel
+        panel.innerHTML = `
+    <h3 style="color:${data.color};margin-bottom:12px;">${data.title}</h3>
+    ${data.body}
+  `;
+        panel.classList.add("show");
+
+        // Scroll the panel into view smoothly
+        panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+
+      // ─────────────────────────────────────────────
+      // VARIABLE INSPECTOR
+      // ─────────────────────────────────────────────
+      function inspectVar() {
+        const name =
+          document.getElementById("varName").value.trim() || "my_var";
+        const input = document.getElementById("varValue").value.trim();
+        const out = document.getElementById("inspectOut");
+        const mem = document.getElementById("memModel");
+        const wrap = document.getElementById("memModelWrap");
+
+        // Determine the type and value based on the input string
+        let type, val, mutability, boolVal, typeColor;
+
+        if (input === "None") {
+          type = "NoneType";
+          val = null;
+          typeColor = "#d2a8ff";
+          mutability = "Immutable";
+        } else if (input === "True" || input === "False") {
+          type = "bool";
+          val = input === "True";
+          typeColor = "#ff7b72";
+          mutability = "Immutable";
+        } else if (input.startsWith('"') || input.startsWith("'")) {
+          // String literal
+          type = "str";
+          val = input.replace(/^['"]|['"]$/g, "");
+          typeColor = "#f7c948";
+          mutability = "Immutable";
+        } else if (input.startsWith("[")) {
+          // List literal — basic parse
+          type = "list";
+          val = input;
+          typeColor = "#ffa657";
+          mutability = "Mutable ✏️";
+        } else if (input.startsWith("{")) {
+          type = "dict";
+          val = input;
+          typeColor = "#79c0ff";
+          mutability = "Mutable ✏️";
+        } else if (input.includes(".")) {
+          const n = parseFloat(input);
+          if (!isNaN(n)) {
+            type = "float";
+            val = n;
+            typeColor = "#3fb950";
+            mutability = "Immutable";
+          } else {
+            out.innerHTML = `<span class="out-err">⚠ Cannot parse "${input}" — try: 42, 3.14, "hello", True, [1,2,3]</span>`;
+            return;
+          }
+        } else {
+          const n = parseInt(input);
+          if (!isNaN(n)) {
+            type = "int";
+            val = n;
+            typeColor = "#58a6ff";
+            mutability = "Immutable";
+          } else {
+            out.innerHTML = `<span class="out-err">⚠ Cannot parse "${input}" — try: 42, 3.14, "hello", True, [1,2,3]</span>`;
+            return;
+          }
+        }
+
+        // Determine bool value (truthiness)
+        if (val === null) boolVal = "False";
+        else if (type === "bool") boolVal = val ? "True" : "False";
+        else if (type === "int" || type === "float")
+          boolVal = val !== 0 ? "True" : "False";
+        else if (type === "str") boolVal = val !== "" ? "True" : "False";
+        else if (type === "list" || type === "dict")
+          boolVal = input !== "[]" && input !== "{}" ? "True" : "False";
+        else boolVal = "True";
+
+        // Build output display
+        out.innerHTML =
+          `<span class="out-var">${name}</span> <span style="color:var(--muted)">→</span> ` +
+          `<span class="out-val">${input}</span>\n` +
+          `type(<span class="out-var">${name}</span>)      = <span class="out-type" style="color:${typeColor}">&lt;class '${type}'&gt;</span>\n` +
+          `isinstance()    = <span style="color:${typeColor}">True for ${type}</span>\n` +
+          `bool(<span class="out-var">${name}</span>)      = <span style="color:${boolVal === "True" ? "#3fb950" : "#ff7b72"}">${boolVal}</span>\n` +
+          `mutability      = <span style="color:${mutability.includes("Mutable ✏️") ? "#3fb950" : "#ff7b72"}">${mutability}</span>`;
+
+        // Update memory model
+        wrap.style.display = "block";
+        mem.innerHTML = `
+    <div class="mem-box">
+      <div class="mem-row">
+        <div class="mem-name">${name}</div>
+        <div class="mem-arrow">→</div>
+        <div class="mem-val">${input}</div>
+        <span class="mem-type-tag" style="background:${typeColor}22;color:${typeColor};border:1px solid ${typeColor}55">${type}</span>
+      </div>
+    </div>`;
+      }
+
+      // Allow pressing Enter in the value field to trigger inspect
+      document.getElementById("varValue").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") inspectVar();
+      });
+
+      // ─────────────────────────────────────────────
+      // EXPERIMENT RUNNER
+      // ─────────────────────────────────────────────
+      const defaultCode = `student = "Karthik"
+cgpa = 8.75
+rank = 3
+is_placed = True
+subjects = ["Maths", "DSA", "OS"]
+profile = {"name": "Karthik", "cgpa": 8.75}`;
+
+      function detectType(valueStr) {
+        const v = valueStr.trim();
+        if (v === "None")
+          return { type: "NoneType", color: "#d2a8ff", mut: "Immutable 🔒" };
+        if (v === "True" || v === "False")
+          return { type: "bool", color: "#ff7b72", mut: "Immutable 🔒" };
+        if (
+          (v.startsWith('"') && v.endsWith('"')) ||
+          (v.startsWith("'") && v.endsWith("'"))
+        )
+          return { type: "str", color: "#f7c948", mut: "Immutable 🔒" };
+        if (v.startsWith("["))
+          return { type: "list", color: "#ffa657", mut: "Mutable ✏️" };
+        if (v.startsWith("{"))
+          return { type: "dict", color: "#79c0ff", mut: "Mutable ✏️" };
+        if (v.startsWith("("))
+          return { type: "tuple", color: "#d2a8ff", mut: "Immutable 🔒" };
+        if (!isNaN(v) && v.includes("."))
+          return { type: "float", color: "#3fb950", mut: "Immutable 🔒" };
+        if (!isNaN(v))
+          return { type: "int", color: "#58a6ff", mut: "Immutable 🔒" };
+        return { type: "unknown", color: "#8b949e", mut: "?" };
+      }
+
+      function runExperiment() {
+        const code = document.getElementById("expEditor").value;
+        const lines = code.split("\n");
+        let output = "";
+
+        lines.forEach((line) => {
+          const trimmed = line.trim();
+          if (!trimmed || trimmed.startsWith("#")) return; // skip comments and blanks
+
+          // Match simple "name = value" assignments
+          const match = trimmed.match(/^([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*(.+)$/);
+          if (!match) {
+            output += `⚠  Could not parse: ${trimmed}\n`;
+            return;
+          }
+
+          const [, varName, rawVal] = match;
+          const { type, color, mut } = detectType(rawVal.trim());
+
+          // Build a nicely formatted line for each variable
+          output +=
+            `\x1b[33m${varName.padEnd(14)}\x1b[0m` + // variable name (yellow)
+            `→  value: ${rawVal.padEnd(24)}` +
+            `type: [${type}]   ${mut}\n`;
+        });
+
+        // Render using spans instead of ANSI since we're in a browser
+        const htmlLines = code
+          .split("\n")
+          .map((line) => {
+            const t = line.trim();
+            if (!t || t.startsWith("#")) return "";
+            const m = t.match(/^([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*(.+)$/);
+            if (!m)
+              return `<span style="color:#ff7b72">⚠ Could not parse: ${t}</span>`;
+            const [, vn, rv] = m;
+            const { type, color, mut } = detectType(rv.trim());
+            return (
+              `<span style="color:#ffa657">${vn.padEnd(14)}</span>` +
+              `<span style="color:var(--muted)">→  </span>` +
+              `<span style="color:var(--accent3)">${rv.padEnd(26)}</span>` +
+              `<span style="color:${color}">&lt;${type}&gt;</span>` +
+              `  <span style="color:var(--muted)">${mut}</span>`
+            );
+          })
+          .filter(Boolean);
+
+        document.getElementById("expOut").innerHTML =
+          htmlLines.join("\n") || "// No valid assignments found.";
+      }
+
+      function resetExperiment() {
+        document.getElementById("expEditor").value = defaultCode;
+        document.getElementById("expOut").textContent =
+          '// Click "Run Experiment" to inspect all variables …';
+      }
+
+      // ─────────────────────────────────────────────
+      // QUIZ LOGIC
+      // ─────────────────────────────────────────────
+      let score = 0;
+      let answered = 0;
+
+      const feedbacks = {
+        1: {
+          B: "✓ Correct! bool is a subclass of int in Python. True == 1 and False == 0.",
+          wrong:
+            "✗ Not quite. bool is its own class in Python — <class 'bool'> — but it IS a subclass of int.",
+        },
+        2: {
+          A: "✓ Correct! x and y point to the SAME list object (mutable). Appending via y also changes x.",
+          wrong:
+            "✗ Remember: list is mutable. y = x makes both variables point to the same object — not a copy.",
+        },
+        3: {
+          D: "✓ Correct! _roll_no starts with underscore — valid. The others: 2marks starts with digit, my-score has hyphen, class is a keyword.",
+          wrong:
+            "✗ 2marks starts with a digit, my-score uses a hyphen, and class is a reserved keyword. _roll_no is the only valid name.",
+        },
+        4: {
+          B: '✓ Correct! An empty string "" is falsy. So bool("") == False.',
+          wrong:
+            '✗ Empty containers and zero-like values are falsy in Python. "" is empty → False.',
+        },
+        5: {
+          C: "✓ Correct! Python is dynamically typed — the last assignment wins. x = 10.0 makes x a float.",
+          wrong:
+            "✗ Python allows reassigning different types to the same variable. The last line x = 10.0 makes x a float.",
+        },
+      };
+
+      function answer(qNum, chosen, correct) {
+        if (answered >= 5) return; // prevent re-answering
+
+        const opts = document.getElementById(`opts${qNum}`);
+        const fb = document.getElementById(`fb${qNum}`);
+
+        // Disable all buttons for this question
+        Array.from(opts.children).forEach((btn) => (btn.disabled = true));
+
+        const isCorrect = chosen === correct;
+        if (isCorrect) score++;
+        answered++;
+
+        // Highlight chosen button and correct button
+        Array.from(opts.children).forEach((btn) => {
+          const letter = btn.querySelector(".opt-letter").textContent;
+          if (letter === correct) btn.classList.add("correct");
+          if (letter === chosen && !isCorrect) btn.classList.add("wrong");
+        });
+
+        // Show feedback
+        const fbText = isCorrect
+          ? feedbacks[qNum][correct]
+          : feedbacks[qNum].wrong;
+        fb.textContent = fbText;
+        fb.className = `q-feedback show ${isCorrect ? "good" : "bad"}`;
+
+        // Show score after all 5 questions answered
+        if (answered === 5) {
+          setTimeout(showScore, 500);
+        }
+      }
+
+      function showScore() {
+        const board = document.getElementById("score-board");
+        const numEl = document.getElementById("scoreNum");
+        const msgEl = document.getElementById("scoreMsg");
+
+        numEl.textContent = `${score}/5`;
+
+        const msgs = {
+          5: "🎉 Perfect score! You've nailed Python data types. Ready for collections and functions?",
+          4: "👏 Great job! One slip — review the tricky bits and you're golden.",
+          3: "📖 Solid foundation! A quick re-read of the analogies above will lock it in.",
+          2: "💪 Keep going! Focus on mutability and dynamic typing — re-run the experiments.",
+          1: "🔁 Let's revisit the concepts. Use the type inspector and experiment section!",
+          0: "🔁 No worries — go through each section again, try the playground, then retake.",
+        };
+        msgEl.textContent = msgs[score];
+        board.classList.add("show");
+        board.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+
+      function resetQuiz() {
+        score = 0;
+        answered = 0;
+
+        // Reset all quiz questions
+        [1, 2, 3, 4, 5].forEach((n) => {
+          const opts = document.getElementById(`opts${n}`);
+          const fb = document.getElementById(`fb${n}`);
+          Array.from(opts.children).forEach((btn) => {
+            btn.disabled = false;
+            btn.className = "opt-btn";
+          });
+          fb.className = "q-feedback";
+          fb.textContent = "";
+        });
+
+        document.getElementById("score-board").classList.remove("show");
+        window.scrollTo({
+          top: document.querySelector(".quiz-section").offsetTop - 60,
+          behavior: "smooth",
+        });
+      }
+    </script>
+  </body>
+</html>

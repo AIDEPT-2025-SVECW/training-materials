@@ -1,0 +1,1826 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Python File Handling – Interactive Demo</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0a0e1a;
+        --surface: #111827;
+        --surface2: #1a2235;
+        --border: #2a3a55;
+        --accent: #f97316;
+        --accent2: #38bdf8;
+        --accent3: #a3e635;
+        --accent4: #c084fc;
+        --text: #e2e8f0;
+        --muted: #94a3b8;
+        --danger: #f87171;
+        --success: #4ade80;
+        --warn: #fbbf24;
+        --code-bg: #0d1117;
+        --glow: rgba(249, 115, 22, 0.15);
+      }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: "Syne", sans-serif;
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+
+      /* ── GRID NOISE BACKGROUND ── */
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(56, 189, 248, 0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(56, 189, 248, 0.03) 1px, transparent 1px);
+        background-size: 48px 48px;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      /* ── HERO ── */
+      .hero {
+        position: relative;
+        z-index: 1;
+        padding: 64px 32px 40px;
+        text-align: center;
+        border-bottom: 1px solid var(--border);
+        background: linear-gradient(
+          180deg,
+          rgba(249, 115, 22, 0.07) 0%,
+          transparent 100%
+        );
+      }
+      .hero-badge {
+        display: inline-block;
+        background: var(--accent);
+        color: #fff;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        padding: 4px 14px;
+        border-radius: 2px;
+        margin-bottom: 20px;
+      }
+      .hero h1 {
+        font-size: clamp(2.4rem, 6vw, 4.2rem);
+        font-weight: 800;
+        line-height: 1.05;
+        letter-spacing: -1.5px;
+        background: linear-gradient(
+          135deg,
+          #fff 0%,
+          var(--accent) 60%,
+          var(--accent2) 100%
+        );
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 14px;
+      }
+      .hero p {
+        color: var(--muted);
+        font-size: 1.05rem;
+        max-width: 560px;
+        margin: 0 auto;
+      }
+
+      /* ── NAV PILLS ── */
+      .nav {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        justify-content: center;
+        padding: 12px 24px;
+        background: rgba(10, 14, 26, 0.92);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--border);
+      }
+      .nav a {
+        color: var(--muted);
+        text-decoration: none;
+        font-size: 0.78rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        padding: 6px 14px;
+        border-radius: 20px;
+        border: 1px solid transparent;
+        transition: all 0.2s;
+      }
+      .nav a:hover {
+        color: var(--accent);
+        border-color: var(--accent);
+      }
+
+      /* ── MAIN LAYOUT ── */
+      main {
+        position: relative;
+        z-index: 1;
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 0 24px 80px;
+      }
+
+      /* ── SECTION HEADERS ── */
+      .section {
+        margin-top: 70px;
+      }
+      .section-label {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 28px;
+      }
+      .section-num {
+        background: var(--accent);
+        color: #fff;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 3px 8px;
+        border-radius: 4px;
+        flex-shrink: 0;
+      }
+      .section-label h2 {
+        font-size: 1.75rem;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+        color: #fff;
+      }
+
+      /* ── CARDS ── */
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 28px;
+        margin-bottom: 22px;
+        transition: border-color 0.2s;
+      }
+      .card:hover {
+        border-color: rgba(249, 115, 22, 0.4);
+      }
+      .card h3 {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--accent2);
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .card p {
+        color: var(--muted);
+        line-height: 1.7;
+        font-size: 0.95rem;
+      }
+
+      /* ── ANALOGY BOX ── */
+      .analogy {
+        background: linear-gradient(
+          135deg,
+          rgba(249, 115, 22, 0.1),
+          rgba(56, 189, 248, 0.07)
+        );
+        border: 1px solid rgba(249, 115, 22, 0.35);
+        border-left: 4px solid var(--accent);
+        border-radius: 10px;
+        padding: 20px 24px;
+        margin: 18px 0;
+      }
+      .analogy-label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin-bottom: 8px;
+      }
+      .analogy p {
+        color: #d4d8e0;
+        line-height: 1.7;
+        font-size: 0.95rem;
+      }
+
+      /* ── CODE BLOCKS ── */
+      pre {
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 22px 24px;
+        overflow-x: auto;
+        margin: 16px 0;
+        position: relative;
+      }
+      pre::before {
+        content: attr(data-label);
+        position: absolute;
+        top: 10px;
+        right: 14px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.68rem;
+        color: var(--muted);
+        letter-spacing: 1px;
+        text-transform: uppercase;
+      }
+      code {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.88rem;
+        line-height: 1.75;
+        color: #e2e8f0;
+      }
+      .kw {
+        color: #c084fc;
+        font-weight: 600;
+      }
+      .str {
+        color: #4ade80;
+      }
+      .fn {
+        color: #38bdf8;
+      }
+      .cm {
+        color: #4b5563;
+        font-style: italic;
+      }
+      .num {
+        color: #fbbf24;
+      }
+      .var {
+        color: #f9a8d4;
+      }
+      .err {
+        color: #f87171;
+      }
+
+      /* ── MODE TABLE ── */
+      .mode-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 12px;
+        margin: 18px 0;
+      }
+      .mode-card {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 16px;
+        text-align: center;
+        transition: all 0.2s;
+        cursor: default;
+      }
+      .mode-card:hover {
+        border-color: var(--accent);
+        transform: translateY(-2px);
+      }
+      .mode-card .mode-sym {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--accent);
+        margin-bottom: 6px;
+      }
+      .mode-card .mode-name {
+        font-size: 0.8rem;
+        color: var(--muted);
+      }
+      .mode-card .mode-desc {
+        font-size: 0.75rem;
+        color: var(--text);
+        margin-top: 4px;
+      }
+
+      /* ── INTERACTIVE SIMULATOR ── */
+      .simulator {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        overflow: hidden;
+      }
+      .sim-header {
+        background: var(--surface2);
+        border-bottom: 1px solid var(--border);
+        padding: 14px 22px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+      }
+      .dot-r {
+        background: #f87171;
+      }
+      .dot-y {
+        background: #fbbf24;
+      }
+      .dot-g {
+        background: #4ade80;
+      }
+      .sim-title {
+        font-size: 0.85rem;
+        color: var(--muted);
+        margin-left: 6px;
+        font-family: "JetBrains Mono", monospace;
+      }
+
+      .sim-body {
+        padding: 24px;
+      }
+      .sim-controls {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 18px;
+      }
+
+      .btn {
+        font-family: "Syne", sans-serif;
+        font-size: 0.82rem;
+        font-weight: 700;
+        padding: 9px 18px;
+        border-radius: 8px;
+        border: 1px solid;
+        cursor: pointer;
+        transition: all 0.18s;
+        letter-spacing: 0.3px;
+      }
+      .btn-primary {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+      }
+      .btn-primary:hover {
+        background: #ea6c00;
+        box-shadow: 0 0 18px var(--glow);
+      }
+      .btn-secondary {
+        background: transparent;
+        border-color: var(--border);
+        color: var(--muted);
+      }
+      .btn-secondary:hover {
+        border-color: var(--accent2);
+        color: var(--accent2);
+      }
+      .btn-danger {
+        background: transparent;
+        border-color: #f87171;
+        color: #f87171;
+      }
+      .btn-danger:hover {
+        background: rgba(248, 113, 113, 0.1);
+      }
+      .btn-success {
+        background: transparent;
+        border-color: var(--success);
+        color: var(--success);
+      }
+      .btn-success:hover {
+        background: rgba(74, 222, 128, 0.1);
+      }
+
+      .sim-textarea {
+        width: 100%;
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.88rem;
+        padding: 14px;
+        resize: vertical;
+        min-height: 90px;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+      .sim-textarea:focus {
+        border-color: var(--accent2);
+      }
+
+      .file-display {
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 16px;
+        min-height: 80px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.85rem;
+        color: var(--success);
+        white-space: pre-wrap;
+        margin-top: 14px;
+      }
+
+      .status-bar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
+        background: var(--surface2);
+        border-top: 1px solid var(--border);
+        font-size: 0.78rem;
+        color: var(--muted);
+        font-family: "JetBrains Mono", monospace;
+      }
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--muted);
+      }
+      .status-dot.open {
+        background: var(--success);
+        box-shadow: 0 0 6px var(--success);
+        animation: pulse 1.4s infinite;
+      }
+      .status-dot.error {
+        background: var(--danger);
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.4;
+        }
+      }
+
+      /* ── TWO-COL COMPARISON ── */
+      .compare-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin: 18px 0;
+      }
+      @media (max-width: 640px) {
+        .compare-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .compare-card {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 20px;
+      }
+      .compare-card h4 {
+        font-size: 0.9rem;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .tag {
+        display: inline-block;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        padding: 2px 8px;
+        border-radius: 4px;
+      }
+      .tag-orange {
+        background: rgba(249, 115, 22, 0.2);
+        color: var(--accent);
+        border: 1px solid rgba(249, 115, 22, 0.4);
+      }
+      .tag-blue {
+        background: rgba(56, 189, 248, 0.15);
+        color: var(--accent2);
+        border: 1px solid rgba(56, 189, 248, 0.3);
+      }
+      .tag-green {
+        background: rgba(163, 230, 53, 0.12);
+        color: var(--accent3);
+        border: 1px solid rgba(163, 230, 53, 0.3);
+      }
+      .tag-purple {
+        background: rgba(192, 132, 252, 0.12);
+        color: var(--accent4);
+        border: 1px solid rgba(192, 132, 252, 0.3);
+      }
+
+      /* ── STEP FLOW ── */
+      .steps {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        margin: 18px 0;
+      }
+      .step {
+        display: flex;
+        gap: 18px;
+        align-items: flex-start;
+        padding: 18px 0;
+        border-bottom: 1px dashed var(--border);
+      }
+      .step:last-child {
+        border-bottom: none;
+      }
+      .step-num {
+        flex-shrink: 0;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: var(--accent);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 0.9rem;
+        color: #fff;
+      }
+      .step-content h4 {
+        font-size: 0.95rem;
+        color: #fff;
+        margin-bottom: 4px;
+      }
+      .step-content p {
+        font-size: 0.87rem;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      /* ── EXCEPTION BOX ── */
+      .exc-box {
+        background: rgba(248, 113, 113, 0.07);
+        border: 1px solid rgba(248, 113, 113, 0.3);
+        border-radius: 10px;
+        padding: 18px 22px;
+        margin: 14px 0;
+        display: flex;
+        gap: 14px;
+        align-items: flex-start;
+      }
+      .exc-icon {
+        font-size: 1.4rem;
+        flex-shrink: 0;
+      }
+      .exc-box h4 {
+        font-size: 0.9rem;
+        color: var(--danger);
+        margin-bottom: 4px;
+      }
+      .exc-box p {
+        font-size: 0.85rem;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      /* ── QUIZ SECTION ── */
+      .quiz-section {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        overflow: hidden;
+        margin-top: 70px;
+      }
+      .quiz-header {
+        background: linear-gradient(
+          135deg,
+          rgba(192, 132, 252, 0.15),
+          rgba(56, 189, 248, 0.1)
+        );
+        border-bottom: 1px solid var(--border);
+        padding: 24px 28px;
+      }
+      .quiz-header h2 {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #fff;
+      }
+      .quiz-header p {
+        color: var(--muted);
+        font-size: 0.88rem;
+        margin-top: 4px;
+      }
+      .quiz-body {
+        padding: 28px;
+      }
+
+      .q-card {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 22px;
+        margin-bottom: 18px;
+        transition: border-color 0.2s;
+      }
+      .q-card.correct {
+        border-color: var(--success);
+        background: rgba(74, 222, 128, 0.05);
+      }
+      .q-card.wrong {
+        border-color: var(--danger);
+        background: rgba(248, 113, 113, 0.05);
+      }
+
+      .q-text {
+        font-size: 0.95rem;
+        color: #fff;
+        margin-bottom: 16px;
+        line-height: 1.6;
+      }
+      .q-code {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.83rem;
+        background: var(--code-bg);
+        padding: 10px 14px;
+        border-radius: 6px;
+        margin-bottom: 14px;
+        color: #e2e8f0;
+        display: block;
+      }
+
+      .options {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .opt {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 12px 16px;
+        cursor: pointer;
+        font-size: 0.88rem;
+        transition: all 0.18s;
+        color: var(--text);
+      }
+      .opt:hover:not(.disabled) {
+        border-color: var(--accent2);
+        color: var(--accent2);
+      }
+      .opt.selected-correct {
+        border-color: var(--success);
+        color: var(--success);
+        background: rgba(74, 222, 128, 0.08);
+      }
+      .opt.selected-wrong {
+        border-color: var(--danger);
+        color: var(--danger);
+        background: rgba(248, 113, 113, 0.08);
+      }
+      .opt.reveal-correct {
+        border-color: var(--success);
+        color: var(--success);
+        background: rgba(74, 222, 128, 0.05);
+      }
+      .opt.disabled {
+        cursor: default;
+      }
+
+      .q-feedback {
+        margin-top: 12px;
+        font-size: 0.84rem;
+        padding: 10px 14px;
+        border-radius: 6px;
+        display: none;
+      }
+      .q-feedback.show {
+        display: block;
+      }
+      .q-feedback.correct {
+        background: rgba(74, 222, 128, 0.1);
+        color: var(--success);
+        border: 1px solid rgba(74, 222, 128, 0.25);
+      }
+      .q-feedback.wrong {
+        background: rgba(248, 113, 113, 0.1);
+        color: var(--danger);
+        border: 1px solid rgba(248, 113, 113, 0.25);
+      }
+
+      .quiz-score {
+        display: none;
+        text-align: center;
+        padding: 32px;
+        border-top: 1px solid var(--border);
+      }
+      .quiz-score.show {
+        display: block;
+      }
+      .score-num {
+        font-size: 3.5rem;
+        font-weight: 800;
+        color: var(--accent);
+      }
+      .score-sub {
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin-top: 8px;
+      }
+
+      /* ── EXPERIMENT ── */
+      .experiment {
+        background: linear-gradient(
+          135deg,
+          rgba(163, 230, 53, 0.06),
+          rgba(56, 189, 248, 0.05)
+        );
+        border: 1px solid rgba(163, 230, 53, 0.25);
+        border-radius: 14px;
+        padding: 28px;
+        margin-top: 70px;
+      }
+      .experiment h2 {
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: var(--accent3);
+        margin-bottom: 6px;
+      }
+      .experiment p {
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin-bottom: 20px;
+      }
+      .task-list {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .task-list li {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 14px 18px;
+        font-size: 0.88rem;
+        color: var(--text);
+      }
+      .task-list li::before {
+        content: "▸";
+        color: var(--accent3);
+        flex-shrink: 0;
+        font-size: 1rem;
+      }
+
+      /* ── FOOTER ── */
+      footer {
+        position: relative;
+        z-index: 1;
+        text-align: center;
+        padding: 40px 24px;
+        border-top: 1px solid var(--border);
+        color: var(--muted);
+        font-size: 0.8rem;
+      }
+
+      /* ── SCROLLBAR ── */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: var(--bg);
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 3px;
+      }
+
+      /* ── ANIMATIONS ── */
+      .fade-in {
+        opacity: 0;
+        transform: translateY(18px);
+        animation: fadeIn 0.55s forwards;
+      }
+      @keyframes fadeIn {
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+      .delay-1 {
+        animation-delay: 0.1s;
+      }
+      .delay-2 {
+        animation-delay: 0.2s;
+      }
+      .delay-3 {
+        animation-delay: 0.3s;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ═══════════════════════════════ HERO ═══════════════════════════════ -->
+    <header class="hero">
+      <div class="hero-badge">Deep Dive Session</div>
+      <h1>Python File Handling</h1>
+      <p>
+        Read, Write, Append, and manage files like a pro — with real demos and
+        interactive experiments
+      </p>
+    </header>
+
+    <!-- ═══════════════════════════════ NAV ════════════════════════════════ -->
+    <nav class="nav">
+      <a href="#intro">Intro</a>
+      <a href="#modes">File Modes</a>
+      <a href="#read">Reading</a>
+      <a href="#write">Writing</a>
+      <a href="#append">Appending</a>
+      <a href="#with">Context Manager</a>
+      <a href="#errors">Error Handling</a>
+      <a href="#simulator">Simulator</a>
+      <a href="#experiment">Experiment</a>
+      <a href="#quiz">Quiz</a>
+    </nav>
+
+    <main>
+      <!-- ═══════════════════════════════ 01 INTRO ════════════════════════════ -->
+      <section class="section fade-in" id="intro">
+        <div class="section-label">
+          <span class="section-num">01</span>
+          <h2>Why File Handling?</h2>
+        </div>
+
+        <div class="card">
+          <h3>📁 What is File Handling?</h3>
+          <p>
+            File handling lets your Python program
+            <strong>persist data</strong> beyond the program's lifetime. Without
+            it, every variable dies when the program exits. With it, you can
+            store student records, logs, configurations, results — anything.
+          </p>
+        </div>
+
+        <div class="card">
+          <h3>🔁 The File Lifecycle</h3>
+          <div class="steps">
+            <div class="step">
+              <div class="step-num">1</div>
+              <div class="step-content">
+                <h4>Open</h4>
+                <p>
+                  Create a connection between Python and the file on disk using
+                  <code>open()</code>.
+                </p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num">2</div>
+              <div class="step-content">
+                <h4>Read / Write / Append</h4>
+                <p>
+                  Perform the actual operation — get data in or push data out.
+                </p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num">3</div>
+              <div class="step-content">
+                <h4>Close</h4>
+                <p>
+                  Release the file handle back to the OS. Not closing = data
+                  corruption risk.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════ 02 MODES ════════════════════════════ -->
+      <section class="section fade-in delay-1" id="modes">
+        <div class="section-label">
+          <span class="section-num">02</span>
+          <h2>File Modes</h2>
+        </div>
+
+        <div class="card">
+          <h3>🔑 Opening Modes at a Glance</h3>
+          <div class="mode-grid">
+            <div class="mode-card">
+              <div class="mode-sym">'r'</div>
+              <div class="mode-name">Read</div>
+              <div class="mode-desc">File must exist. Cursor at start.</div>
+            </div>
+            <div class="mode-card">
+              <div class="mode-sym">'w'</div>
+              <div class="mode-name">Write</div>
+              <div class="mode-desc">
+                Creates or
+                <strong style="color: var(--danger)">wipes</strong> file.
+              </div>
+            </div>
+            <div class="mode-card">
+              <div class="mode-sym">'a'</div>
+              <div class="mode-name">Append</div>
+              <div class="mode-desc">Creates or adds to end.</div>
+            </div>
+            <div class="mode-card">
+              <div class="mode-sym">'x'</div>
+              <div class="mode-name">Exclusive</div>
+              <div class="mode-desc">Create only; fails if exists.</div>
+            </div>
+            <div class="mode-card">
+              <div class="mode-sym">'r+'</div>
+              <div class="mode-name">Read+Write</div>
+              <div class="mode-desc">File must exist. Both ops.</div>
+            </div>
+            <div class="mode-card">
+              <div class="mode-sym">'b'</div>
+              <div class="mode-name">Binary</div>
+              <div class="mode-desc">Add to any mode: 'rb', 'wb'.</div>
+            </div>
+          </div>
+
+          <div class="analogy">
+            <div class="analogy-label">💡 Analogy — Library Book Rules</div>
+            <p>
+              Think of file modes like library rules: <strong>'r'</strong> = you
+              can only read the book (can't write in it). <strong>'w'</strong> =
+              you tear out all pages and write fresh. <strong>'a'</strong> = you
+              flip to the last blank page and add notes. <strong>'x'</strong> =
+              the librarian issues a new book only if one doesn't already exist.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════ 03 READ ═════════════════════════════ -->
+      <section class="section fade-in" id="read">
+        <div class="section-label">
+          <span class="section-num">03</span>
+          <h2>Reading Files</h2>
+        </div>
+
+        <div class="compare-grid">
+          <div class="compare-card">
+            <h4><span class="tag tag-orange">read()</span></h4>
+            <p
+              style="
+                color: var(--muted);
+                font-size: 0.85rem;
+                margin-bottom: 10px;
+              "
+            >
+              Reads entire file as one string. Good for small files.
+            </p>
+            <pre
+              data-label="python"
+            ><code><span class="kw">with</span> <span class="fn">open</span>(<span class="str">"marks.txt"</span>, <span class="str">"r"</span>) <span class="kw">as</span> <span class="var">f</span>:
+    <span class="var">content</span> = <span class="var">f</span>.<span class="fn">read</span>()
+    <span class="fn">print</span>(<span class="var">content</span>)</code></pre>
+          </div>
+          <div class="compare-card">
+            <h4><span class="tag tag-blue">readline()</span></h4>
+            <p
+              style="
+                color: var(--muted);
+                font-size: 0.85rem;
+                margin-bottom: 10px;
+              "
+            >
+              Reads one line at a time. Good for huge files.
+            </p>
+            <pre
+              data-label="python"
+            ><code><span class="kw">with</span> <span class="fn">open</span>(<span class="str">"marks.txt"</span>, <span class="str">"r"</span>) <span class="kw">as</span> <span class="var">f</span>:
+    <span class="var">line</span> = <span class="var">f</span>.<span class="fn">readline</span>()
+    <span class="fn">print</span>(<span class="var">line</span>)</code></pre>
+          </div>
+          <div class="compare-card">
+            <h4><span class="tag tag-green">readlines()</span></h4>
+            <p
+              style="
+                color: var(--muted);
+                font-size: 0.85rem;
+                margin-bottom: 10px;
+              "
+            >
+              Returns a <strong>list</strong> of all lines.
+            </p>
+            <pre
+              data-label="python"
+            ><code><span class="kw">with</span> <span class="fn">open</span>(<span class="str">"marks.txt"</span>, <span class="str">"r"</span>) <span class="kw">as</span> <span class="var">f</span>:
+    <span class="var">lines</span> = <span class="var">f</span>.<span class="fn">readlines</span>()
+    <span class="kw">for</span> <span class="var">l</span> <span class="kw">in</span> <span class="var">lines</span>:
+        <span class="fn">print</span>(<span class="var">l</span>.<span class="fn">strip</span>())</code></pre>
+          </div>
+          <div class="compare-card">
+            <h4><span class="tag tag-purple">Loop (Best)</span></h4>
+            <p
+              style="
+                color: var(--muted);
+                font-size: 0.85rem;
+                margin-bottom: 10px;
+              "
+            >
+              Most Pythonic. Memory-efficient for large files.
+            </p>
+            <pre
+              data-label="python"
+            ><code><span class="kw">with</span> <span class="fn">open</span>(<span class="str">"marks.txt"</span>, <span class="str">"r"</span>) <span class="kw">as</span> <span class="var">f</span>:
+    <span class="kw">for</span> <span class="var">line</span> <span class="kw">in</span> <span class="var">f</span>:
+        <span class="fn">print</span>(<span class="var">line</span>.<span class="fn">strip</span>())</code></pre>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>📌 Real Example – Student Mark Sheet (Andhra Pradesh board)</h3>
+          <pre
+            data-label="marks.txt sample"
+          ><code><span class="cm"># marks.txt content:</span>
+<span class="cm"># Ravi Kumar, Maths: 92, Science: 88</span>
+<span class="cm"># Priya Rao, Maths: 78, Science: 95</span>
+<span class="cm"># Suresh Babu, Maths: 85, Science: 90</span></code></pre>
+          <pre
+            data-label="python"
+          ><code><span class="kw">with</span> <span class="fn">open</span>(<span class="str">"marks.txt"</span>, <span class="str">"r"</span>) <span class="kw">as</span> <span class="var">f</span>:
+    <span class="var">students</span> = <span class="var">f</span>.<span class="fn">readlines</span>()
+
+<span class="kw">for</span> <span class="var">student</span> <span class="kw">in</span> <span class="var">students</span>:
+    <span class="fn">print</span>(<span class="var">student</span>.<span class="fn">strip</span>())  <span class="cm"># strip removes \n</span></code></pre>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════ 04 WRITE ════════════════════════════ -->
+      <section class="section fade-in" id="write">
+        <div class="section-label">
+          <span class="section-num">04</span>
+          <h2>Writing Files</h2>
+        </div>
+
+        <div class="card">
+          <h3>⚠️ Remember: 'w' mode OVERWRITES everything</h3>
+          <div
+            class="exc-box"
+            style="
+              border-color: rgba(251, 191, 36, 0.4);
+              background: rgba(251, 191, 36, 0.05);
+            "
+          >
+            <div class="exc-icon">⚠️</div>
+            <div>
+              <h4 style="color: var(--warn)">Data Loss Warning</h4>
+              <p>
+                Opening a file in 'w' mode immediately truncates it to zero
+                bytes. Even if you never call <code>write()</code>, the file is
+                already empty.
+              </p>
+            </div>
+          </div>
+
+          <pre
+            data-label="python"
+          ><code><span class="cm"># Write student records to a new file</span>
+<span class="var">students</span> = [
+    <span class="str">"Ravi Kumar - 92\n"</span>,
+    <span class="str">"Priya Rao - 78\n"</span>,
+    <span class="str">"Suresh Babu - 85\n"</span>
+]
+
+<span class="kw">with</span> <span class="fn">open</span>(<span class="str">"results.txt"</span>, <span class="str">"w"</span>) <span class="kw">as</span> <span class="var">f</span>:
+    <span class="var">f</span>.<span class="fn">writelines</span>(<span class="var">students</span>)
+    <span class="cm"># OR: f.write("Ravi Kumar - 92\n")</span>
+
+<span class="fn">print</span>(<span class="str">"File written successfully!"</span>)</code></pre>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════ 05 APPEND ═══════════════════════════ -->
+      <section class="section fade-in" id="append">
+        <div class="section-label">
+          <span class="section-num">05</span>
+          <h2>Appending to Files</h2>
+        </div>
+
+        <div class="card">
+          <h3>➕ Add Without Destroying — 'a' mode</h3>
+          <p
+            style="color: var(--muted); font-size: 0.92rem; margin-bottom: 14px"
+          >
+            Use <code>'a'</code> when you want to add new records without
+            touching existing ones. Think logs, daily reports, chat history.
+          </p>
+
+          <pre
+            data-label="python"
+          ><code><span class="cm"># New student joins mid-term — append her record</span>
+<span class="kw">with</span> <span class="fn">open</span>(<span class="str">"results.txt"</span>, <span class="str">"a"</span>) <span class="kw">as</span> <span class="var">f</span>:
+    <span class="var">f</span>.<span class="fn">write</span>(<span class="str">"Meena Kumari - 91\n"</span>)
+
+<span class="fn">print</span>(<span class="str">"New student added!"</span>)</code></pre>
+
+          <div class="compare-grid" style="margin-top: 18px">
+            <div class="compare-card">
+              <h4><span class="tag tag-orange">'w' mode result</span></h4>
+              <pre
+                style="margin-top: 10px"
+              ><code style="color:var(--success)">Meena Kumari - 91</code></pre>
+              <p
+                style="font-size: 0.8rem; color: var(--danger); margin-top: 8px"
+              >
+                ❌ Previous 3 records gone!
+              </p>
+            </div>
+            <div class="compare-card">
+              <h4><span class="tag tag-green">'a' mode result</span></h4>
+              <pre
+                style="margin-top: 10px"
+              ><code style="color:var(--success)">Ravi Kumar - 92
+Priya Rao - 78
+Suresh Babu - 85
+Meena Kumari - 91</code></pre>
+              <p
+                style="
+                  font-size: 0.8rem;
+                  color: var(--success);
+                  margin-top: 8px;
+                "
+              >
+                ✅ All records safe!
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════ 06 WITH ══════════════════════════════ -->
+      <section class="section fade-in" id="with">
+        <div class="section-label">
+          <span class="section-num">06</span>
+          <h2>The <code>with</code> Statement (Context Manager)</h2>
+        </div>
+
+        <div class="card">
+          <h3>🤝 Always use <code>with</code> — Here's why</h3>
+
+          <div class="analogy">
+            <div class="analogy-label">
+              💡 Analogy — Water Tap in a Government Office
+            </div>
+            <p>
+              Without <code>with</code>: you open the tap (file), do your work,
+              and <em>forget to close it</em>. The water (resource) keeps
+              flowing — memory leak, data loss risk. With <code>with</code>: the
+              tap automatically shuts the moment you leave that block, no matter
+              what. Like an auto-shutoff valve.
+            </p>
+          </div>
+
+          <div class="compare-grid">
+            <div class="compare-card">
+              <h4><span class="tag tag-orange">❌ Old way (risky)</span></h4>
+              <pre
+                data-label="python"
+              ><code><span class="var">f</span> = <span class="fn">open</span>(<span class="str">"data.txt"</span>, <span class="str">"r"</span>)
+<span class="var">content</span> = <span class="var">f</span>.<span class="fn">read</span>()
+<span class="cm"># What if an exception happens here?</span>
+<span class="cm"># f.close() might never run!</span>
+<span class="var">f</span>.<span class="fn">close</span>()</code></pre>
+            </div>
+            <div class="compare-card">
+              <h4><span class="tag tag-green">✅ Modern way (safe)</span></h4>
+              <pre
+                data-label="python"
+              ><code><span class="kw">with</span> <span class="fn">open</span>(<span class="str">"data.txt"</span>, <span class="str">"r"</span>) <span class="kw">as</span> <span class="var">f</span>:
+    <span class="var">content</span> = <span class="var">f</span>.<span class="fn">read</span>()
+<span class="cm"># File auto-closed here, always.</span>
+<span class="cm"># Even if an exception occurred!</span></code></pre>
+            </div>
+          </div>
+
+          <p style="color: var(--muted); font-size: 0.88rem; margin-top: 16px">
+            The <code>with</code> statement calls <code>__enter__</code> when
+            starting and <code>__exit__</code> (which closes the file) when the
+            block ends — whether normally or via exception.
+          </p>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════ 07 ERRORS ═══════════════════════════ -->
+      <section class="section fade-in" id="errors">
+        <div class="section-label">
+          <span class="section-num">07</span>
+          <h2>Handling File Errors</h2>
+        </div>
+
+        <div class="card">
+          <h3>🐛 Common Exceptions</h3>
+          <div class="exc-box">
+            <div class="exc-icon">🚫</div>
+            <div>
+              <h4>FileNotFoundError</h4>
+              <p>
+                Raised when you try to open a file in 'r' mode that doesn't
+                exist on disk.
+              </p>
+            </div>
+          </div>
+          <div class="exc-box">
+            <div class="exc-icon">🔒</div>
+            <div>
+              <h4>PermissionError</h4>
+              <p>
+                Raised when the OS denies access — e.g., trying to write to a
+                read-only system file.
+              </p>
+            </div>
+          </div>
+          <div class="exc-box">
+            <div class="exc-icon">📂</div>
+            <div>
+              <h4>IsADirectoryError</h4>
+              <p>
+                Raised when you pass a directory path where a file path is
+                expected.
+              </p>
+            </div>
+          </div>
+
+          <pre data-label="python"><code><span class="kw">try</span>:
+    <span class="kw">with</span> <span class="fn">open</span>(<span class="str">"marks.txt"</span>, <span class="str">"r"</span>) <span class="kw">as</span> <span class="var">f</span>:
+        <span class="fn">print</span>(<span class="var">f</span>.<span class="fn">read</span>())
+
+<span class="kw">except</span> <span class="err">FileNotFoundError</span>:
+    <span class="fn">print</span>(<span class="str">"❌ File does not exist!"</span>)
+
+<span class="kw">except</span> <span class="err">PermissionError</span>:
+    <span class="fn">print</span>(<span class="str">"❌ No permission to read file!"</span>)
+
+<span class="kw">except</span> <span class="err">Exception</span> <span class="kw">as</span> <span class="var">e</span>:
+    <span class="fn">print</span>(<span class="str">f"Unexpected error: </span>{<span class="var">e</span>}<span class="str">"</span>)
+
+<span class="kw">else</span>:
+    <span class="fn">print</span>(<span class="str">"✅ File read successfully!"</span>)
+
+<span class="kw">finally</span>:
+    <span class="fn">print</span>(<span class="str">"This always runs."</span>)</code></pre>
+        </div>
+
+        <div class="card">
+          <h3>🔍 Check if file exists before opening — <code>os.path</code></h3>
+          <pre
+            data-label="python"
+          ><code><span class="kw">import</span> <span class="fn">os</span>
+
+<span class="kw">if</span> <span class="var">os</span>.<span class="fn">path</span>.<span class="fn">exists</span>(<span class="str">"marks.txt"</span>):
+    <span class="kw">with</span> <span class="fn">open</span>(<span class="str">"marks.txt"</span>, <span class="str">"r"</span>) <span class="kw">as</span> <span class="var">f</span>:
+        <span class="fn">print</span>(<span class="var">f</span>.<span class="fn">read</span>())
+<span class="kw">else</span>:
+    <span class="fn">print</span>(<span class="str">"File not found!"</span>)
+
+<span class="cm"># Also useful:</span>
+<span class="fn">print</span>(<span class="var">os</span>.<span class="fn">path</span>.<span class="fn">getsize</span>(<span class="str">"marks.txt"</span>))  <span class="cm"># file size in bytes</span>
+<span class="fn">print</span>(<span class="var">os</span>.<span class="fn">path</span>.<span class="fn">abspath</span>(<span class="str">"marks.txt"</span>)) <span class="cm"># absolute path</span></code></pre>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════ 08 SIMULATOR ════════════════════════ -->
+      <section class="section" id="simulator">
+        <div class="section-label">
+          <span class="section-num">08</span>
+          <h2>Interactive File Simulator</h2>
+        </div>
+
+        <div class="simulator">
+          <div class="sim-header">
+            <span class="dot dot-r"></span>
+            <span class="dot dot-y"></span>
+            <span class="dot dot-g"></span>
+            <span class="sim-title"
+              >file_simulator.py — virtual file: students.txt</span
+            >
+          </div>
+          <div class="sim-body">
+            <p
+              style="
+                color: var(--muted);
+                font-size: 0.88rem;
+                margin-bottom: 18px;
+              "
+            >
+              Simulate file operations below. The virtual file lives in your
+              browser — try Write, Append, then Read to see what happens!
+            </p>
+
+            <label
+              style="
+                font-size: 0.82rem;
+                color: var(--muted);
+                display: block;
+                margin-bottom: 6px;
+              "
+              >✏️ Enter text to write or append:</label
+            >
+            <textarea
+              class="sim-textarea"
+              id="inputText"
+              placeholder="e.g.  Ravi Kumar - Maths: 92&#10;Priya Rao - Maths: 78"
+            ></textarea>
+
+            <div class="sim-controls" style="margin-top: 14px">
+              <button class="btn btn-danger" onclick="simWrite()">
+                📝 Write (Overwrite)
+              </button>
+              <button class="btn btn-success" onclick="simAppend()">
+                ➕ Append
+              </button>
+              <button class="btn btn-secondary" onclick="simRead()">
+                👁️ Read
+              </button>
+              <button class="btn btn-secondary" onclick="simReadlines()">
+                📋 readlines()
+              </button>
+              <button class="btn btn-secondary" onclick="simClear()">
+                🗑️ Delete File
+              </button>
+            </div>
+
+            <div class="file-display" id="fileDisplay">
+              [ File is empty — write something! ]
+            </div>
+
+            <div
+              id="opLog"
+              style="
+                margin-top: 12px;
+                font-family: &quot;JetBrains Mono&quot;, monospace;
+                font-size: 0.78rem;
+                color: var(--muted);
+                max-height: 90px;
+                overflow-y: auto;
+              "
+            ></div>
+          </div>
+          <div class="status-bar">
+            <div class="status-dot" id="statusDot"></div>
+            <span id="statusText">No file open</span>
+            <span style="margin-left: auto" id="statusSize"></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════ EXPERIMENT ══════════════════════════ -->
+      <section class="experiment fade-in" id="experiment">
+        <h2>🧪 Classroom Experiment</h2>
+        <p>
+          Open VS Code or any Python environment and try these tasks. Discuss
+          outputs with your batch!
+        </p>
+        <ul class="task-list">
+          <li>
+            Create a file <code>ration_shop.txt</code>. Write 5 families and
+            their rice quota (kg) using a loop and <code>write()</code>.
+          </li>
+          <li>
+            Reopen the same file in <code>'a'</code> mode and add 2 more
+            families. Verify all 7 are present using <code>readlines()</code>.
+          </li>
+          <li>
+            Read the file and print only families whose quota is greater than 5
+            kg (parse with <code>split()</code>).
+          </li>
+          <li>
+            Wrap everything in a <code>try-except-finally</code> block.
+            Deliberately pass a wrong filename and observe the error.
+          </li>
+          <li>
+            Use <code>os.path.getsize()</code> to print the file size before and
+            after appending. Can you explain why it grew?
+          </li>
+        </ul>
+      </section>
+
+      <!-- ═══════════════════════════════ QUIZ ════════════════════════════════ -->
+      <section class="quiz-section" id="quiz">
+        <div class="quiz-header">
+          <h2>🎯 Quick Quiz — Test Your Understanding</h2>
+          <p>5 questions. Click an option and get instant feedback.</p>
+        </div>
+        <div class="quiz-body" id="quizBody">
+          <!-- Q1 -->
+          <div class="q-card" id="q1">
+            <div class="q-text">
+              1. You open a file using <code>'w'</code> mode. It already has 100
+              lines of data. What happens to those lines?
+            </div>
+            <div class="options">
+              <div class="opt" onclick="answer(this, 'q1', 'a')">
+                a) They are preserved; new content is added below
+              </div>
+              <div class="opt" onclick="answer(this, 'q1', 'b')">
+                b) The file is immediately truncated to 0 bytes
+              </div>
+              <div class="opt" onclick="answer(this, 'q1', 'c')">
+                c) Python raises a FileExistsError
+              </div>
+              <div class="opt" onclick="answer(this, 'q1', 'd')">
+                d) The 100 lines are moved to a backup
+              </div>
+            </div>
+            <div class="q-feedback" id="q1-fb"></div>
+          </div>
+
+          <!-- Q2 -->
+          <div class="q-card" id="q2">
+            <div class="q-text">
+              2. What is the difference between <code>read()</code> and
+              <code>readlines()</code>?
+            </div>
+            <div class="options">
+              <div class="opt" onclick="answer(this, 'q2', 'a')">
+                a) <code>read()</code> returns a list;
+                <code>readlines()</code> returns a string
+              </div>
+              <div class="opt" onclick="answer(this, 'q2', 'b')">
+                b) <code>read()</code> returns one string;
+                <code>readlines()</code> returns a list of lines
+              </div>
+              <div class="opt" onclick="answer(this, 'q2', 'c')">
+                c) They are identical
+              </div>
+              <div class="opt" onclick="answer(this, 'q2', 'd')">
+                d) <code>readlines()</code> only works in binary mode
+              </div>
+            </div>
+            <div class="q-feedback" id="q2-fb"></div>
+          </div>
+
+          <!-- Q3 -->
+          <div class="q-card" id="q3">
+            <div class="q-text">
+              3. What exception does Python raise if you try to open a
+              non-existent file in <code>'r'</code> mode?
+            </div>
+            <div class="options">
+              <div class="opt" onclick="answer(this, 'q3', 'a')">
+                a) <code>IOError</code>
+              </div>
+              <div class="opt" onclick="answer(this, 'q3', 'b')">
+                b) <code>FileNotFoundError</code>
+              </div>
+              <div class="opt" onclick="answer(this, 'q3', 'c')">
+                c) <code>MissingFileError</code>
+              </div>
+              <div class="opt" onclick="answer(this, 'q3', 'd')">
+                d) <code>OSError: file missing</code>
+              </div>
+            </div>
+            <div class="q-feedback" id="q3-fb"></div>
+          </div>
+
+          <!-- Q4 -->
+          <div class="q-card" id="q4">
+            <div class="q-text">
+              4. What is the primary advantage of using
+              <code>with open(...) as f:</code> over
+              <code>f = open(...); f.close()</code>?
+            </div>
+            <div class="options">
+              <div class="opt" onclick="answer(this, 'q4', 'a')">
+                a) It reads files faster
+              </div>
+              <div class="opt" onclick="answer(this, 'q4', 'b')">
+                b) It automatically closes the file even if an exception occurs
+              </div>
+              <div class="opt" onclick="answer(this, 'q4', 'c')">
+                c) It allows writing in all modes
+              </div>
+              <div class="opt" onclick="answer(this, 'q4', 'd')">
+                d) It compresses the file automatically
+              </div>
+            </div>
+            <div class="q-feedback" id="q4-fb"></div>
+          </div>
+
+          <!-- Q5 -->
+          <div class="q-card" id="q5">
+            <div class="q-text">
+              5. Look at this code. What will be in the file after both blocks
+              run?
+              <span class="q-code"
+                >with open("log.txt", "w") as f: f.write("Entry 1\n") with
+                open("log.txt", "a") as f: f.write("Entry 2\n")</span
+              >
+            </div>
+            <div class="options">
+              <div class="opt" onclick="answer(this, 'q5', 'a')">
+                a) Only "Entry 2"
+              </div>
+              <div class="opt" onclick="answer(this, 'q5', 'b')">
+                b) "Entry 1" and "Entry 2" both
+              </div>
+              <div class="opt" onclick="answer(this, 'q5', 'c')">
+                c) Only "Entry 1"
+              </div>
+              <div class="opt" onclick="answer(this, 'q5', 'd')">
+                d) The file will be empty
+              </div>
+            </div>
+            <div class="q-feedback" id="q5-fb"></div>
+          </div>
+        </div>
+
+        <div class="quiz-score" id="quizScore">
+          <div class="score-num" id="scoreNum">0/5</div>
+          <div class="score-sub" id="scoreSub"></div>
+          <button
+            class="btn btn-primary"
+            style="margin-top: 20px"
+            onclick="resetQuiz()"
+          >
+            🔄 Try Again
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      Python File Handling — Interactive Demo &nbsp;|&nbsp; Built for
+      Engineering Students &nbsp;|&nbsp; Instructor View
+    </footer>
+
+    <script>
+      // ═══════════════════════════════════════════════════════
+      //  VIRTUAL FILE SIMULATOR
+      // ═══════════════════════════════════════════════════════
+
+      let virtualFile = null; // null = file doesn't exist
+      let isOpen = false;
+
+      function logOp(msg) {
+        const log = document.getElementById("opLog");
+        const ts = new Date().toLocaleTimeString("en-IN");
+        log.innerHTML =
+          `<span style="color:var(--accent2)">[${ts}]</span> ${msg}\n` +
+          log.innerHTML;
+      }
+
+      function updateStatus(open, label, size) {
+        const dot = document.getElementById("statusDot");
+        const text = document.getElementById("statusText");
+        const sz = document.getElementById("statusSize");
+        dot.className = "status-dot" + (open ? " open" : "");
+        text.textContent = label;
+        sz.textContent = size !== undefined ? `${size} bytes` : "";
+      }
+
+      function displayFile() {
+        const el = document.getElementById("fileDisplay");
+        if (virtualFile === null) {
+          el.textContent = "[ File does not exist ]";
+          el.style.color = "var(--danger)";
+        } else if (virtualFile === "") {
+          el.textContent = "[ File exists but is empty ]";
+          el.style.color = "var(--warn)";
+        } else {
+          el.textContent = virtualFile;
+          el.style.color = "var(--success)";
+        }
+      }
+
+      // Simulate open in 'w' mode — OVERWRITES
+      function simWrite() {
+        const text = document.getElementById("inputText").value;
+        if (!text.trim()) {
+          logOp("⚠️ Nothing to write. Type something first.");
+          return;
+        }
+        virtualFile = text + (text.endsWith("\n") ? "" : "\n");
+        logOp(`open("students.txt", "w") ➜ file created/overwritten`);
+        logOp(`f.write(...)  ➜ ${virtualFile.length} chars written`);
+        displayFile();
+        updateStatus(
+          false,
+          "students.txt — closed after write",
+          virtualFile.length,
+        );
+      }
+
+      // Simulate open in 'a' mode — APPENDS
+      function simAppend() {
+        const text = document.getElementById("inputText").value;
+        if (!text.trim()) {
+          logOp("⚠️ Nothing to append. Type something first.");
+          return;
+        }
+        if (virtualFile === null) virtualFile = ""; // file created if missing
+        virtualFile += text + (text.endsWith("\n") ? "" : "\n");
+        logOp(`open("students.txt", "a") ➜ cursor at end`);
+        logOp(
+          `f.write(...)  ➜ content appended, total ${virtualFile.length} chars`,
+        );
+        displayFile();
+        updateStatus(
+          false,
+          "students.txt — closed after append",
+          virtualFile.length,
+        );
+      }
+
+      // Simulate f.read()
+      function simRead() {
+        if (virtualFile === null) {
+          logOp("❌ FileNotFoundError: students.txt does not exist");
+          document.getElementById("fileDisplay").textContent =
+            "❌ FileNotFoundError: No such file";
+          document.getElementById("fileDisplay").style.color = "var(--danger)";
+          updateStatus(false, "Error — file not found", undefined);
+          return;
+        }
+        logOp(`open("students.txt", "r") ➜ f.read() returns full string`);
+        displayFile();
+        updateStatus(false, `students.txt — read complete`, virtualFile.length);
+      }
+
+      // Simulate readlines() — shows numbered list
+      function simReadlines() {
+        if (virtualFile === null) {
+          logOp("❌ FileNotFoundError: students.txt does not exist");
+          return;
+        }
+        const lines = virtualFile.split("\n").filter((l) => l.trim() !== "");
+        const el = document.getElementById("fileDisplay");
+        el.textContent = lines.map((l, i) => `[${i}] "${l}"`).join("\n");
+        el.style.color = "var(--accent2)";
+        logOp(`f.readlines() ➜ list with ${lines.length} elements`);
+        updateStatus(
+          false,
+          `students.txt — readlines() returned ${lines.length} items`,
+          virtualFile.length,
+        );
+      }
+
+      // Simulate deleting the file
+      function simClear() {
+        virtualFile = null;
+        logOp('os.remove("students.txt") ➜ file deleted');
+        displayFile();
+        updateStatus(false, "No file", undefined);
+      }
+
+      // ═══════════════════════════════════════════════════════
+      //  QUIZ ENGINE
+      // ═══════════════════════════════════════════════════════
+
+      const answers = {
+        q1: {
+          correct: "b",
+          explanation:
+            'Correct! Opening in "w" mode immediately truncates (empties) the file. All 100 lines are gone even before you call write().',
+        },
+        q2: {
+          correct: "b",
+          explanation:
+            "Correct! read() returns the whole file as one big string. readlines() returns a list where each element is one line (including \\n).",
+        },
+        q3: {
+          correct: "b",
+          explanation:
+            'Correct! Python raises FileNotFoundError (a subclass of OSError) when "r" mode is used on a missing file.',
+        },
+        q4: {
+          correct: "b",
+          explanation:
+            "Correct! The context manager guarantees __exit__ is called, which closes the file — even if an exception interrupts the block.",
+        },
+        q5: {
+          correct: "b",
+          explanation:
+            'Correct! The first block (w) writes "Entry 1". The second block (a) appends "Entry 2". Both lines are in the file.',
+        },
+      };
+
+      let answered = {};
+      let score = 0;
+
+      function answer(optEl, qId, choice) {
+        if (answered[qId]) return; // already answered
+        answered[qId] = choice;
+
+        const card = document.getElementById(qId);
+        const fb = document.getElementById(`${qId}-fb`);
+        const opts = card.querySelectorAll(".opt");
+        const data = answers[qId];
+
+        // Disable all options
+        opts.forEach((o) => o.classList.add("disabled"));
+
+        if (choice === data.correct) {
+          optEl.classList.add("selected-correct");
+          card.classList.add("correct");
+          fb.textContent = "✅ " + data.explanation;
+          fb.className = "q-feedback show correct";
+          score++;
+        } else {
+          optEl.classList.add("selected-wrong");
+          card.classList.add("wrong");
+          // Reveal the correct option
+          opts.forEach((o) => {
+            if (o.textContent.trim().startsWith(data.correct)) {
+              o.classList.add("reveal-correct");
+            }
+          });
+          fb.textContent = "❌ Not quite. " + data.explanation;
+          fb.className = "q-feedback show wrong";
+        }
+
+        // Check if all questions answered
+        if (Object.keys(answered).length === 5) showScore();
+      }
+
+      function showScore() {
+        const scoreEl = document.getElementById("quizScore");
+        const numEl = document.getElementById("scoreNum");
+        const subEl = document.getElementById("scoreSub");
+
+        numEl.textContent = `${score}/5`;
+        const msgs = [
+          "Keep practicing! Re-read the sections above.",
+          "Getting there! Review the trickier parts.",
+          "Good effort! A couple of concepts to revisit.",
+          "Great job! You understand most of it.",
+          "Excellent! File handling is now your superpower! 🚀",
+        ];
+        subEl.textContent = msgs[score] || "";
+        numEl.style.color =
+          score >= 4
+            ? "var(--success)"
+            : score >= 2
+              ? "var(--warn)"
+              : "var(--danger)";
+        scoreEl.classList.add("show");
+        scoreEl.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+
+      function resetQuiz() {
+        answered = {};
+        score = 0;
+        document.getElementById("quizScore").classList.remove("show");
+        Object.keys(answers).forEach((qId) => {
+          const card = document.getElementById(qId);
+          card.classList.remove("correct", "wrong");
+          const fb = document.getElementById(`${qId}-fb`);
+          fb.className = "q-feedback";
+          card.querySelectorAll(".opt").forEach((o) => {
+            o.classList.remove(
+              "selected-correct",
+              "selected-wrong",
+              "reveal-correct",
+              "disabled",
+            );
+          });
+        });
+        document.getElementById("quiz").scrollIntoView({ behavior: "smooth" });
+      }
+
+      // ═══════════════════════════════════════════════════════
+      //  INTERSECTION OBSERVER — fade in sections on scroll
+      // ═══════════════════════════════════════════════════════
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => {
+            if (e.isIntersecting) {
+              e.target.style.opacity = "1";
+              e.target.style.transform = "none";
+            }
+          });
+        },
+        { threshold: 0.08 },
+      );
+
+      document.querySelectorAll(".fade-in").forEach((el) => {
+        el.style.opacity = "0";
+        el.style.transition = "opacity 0.55s ease, transform 0.55s ease";
+        observer.observe(el);
+      });
+    </script>
+  </body>
+</html>

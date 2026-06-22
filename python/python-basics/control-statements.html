@@ -1,0 +1,1619 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Python Control Statements — Deep Dive</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&family=Nunito:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0d0f18;
+        --panel: #13162a;
+        --panel2: #1a1e35;
+        --border: #2a2f52;
+        --accent: #f7c948;
+        --accent2: #5ef0b0;
+        --accent3: #f06fa8;
+        --accent4: #7eb3ff;
+        --text: #e8eaf6;
+        --muted: #7880a4;
+        --code-bg: #090b14;
+        --correct: #5ef0b0;
+        --wrong: #f06fa8;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: "Nunito", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        line-height: 1.7;
+      }
+
+      /* ── HEADER ── */
+      header {
+        background: linear-gradient(
+          135deg,
+          #0d0f18 0%,
+          #1a1230 50%,
+          #0d1a2e 100%
+        );
+        border-bottom: 2px solid var(--border);
+        padding: 2.5rem 2rem 2rem;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+      }
+      header::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(
+            ellipse at 20% 50%,
+            rgba(94, 240, 176, 0.07) 0%,
+            transparent 60%
+          ),
+          radial-gradient(
+            ellipse at 80% 50%,
+            rgba(247, 201, 72, 0.07) 0%,
+            transparent 60%
+          );
+      }
+      .badge {
+        display: inline-block;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: 0.15em;
+        color: var(--accent2);
+        background: rgba(94, 240, 176, 0.1);
+        border: 1px solid rgba(94, 240, 176, 0.3);
+        padding: 0.3rem 0.9rem;
+        border-radius: 100px;
+        margin-bottom: 1rem;
+        text-transform: uppercase;
+      }
+      header h1 {
+        font-family: "Syne", sans-serif;
+        font-size: clamp(2rem, 5vw, 3.2rem);
+        font-weight: 800;
+        color: var(--text);
+        position: relative;
+      }
+      header h1 span {
+        color: var(--accent);
+      }
+      header p {
+        color: var(--muted);
+        margin-top: 0.5rem;
+        font-size: 1rem;
+      }
+
+      /* ── NAV TABS ── */
+      .tabs {
+        display: flex;
+        gap: 0.4rem;
+        padding: 1.2rem 2rem 0;
+        border-bottom: 2px solid var(--border);
+        background: var(--panel);
+        overflow-x: auto;
+        flex-wrap: nowrap;
+      }
+      .tab-btn {
+        font-family: "Syne", sans-serif;
+        font-weight: 600;
+        font-size: 0.85rem;
+        padding: 0.6rem 1.2rem;
+        border: none;
+        border-radius: 8px 8px 0 0;
+        background: transparent;
+        color: var(--muted);
+        cursor: pointer;
+        white-space: nowrap;
+        transition: all 0.2s;
+        border-bottom: 3px solid transparent;
+        letter-spacing: 0.02em;
+      }
+      .tab-btn:hover {
+        color: var(--text);
+        background: var(--panel2);
+      }
+      .tab-btn.active {
+        color: var(--accent);
+        border-bottom-color: var(--accent);
+        background: var(--panel2);
+      }
+
+      /* ── SECTIONS ── */
+      .section {
+        display: none;
+        padding: 2rem;
+        max-width: 960px;
+        margin: 0 auto;
+      }
+      .section.active {
+        display: block;
+        animation: fadeIn 0.3s ease;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+
+      h2 {
+        font-family: "Syne", sans-serif;
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: var(--accent);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+      }
+      h3 {
+        font-family: "Syne", sans-serif;
+        font-size: 1.15rem;
+        font-weight: 600;
+        color: var(--accent4);
+        margin: 1.5rem 0 0.6rem;
+      }
+      p {
+        color: #c5c9e4;
+        margin-bottom: 0.8rem;
+      }
+
+      /* ── ANALOGY BOX ── */
+      .analogy {
+        background: linear-gradient(
+          135deg,
+          rgba(247, 201, 72, 0.08),
+          rgba(247, 201, 72, 0.03)
+        );
+        border: 1px solid rgba(247, 201, 72, 0.35);
+        border-left: 4px solid var(--accent);
+        border-radius: 0 10px 10px 0;
+        padding: 1rem 1.3rem;
+        margin: 1.2rem 0;
+        font-size: 0.95rem;
+        color: #f0e2a0;
+      }
+      .analogy strong {
+        color: var(--accent);
+      }
+
+      /* ── CODE BLOCKS ── */
+      pre {
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 1.2rem 1.4rem;
+        overflow-x: auto;
+        margin: 1rem 0;
+      }
+      code {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.88rem;
+        line-height: 1.75;
+      }
+      .kw {
+        color: #c792ea;
+      }
+      .fn {
+        color: #82aaff;
+      }
+      .str {
+        color: #c3e88d;
+      }
+      .num {
+        color: #f78c6c;
+      }
+      .cmt {
+        color: #546e7a;
+        font-style: italic;
+      }
+      .op {
+        color: var(--accent2);
+      }
+      .var {
+        color: #ffcb6b;
+      }
+
+      /* ── INFO CARDS ── */
+      .card-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .card {
+        background: var(--panel2);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1.1rem 1.3rem;
+        transition:
+          border-color 0.2s,
+          transform 0.2s;
+      }
+      .card:hover {
+        border-color: var(--accent4);
+        transform: translateY(-2px);
+      }
+      .card-icon {
+        font-size: 1.6rem;
+        margin-bottom: 0.4rem;
+      }
+      .card h4 {
+        font-family: "Syne", sans-serif;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 0.3rem;
+      }
+      .card p {
+        font-size: 0.88rem;
+        color: var(--muted);
+        margin: 0;
+      }
+
+      /* ── INTERACTIVE PLAYGROUND ── */
+      .playground {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 1.4rem;
+        margin: 1.5rem 0;
+      }
+      .playground h3 {
+        margin-top: 0;
+        color: var(--accent2);
+      }
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.8rem;
+        margin: 1rem 0;
+        align-items: center;
+      }
+      label {
+        font-size: 0.9rem;
+        color: var(--muted);
+      }
+      input[type="range"] {
+        accent-color: var(--accent);
+        cursor: pointer;
+      }
+      input[type="number"],
+      input[type="text"] {
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text);
+        padding: 0.45rem 0.8rem;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.88rem;
+        width: 100px;
+      }
+      select {
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text);
+        padding: 0.45rem 0.8rem;
+        font-family: "Nunito", sans-serif;
+        font-size: 0.88rem;
+        cursor: pointer;
+      }
+      .btn {
+        font-family: "Syne", sans-serif;
+        font-weight: 700;
+        font-size: 0.85rem;
+        padding: 0.55rem 1.3rem;
+        border: none;
+        border-radius: 8px;
+        background: var(--accent);
+        color: #111;
+        cursor: pointer;
+        transition:
+          opacity 0.2s,
+          transform 0.15s;
+        letter-spacing: 0.03em;
+      }
+      .btn:hover {
+        opacity: 0.88;
+        transform: scale(1.03);
+      }
+      .btn.secondary {
+        background: var(--panel2);
+        color: var(--accent4);
+        border: 1px solid var(--accent4);
+      }
+
+      .output-box {
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 1rem 1.2rem;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.85rem;
+        min-height: 60px;
+        color: var(--accent2);
+        white-space: pre-wrap;
+        line-height: 1.8;
+      }
+
+      /* ── FLOWCHART ── */
+      .flowchart {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0;
+        margin: 1.5rem auto;
+        max-width: 380px;
+      }
+      .flow-box {
+        padding: 0.7rem 1.4rem;
+        border-radius: 10px;
+        text-align: center;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.83rem;
+        font-weight: 600;
+        width: 100%;
+        max-width: 280px;
+        border: 2px solid;
+        position: relative;
+        transition: all 0.3s;
+      }
+      .flow-start {
+        background: rgba(94, 240, 176, 0.12);
+        border-color: var(--accent2);
+        color: var(--accent2);
+        border-radius: 100px;
+      }
+      .flow-condition {
+        background: rgba(247, 201, 72, 0.12);
+        border-color: var(--accent);
+        color: var(--accent);
+        transform: rotate(0deg);
+        clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+        height: 75px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        max-width: 200px;
+      }
+      .flow-action {
+        background: rgba(126, 179, 255, 0.12);
+        border-color: var(--accent4);
+        color: var(--accent4);
+      }
+      .flow-end {
+        background: rgba(240, 111, 168, 0.12);
+        border-color: var(--accent3);
+        color: var(--accent3);
+        border-radius: 100px;
+      }
+      .flow-arrow {
+        font-size: 1.2rem;
+        color: var(--muted);
+        line-height: 1;
+      }
+      .flow-label {
+        font-size: 0.72rem;
+        color: var(--muted);
+        font-family: "JetBrains Mono", monospace;
+      }
+
+      /* ── HIGHLIGHT ANIMATION ── */
+      .highlight {
+        animation: pulse 0.6s ease;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.4;
+        }
+      }
+
+      /* ── QUIZ ── */
+      .quiz-q {
+        background: var(--panel2);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1.3rem;
+        margin-bottom: 1.2rem;
+        transition: border-color 0.3s;
+      }
+      .quiz-q.correct {
+        border-color: var(--correct);
+        background: rgba(94, 240, 176, 0.06);
+      }
+      .quiz-q.wrong {
+        border-color: var(--wrong);
+        background: rgba(240, 111, 168, 0.06);
+      }
+      .quiz-q p {
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: 0.8rem;
+      }
+      .quiz-options {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+      .quiz-opt {
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 0.55rem 1rem;
+        cursor: pointer;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.85rem;
+        color: var(--text);
+        text-align: left;
+        transition: all 0.2s;
+      }
+      .quiz-opt:hover:not(:disabled) {
+        border-color: var(--accent4);
+        color: var(--accent4);
+      }
+      .quiz-opt.correct-ans {
+        border-color: var(--correct);
+        color: var(--correct);
+        background: rgba(94, 240, 176, 0.1);
+      }
+      .quiz-opt.wrong-ans {
+        border-color: var(--wrong);
+        color: var(--wrong);
+        background: rgba(240, 111, 168, 0.1);
+      }
+      .quiz-feedback {
+        font-size: 0.85rem;
+        margin-top: 0.7rem;
+        padding: 0.5rem 0.8rem;
+        border-radius: 6px;
+      }
+      .quiz-score-box {
+        background: var(--panel2);
+        border: 2px solid var(--accent);
+        border-radius: 14px;
+        padding: 2rem;
+        text-align: center;
+        display: none;
+      }
+      .quiz-score-box h3 {
+        font-size: 2rem;
+        color: var(--accent);
+      }
+
+      /* ── EXPERIMENT ── */
+      .experiment {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 1.5rem;
+        margin-top: 1.5rem;
+      }
+      .experiment h3 {
+        color: var(--accent3);
+        margin-top: 0;
+      }
+      .task-list {
+        list-style: none;
+        counter-reset: task-counter;
+      }
+      .task-list li {
+        counter-increment: task-counter;
+        padding: 0.7rem 0.8rem 0.7rem 3rem;
+        position: relative;
+        border-left: 2px solid var(--border);
+        margin-bottom: 0.5rem;
+        border-radius: 0 8px 8px 0;
+        background: var(--panel2);
+        font-size: 0.93rem;
+        color: #c5c9e4;
+      }
+      .task-list li::before {
+        content: counter(task-counter);
+        position: absolute;
+        left: 0.8rem;
+        font-family: "Syne", sans-serif;
+        font-weight: 800;
+        font-size: 0.85rem;
+        color: var(--accent3);
+      }
+
+      .divider {
+        height: 1px;
+        background: var(--border);
+        margin: 2rem 0;
+      }
+
+      /* ── LOOP VISUALIZER ── */
+      .loop-viz {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        margin: 1rem 0;
+        min-height: 40px;
+      }
+      .loop-cell {
+        width: 38px;
+        height: 38px;
+        background: var(--panel2);
+        border: 2px solid var(--border);
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--muted);
+        transition: all 0.3s;
+      }
+      .loop-cell.active {
+        background: rgba(247, 201, 72, 0.2);
+        border-color: var(--accent);
+        color: var(--accent);
+        transform: scale(1.15);
+      }
+      .loop-cell.done {
+        background: rgba(94, 240, 176, 0.1);
+        border-color: var(--accent2);
+        color: var(--accent2);
+      }
+      .loop-cell.skipped {
+        background: rgba(240, 111, 168, 0.1);
+        border-color: var(--accent3);
+        color: var(--accent3);
+      }
+
+      /* ── SCROLLBAR ── */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: var(--bg);
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 3px;
+      }
+
+      @media (max-width: 640px) {
+        .section {
+          padding: 1.2rem 1rem;
+        }
+        .tabs {
+          padding: 0.8rem 1rem 0;
+        }
+        header {
+          padding: 1.5rem 1rem 1.2rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="badge">🐍 Python Deep Dive · Module 4</div>
+      <h1>Control <span>Statements</span></h1>
+      <p>if · for · while · break · continue · pass · match-case</p>
+    </header>
+
+    <!-- TABS -->
+    <nav class="tabs">
+      <button class="tab-btn active" onclick="switchTab('if')">
+        🔀 if / elif / else
+      </button>
+      <button class="tab-btn" onclick="switchTab('loops')">
+        🔁 for &amp; while
+      </button>
+      <button class="tab-btn" onclick="switchTab('control')">
+        🎮 break / continue / pass
+      </button>
+      <button class="tab-btn" onclick="switchTab('match')">
+        🎯 match-case
+      </button>
+      <button class="tab-btn" onclick="switchTab('experiment')">
+        🧪 Experiment
+      </button>
+      <button class="tab-btn" onclick="switchTab('quiz')">🧩 Quiz</button>
+    </nav>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!--  TAB 1 — IF / ELIF / ELSE                             -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <section class="section active" id="tab-if">
+      <h2>🔀 if / elif / else</h2>
+      <p>
+        Python uses <strong>indentation</strong> (not curly braces) to define
+        blocks. Each condition is evaluated top to bottom — the first
+        <code>True</code> branch wins.
+      </p>
+
+      <div class="flowchart">
+        <div class="flow-box flow-start">Start</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-box flow-condition">condition?</div>
+        <div
+          style="
+            display: flex;
+            gap: 3rem;
+            width: 100%;
+            justify-content: center;
+            margin-top: -4px;
+          "
+        >
+          <div
+            style="
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              gap: 4px;
+            "
+          >
+            <span class="flow-label">True</span>
+            <div
+              class="flow-box flow-action"
+              style="max-width: 120px; font-size: 0.78rem"
+            >
+              if block
+            </div>
+          </div>
+          <div
+            style="
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              gap: 4px;
+            "
+          >
+            <span class="flow-label">False</span>
+            <div
+              class="flow-box flow-action"
+              style="max-width: 120px; font-size: 0.78rem"
+            >
+              elif / else
+            </div>
+          </div>
+        </div>
+        <div class="flow-arrow" style="margin-top: 0.5rem">↓</div>
+        <div class="flow-box flow-end">Continue…</div>
+      </div>
+
+      <pre><code><span class="cmt"># Indian rail ticket booking example</span>
+<span class="var">age</span> <span class="op">=</span> <span class="num">14</span>
+<span class="var">has_pass</span> <span class="op">=</span> <span class="kw">False</span>
+
+<span class="kw">if</span> <span class="var">age</span> <span class="op">&lt;</span> <span class="num">5</span><span class="op">:</span>
+    <span class="fn">print</span>(<span class="str">"Free ticket"</span>)
+<span class="kw">elif</span> <span class="var">age</span> <span class="op">&lt;</span> <span class="num">12</span><span class="op">:</span>
+    <span class="fn">print</span>(<span class="str">"Child fare — 50% off"</span>)
+<span class="kw">elif</span> <span class="var">has_pass</span><span class="op">:</span>
+    <span class="fn">print</span>(<span class="str">"Season pass — no charge"</span>)
+<span class="kw">else</span><span class="op">:</span>
+    <span class="fn">print</span>(<span class="str">"Full adult fare"</span>)
+<span class="cmt"># Output → Full adult fare</span></code></pre>
+
+      <h3>⚡ Ternary / Conditional Expression</h3>
+      <p>
+        Python has a one-liner form:
+        <code
+          >value_if_true <strong>if</strong> condition
+          <strong>else</strong> value_if_false</code
+        >
+      </p>
+      <pre><code><span class="var">marks</span> <span class="op">=</span> <span class="num">72</span>
+<span class="var">result</span> <span class="op">=</span> <span class="str">"Pass"</span> <span class="kw">if</span> <span class="var">marks</span> <span class="op">&gt;=</span> <span class="num">35</span> <span class="kw">else</span> <span class="str">"Fail"</span>
+<span class="fn">print</span>(<span class="var">result</span>)  <span class="cmt"># Pass</span></code></pre>
+
+      <div class="divider"></div>
+
+      <!-- INTERACTIVE DEMO -->
+      <div class="playground">
+        <h3>🎮 Live: RTO Driving Eligibility Checker</h3>
+        <p style="color: var(--muted); font-size: 0.88rem">
+          Enter age and vehicle type to see which Python branch fires.
+        </p>
+        <div class="controls">
+          <label
+            >Age:
+            <input
+              type="number"
+              id="age-inp"
+              value="18"
+              min="0"
+              max="100"
+              style="width: 70px"
+          /></label>
+          <label
+            >Vehicle:
+            <select id="vehicle-inp">
+              <option value="bike">Bike (2W)</option>
+              <option value="car">Car (4W)</option>
+              <option value="heavy">Heavy Vehicle</option>
+            </select>
+          </label>
+          <button class="btn" onclick="checkEligibility()">
+            Check Eligibility ▶
+          </button>
+        </div>
+        <div class="output-box" id="elig-output">Output will appear here…</div>
+        <pre
+          id="elig-code"
+          style="margin-top: 0.8rem"
+        ><code id="elig-code-inner"></code></pre>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!--  TAB 2 — FOR & WHILE                                  -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <section class="section" id="tab-loops">
+      <h2>🔁 for &amp; while Loops</h2>
+
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-icon">📦</div>
+          <h4>for loop</h4>
+          <p>
+            Iterates over a <em>known sequence</em>: list, range, string, dict.
+            You know how many times before starting.
+          </p>
+        </div>
+        <div class="card">
+          <div class="card-icon">⏳</div>
+          <h4>while loop</h4>
+          <p>
+            Repeats as long as a <em>condition is True</em>. Use when the count
+            is unknown in advance.
+          </p>
+        </div>
+      </div>
+
+      <div class="analogy">
+        <strong>💡 Analogy (while loop):</strong> Think of a
+        <strong>Mumbai local train</strong> waiting at a station with the
+        announcement <em>"Doors will close when platform is clear."</em> The
+        train doesn't know HOW MANY people will board — it loops, checking the
+        condition each time, and stops when the condition (platform clear)
+        becomes True.
+      </div>
+
+      <h3>for loop</h3>
+      <pre><code><span class="cmt"># Iterating over a list of states</span>
+<span class="var">states</span> <span class="op">=</span> [<span class="str">"AP"</span>, <span class="str">"Telangana"</span>, <span class="str">"Karnataka"</span>, <span class="str">"Tamil Nadu"</span>]
+
+<span class="kw">for</span> <span class="var">state</span> <span class="kw">in</span> <span class="var">states</span><span class="op">:</span>
+    <span class="fn">print</span>(<span class="var">state</span>)
+
+<span class="cmt"># Using range(start, stop, step)</span>
+<span class="kw">for</span> <span class="var">i</span> <span class="kw">in</span> <span class="fn">range</span>(<span class="num">1</span>, <span class="num">11</span>, <span class="num">2</span>)<span class="op">:</span>   <span class="cmt"># 1,3,5,7,9</span>
+    <span class="fn">print</span>(<span class="var">i</span>, <span class="var">end</span><span class="op">=</span><span class="str">" "</span>)
+
+<span class="cmt"># enumerate gives index + value</span>
+<span class="kw">for</span> <span class="var">idx</span>, <span class="var">state</span> <span class="kw">in</span> <span class="fn">enumerate</span>(<span class="var">states</span>, <span class="num">1</span>)<span class="op">:</span>
+    <span class="fn">print</span>(<span class="fn">f</span><span class="str">"{idx}. {state}"</span>)</code></pre>
+
+      <h3>while loop</h3>
+      <pre><code><span class="cmt"># OTP retry — condition-driven loop</span>
+<span class="var">attempts</span> <span class="op">=</span> <span class="num">0</span>
+<span class="var">correct_otp</span> <span class="op">=</span> <span class="num">4829</span>
+<span class="var">user_otp</span> <span class="op">=</span> <span class="num">0000</span>
+
+<span class="kw">while</span> <span class="var">user_otp</span> <span class="op">!=</span> <span class="var">correct_otp</span> <span class="kw">and</span> <span class="var">attempts</span> <span class="op">&lt;</span> <span class="num">3</span><span class="op">:</span>
+    <span class="var">user_otp</span> <span class="op">=</span> <span class="fn">int</span>(<span class="fn">input</span>(<span class="str">"Enter OTP: "</span>))
+    <span class="var">attempts</span> <span class="op">+=</span> <span class="num">1</span>
+
+<span class="kw">if</span> <span class="var">user_otp</span> <span class="op">==</span> <span class="var">correct_otp</span><span class="op">:</span>
+    <span class="fn">print</span>(<span class="str">"Login successful!"</span>)
+<span class="kw">else</span><span class="op">:</span>
+    <span class="fn">print</span>(<span class="str">"Account locked. Too many attempts."</span>)</code></pre>
+
+      <h3>for…else &amp; while…else</h3>
+      <p>
+        Python's secret weapon — the <code>else</code> block of a loop runs only
+        if the loop <strong>completed normally</strong> (not via
+        <code>break</code>).
+      </p>
+      <pre><code><span class="var">primes</span> <span class="op">=</span> []
+<span class="kw">for</span> <span class="var">n</span> <span class="kw">in</span> <span class="fn">range</span>(<span class="num">2</span>, <span class="num">20</span>)<span class="op">:</span>
+    <span class="kw">for</span> <span class="var">i</span> <span class="kw">in</span> <span class="fn">range</span>(<span class="num">2</span>, <span class="var">n</span>)<span class="op">:</span>
+        <span class="kw">if</span> <span class="var">n</span> <span class="op">%</span> <span class="var">i</span> <span class="op">==</span> <span class="num">0</span><span class="op">:</span>
+            <span class="kw">break</span>          <span class="cmt"># not prime — skip else</span>
+    <span class="kw">else</span><span class="op">:</span>
+        <span class="var">primes</span>.<span class="fn">append</span>(<span class="var">n</span>)  <span class="cmt"># inner loop finished → prime!</span>
+<span class="fn">print</span>(<span class="var">primes</span>)</code></pre>
+
+      <div class="divider"></div>
+
+      <!-- LOOP VISUALIZER -->
+      <div class="playground">
+        <h3>🎮 Live: Loop Visualizer</h3>
+        <div class="controls">
+          <label
+            >Range start:
+            <input type="number" id="lv-start" value="1" style="width: 60px"
+          /></label>
+          <label
+            >Stop:
+            <input type="number" id="lv-stop" value="11" style="width: 60px"
+          /></label>
+          <label
+            >Step:
+            <input type="number" id="lv-step" value="1" style="width: 60px"
+          /></label>
+          <label
+            >Skip if divisible by:
+            <input
+              type="number"
+              id="lv-skip"
+              value="0"
+              style="width: 60px"
+              placeholder="0=off"
+          /></label>
+          <label
+            >Break at:
+            <input
+              type="number"
+              id="lv-break"
+              value="0"
+              style="width: 60px"
+              placeholder="0=off"
+          /></label>
+          <button class="btn" onclick="runLoopViz()">Run ▶</button>
+        </div>
+        <div class="loop-viz" id="loop-viz-cells"></div>
+        <div
+          class="output-box"
+          id="loop-viz-out"
+          style="margin-top: 0.6rem"
+        ></div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!--  TAB 3 — BREAK / CONTINUE / PASS                      -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <section class="section" id="tab-control">
+      <h2>🎮 break / continue / pass</h2>
+
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-icon">🛑</div>
+          <h4>break</h4>
+          <p>
+            Immediately exits the <em>innermost loop</em>. No more iterations.
+            Think emergency exit.
+          </p>
+        </div>
+        <div class="card">
+          <div class="card-icon">⏭️</div>
+          <h4>continue</h4>
+          <p>
+            Skips the rest of the current iteration and jumps to the
+            <em>next one</em>. Like skipping a song.
+          </p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🪹</div>
+          <h4>pass</h4>
+          <p>
+            Does absolutely nothing. A placeholder so Python doesn't throw a
+            syntax error on an empty block.
+          </p>
+        </div>
+      </div>
+
+      <div class="analogy">
+        <strong>💡 Analogy:</strong> Imagine a
+        <strong>Zomato delivery agent</strong> going through a list of orders.
+        <br />• <strong>break</strong> = Agent gets a call "End shift now!" —
+        drops everything, goes home. <br />• <strong>continue</strong> = Order
+        is cancelled — skip this one, pick the next order. <br />•
+        <strong>pass</strong> = Agent looks at the order, thinks "I'll handle
+        this later," and moves on without doing or skipping anything.
+      </div>
+
+      <pre><code><span class="var">orders</span> <span class="op">=</span> [<span class="str">"Biryani"</span>, <span class="str">"Pizza"</span>, <span class="str">"CANCELLED"</span>, <span class="str">"Dosa"</span>, <span class="str">"END_SHIFT"</span>, <span class="str">"Idli"</span>]
+
+<span class="kw">for</span> <span class="var">order</span> <span class="kw">in</span> <span class="var">orders</span><span class="op">:</span>
+    <span class="kw">if</span> <span class="var">order</span> <span class="op">==</span> <span class="str">"END_SHIFT"</span><span class="op">:</span>
+        <span class="fn">print</span>(<span class="str">"Shift over. Going home."</span>)
+        <span class="kw">break</span>               <span class="cmt"># 🛑 Exit loop entirely</span>
+
+    <span class="kw">if</span> <span class="var">order</span> <span class="op">==</span> <span class="str">"CANCELLED"</span><span class="op">:</span>
+        <span class="fn">print</span>(<span class="str">"Skipping cancelled order"</span>)
+        <span class="kw">continue</span>            <span class="cmt"># ⏭️ Skip to next iteration</span>
+
+    <span class="fn">print</span>(<span class="fn">f</span><span class="str">"Delivering: {order}"</span>)
+
+<span class="cmt"># pass — placeholder for future logic</span>
+<span class="kw">def</span> <span class="fn">handle_refund</span>()<span class="op">:</span>
+    <span class="kw">pass</span>                    <span class="cmt"># 🪹 TODO: implement later</span></code></pre>
+
+      <div class="divider"></div>
+
+      <div class="playground">
+        <h3>🎮 Live: Zomato Delivery Simulator</h3>
+        <p style="color: var(--muted); font-size: 0.88rem">
+          Watch how break, continue, and pass affect the loop.
+        </p>
+        <div class="controls">
+          <button class="btn" onclick="runZomato()">Simulate Delivery ▶</button>
+          <button class="btn secondary" onclick="resetZomato()">Reset</button>
+        </div>
+        <div class="loop-viz" id="zomato-cells"></div>
+        <div
+          class="output-box"
+          id="zomato-output"
+          style="margin-top: 0.6rem"
+        ></div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!--  TAB 4 — MATCH-CASE                                   -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <section class="section" id="tab-match">
+      <h2>🎯 match-case (Python 3.10+)</h2>
+      <p>
+        Python's structural pattern matching. More powerful than a simple switch
+        — it can match values, types, sequences, and even destructure objects.
+      </p>
+
+      <div class="analogy">
+        <strong>💡 Analogy:</strong> Think of an
+        <strong>IRCTC ticket booking status checker</strong>. You hand your PNR
+        to the counter. The agent checks it against a set of known
+        <em>patterns</em> (CNF, WL, RAC…) and responds accordingly. If nothing
+        matches, they say "Status Unknown." That's exactly what
+        <code>match-case</code> does — pattern first, action second.
+      </div>
+
+      <pre><code><span class="cmt"># Python 3.10+ — match PNR status</span>
+<span class="var">status</span> <span class="op">=</span> <span class="str">"WL/12"</span>
+
+<span class="kw">match</span> <span class="var">status</span><span class="op">:</span>
+    <span class="kw">case</span> <span class="str">"CNF"</span><span class="op">:</span>
+        <span class="fn">print</span>(<span class="str">"Confirmed! Seat allotted."</span>)
+    <span class="kw">case</span> <span class="str">"RAC"</span><span class="op">:</span>
+        <span class="fn">print</span>(<span class="str">"RAC — shared berth for now."</span>)
+    <span class="kw">case</span> <span class="var">s</span> <span class="kw">if</span> <span class="var">s</span>.<span class="fn">startswith</span>(<span class="str">"WL"</span>)<span class="op">:</span>   <span class="cmt"># guard clause</span>
+        <span class="fn">print</span>(<span class="fn">f</span><span class="str">"Waitlisted: {s}"</span>)
+    <span class="kw">case</span> <span class="op">_</span><span class="op">:</span>                           <span class="cmt"># wildcard — default</span>
+        <span class="fn">print</span>(<span class="str">"Unknown status"</span>)</code></pre>
+
+      <h3>Matching Sequences &amp; Tuples</h3>
+      <pre><code><span class="kw">def</span> <span class="fn">describe_point</span>(<span class="var">point</span>)<span class="op">:</span>
+    <span class="kw">match</span> <span class="var">point</span><span class="op">:</span>
+        <span class="kw">case</span> (<span class="num">0</span>, <span class="num">0</span>)<span class="op">:</span>
+            <span class="fn">print</span>(<span class="str">"Origin"</span>)
+        <span class="kw">case</span> (<span class="var">x</span>, <span class="num">0</span>)<span class="op">:</span>
+            <span class="fn">print</span>(<span class="fn">f</span><span class="str">"On X-axis at {x}"</span>)
+        <span class="kw">case</span> (<span class="num">0</span>, <span class="var">y</span>)<span class="op">:</span>
+            <span class="fn">print</span>(<span class="fn">f</span><span class="str">"On Y-axis at {y}"</span>)
+        <span class="kw">case</span> (<span class="var">x</span>, <span class="var">y</span>)<span class="op">:</span>
+            <span class="fn">print</span>(<span class="fn">f</span><span class="str">"Point at ({x}, {y})"</span>)
+
+<span class="fn">describe_point</span>((<span class="num">3</span>, <span class="num">0</span>))   <span class="cmt"># On X-axis at 3</span>
+<span class="fn">describe_point</span>((<span class="num">2</span>, <span class="num">5</span>))   <span class="cmt"># Point at (2, 5)</span></code></pre>
+
+      <div class="divider"></div>
+
+      <div class="playground">
+        <h3>🎮 Live: IRCTC PNR Status Matcher</h3>
+        <div class="controls">
+          <label
+            >PNR Status:
+            <select id="pnr-inp">
+              <option value="CNF">CNF</option>
+              <option value="RAC">RAC</option>
+              <option value="WL/5">WL/5</option>
+              <option value="WL/21">WL/21</option>
+              <option value="PQWL/3">PQWL/3</option>
+              <option value="GNWL/10">GNWL/10</option>
+              <option value="???">??? (unknown)</option>
+            </select>
+          </label>
+          <button class="btn" onclick="checkPNR()">Check Status ▶</button>
+        </div>
+        <div class="output-box" id="pnr-output">
+          Select a status and click Check…
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!--  TAB 5 — EXPERIMENT                                   -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <section class="section" id="tab-experiment">
+      <h2>🧪 Experiment Corner</h2>
+      <p>
+        Try these challenges in your local Python environment or any online
+        editor like <strong>replit.com</strong> or
+        <strong>python.org/shell</strong>.
+      </p>
+
+      <div class="experiment">
+        <h3>🔥 Challenge Set</h3>
+        <ul class="task-list">
+          <li>
+            <strong>Grading Machine:</strong> Ask a student's marks (0–100). Use
+            <code>if-elif-else</code> to print grade: O (&gt;=90), A+ (&gt;=80),
+            A (&gt;=70), B (&gt;=60), C (&gt;=50), F (below 50). Hint:
+            <code>marks = int(input(...))</code>
+          </li>
+          <li>
+            <strong>Multiplication Table Selector:</strong> Use a
+            <code>for</code> loop with <code>range()</code> to print the table
+            of any number entered by the user. Bonus: Print only
+            <em>even</em> products using <code>continue</code>.
+          </li>
+          <li>
+            <strong>ATM Simulator:</strong> Start with ₹10,000. Use a
+            <code>while</code> loop to let the user withdraw amounts. Stop if
+            balance &lt; withdrawal amount (<code>break</code>) or if user types
+            0 to exit.
+          </li>
+          <li>
+            <strong>Number Guessing Game:</strong> Computer picks a secret
+            number (1–50). Use a <code>while</code> loop with
+            <code>break</code> when user guesses correctly. Hint:
+            <code>import random; secret = random.randint(1,50)</code>
+          </li>
+          <li>
+            <strong>Weekend Planner (match-case):</strong> Match the day name
+            (e.g. <code>"Saturday"</code>) to a plan: Weekend = "Cricket match",
+            Monday/Wednesday/Friday = "Gym", else = "Study". Use Python 3.10+
+            <code>match-case</code> with <code>|</code> (OR patterns).
+          </li>
+        </ul>
+      </div>
+
+      <div class="analogy" style="margin-top: 1.5rem">
+        <strong>💡 Pro tip:</strong> Stuck on a loop? Add
+        <code>print()</code> statements inside the loop to trace what's
+        happening at each iteration. Remove them later. This is called
+        <em>print debugging</em> — every professional does it.
+      </div>
+
+      <!-- Mini code runner hint -->
+      <div class="playground" style="margin-top: 1.5rem">
+        <h3>📋 Starter Code Templates</h3>
+        <div class="controls" style="margin-bottom: 0.8rem">
+          <select id="template-sel" onchange="loadTemplate()">
+            <option value="grade">Grading Machine</option>
+            <option value="table">Multiplication Table</option>
+            <option value="atm">ATM Simulator</option>
+            <option value="guess">Number Guessing Game</option>
+            <option value="match">Weekend Planner (match)</option>
+          </select>
+        </div>
+        <pre id="template-output"><code id="template-code"></code></pre>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!--  TAB 6 — QUIZ                                         -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <section class="section" id="tab-quiz">
+      <h2>🧩 Quick Quiz</h2>
+      <p style="color: var(--muted)">
+        5 questions — one answer per question. No time limit.
+      </p>
+      <div id="quiz-container"></div>
+      <div style="margin-top: 1rem">
+        <button class="btn" id="submit-quiz" onclick="submitQuiz()">
+          Submit Answers ▶
+        </button>
+      </div>
+      <div class="quiz-score-box" id="quiz-score">
+        <div style="font-size: 2.5rem; margin-bottom: 0.5rem">🏆</div>
+        <h3 id="score-text"></h3>
+        <p id="score-sub" style="color: var(--muted); margin-top: 0.5rem"></p>
+        <button
+          class="btn secondary"
+          style="margin-top: 1rem"
+          onclick="resetQuiz()"
+        >
+          Try Again
+        </button>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!--  JAVASCRIPT                                           -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <script>
+      // ── TAB SWITCHING ──────────────────────────────────────────
+      function switchTab(id) {
+        // Hide all sections and deactivate all tabs
+        document
+          .querySelectorAll(".section")
+          .forEach((s) => s.classList.remove("active"));
+        document
+          .querySelectorAll(".tab-btn")
+          .forEach((b) => b.classList.remove("active"));
+        // Show target section
+        document.getElementById("tab-" + id).classList.add("active");
+        // Mark tab button active (find by onclick attribute match)
+        document.querySelectorAll(".tab-btn").forEach((b) => {
+          if (b.getAttribute("onclick").includes("'" + id + "'"))
+            b.classList.add("active");
+        });
+        // Load template on first visit to experiment tab
+        if (id === "experiment") loadTemplate();
+      }
+
+      // ── ELIGIBILITY CHECKER ────────────────────────────────────
+      function checkEligibility() {
+        const age = parseInt(document.getElementById("age-inp").value);
+        const vehicle = document.getElementById("vehicle-inp").value;
+        let out = "";
+        let code = "";
+
+        // Simulate the Python if-elif-else chain
+        if (isNaN(age) || age < 0) {
+          out = "⚠️ Enter a valid age.";
+        } else if (vehicle === "bike") {
+          if (age < 16) {
+            out = "❌ Too young. Minimum age for 2W gearless is 16.";
+            code = `age = ${age}\nif age < 16:\n    print("Too young for bike")`;
+          } else if (age < 18) {
+            out = "✅ Can ride gearless 2W (50cc). Not a geared bike yet.";
+            code = `age = ${age}\nelif age < 18:\n    print("Gearless 50cc only")`;
+          } else {
+            out = "✅ Eligible for all 2W. Apply for driving licence!";
+            code = `age = ${age}\nelse:\n    print("Full 2W eligible")`;
+          }
+        } else if (vehicle === "car") {
+          if (age < 18) {
+            out = "❌ Must be 18+ for a car licence.";
+            code = `age = ${age}\nif age < 18:\n    print("Not eligible for car")`;
+          } else {
+            out = "✅ Eligible for LMV car. Apply at your local RTO.";
+            code = `age = ${age}\nelse:\n    print("Car LMV licence eligible")`;
+          }
+        } else {
+          // heavy
+          if (age < 20) {
+            out = "❌ Must be 20+ and hold LMV licence for heavy vehicles.";
+            code = `age = ${age}\nif age < 20:\n    print("Not eligible for heavy vehicle")`;
+          } else {
+            out =
+              "✅ Eligible for Heavy Motor Vehicle. Must have LMV 1yr experience.";
+            code = `age = ${age}\nelse:\n    print("HMV eligible")`;
+          }
+        }
+
+        document.getElementById("elig-output").textContent = out;
+        document.getElementById("elig-code-inner").textContent =
+          `# Vehicle: ${vehicle}\n` + code;
+      }
+
+      // ── LOOP VISUALIZER ────────────────────────────────────────
+      function runLoopViz() {
+        const start = parseInt(document.getElementById("lv-start").value) || 0;
+        const stop = parseInt(document.getElementById("lv-stop").value) || 10;
+        const step = parseInt(document.getElementById("lv-step").value) || 1;
+        const skip = parseInt(document.getElementById("lv-skip").value) || 0;
+        const brk = parseInt(document.getElementById("lv-break").value) || 0;
+
+        const cellsEl = document.getElementById("loop-viz-cells");
+        const outEl = document.getElementById("loop-viz-out");
+        cellsEl.innerHTML = "";
+        outEl.textContent = "";
+
+        if (step === 0) {
+          outEl.textContent = "⚠️ Step cannot be 0!";
+          return;
+        }
+
+        const values = [];
+        for (let i = start; step > 0 ? i < stop : i > stop; i += step)
+          values.push(i);
+
+        // Create cells
+        const cells = [];
+        values.forEach((v) => {
+          const el = document.createElement("div");
+          el.className = "loop-cell";
+          el.textContent = v;
+          cellsEl.appendChild(el);
+          cells.push({ el, v });
+        });
+
+        // Animate with delays to simulate iteration
+        let log = "";
+        let delay = 0;
+        let broke = false;
+
+        cells.forEach(({ el, v }, idx) => {
+          setTimeout(() => {
+            if (broke) return;
+            el.classList.add("active");
+
+            // Check break condition
+            if (brk !== 0 && v === brk) {
+              setTimeout(() => {
+                el.style.borderColor = "var(--accent3)";
+                el.style.color = "var(--accent3)";
+                outEl.textContent += `\n🛑 break at ${v} — loop exits`;
+              }, 200);
+              broke = true;
+              return;
+            }
+
+            // Check continue condition
+            if (skip !== 0 && v % skip === 0) {
+              setTimeout(() => {
+                el.classList.remove("active");
+                el.classList.add("skipped");
+                outEl.textContent += `\n⏭️ continue — skipped ${v}`;
+              }, 200);
+              return;
+            }
+
+            // Normal iteration
+            setTimeout(() => {
+              el.classList.remove("active");
+              el.classList.add("done");
+              outEl.textContent += `\ni = ${v} ✓`;
+            }, 200);
+          }, delay);
+          delay += 280;
+        });
+      }
+
+      // ── ZOMATO DELIVERY SIMULATOR ──────────────────────────────
+      const zomatoOrders = [
+        { name: "Biryani 🍛", type: "deliver" },
+        { name: "Dosa 🫓", type: "deliver" },
+        { name: "CANCELLED ✖️", type: "cancelled" },
+        { name: "Chai ☕", type: "deliver" },
+        { name: "END_SHIFT 🔚", type: "break" },
+        { name: "Idli 🫔", type: "deliver" },
+      ];
+
+      function resetZomato() {
+        document.getElementById("zomato-cells").innerHTML = "";
+        document.getElementById("zomato-output").textContent = "";
+      }
+
+      function runZomato() {
+        resetZomato();
+        const cellsEl = document.getElementById("zomato-cells");
+        const outEl = document.getElementById("zomato-output");
+
+        zomatoOrders.forEach((o) => {
+          const el = document.createElement("div");
+          el.className = "loop-cell";
+          el.style.width = "80px";
+          el.style.fontSize = "0.65rem";
+          el.style.textAlign = "center";
+          el.style.padding = "4px";
+          el.textContent = o.name;
+          cellsEl.appendChild(el);
+        });
+
+        const cells = cellsEl.querySelectorAll(".loop-cell");
+        let delay = 0;
+        let stopped = false;
+
+        zomatoOrders.forEach((o, i) => {
+          setTimeout(() => {
+            if (stopped) return;
+            cells[i].classList.add("active");
+
+            setTimeout(() => {
+              if (o.type === "break") {
+                cells[i].classList.remove("active");
+                cells[i].style.borderColor = "var(--accent3)";
+                cells[i].style.color = "var(--accent3)";
+                outEl.textContent += `\n🛑 break — ${o.name}: Shift ended. Going home.`;
+                stopped = true;
+              } else if (o.type === "cancelled") {
+                cells[i].classList.remove("active");
+                cells[i].classList.add("skipped");
+                outEl.textContent += `\n⏭️ continue — ${o.name}: Skipping.`;
+              } else {
+                cells[i].classList.remove("active");
+                cells[i].classList.add("done");
+                outEl.textContent += `\n✅ Delivered: ${o.name}`;
+              }
+            }, 250);
+          }, delay);
+          delay += 700;
+        });
+      }
+
+      // ── PNR MATCHER ────────────────────────────────────────────
+      function checkPNR() {
+        const status = document.getElementById("pnr-inp").value;
+        const out = document.getElementById("pnr-output");
+
+        let msg = "";
+        // Simulating Python match-case with guard clauses
+        if (status === "CNF") {
+          msg = `✅ match case "CNF":\n   → Confirmed! Berth allotted. Bon voyage!`;
+        } else if (status === "RAC") {
+          msg = `🟡 match case "RAC":\n   → Reservation Against Cancellation. Shared berth.\n   → Check PNR again before journey.`;
+        } else if (
+          status.startsWith("WL") &&
+          parseInt(status.split("/")[1]) <= 10
+        ) {
+          msg = `🟠 match case s if s.startswith("WL") [guard: num <= 10]:\n   → Waitlist number: ${status.split("/")[1]}. Good chance of confirmation!`;
+        } else if (status.startsWith("WL")) {
+          msg = `🔴 match case s if s.startswith("WL") [guard: num > 10]:\n   → Waitlist ${status.split("/")[1]} — high number. Consider alternatives.`;
+        } else if (status.startsWith("PQWL") || status.startsWith("GNWL")) {
+          msg = `🟠 match case s if s.startswith("PQWL") | s.startswith("GNWL"):\n   → ${status} — Quota waitlist. Confirm closer to journey date.`;
+        } else {
+          msg = `⚫ match case _:  (wildcard/default)\n   → Status "${status}" not recognized. Please recheck your PNR.`;
+        }
+        out.textContent = msg;
+      }
+
+      // ── TEMPLATES ──────────────────────────────────────────────
+      const templates = {
+        grade: `marks = int(input("Enter marks (0-100): "))
+
+if marks >= 90:
+    grade = "O (Outstanding)"
+elif marks >= 80:
+    grade = "A+ (Excellent)"
+elif marks >= 70:
+    grade = "A (Very Good)"
+elif marks >= 60:
+    grade = "B (Good)"
+elif marks >= 50:
+    grade = "C (Average)"
+else:
+    grade = "F (Fail)"
+
+print(f"Grade: {grade}")`,
+
+        table: `n = int(input("Enter a number: "))
+
+print(f"\\nMultiplication Table of {n}:")
+for i in range(1, 11):
+    product = n * i
+    if product % 2 != 0:
+        continue        # skip odd products
+    print(f"{n} x {i} = {product}")`,
+
+        atm: `balance = 10000  # ₹ 10,000
+
+print(f"Welcome! Balance: ₹{balance}")
+
+while True:
+    amount = int(input("\\nWithdraw amount (0 to exit): ₹"))
+    
+    if amount == 0:
+        print("Thank you! Goodbye.")
+        break
+    
+    if amount > balance:
+        print(f"Insufficient balance! Available: ₹{balance}")
+        continue
+    
+    balance -= amount
+    print(f"Dispensed ₹{amount}. Remaining: ₹{balance}")`,
+
+        guess: `import random
+
+secret = random.randint(1, 50)
+attempts = 0
+
+print("Guess the number (1–50)!")
+
+while True:
+    guess = int(input("Your guess: "))
+    attempts += 1
+    
+    if guess < secret:
+        print("Too low! Try higher.")
+    elif guess > secret:
+        print("Too high! Try lower.")
+    else:
+        print(f"🎉 Correct! Took {attempts} attempts.")
+        break`,
+
+        match: `# Python 3.10+ required
+day = input("Enter day: ")
+
+match day:
+    case "Saturday" | "Sunday":
+        plan = "Cricket match with friends! 🏏"
+    case "Monday" | "Wednesday" | "Friday":
+        plan = "Gym day 💪"
+    case "Tuesday" | "Thursday":
+        plan = "Study session 📚"
+    case _:
+        plan = "Rest day 😴"
+
+print(f"Plan for {day}: {plan}")`,
+      };
+
+      function loadTemplate() {
+        const key = document.getElementById("template-sel").value;
+        document.getElementById("template-code").textContent =
+          templates[key] || "";
+      }
+
+      // ── QUIZ ───────────────────────────────────────────────────
+      const quizData = [
+        {
+          q: "What will this print?\n\nfor i in range(1, 6):\n    if i == 3:\n        continue\n    print(i, end=' ')",
+          opts: ["1 2 3 4 5", "1 2 4 5", "1 2", "1 2 3"],
+          ans: 1,
+          fb: "continue skips i=3 and resumes with i=4. Output: 1 2 4 5",
+        },
+        {
+          q: "What does `pass` do inside an if-block?",
+          opts: [
+            "Exits the program",
+            "Skips the next iteration of a loop",
+            "Does nothing — acts as a placeholder",
+            "Raises a SyntaxError",
+          ],
+          ans: 2,
+          fb: "pass is a no-op. Python needs *something* in an indented block; pass satisfies that without any action.",
+        },
+        {
+          q: "When does the `else` block of a for-loop execute?",
+          opts: [
+            "Always, after the loop",
+            "Only when the loop ran 0 times",
+            "Only when the loop completed without a break",
+            "Only when the loop encountered an error",
+          ],
+          ans: 2,
+          fb: "The else clause on a loop runs only if the loop finished normally (no break). This is a Python-specific feature!",
+        },
+        {
+          q: "What is the output?\n\nx = 7\nresult = 'Odd' if x % 2 != 0 else 'Even'\nprint(result)",
+          opts: ["Even", "Odd", "True", "SyntaxError"],
+          ans: 1,
+          fb: "7 % 2 = 1 (not 0) → condition is True → 'Odd' is selected.",
+        },
+        {
+          q: "Which Python version introduced match-case?",
+          opts: ["Python 3.8", "Python 3.9", "Python 3.10", "Python 3.12"],
+          ans: 2,
+          fb: "Structural Pattern Matching (match-case) was introduced in Python 3.10 via PEP 634.",
+        },
+      ];
+
+      let userAnswers = {};
+
+      function buildQuiz() {
+        const container = document.getElementById("quiz-container");
+        container.innerHTML = "";
+        userAnswers = {};
+
+        quizData.forEach((q, qi) => {
+          const div = document.createElement("div");
+          div.className = "quiz-q";
+          div.id = "qq-" + qi;
+
+          // Format question with code-style newlines
+          const qText = q.q.replace(/\n/g, "<br>");
+          div.innerHTML = `<p>Q${qi + 1}. <span style="font-family:'JetBrains Mono',monospace;font-size:0.88rem">${qText}</span></p>
+      <div class="quiz-options" id="opts-${qi}"></div>
+      <div class="quiz-feedback" id="fb-${qi}" style="display:none"></div>`;
+
+          const optsDiv = div.querySelector(".quiz-options");
+          q.opts.forEach((opt, oi) => {
+            const btn = document.createElement("button");
+            btn.className = "quiz-opt";
+            btn.textContent = opt;
+            btn.onclick = () => selectAnswer(qi, oi, btn);
+            optsDiv.appendChild(btn);
+          });
+
+          container.appendChild(div);
+        });
+      }
+
+      function selectAnswer(qi, oi, btn) {
+        // Allow changing answer before submit
+        const optsDiv = document.getElementById("opts-" + qi);
+        optsDiv.querySelectorAll(".quiz-opt").forEach((b) => {
+          b.classList.remove("correct-ans", "wrong-ans");
+          b.style.borderColor = "";
+          b.style.color = "";
+        });
+        btn.style.borderColor = "var(--accent4)";
+        btn.style.color = "var(--accent4)";
+        userAnswers[qi] = oi;
+      }
+
+      function submitQuiz() {
+        if (Object.keys(userAnswers).length < quizData.length) {
+          alert("Please answer all 5 questions before submitting!");
+          return;
+        }
+
+        let score = 0;
+
+        quizData.forEach((q, qi) => {
+          const chosen = userAnswers[qi];
+          const correct = q.ans;
+          const optsDiv = document.getElementById("opts-" + qi);
+          const fbDiv = document.getElementById("fb-" + qi);
+          const qDiv = document.getElementById("qq-" + qi);
+          const btns = optsDiv.querySelectorAll(".quiz-opt");
+
+          // Disable all buttons
+          btns.forEach((b) => {
+            b.disabled = true;
+            b.style.borderColor = "";
+            b.style.color = "";
+          });
+
+          if (chosen === correct) {
+            score++;
+            btns[chosen].classList.add("correct-ans");
+            qDiv.classList.add("correct");
+            fbDiv.style.display = "block";
+            fbDiv.style.background = "rgba(94,240,176,0.08)";
+            fbDiv.style.color = "var(--correct)";
+            fbDiv.textContent = "✅ " + q.fb;
+          } else {
+            btns[chosen].classList.add("wrong-ans");
+            btns[correct].classList.add("correct-ans");
+            qDiv.classList.add("wrong");
+            fbDiv.style.display = "block";
+            fbDiv.style.background = "rgba(240,111,168,0.08)";
+            fbDiv.style.color = "var(--wrong)";
+            fbDiv.textContent = "❌ " + q.fb;
+          }
+        });
+
+        document.getElementById("submit-quiz").style.display = "none";
+        const scoreBox = document.getElementById("quiz-score");
+        scoreBox.style.display = "block";
+        document.getElementById("score-text").textContent = `${score} / 5`;
+        const msg =
+          score === 5
+            ? "🔥 Perfect score! You nailed it!"
+            : score >= 3
+              ? "👏 Good job! Review the missed ones."
+              : "📖 Keep practicing — revisit the tabs above.";
+        document.getElementById("score-sub").textContent = msg;
+      }
+
+      function resetQuiz() {
+        document.getElementById("quiz-score").style.display = "none";
+        document.getElementById("submit-quiz").style.display = "inline-block";
+        buildQuiz();
+      }
+
+      // ── INIT ───────────────────────────────────────────────────
+      buildQuiz();
+      loadTemplate();
+      checkEligibility(); // seed the eligibility checker on load
+    </script>
+  </body>
+</html>
