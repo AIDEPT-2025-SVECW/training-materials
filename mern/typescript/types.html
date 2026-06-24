@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TypeScript — Primitives & Special Types</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
+
+        :root {
+            --bg: #fafafa;
+            --surface: #ffffff;
+            --text-main: #2d3748;
+            --text-muted: #718096;
+            --border: #e2e8f0;
+            --primary: #667eea;
+            --secondary: #764ba2;
+            
+            /* Type Colors */
+            --c-str: #3182ce;
+            --c-num: #dd6b20;
+            --c-bool: #38a169;
+            --c-any: #e53e3e;
+            --c-unk: #805ad5;
+            --c-void: #718096;
+
+            --radius: 12px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            --shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            line-height: 1.7;
+            margin: 0;
+            padding: 0;
+        }
+
+        code, pre {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9em;
+        }
+
+        /* ─── LAYOUT ─── */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .header-pill {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 0.4rem 1.2rem;
+            border-radius: 99px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1.5rem;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            margin: 0 0 1rem;
+            color: #1a202c;
+        }
+
+        .subtitle {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* ─── CARDS ─── */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+
+        .type-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .type-card:hover {
+            box-shadow: var(--shadow-hover);
+            transform: translateY(-4px);
+        }
+
+        .type-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+        }
+
+        .card-str::before { background: var(--c-str); }
+        .card-num::before { background: var(--c-num); }
+        .card-bool::before { background: var(--c-bool); }
+        .card-any::before { background: var(--c-any); }
+        .card-unk::before { background: var(--c-unk); }
+        .card-void::before { background: var(--c-void); }
+
+        .type-badge {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            border-radius: 6px;
+            font-family: 'Fira Code', monospace;
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+        }
+
+        .badge-str { background: rgba(49,130,206,0.1); color: var(--c-str); }
+        .badge-num { background: rgba(221,107,32,0.1); color: var(--c-num); }
+        .badge-bool { background: rgba(56,161,105,0.1); color: var(--c-bool); }
+        .badge-any { background: rgba(229,62,62,0.1); color: var(--c-any); }
+        .badge-unk { background: rgba(128,90,213,0.1); color: var(--c-unk); }
+        .badge-void { background: rgba(113,128,150,0.1); color: var(--c-void); }
+
+        h2 {
+            font-size: 1.5rem;
+            color: #1a202c;
+            margin-top: 0;
+            margin-bottom: 0.5rem;
+        }
+
+        .real-world {
+            background: #f7fafc;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-left: 4px solid var(--border);
+            font-size: 0.95rem;
+        }
+
+        .real-world strong {
+            display: block;
+            margin-bottom: 0.25rem;
+            color: #2d3748;
+        }
+
+        /* ─── CODE BLOCKS ─── */
+        .code-window {
+            background: #1e1e1e;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 1.5rem;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .code-header {
+            background: #2d2d2d;
+            padding: 0.5rem 1rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.75rem;
+            color: #a0aec0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .dot.r { background: #ff5f56; }
+        .dot.y { background: #ffbd2e; }
+        .dot.g { background: #27c93f; }
+
+        pre {
+            margin: 0;
+            padding: 1rem;
+            color: #d4d4d4;
+            overflow-x: auto;
+        }
+
+        .k { color: #569cd6; } /* keyword */
+        .v { color: #9cdcfe; } /* variable */
+        .t { color: #4ec9b0; } /* type */
+        .s { color: #ce9178; } /* string */
+        .n { color: #b5cea8; } /* number */
+        .c { color: #6a9955; font-style: italic; } /* comment */
+        .e { background: rgba(244,63,94,0.2); border-left: 2px solid #f43f5e; padding-left: 4px; display: block; } /* error */
+
+        /* ─── EXPERIMENTS ─── */
+        .experiment {
+            background: white;
+            border: 2px dashed var(--primary);
+            border-radius: var(--radius);
+            padding: 2rem;
+            margin: 4rem 0;
+            position: relative;
+        }
+
+        .experiment-tag {
+            position: absolute;
+            top: -14px;
+            left: 2rem;
+            background: var(--primary);
+            color: white;
+            font-weight: 700;
+            font-size: 0.8rem;
+            padding: 0.25rem 1rem;
+            border-radius: 99px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .experiment h3 {
+            margin-top: 0;
+            color: var(--primary);
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 800;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 1rem;
+            margin: 4rem 0 2rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header class="header">
+        <div class="header-pill">TypeScript Foundations</div>
+        <h1>Primitives & Special Types</h1>
+        <p class="subtitle">The building blocks of data. Let's explore how TypeScript models everyday information.</p>
+    </header>
+
+    <h2 class="section-title">The Big Three (Primitives)</h2>
+    <div class="grid">
+        <!-- STRING -->
+        <div class="type-card card-str">
+            <div class="type-badge badge-str">string</div>
+            <h2>Textual Data</h2>
+            <p>Used for any text, surrounded by single quotes, double quotes, or backticks (template literals).</p>
+            
+            <div class="real-world">
+                <strong>🌎 Real World Use Cases:</strong>
+                Usernames, Email addresses, API endpoints, User IDs, HTML template strings.
+            </div>
+
+            <div class="code-window">
+                <div class="code-header"><div class="dots"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div></div> types.ts</div>
+                <pre><span class="k">let</span> <span class="v">apiEndpoint</span>: <span class="t">string</span> = <span class="s">"https://api.github.com"</span>;
+<span class="k">let</span> <span class="v">greeting</span>: <span class="t">string</span> = <span class="s">`Fetching from </span><span class="k">${</span>apiEndpoint<span class="k">}</span><span class="s">`</span>;</pre>
+            </div>
+        </div>
+
+        <!-- NUMBER -->
+        <div class="type-card card-num">
+            <div class="type-badge badge-num">number</div>
+            <h2>Numeric Data</h2>
+            <p>In TypeScript (and JS), there are no separate types for integers or floats. Everything is a <code>number</code>.</p>
+            
+            <div class="real-world">
+                <strong>🌎 Real World Use Cases:</strong>
+                Product prices, Coordinates (Lat/Lng), Age, Database row counts, Timestamps.
+            </div>
+
+            <div class="code-window">
+                <div class="code-header"><div class="dots"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div></div> types.ts</div>
+                <pre><span class="k">let</span> <span class="v">price</span>: <span class="t">number</span> = <span class="n">99.99</span>;
+<span class="k">let</span> <span class="v">totalViews</span>: <span class="t">number</span> = <span class="n">1500000</span>;
+<span class="k">let</span> <span class="v">hexColor</span>: <span class="t">number</span> = <span class="n">0xffffff</span>;</pre>
+            </div>
+        </div>
+
+        <!-- BOOLEAN -->
+        <div class="type-card card-bool">
+            <div class="type-badge badge-bool">boolean</div>
+            <h2>Logical Data</h2>
+            <p>Represents a simple true or false value. The foundation of all logic and conditional rendering.</p>
+            
+            <div class="real-world">
+                <strong>🌎 Real World Use Cases:</strong>
+                <code>isLoggedIn</code>, <code>isLoading</code>, <code>hasError</code>, Feature toggles.
+            </div>
+
+            <div class="code-window">
+                <div class="code-header"><div class="dots"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div></div> types.ts</div>
+                <pre><span class="k">let</span> <span class="v">isAuthenticated</span>: <span class="t">boolean</span> = <span class="k">true</span>;
+<span class="k">let</span> <span class="v">hasPaid</span>: <span class="t">boolean</span> = <span class="k">false</span>;</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- EXPERIMENT 1 -->
+    <div class="experiment">
+        <div class="experiment-tag">Experiment #1</div>
+        <h3>The Primitive Collision</h3>
+        <p>What happens if you try to combine these types incorrectly? Let's write an experiment.</p>
+        <p>Create <code>experiment.ts</code> and add this code:</p>
+        
+        <div class="code-window">
+            <div class="code-header"><div class="dots"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div></div> experiment.ts</div>
+            <pre><span class="k">let</span> <span class="v">accountBalance</span>: <span class="t">number</span> = <span class="n">1000</span>;
+
+<span class="c">// Imagine this comes from an HTML input field (which always returns strings)</span>
+<span class="k">let</span> <span class="v">depositAmount</span>: <span class="t">string</span> = <span class="s">"500"</span>;
+
+<span class="c">// Try to assign the string to the number variable</span>
+<span class="e">accountBalance = depositAmount;</span></pre>
+        </div>
+        <p style="margin-top: 1rem; font-weight: 600;">🛠 Run <code>tsc experiment.ts</code></p>
+        <p style="color: #e53e3e; font-family: 'Fira Code', monospace; font-size: 0.9em; background: rgba(229,62,62,0.1); padding: 0.5rem; border-radius: 4px;">error TS2322: Type 'string' is not assignable to type 'number'.</p>
+        <p><strong>Takeaway:</strong> TypeScript prevents classic JS bugs (where "1000" + "500" = "1000500"). It forces you to explicitly convert the string to a number using <code>Number(depositAmount)</code> or <code>parseInt()</code>.</p>
+    </div>
+
+    <h2 class="section-title">The Special Types</h2>
+    <p class="subtitle" style="margin-left: 0;">Beyond primitives, TypeScript provides special types to handle unique situations like dynamic data, absent data, or impossible states.</p>
+
+    <div class="grid" style="margin-top: 2rem;">
+        <!-- ANY -->
+        <div class="type-card card-any">
+            <div class="type-badge badge-any">any</div>
+            <h2>The Escape Hatch</h2>
+            <p>Turns off TypeScript's checking entirely for a variable. It can be anything.</p>
+            
+            <div class="real-world">
+                <strong>🌎 Use sparingly when:</strong>
+                Migrating old JS code rapidly, or when dealing with a highly dynamic external library that has no types.
+            </div>
+
+            <div class="code-window">
+                <div class="code-header"><div class="dots"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div></div> types.ts</div>
+                <pre><span class="k">let</span> <span class="v">mystery</span>: <span class="t">any</span> = <span class="s">"hello"</span>;
+mystery = <span class="n">123</span>;     <span class="c">// ✅ Allowed</span>
+mystery.foo();     <span class="c">// ✅ Allowed (will crash at runtime though!)</span></pre>
+            </div>
+        </div>
+
+        <!-- UNKNOWN -->
+        <div class="type-card card-unk">
+            <div class="type-badge badge-unk">unknown</div>
+            <h2>The Safe 'any'</h2>
+            <p>Similar to <code>any</code>, but safe. You must <em>prove</em> what type it is before you can use it.</p>
+            
+            <div class="real-world">
+                <strong>🌎 Real World Use Cases:</strong>
+                Parsing <code>JSON.parse()</code> payloads, fetching data from unknown 3rd party APIs.
+            </div>
+
+            <div class="code-window">
+                <div class="code-header"><div class="dots"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div></div> types.ts</div>
+                <pre><span class="k">let</span> <span class="v">data</span>: <span class="t">unknown</span> = fetchSomeData();
+
+<span class="e">data.toUpperCase();</span> <span class="c">// ❌ Error! TS won't let you.</span>
+
+<span class="k">if</span> (<span class="k">typeof</span> data === <span class="s">"string"</span>) {
+    data.toUpperCase(); <span class="c">// ✅ OK! We proved it's a string.</span>
+}</pre>
+            </div>
+        </div>
+
+        <!-- VOID -->
+        <div class="type-card card-void">
+            <div class="type-badge badge-void">void / never</div>
+            <h2>Nothingness</h2>
+            <p><strong>void:</strong> A function that returns nothing.<br><strong>never:</strong> A function that <em>never</em> finishes (e.g. infinite loop or always throws an error).</p>
+            
+            <div class="real-world">
+                <strong>🌎 Real World Use Cases:</strong>
+                <code>void</code> for Event listeners (onClick). <code>never</code> for centralized error handling functions.
+            </div>
+
+            <div class="code-window">
+                <div class="code-header"><div class="dots"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div></div> types.ts</div>
+                <pre><span class="k">function</span> <span class="v">logData</span>(msg: <span class="t">string</span>): <span class="t">void</span> {
+    console.log(msg);
+}
+
+<span class="k">function</span> <span class="v">crash</span>(): <span class="t">never</span> {
+    <span class="k">throw new</span> Error(<span class="s">"Boom!"</span>);
+}</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- EXPERIMENT 2 -->
+    <div class="experiment">
+        <div class="experiment-tag">Experiment #2</div>
+        <h3>The 'any' vs 'unknown' Test</h3>
+        <p>Let's prove why <code>unknown</code> is safer than <code>any</code>.</p>
+        
+        <div class="code-window">
+            <div class="code-header"><div class="dots"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div></div> experiment.ts</div>
+            <pre><span class="c">// Scenario A: The reckless 'any'</span>
+<span class="k">let</span> <span class="v">userInputA</span>: <span class="t">any</span> = <span class="num">500</span>;
+<span class="c">// Try to use a string method on a number. TS says nothing! </span>
+<span class="c">// This will CRASH when you run node!</span>
+<span class="k">let</span> lenA = userInputA.length; 
+
+<span class="c">// Scenario B: The strict 'unknown'</span>
+<span class="k">let</span> <span class="v">userInputB</span>: <span class="t">unknown</span> = <span class="num">500</span>;
+<span class="c">// Try to use a string method...</span>
+<span class="e">let lenB = userInputB.length;</span></pre>
+        </div>
+        <p style="margin-top: 1rem; font-weight: 600;">🛠 Run <code>tsc experiment.ts</code></p>
+        <p style="color: #e53e3e; font-family: 'Fira Code', monospace; font-size: 0.9em; background: rgba(229,62,62,0.1); padding: 0.5rem; border-radius: 4px;">error TS2571: Object is of type 'unknown'.</p>
+        <p><strong>Takeaway:</strong> <code>any</code> completely defeats the purpose of TypeScript. <code>unknown</code> forces you to write defensive code (like checking <code>typeof</code>) before interacting with dynamic data.</p>
+    </div>
+
+</div>
+
+</body>
+</html>

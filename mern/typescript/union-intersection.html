@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TypeScript — Unions, Intersections & Literals</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
+
+        :root {
+            --bg: #fafafa;
+            --surface: #ffffff;
+            --text-main: #2d3748;
+            --text-muted: #718096;
+            --border: #e2e8f0;
+            --primary: #ed64a6; /* Changed accent color for this module */
+            --secondary: #9f7aea;
+            
+            --radius: 12px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            --shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            line-height: 1.7;
+            margin: 0;
+            padding: 0;
+        }
+
+        code, pre {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9em;
+        }
+
+        /* ─── LAYOUT ─── */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .header-pill {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 0.4rem 1.2rem;
+            border-radius: 99px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1.5rem;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            margin: 0 0 1rem;
+            color: #1a202c;
+        }
+
+        .subtitle {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* ─── CARDS ─── */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+
+        .type-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .type-card:hover {
+            box-shadow: var(--shadow-hover);
+            transform: translateY(-4px);
+        }
+
+        .type-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--primary);
+        }
+
+        .type-badge {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            border-radius: 6px;
+            font-family: 'Fira Code', monospace;
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+            background: rgba(237, 100, 166, 0.1);
+            color: #d53f8c;
+            border: 1px solid rgba(237, 100, 166, 0.2);
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            color: #1a202c;
+            margin-top: 0;
+            margin-bottom: 0.5rem;
+        }
+
+        .real-world {
+            background: #f7fafc;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-left: 4px solid var(--border);
+            font-size: 0.95rem;
+        }
+
+        .real-world strong {
+            display: block;
+            margin-bottom: 0.25rem;
+            color: #2d3748;
+        }
+
+        /* ─── CODE BLOCKS ─── */
+        .code-window {
+            background: #1e1e1e;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 1.5rem;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .code-header {
+            background: #2d2d2d;
+            padding: 0.5rem 1rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.75rem;
+            color: #a0aec0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .dot.r { background: #ff5f56; }
+        .dot.y { background: #ffbd2e; }
+        .dot.g { background: #27c93f; }
+
+        pre {
+            margin: 0;
+            padding: 1rem;
+            color: #d4d4d4;
+            overflow-x: auto;
+        }
+
+        .k { color: #569cd6; } /* keyword */
+        .v { color: #9cdcfe; } /* variable */
+        .t { color: #4ec9b0; } /* type */
+        .s { color: #ce9178; } /* string */
+        .n { color: #b5cea8; } /* number */
+        .c { color: #6a9955; font-style: italic; } /* comment */
+        .e { background: rgba(244,63,94,0.2); border-left: 2px solid #f43f5e; padding-left: 4px; display: block; } /* error */
+        .op { color: #d4d4d4; } /* operator */
+
+        /* ─── EXPERIMENTS ─── */
+        .experiment {
+            background: white;
+            border: 2px dashed var(--primary);
+            border-radius: var(--radius);
+            padding: 2rem;
+            margin: 4rem 0;
+            position: relative;
+        }
+
+        .experiment-tag {
+            position: absolute;
+            top: -14px;
+            left: 2rem;
+            background: var(--primary);
+            color: white;
+            font-weight: 700;
+            font-size: 0.8rem;
+            padding: 0.25rem 1rem;
+            border-radius: 99px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .experiment h3 {
+            margin-top: 0;
+            color: var(--primary);
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 800;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 1rem;
+            margin: 4rem 0 2rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header class="header">
+        <div class="header-pill">Advanced Types</div>
+        <h1>Unions, Intersections & Literals</h1>
+        <p class="subtitle">Real-world data is rarely just a "string" or a "number". Learn how to combine and restrict types to model complex data flows.</p>
+    </header>
+
+    <h2 class="section-title">The Power of "OR" and "Exact Values"</h2>
+    <div class="grid">
+        
+        <!-- UNION TYPES -->
+        <div class="type-card" style="--primary: #3182ce;">
+            <div class="type-badge" style="color: #2b6cb0; background: rgba(49, 130, 206, 0.1); border-color: rgba(49, 130, 206, 0.2);">A | B</div>
+            <h2>Union Types</h2>
+            <p>Sometimes a value can legitimately be one of several different types. You use the pipe <code>|</code> symbol (meaning OR) to combine them.</p>
+            
+            <div class="real-world">
+                <strong>🌎 Real World Use Cases:</strong>
+                Handling IDs that might come from a URL (string) or a Database (number). Dealing with variables that might be <code>null</code>.
+            </div>
+
+            <div class="code-window">
+                <div class="code-header"><div class="dots"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div></div> unions.ts</div>
+                <pre><span class="c">// user ID can be a number (1024) or a string ("u-1024")</span>
+<span class="k">let</span> <span class="v">userId</span>: <span class="t">string</span> <span class="op">|</span> <span class="t">number</span>;
+
+userId = <span class="n">1024</span>;       <span class="c">// ✅ Valid</span>
+userId = <span class="s">"u-1024"</span>;   <span class="c">// ✅ Valid</span>
+<span class="e">userId = <span class="k">false</span>;      <span class="c">// ❌ Error! boolean is not allowed.</span></span></pre>
+            </div>
+        </div>
+
+        <!-- LITERAL TYPES -->
+        <div class="type-card" style="--primary: #dd6b20;">
+            <div class="type-badge" style="color: #c05621; background: rgba(221, 107, 32, 0.1); border-color: rgba(221, 107, 32, 0.2);">"exact"</div>
+            <h2>Literal Types</h2>
+            <p>Instead of saying "any string", you can tell TypeScript that a variable must be an <em>exact, specific string or number</em>.</p>
+            
+            <div class="real-world">
+                <strong>🌎 Real World Use Cases:</strong>
+                UI button sizes (<code>"small" | "medium" | "large"</code>), HTTP methods (<code>"GET" | "POST"</code>), Status indicators.
+            </div>
+
+            <div class="code-window">
+                <div class="code-header"><div class="dots"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div></div> literals.ts</div>
+                <pre><span class="c">// Combine Literals with Unions for ultimate strictness!</span>
+<span class="k">let</span> <span class="v">status</span>: <span class="s">"success"</span> <span class="op">|</span> <span class="s">"error"</span> <span class="op">|</span> <span class="s">"loading"</span>;
+
+status = <span class="s">"loading"</span>;  <span class="c">// ✅ Valid</span>
+<span class="e">status = <span class="s">"pending"</span>;  <span class="c">// ❌ Error! 'pending' is not in the union.</span></span></pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- EXPERIMENT 1 -->
+    <div class="experiment">
+        <div class="experiment-tag">Experiment #1</div>
+        <h3>Type Narrowing (The "If" Guard)</h3>
+        <p>When you use a Union Type, TypeScript will only let you use methods that exist on <em>both</em> types. How do you fix this? <strong>Type Narrowing.</strong></p>
+        <p>Create <code>experiment.ts</code> and test this out:</p>
+        
+        <div class="code-window">
+            <div class="code-header"><div class="dots"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div></div> experiment.ts</div>
+            <pre><span class="k">function</span> <span class="v">formatId</span>(id: <span class="t">string</span> <span class="op">|</span> <span class="t">number</span>) {
+    <span class="c">// ❌ ERROR: Property 'toUpperCase' does not exist on type 'number'.</span>
+    <span class="c">// return id.toUpperCase(); </span>
+
+    <span class="c">// ✅ SUCCESS: We "Narrow" the type by checking it first.</span>
+    <span class="k">if</span> (<span class="k">typeof</span> id === <span class="s">"string"</span>) {
+        <span class="c">// Inside this block, TS *knows* id is definitely a string.</span>
+        <span class="k">return</span> id.toUpperCase();
+    } <span class="k">else</span> {
+        <span class="c">// Inside this block, TS *knows* id is definitely a number.</span>
+        <span class="k">return</span> id.toFixed(<span class="n">2</span>);
+    }
+}</pre>
+        </div>
+        <p style="margin-top: 1rem;"><strong>Takeaway:</strong> TypeScript is smart enough to read your <code>if/else</code> logic. If you check <code>typeof</code>, it narrows the union down to that specific type inside the block!</p>
+    </div>
+
+    <h2 class="section-title">The Power of "AND"</h2>
+
+    <div class="grid">
+        <!-- INTERSECTION TYPES -->
+        <div class="type-card" style="--primary: #38a169;">
+            <div class="type-badge" style="color: #2f855a; background: rgba(56, 161, 105, 0.1); border-color: rgba(56, 161, 105, 0.2);">A & B</div>
+            <h2>Intersection Types</h2>
+            <p>While Unions mean OR, Intersections mean <strong>AND</strong>. You use the ampersand <code>&amp;</code> symbol to smash two types together. A value must satisfy <em>both</em> types simultaneously.</p>
+            
+            <div class="real-world">
+                <strong>🌎 Real World Use Cases:</strong>
+                Combining API data objects. E.g., taking a generic <code>User</code> type and intersecting it with a <code>DatabaseRecord</code> type (which adds ID and timestamps).
+            </div>
+
+            <div class="code-window">
+                <div class="code-header"><div class="dots"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div></div> intersections.ts</div>
+                <pre><span class="k">type</span> <span class="t">Nameable</span> = { name: <span class="t">string</span> };
+<span class="k">type</span> <span class="t">Ageable</span> = { age: <span class="t">number</span> };
+
+<span class="c">// Smash them together!</span>
+<span class="k">type</span> <span class="t">Person</span> = <span class="t">Nameable</span> <span class="op">&amp;</span> <span class="t">Ageable</span>;
+
+<span class="c">// Must have BOTH properties</span>
+<span class="k">let</span> <span class="v">admin</span>: <span class="t">Person</span> = {
+    name: <span class="s">"Pradeep"</span>,
+    age: <span class="n">30</span>
+};</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- EXPERIMENT 2 -->
+    <div class="experiment">
+        <div class="experiment-tag">Experiment #2</div>
+        <h3>The Impossible Intersection</h3>
+        <p>Intersections make sense for objects, but what happens if you try to intersect two primitives?</p>
+        
+        <div class="code-window">
+            <div class="code-header"><div class="dots"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div></div> experiment.ts</div>
+            <pre><span class="c">// I want a variable that is BOTH a string AND a number at the same time.</span>
+<span class="k">type</span> <span class="t">Impossible</span> = <span class="t">string</span> <span class="op">&amp;</span> <span class="t">number</span>;
+
+<span class="k">let</span> <span class="v">myVar</span>: <span class="t">Impossible</span>;
+
+<span class="c">// Let's try assigning a value</span>
+<span class="e">myVar = <span class="s">"Hello"</span>;</span> <span class="c">// Error: Type 'string' is not assignable to type 'never'</span></pre>
+        </div>
+        <p style="margin-top: 1rem; font-weight: 600;">Wait, where did <code>never</code> come from?</p>
+        <p><strong>Takeaway:</strong> Because it is mathematically impossible for a single value in JavaScript to be both a string and a number simultaneously, TypeScript evaluates the intersection to <code>never</code>. You can literally <em>never</em> assign a value to it!</p>
+    </div>
+
+</div>
+
+</body>
+</html>

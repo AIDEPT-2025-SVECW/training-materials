@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TypeScript — Compilation & Type Inference</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+        :root {
+            --bg: #0d0d14;
+            --surface: #13131f;
+            --surface2: #1a1a2e;
+            --border: #2a2a44;
+            --ts-blue: #3178c6;
+            --ts-blue-light: #5ba0f5;
+            --js-yellow: #f7df1e;
+            --danger: #ff5c5c;
+            --success: #4ade80;
+            --muted: #6b6b8a;
+            --text: #e8e8f0;
+            --text-dim: #9999bb;
+            --accent: #a78bfa;
+            --accent2: #38bdf8;
+            --glow: 0 0 30px rgba(49, 120, 198, 0.25);
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        code, pre, .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .header {
+            text-align: center;
+            padding: 4rem 2rem 2rem;
+        }
+
+        .badge {
+            display: inline-block;
+            background: rgba(49, 120, 198, 0.15);
+            border: 1px solid rgba(49, 120, 198, 0.4);
+            color: var(--ts-blue-light);
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            padding: 0.35rem 1rem;
+            border-radius: 999px;
+            margin-bottom: 1.5rem;
+        }
+
+        h1 {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .subtitle {
+            font-size: 1.15rem;
+            color: var(--text-dim);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .section {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        p {
+            margin-bottom: 1.5rem;
+            color: var(--text-dim);
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #fff;
+        }
+
+        .code-block {
+            background: #09090f;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            margin: 1rem 0;
+        }
+
+        .code-header {
+            background: var(--surface2);
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
+            color: var(--muted);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .code-block pre {
+            padding: 1rem;
+            overflow-x: auto;
+            font-size: 0.9rem;
+            color: #c8d0e0;
+        }
+
+        .kw { color: #c792ea; }
+        .str { color: #c3e88d; }
+        .fn { color: #82aaff; }
+        .cm { color: #546e7a; font-style: italic; }
+        .tp { color: #80cbc4; }
+        .num { color: #f78c6c; }
+
+        .divider {
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--border), transparent);
+            margin: 3rem 0;
+        }
+
+        .highlight-box {
+            background: rgba(49, 120, 198, 0.1);
+            border-left: 4px solid var(--ts-blue);
+            padding: 1.25rem;
+            border-radius: 0 8px 8px 0;
+            margin: 1.5rem 0;
+        }
+
+        .highlight-box p {
+            margin: 0;
+            color: var(--text);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background: var(--surface2);
+            color: var(--ts-blue-light);
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="header">
+        <div class="badge">Core Concepts</div>
+        <h1>Compilation & Type Inference</h1>
+        <p class="subtitle">Understand how TypeScript turns into JavaScript, and how it's smart enough to know your types even without you typing them.</p>
+    </header>
+
+    <div class="section">
+        <h2>⚙️ 1. Compilation: From TS to JS</h2>
+        <p>Browsers only understand standard JavaScript. The TypeScript compiler (<code>tsc</code>) is responsible for taking your <code>.ts</code> code, checking it for errors, and converting it to <code>.js</code>.</p>
+
+        <div class="card">
+            <h3>Compiling a single file</h3>
+            <p>If you have a file named <code>app.ts</code>, you can compile it manually from the terminal:</p>
+            <div class="code-block">
+                <div class="code-header">Terminal</div>
+                <pre>tsc app.ts</pre>
+            </div>
+            <p>This generates an <code>app.js</code> file next to it. But doing this manually for every file is tedious.</p>
+        </div>
+
+        <div class="card">
+            <h3>Watch Mode</h3>
+            <p>You can tell the compiler to "watch" your file for changes and recompile automatically whenever you hit Save.</p>
+            <div class="code-block">
+                <div class="code-header">Terminal</div>
+                <pre>tsc app.ts -w   <span class="cm">// or --watch</span></pre>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>The <code>tsconfig.json</code> File</h3>
+            <p>When you are working on a real project (not just a single file), you don't compile files one by one. You use a configuration file called <code>tsconfig.json</code>.</p>
+            <p>You generate this file once per project:</p>
+            <div class="code-block">
+                <div class="code-header">Terminal</div>
+                <pre>tsc --init</pre>
+            </div>
+            <p>Once you have this file, you can simply run <code>tsc</code> (without any file names) and it will compile your entire project based on the rules in the config!</p>
+        </div>
+
+        <div class="highlight-box">
+            <p><strong>Crucial Fact:</strong> By default, TypeScript will still generate the <code>.js</code> file even if your <code>.ts</code> code has type errors! It assumes you might be in the middle of migrating. You can stop this by setting <code>"noEmitOnError": true</code> in your <code>tsconfig.json</code>.</p>
+        </div>
+
+        <div class="card" style="border-color: var(--ts-blue); background: rgba(49, 120, 198, 0.03);">
+            <h3>🧪 Mini-Experiment: See it for yourself</h3>
+            <p>Let's test both the positive (success) and negative (failure) scenarios of compilation!</p>
+            
+            <p><strong>Step 1 (Positive):</strong> Create a file named <code>test.ts</code> and add valid code.</p>
+            <div class="code-block">
+                <pre><span class="kw">let</span> message: <span class="tp">string</span> = <span class="str">"All good!"</span>;
+<span class="fn">console.log</span>(message);</pre>
+            </div>
+            <p>Run <code>tsc test.ts</code> in your terminal. Notice how it quietly succeeds and creates <code>test.js</code>.</p>
+
+            <p style="margin-top: 1.5rem;"><strong>Step 2 (Negative):</strong> Now, let's intentionally break the code.</p>
+            <div class="code-block">
+                <pre><span class="kw">let</span> age: <span class="tp">number</span> = <span class="str">"Twenty"</span>; <span class="cm">// Error! String assigned to number.</span></pre>
+            </div>
+            <p>Run <code>tsc test.ts</code> again. You will see a red error in your terminal: <code style="color: var(--danger);">error TS2322: Type 'string' is not assignable to type 'number'</code>. <em>However, check your folder — <code>test.js</code> was still generated because of the crucial fact mentioned above!</em></p>
+        </div>
+
+        <div class="divider"></div>
+
+        <h2>🧠 2. Type Inference</h2>
+        <p>A common misconception about TypeScript is that you have to write explicit types for <em>everything</em>. This is false. TypeScript has a powerful engine called <strong>Type Inference</strong>.</p>
+        
+        <p>Type inference means TypeScript will guess the type of a variable based on the value you assign to it.</p>
+
+        <div class="card">
+            <h3>Implicit vs Explicit Typing</h3>
+            <div class="code-block">
+                <div class="code-header"><span>app.ts</span><span>TypeScript</span></div>
+                <pre><span class="cm">// ❌ Explicit Typing (Redundant)</span>
+<span class="kw">let</span> username: <span class="tp">string</span> = <span class="str">"Alice"</span>;
+
+<span class="cm">// ✅ Implicit Typing (Type Inference)</span>
+<span class="kw">let</span> score = <span class="num">100</span>; <span class="cm">// TS automatically knows this is a 'number'</span>
+
+<span class="cm">// It will still catch errors!</span>
+<span class="err">score = "High";</span> <span class="cm">// Error: Type 'string' is not assignable to type 'number'.</span></pre>
+            </div>
+            <p>Because you assigned <code>100</code> to <code>score</code> when you created it, TypeScript locked its type as <code>number</code>. You don't need to type <code>: number</code>.</p>
+        </div>
+
+        <div class="card">
+            <h3>When should you write Explicit Types?</h3>
+            <p>If TypeScript is so smart, when do we actually need to write types ourselves?</p>
+            
+            <table>
+                <tr>
+                    <th>Scenario</th>
+                    <th>What to do?</th>
+                </tr>
+                <tr>
+                    <td>Variable initialization (<code>let x = 10;</code>)</td>
+                    <td>Let TypeScript infer it.</td>
+                </tr>
+                <tr>
+                    <td>Function Parameters</td>
+                    <td><strong>Always explicit.</strong> TS cannot guess what you intend to pass into a function.</td>
+                </tr>
+                <tr>
+                    <td>Function Return Types</td>
+                    <td><strong>Optional, but highly recommended.</strong> Explicit return types prevent you from accidentally returning the wrong thing.</td>
+                </tr>
+                <tr>
+                    <td>Delayed Initialization</td>
+                    <td><strong>Explicit.</strong> If you declare a variable but don't assign it immediately, TS infers <code>any</code> (which is bad).</td>
+                </tr>
+            </table>
+
+            <div class="code-block">
+                <div class="code-header"><span>app.ts</span><span>TypeScript</span></div>
+                <pre><span class="cm">// Example of Delayed Initialization</span>
+<span class="kw">let</span> userStatus; <span class="cm">// Type inferred as 'any'</span>
+userStatus = <span class="str">"Online"</span>;
+userStatus = <span class="num">1</span>; <span class="cm">// Valid, because it is 'any'</span>
+
+<span class="cm">// How to fix it:</span>
+<span class="kw">let</span> correctStatus: <span class="tp">string</span>; <span class="cm">// Explicit type</span>
+correctStatus = <span class="str">"Online"</span>;
+<span class="err">correctStatus = 1;</span> <span class="cm">// Error! Catches the bug.</span></pre>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+        <p style="text-align: center; font-size: 1.1rem;"><strong>Next Up:</strong> Now that we know how TypeScript guesses basic types, let's look at the Primitive and Special Types that make up the language!</p>
+    </div>
+
+</body>
+</html>

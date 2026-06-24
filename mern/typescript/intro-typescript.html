@@ -1,0 +1,1845 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TypeScript — From JavaScript to Type Safety</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+        :root {
+            --bg: #0d0d14;
+            --surface: #13131f;
+            --surface2: #1a1a2e;
+            --border: #2a2a44;
+            --ts-blue: #3178c6;
+            --ts-blue-light: #5ba0f5;
+            --js-yellow: #f7df1e;
+            --danger: #ff5c5c;
+            --success: #4ade80;
+            --muted: #6b6b8a;
+            --text: #e8e8f0;
+            --text-dim: #9999bb;
+            --accent: #a78bfa;
+            --accent2: #38bdf8;
+            --glow: 0 0 30px rgba(49, 120, 198, 0.25);
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        code,
+        pre,
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* ─── HERO ─────────────────────────────────────── */
+        .hero {
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 2rem;
+            overflow: hidden;
+        }
+
+        .hero-grid {
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(49, 120, 198, 0.06) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(49, 120, 198, 0.06) 1px, transparent 1px);
+            background-size: 40px 40px;
+            animation: gridDrift 20s linear infinite;
+        }
+
+        @keyframes gridDrift {
+            from {
+                transform: translateY(0);
+            }
+
+            to {
+                transform: translateY(40px);
+            }
+        }
+
+        .hero-glow {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(49, 120, 198, 0.15) 0%, transparent 70%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -55%);
+            pointer-events: none;
+        }
+
+        .badge {
+            display: inline-block;
+            background: rgba(49, 120, 198, 0.15);
+            border: 1px solid rgba(49, 120, 198, 0.4);
+            color: var(--ts-blue-light);
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            padding: 0.35rem 1rem;
+            border-radius: 999px;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero h1 {
+            font-size: clamp(2.8rem, 7vw, 5.5rem);
+            font-weight: 700;
+            line-height: 1.05;
+            letter-spacing: -0.03em;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .hero h1 span.js {
+            color: var(--js-yellow);
+        }
+
+        .hero h1 span.ts {
+            color: var(--ts-blue-light);
+        }
+
+        .hero p.subtitle {
+            font-size: 1.15rem;
+            color: var(--text-dim);
+            max-width: 540px;
+            line-height: 1.65;
+            margin-bottom: 2.5rem;
+        }
+
+        .hero-nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            justify-content: center;
+        }
+
+        .nav-pill {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            padding: 0.55rem 1.25rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .nav-pill:hover {
+            border-color: var(--ts-blue);
+            color: var(--ts-blue-light);
+            background: rgba(49, 120, 198, 0.08);
+        }
+
+        .scroll-hint {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--muted);
+            font-size: 0.78rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            100% {
+                transform: translateX(-50%) translateY(0);
+            }
+
+            50% {
+                transform: translateX(-50%) translateY(6px);
+            }
+        }
+
+        .scroll-hint svg {
+            opacity: 0.5;
+        }
+
+        /* ─── SECTION WRAPPER ──────────────────────────── */
+        .section {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 5rem 2rem;
+            position: relative;
+        }
+
+        .section-label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--ts-blue-light);
+            margin-bottom: 0.6rem;
+        }
+
+        .section h2 {
+            font-size: clamp(1.8rem, 4vw, 2.6rem);
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 1rem;
+            line-height: 1.15;
+        }
+
+        .section .lead {
+            font-size: 1.05rem;
+            color: var(--text-dim);
+            line-height: 1.7;
+            max-width: 640px;
+            margin-bottom: 3rem;
+        }
+
+        /* ─── DIVIDER ──────────────────────────────────── */
+        .divider {
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--border), transparent);
+            margin: 0;
+        }
+
+        /* ─── PROBLEM CARDS ────────────────────────────── */
+        .problems-grid {
+            display: grid;
+            gap: 1.25rem;
+        }
+
+        .problem-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: border-color 0.25s;
+        }
+
+        .problem-card:hover {
+            border-color: rgba(255, 92, 92, 0.5);
+        }
+
+        .problem-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1.25rem 1.5rem;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .problem-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: rgba(255, 92, 92, 0.1);
+            border: 1px solid rgba(255, 92, 92, 0.25);
+            display: grid;
+            place-items: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .problem-title {
+            font-weight: 600;
+            font-size: 1rem;
+            flex: 1;
+        }
+
+        .problem-badge {
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--danger);
+            background: rgba(255, 92, 92, 0.1);
+            border: 1px solid rgba(255, 92, 92, 0.2);
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+        }
+
+        .chevron {
+            color: var(--muted);
+            transition: transform 0.3s;
+            flex-shrink: 0;
+        }
+
+        .problem-card.open .chevron {
+            transform: rotate(180deg);
+        }
+
+        .problem-body {
+            display: none;
+            padding: 0 1.5rem 1.5rem;
+        }
+
+        .problem-card.open .problem-body {
+            display: block;
+        }
+
+        .code-compare {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 0.75rem;
+        }
+
+        @media (max-width: 620px) {
+            .code-compare {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .code-block {
+            border-radius: 8px;
+            overflow: hidden;
+            font-size: 0.8rem;
+        }
+
+        .code-block-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.55rem 1rem;
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+        }
+
+        .code-block.js .code-block-header {
+            background: rgba(247, 223, 30, 0.08);
+            border-bottom: 1px solid rgba(247, 223, 30, 0.15);
+            color: var(--js-yellow);
+        }
+
+        .code-block.ts .code-block-header {
+            background: rgba(49, 120, 198, 0.1);
+            border-bottom: 1px solid rgba(49, 120, 198, 0.2);
+            color: var(--ts-blue-light);
+        }
+
+        .code-block pre {
+            background: #0a0a12;
+            padding: 1rem;
+            line-height: 1.65;
+            overflow-x: auto;
+            color: #c8d0e0;
+        }
+
+        .kw {
+            color: #c792ea;
+        }
+
+        .fn {
+            color: #82aaff;
+        }
+
+        .str {
+            color: #c3e88d;
+        }
+
+        .num {
+            color: #f78c6c;
+        }
+
+        .cm {
+            color: #546e7a;
+            font-style: italic;
+        }
+
+        .tp {
+            color: #80cbc4;
+        }
+
+        .err {
+            color: var(--danger);
+            text-decoration: underline wavy var(--danger);
+        }
+
+        .ok {
+            color: var(--success);
+        }
+
+        .hi {
+            background: rgba(255, 92, 92, 0.12);
+            border-radius: 3px;
+            padding: 0 2px;
+        }
+
+        .problem-desc {
+            color: var(--text-dim);
+            font-size: 0.92rem;
+            line-height: 1.65;
+            margin-bottom: 0.75rem;
+        }
+
+        /* ─── TIMELINE ─────────────────────────────────── */
+        .timeline {
+            position: relative;
+            padding-left: 2rem;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 0.45rem;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(to bottom, var(--js-yellow), var(--ts-blue));
+        }
+
+        .tl-item {
+            position: relative;
+            margin-bottom: 2.5rem;
+        }
+
+        .tl-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .tl-dot {
+            position: absolute;
+            left: -2rem;
+            top: 0.3rem;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 3px solid var(--bg);
+            background: var(--ts-blue);
+        }
+
+        .tl-item:first-child .tl-dot {
+            background: var(--js-yellow);
+        }
+
+        .tl-year {
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            color: var(--ts-blue-light);
+            text-transform: uppercase;
+            margin-bottom: 0.25rem;
+        }
+
+        .tl-item:first-child .tl-year {
+            color: var(--js-yellow);
+        }
+
+        .tl-title {
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin-bottom: 0.4rem;
+        }
+
+        .tl-body {
+            color: var(--text-dim);
+            font-size: 0.92rem;
+            line-height: 1.65;
+        }
+
+        /* ─── LIVE DEMO ─────────────────────────────────── */
+        .demo-wrapper {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .demo-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            background: var(--surface2);
+            overflow-x: auto;
+        }
+
+        .demo-tab {
+            padding: 0.85rem 1.4rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--muted);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            white-space: nowrap;
+            transition: all 0.2s;
+            background: none;
+            border-top: none;
+            border-left: none;
+            border-right: none;
+            font-family: inherit;
+        }
+
+        .demo-tab.active {
+            color: var(--ts-blue-light);
+            border-bottom-color: var(--ts-blue);
+            background: rgba(49, 120, 198, 0.05);
+        }
+
+        .demo-tab:hover:not(.active) {
+            color: var(--text);
+        }
+
+        .demo-pane {
+            display: none;
+            padding: 1.5rem;
+        }
+
+        .demo-pane.active {
+            display: block;
+        }
+
+        .demo-desc {
+            font-size: 0.92rem;
+            color: var(--text-dim);
+            line-height: 1.65;
+            margin-bottom: 1.25rem;
+            padding: 0.85rem 1rem;
+            background: rgba(49, 120, 198, 0.05);
+            border-left: 3px solid var(--ts-blue);
+            border-radius: 0 6px 6px 0;
+        }
+
+        /* ─── INTERACTIVE PLAYGROUND ───────────────────── */
+        .playground {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .playground-header {
+            padding: 1rem 1.5rem;
+            background: var(--surface2);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .playground-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-dim);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .dots {
+            display: flex;
+            gap: 5px;
+        }
+
+        .dots span {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .dots span:nth-child(1) {
+            background: #ff5f57;
+        }
+
+        .dots span:nth-child(2) {
+            background: #febc2e;
+        }
+
+        .dots span:nth-child(3) {
+            background: #28c840;
+        }
+
+        .run-btn {
+            background: var(--ts-blue);
+            color: #fff;
+            border: none;
+            padding: 0.45rem 1.1rem;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        .run-btn:hover {
+            background: #2563c4;
+        }
+
+        .run-btn:active {
+            transform: scale(0.96);
+        }
+
+        .playground-editor {
+            padding: 1.25rem 1.5rem;
+            min-height: 160px;
+            background: #09090f;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.83rem;
+            color: #c8d0e0;
+            line-height: 1.7;
+            white-space: pre;
+            overflow-x: auto;
+            outline: none;
+            border: none;
+            resize: vertical;
+        }
+
+        .playground-output {
+            border-top: 1px solid var(--border);
+            padding: 1rem 1.5rem;
+            min-height: 60px;
+            background: #06060c;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82rem;
+            line-height: 1.65;
+        }
+
+        .out-label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .out-line {
+            color: var(--success);
+        }
+
+        .out-err {
+            color: var(--danger);
+        }
+
+        .out-warn {
+            color: var(--js-yellow);
+        }
+
+        .out-info {
+            color: var(--accent2);
+        }
+
+        /* ─── BENEFITS GRID ─────────────────────────────── */
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .benefit-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.25s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .benefit-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--ts-blue), var(--accent));
+            opacity: 0;
+            transition: opacity 0.25s;
+        }
+
+        .benefit-card:hover {
+            border-color: rgba(49, 120, 198, 0.4);
+            transform: translateY(-3px);
+            box-shadow: var(--glow);
+        }
+
+        .benefit-card:hover::before {
+            opacity: 1;
+        }
+
+        .benefit-icon {
+            font-size: 1.8rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .benefit-title {
+            font-size: 0.97rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .benefit-body {
+            font-size: 0.87rem;
+            color: var(--text-dim);
+            line-height: 1.6;
+        }
+
+        /* ─── TYPE ANATOMY ──────────────────────────────── */
+        .anatomy {
+            background: #09090f;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 1.5rem 0;
+        }
+
+        .anatomy-line {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            line-height: 2.2;
+            flex-wrap: wrap;
+        }
+
+        .ann {
+            position: relative;
+            display: inline-block;
+        }
+
+        .ann .ann-label {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--ts-blue-light);
+            white-space: nowrap;
+            padding: 0.15rem 0.45rem;
+            background: rgba(49, 120, 198, 0.15);
+            border: 1px solid rgba(49, 120, 198, 0.3);
+            border-radius: 4px;
+            opacity: 0;
+            transition: opacity 0.2s;
+            pointer-events: none;
+        }
+
+        .ann:hover .ann-label {
+            opacity: 1;
+        }
+
+        .ann-var {
+            color: var(--accent);
+            border-bottom: 1px dashed var(--accent);
+            cursor: help;
+        }
+
+        .ann-name {
+            color: #82aaff;
+            border-bottom: 1px dashed #82aaff;
+            cursor: help;
+        }
+
+        .ann-colon {
+            color: var(--muted);
+        }
+
+        .ann-type {
+            color: #80cbc4;
+            border-bottom: 1px dashed #80cbc4;
+            cursor: help;
+        }
+
+        .ann-op {
+            color: var(--muted);
+        }
+
+        .ann-val {
+            color: #c3e88d;
+            border-bottom: 1px dashed #c3e88d;
+            cursor: help;
+        }
+
+        /* ─── QUIZ ──────────────────────────────────────── */
+        .quiz-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+        }
+
+        .quiz-q {
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin-bottom: 1.25rem;
+            line-height: 1.5;
+        }
+
+        .quiz-options {
+            display: grid;
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .quiz-opt {
+            padding: 0.85rem 1.25rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.92rem;
+            font-family: inherit;
+            background: var(--surface2);
+            color: var(--text);
+            text-align: left;
+            transition: all 0.2s;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .quiz-opt:hover:not(:disabled) {
+            border-color: var(--ts-blue);
+            background: rgba(49, 120, 198, 0.08);
+        }
+
+        .quiz-opt.correct {
+            border-color: var(--success);
+            background: rgba(74, 222, 128, 0.08);
+            color: var(--success);
+        }
+
+        .quiz-opt.wrong {
+            border-color: var(--danger);
+            background: rgba(255, 92, 92, 0.08);
+            color: var(--danger);
+        }
+
+        .quiz-feedback {
+            font-size: 0.92rem;
+            line-height: 1.65;
+            min-height: 2rem;
+            color: var(--text-dim);
+        }
+
+        .quiz-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1.5rem;
+        }
+
+        .quiz-progress {
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+
+        .btn {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 0.55rem 1.25rem;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            font-weight: 500;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            border-color: var(--ts-blue);
+            color: var(--ts-blue-light);
+        }
+
+        .btn.primary {
+            background: var(--ts-blue);
+            border-color: var(--ts-blue);
+            color: #fff;
+        }
+
+        .btn.primary:hover {
+            background: #2563c4;
+            border-color: #2563c4;
+        }
+
+        /* ─── FOOTER ────────────────────────────────────── */
+        .footer {
+            border-top: 1px solid var(--border);
+            padding: 2.5rem;
+            text-align: center;
+            color: var(--muted);
+            font-size: 0.85rem;
+        }
+
+        /* ─── SCROLL REVEAL ─────────────────────────────── */
+        .reveal {
+            opacity: 0;
+            transform: translateY(24px);
+            transition: opacity 0.55s ease, transform 0.55s ease;
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ─── PROGRESS BAR ─────────────────────────────── */
+        #progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--ts-blue), var(--accent));
+            z-index: 999;
+            transition: width 0.1s;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="progress-bar" style="width:0%"></div>
+
+    <!-- ═══ HERO ════════════════════════════════════════════ -->
+    <section class="hero" id="top">
+        <div class="hero-grid"></div>
+        <div class="hero-glow"></div>
+        <div style="position:relative; z-index:1;">
+            <div class="badge">MERN Stack — Module 0</div>
+            <h1>
+                From <span class="js">JavaScript</span><br>to <span class="ts">TypeScript</span>
+            </h1>
+            <p class="subtitle">
+                You already know JavaScript. Now learn why TypeScript was invented — and how it makes the code you write
+                every day safer, smarter, and easier to maintain.
+            </p>
+            <nav class="hero-nav">
+                <a class="nav-pill" href="#problems">⚠️ JS Problems</a>
+                <a class="nav-pill" href="#history">📜 TS Origin</a>
+                <a class="nav-pill" href="#solution">✅ How TS Helps</a>
+                <a class="nav-pill" href="#lifecycle">🔄 Lifecycle</a>
+                <a class="nav-pill" href="#demo">🧪 Live Demo</a>
+                <a class="nav-pill" href="#quiz">🎯 Quiz</a>
+            </nav>
+        </div>
+        <div class="scroll-hint">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 5v14M5 12l7 7 7-7" />
+            </svg>
+            Scroll to explore
+        </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ═══ SECTION 1: JS PROBLEMS ══════════════════════════ -->
+    <section class="section reveal" id="problems">
+        <div class="section-label">Section 01 — The Problem</div>
+        <h2>JavaScript was built for the browser.<br>Not for building <em>large apps.</em></h2>
+        <p class="lead">
+            JS is powerful — but it was designed in 10 days to add interactivity to web pages, not to power complex,
+            team-built applications. As projects grew, developers hit the same pain points repeatedly. Click each to see
+            exactly what goes wrong.
+        </p>
+
+        <div class="problems-grid">
+
+            <!-- P1 -->
+            <div class="problem-card" id="pc1">
+                <div class="problem-header" onclick="toggleProblem('pc1')">
+                    <div class="problem-icon">🎲</div>
+                    <div class="problem-title">Dynamic Typing — No Guarantees</div>
+                    <div class="problem-badge">Bug Risk</div>
+                    <svg class="chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <path d="M6 9l6 6 6-6" />
+                    </svg>
+                </div>
+                <div class="problem-body">
+                    <p class="problem-desc">In JS, a variable can hold <em>any</em> type at any time. You could pass a
+                        string where a number is expected — and JS will silently do something unexpected instead of
+                        telling you there's an error.</p>
+                    <div class="code-compare">
+                        <div class="code-block js">
+                            <div class="code-block-header">⚠️ JavaScript</div>
+                            <pre><span class="kw">function</span> <span class="fn">add</span>(a, b) {
+  <span class="kw">return</span> a + b;
+}
+
+<span class="cm">// Called correctly</span>
+add(5, 10);       <span class="cm">// → 15 ✓</span>
+
+<span class="cm">// Called incorrectly</span>
+add(<span class="str">"5"</span>, 10);    <span class="hi"><span class="cm">// → "510" 😱</span></span>
+add(<span class="kw">undefined</span>, 1);<span class="hi"><span class="cm">// → NaN 😱</span></span>
+<span class="cm">// No error thrown!</span></pre>
+                        </div>
+                        <div class="code-block ts">
+                            <div class="code-block-header">✅ TypeScript</div>
+                            <pre><span class="kw">function</span> <span class="fn">add</span>(
+  a: <span class="tp">number</span>,
+  b: <span class="tp">number</span>
+): <span class="tp">number</span> {
+  <span class="kw">return</span> a + b;
+}
+
+add(5, 10);       <span class="ok">// → 15 ✓</span>
+
+add(<span class="str">"5"</span>, 10);
+<span class="err">// ❌ Error: Argument of type</span>
+<span class="err">// 'string' is not assignable</span>
+<span class="err">// to parameter of type 'number'</span></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- P2 -->
+            <div class="problem-card" id="pc2">
+                <div class="problem-header" onclick="toggleProblem('pc2')">
+                    <div class="problem-icon">👻</div>
+                    <div class="problem-title">Runtime Errors — Bugs in Production</div>
+                    <div class="problem-badge">Critical</div>
+                    <svg class="chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <path d="M6 9l6 6 6-6" />
+                    </svg>
+                </div>
+                <div class="problem-body">
+                    <p class="problem-desc">JS finds errors only when the code actually runs. That means bugs survive
+                        code review, slip past tests, and explode in front of real users. TypeScript catches them at
+                        compile time — before the code ever runs.</p>
+                    <div class="code-compare">
+                        <div class="code-block js">
+                            <div class="code-block-header">⚠️ JavaScript</div>
+                            <pre><span class="kw">const</span> user = <span class="fn">getUser</span>();
+
+<span class="cm">// Works only IF user exists</span>
+console.log(
+  user.profile.name
+);
+<span class="hi"><span class="cm">// 💥 TypeError at RUNTIME:</span></span>
+<span class="hi"><span class="cm">// Cannot read property</span></span>
+<span class="hi"><span class="cm">// 'profile' of undefined</span></span></pre>
+                        </div>
+                        <div class="code-block ts">
+                            <div class="code-block-header">✅ TypeScript</div>
+                            <pre><span class="kw">interface</span> <span class="tp">User</span> {
+  profile?: { name: <span class="tp">string</span> }
+}
+<span class="kw">const</span> user: <span class="tp">User</span> = <span class="fn">getUser</span>();
+
+<span class="err">// ❌ Compile Error:</span>
+<span class="err">// 'profile' is possibly</span>
+<span class="err">// 'undefined'</span>
+
+<span class="ok">// ✅ Fix: use optional chain</span>
+user<span class="ok">?.</span>profile<span class="ok">?.</span>name;</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- P3 -->
+            <div class="problem-card" id="pc3">
+                <div class="problem-header" onclick="toggleProblem('pc3')">
+                    <div class="problem-icon">🔭</div>
+                    <div class="problem-title">No IDE Intelligence — Guessing in the Dark</div>
+                    <div class="problem-badge">Dev Speed</div>
+                    <svg class="chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <path d="M6 9l6 6 6-6" />
+                    </svg>
+                </div>
+                <div class="problem-body">
+                    <p class="problem-desc">In plain JS, your editor can't know what properties or methods an object
+                        has. You have to look up documentation constantly. TypeScript tells your IDE everything — you
+                        get autocomplete, inline docs, and refactoring tools for free.</p>
+                    <div class="code-compare">
+                        <div class="code-block js">
+                            <div class="code-block-header">⚠️ JavaScript</div>
+                            <pre><span class="kw">function</span> <span class="fn">renderUser</span>(user) {
+  <span class="cm">// What properties does</span>
+  <span class="cm">// 'user' have? 🤷</span>
+  <span class="cm">// Must check docs / console</span>
+  console.log(user.<span class="hi">???</span>)
+  
+  <span class="cm">// Typo? No warning.</span>
+  user.nmae; <span class="hi"><span class="cm">// undefined, no error</span></span>
+}</pre>
+                        </div>
+                        <div class="code-block ts">
+                            <div class="code-block-header">✅ TypeScript</div>
+                            <pre><span class="kw">interface</span> <span class="tp">User</span> {
+  name: <span class="tp">string</span>;
+  age:  <span class="tp">number</span>;
+  email: <span class="tp">string</span>;
+}
+
+<span class="kw">function</span> <span class="fn">renderUser</span>(u: <span class="tp">User</span>) {
+  <span class="cm">// IDE shows: name, age, email</span>
+  u.name;   <span class="ok">// ✓ autocomplete</span>
+  <span class="err">u.nmae;</span>   <span class="err">// ❌ instant error</span>
+}</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- P4 -->
+            <div class="problem-card" id="pc4">
+                <div class="problem-header" onclick="toggleProblem('pc4')">
+                    <div class="problem-icon">🏗️</div>
+                    <div class="problem-title">Large Codebases — Maintenance Nightmare</div>
+                    <div class="problem-badge">Scalability</div>
+                    <svg class="chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <path d="M6 9l6 6 6-6" />
+                    </svg>
+                </div>
+                <div class="problem-body">
+                    <p class="problem-desc">Renaming a function in a 50,000-line JS codebase? Good luck. You'll
+                        search-and-replace and hope nothing breaks. TypeScript's type system tracks every usage — rename
+                        in one place, every call site updates safely.</p>
+                    <div class="code-compare">
+                        <div class="code-block js">
+                            <div class="code-block-header">⚠️ JavaScript — Refactor Risk</div>
+                            <pre><span class="cm">// utils.js — you rename this:</span>
+<span class="kw">function</span> <span class="fn">getUserData</span>() { ... }
+
+<span class="cm">// 47 other files call it...</span>
+<span class="cm">// Did you find them all?</span>
+<span class="hi"><span class="cm">// Some may use dynamic calls:</span></span>
+<span class="hi">obj[<span class="str">'getUserData'</span>]();</span>
+<span class="hi"><span class="cm">// → No way to know 😰</span></span></pre>
+                        </div>
+                        <div class="code-block ts">
+                            <div class="code-block-header">✅ TypeScript — Safe Refactor</div>
+                            <pre><span class="cm">// Rename via IDE:</span>
+<span class="cm">// getUserData → fetchUser</span>
+
+<span class="ok">// TypeScript finds ALL usages</span>
+<span class="ok">// across your entire project</span>
+<span class="ok">// and updates them atomically.</span>
+
+<span class="ok">// Any missed call site?</span>
+<span class="ok">// ✅ Compile error tells you.</span>
+<span class="ok">// Ship with confidence.</span></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ═══ SECTION 2: HISTORY ══════════════════════════════ -->
+    <section class="section reveal" id="history">
+        <div class="section-label">Section 02 — The Origin</div>
+        <h2>Why did TypeScript exist?<br>The story behind the language.</h2>
+        <p class="lead">
+            TypeScript didn't appear out of thin air. It was born from a very real pain Microsoft was facing — and
+            Anders Hejlsberg (the creator of C#) was the one to solve it.
+        </p>
+
+        <div class="timeline">
+            <div class="tl-item">
+                <div class="tl-dot"></div>
+                <div class="tl-year">1995 — JavaScript Born</div>
+                <div class="tl-title">Brendan Eich creates JS in 10 days</div>
+                <div class="tl-body">JavaScript was designed to add small interactions to web pages — form validation,
+                    button clicks. Nobody planned for it to power full operating systems in the browser.</div>
+            </div>
+            <div class="tl-item">
+                <div class="tl-dot"></div>
+                <div class="tl-year">2000s — Web Apps Explode</div>
+                <div class="tl-title">Google Maps. Gmail. JavaScript goes big.</div>
+                <div class="tl-body">Developers started building entire applications in JS. Codebases grew to tens of
+                    thousands of lines. The dynamic nature of JS became a liability — bugs were impossible to track,
+                    refactoring was terrifying.</div>
+            </div>
+            <div class="tl-item">
+                <div class="tl-dot"></div>
+                <div class="tl-year">~2010 — Microsoft's Problem</div>
+                <div class="tl-title">VS Code, Office 365, Azure Portal — all in JS</div>
+                <div class="tl-body">Microsoft was building massive web apps. Internal engineers kept shipping bugs that
+                    only surfaced at runtime. They needed types, tooling, and safety — without abandoning the JS
+                    ecosystem.</div>
+            </div>
+            <div class="tl-item">
+                <div class="tl-dot"></div>
+                <div class="tl-year">2012 — TypeScript Announced</div>
+                <div class="tl-title">Anders Hejlsberg (creator of C#) leads the project</div>
+                <div class="tl-body">Microsoft released TypeScript as an open-source, statically typed superset of
+                    JavaScript. The key insight: <strong>every valid JS file is a valid TS file</strong>. You can adopt
+                    it gradually.</div>
+            </div>
+            <div class="tl-item">
+                <div class="tl-dot"></div>
+                <div class="tl-year">2016 → Today</div>
+                <div class="tl-title">Angular, React, Node, Deno — all embrace TypeScript</div>
+                <div class="tl-body">TypeScript became the default for serious JS development. The 2024 StackOverflow
+                    survey ranks it as one of the most loved languages. Every major framework (Angular requires it,
+                    React & Vue strongly recommend it) ships TypeScript-first.</div>
+            </div>
+        </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ═══ SECTION 3: HOW TS HELPS ═════════════════════════ -->
+    <section class="section reveal" id="solution">
+        <div class="section-label">Section 03 — The Solution</div>
+        <h2>How TypeScript actually works</h2>
+        <p class="lead">
+            TypeScript adds one core idea: <strong>types</strong>. You annotate your code with what kind of data you
+            expect. The TS compiler checks everything before any code runs — then strips the types out and outputs plain
+            JavaScript.
+        </p>
+
+        <!-- Anatomy -->
+        <div style="margin-bottom:1rem; font-size: 0.9rem; color: var(--text-dim);">👆 Hover over the highlighted parts
+            below to learn what each piece means:</div>
+        <div class="anatomy">
+            <div class="anatomy-line">
+                <span class="ann ann-var"><span class="ann-label">Declaration keyword</span>const</span>
+                &nbsp;
+                <span class="ann ann-name"><span class="ann-label">Variable name</span>userName</span>
+                <span class="ann-colon">:</span>
+                <span class="ann ann-type"><span class="ann-label">Type annotation — must be string</span>string</span>
+                <span class="ann-op">&nbsp;=&nbsp;</span>
+                <span class="ann ann-val"><span class="ann-label">Actual value (must match type)</span>"Alice"</span>
+                <span style="color:var(--muted);">;</span>
+            </div>
+            <div class="anatomy-line" style="margin-top:0.5rem;">
+                <span class="ann ann-var"><span class="ann-label">Declaration keyword</span>let</span>
+                &nbsp;
+                <span class="ann ann-name"><span class="ann-label">Variable name</span>score</span>
+                <span class="ann-colon">:</span>
+                <span class="ann ann-type"><span class="ann-label">Type annotation — must be number</span>number</span>
+                <span class="ann-op">&nbsp;=&nbsp;</span>
+                <span class="ann ann-val"><span class="ann-label">Actual value</span>100</span>
+                <span style="color:var(--muted);">;</span>
+            </div>
+            <div class="anatomy-line" style="margin-top:0.5rem;">
+                <span class="ann ann-var"><span class="ann-label">Declaration keyword</span>const</span>
+                &nbsp;
+                <span class="ann ann-name"><span class="ann-label">Function name</span>greet</span>
+                <span style="color:var(--muted);"> = (</span>
+                <span class="ann ann-name"><span class="ann-label">Parameter name</span>name</span>
+                <span class="ann-colon">:</span>
+                <span class="ann ann-type"><span class="ann-label">Parameter type</span>string</span>
+                <span style="color:var(--muted);">): </span>
+                <span class="ann ann-type"><span class="ann-label">Return type</span>string</span>
+                <span style="color:var(--muted);"> => </span>
+                <span class="ann ann-val"><span class="ann-label">Function body</span>`Hello ${name}`</span>
+                <span style="color:var(--muted);">;</span>
+            </div>
+        </div>
+
+        <!-- Benefits -->
+        <div class="benefits-grid">
+            <div class="benefit-card">
+                <div class="benefit-icon">🛡️</div>
+                <div class="benefit-title">Catch Bugs at Compile Time</div>
+                <div class="benefit-body">Errors surface when you write code, not when users run it. Ship fewer bugs to
+                    production.</div>
+            </div>
+            <div class="benefit-card">
+                <div class="benefit-icon">⚡</div>
+                <div class="benefit-title">Supercharged Autocomplete</div>
+                <div class="benefit-body">Your IDE knows exactly what properties and methods exist. No more guessing or
+                    Googling.</div>
+            </div>
+            <div class="benefit-card">
+                <div class="benefit-icon">📖</div>
+                <div class="benefit-title">Self-Documenting Code</div>
+                <div class="benefit-body">Types act as inline documentation. New team members understand what functions
+                    expect without reading comments.</div>
+            </div>
+            <div class="benefit-card">
+                <div class="benefit-icon">🔄</div>
+                <div class="benefit-title">Safe Refactoring</div>
+                <div class="benefit-body">Rename, restructure, and delete code with confidence. TypeScript tells you
+                    everywhere your change has an impact.</div>
+            </div>
+            <div class="benefit-card">
+                <div class="benefit-icon">🤝</div>
+                <div class="benefit-title">100% JavaScript Compatible</div>
+                <div class="benefit-body">TypeScript compiles down to plain JS. It runs everywhere JS runs. You can
+                    adopt it file by file.</div>
+            </div>
+            <div class="benefit-card">
+                <div class="benefit-icon">🏢</div>
+                <div class="benefit-title">Industry Standard</div>
+                <div class="benefit-body">Angular, NestJS, Deno are TS-first. React & Next.js ship types by default.
+                    It's the language of serious JS teams.</div>
+            </div>
+        </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ═══ SECTION 4: LIFECYCLE ═════════════════════════════ -->
+    <section class="section reveal" id="lifecycle">
+        <div class="section-label">Section 04 — The TypeScript Lifecycle</div>
+        <h2>How do you actually run it?</h2>
+        <p class="lead">
+            Browsers and Node.js <strong>cannot</strong> run TypeScript directly. They only understand JavaScript. The
+            TypeScript lifecycle consists of three simple steps: <strong>Write, Compile, Run.</strong>
+        </p>
+
+        <div class="benefits-grid">
+            <div class="benefit-card">
+                <div class="benefit-icon">✍️</div>
+                <div class="benefit-title">1. Write (.ts)</div>
+                <div class="benefit-body">You write your code in a <code>.ts</code> file. This is where you use types,
+                    interfaces, and enjoy full IDE support.</div>
+            </div>
+            <div class="benefit-card">
+                <div class="benefit-icon">⚙️</div>
+                <div class="benefit-title">2. Compile (tsc)</div>
+                <div class="benefit-body">You run the TypeScript Compiler (<code>tsc</code>). It checks your code for
+                    errors and strips out all the types.</div>
+            </div>
+            <div class="benefit-card">
+                <div class="benefit-icon">🚀</div>
+                <div class="benefit-title">3. Run (.js)</div>
+                <div class="benefit-body">The compiler outputs a plain <code>.js</code> file. You run this file in the
+                    browser or Node.js, exactly like normal JavaScript.</div>
+            </div>
+        </div>
+
+        <div class="anatomy" style="margin-top: 2rem;">
+            <div class="anatomy-line">
+                <span class="cm">// 1. Install TypeScript globally (once)</span>
+            </div>
+            <div class="anatomy-line">
+                <span class="kw">npm</span> <span class="ann-name">install</span> <span class="ann-var">-g</span> <span
+                    class="str">typescript</span>
+            </div>
+            <div class="anatomy-line" style="margin-top: 1rem;">
+                <span class="cm">// 2. Compile your file (creates app.js)</span>
+            </div>
+            <div class="anatomy-line">
+                <span class="kw">tsc</span> <span class="str">app.ts</span>
+            </div>
+            <div class="anatomy-line" style="margin-top: 1rem;">
+                <span class="cm">// 3. Run the resulting JavaScript file</span>
+            </div>
+            <div class="anatomy-line">
+                <span class="kw">node</span> <span class="str">app.js</span>
+            </div>
+        </div>
+        <p style="font-size: 0.9rem; color: var(--text-dim); margin-top: 1rem;">
+            <em>Note: Tools like <code>ts-node</code> or <code>tsx</code> can combine steps 2 and 3 for development, but
+                under the hood, the compile step is always happening!</em><br>
+            <em style="display:inline-block; margin-top:0.5rem;">Also, for now, just keep aside what <code>npm</code> &
+                <code>node</code> are — we will deal with them in detail later.</em>
+        </p>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ═══ SECTION 5: DEMO ══════════════════════════════════ -->
+    <section class="section reveal" id="demo">
+        <div class="section-label">Section 05 — See It in Action</div>
+        <h2>TypeScript examples — side by side</h2>
+        <p class="lead">Explore real TypeScript patterns. Each tab covers a fundamental concept.</p>
+
+        <div class="demo-wrapper">
+            <div class="demo-tabs">
+                <button class="demo-tab active" onclick="showTab(0)">Basic Types</button>
+                <button class="demo-tab" onclick="showTab(1)">Interfaces</button>
+                <button class="demo-tab" onclick="showTab(2)">Functions</button>
+                <button class="demo-tab" onclick="showTab(3)">Union Types</button>
+                <button class="demo-tab" onclick="showTab(4)">Type vs JS</button>
+            </div>
+
+            <!-- Tab 0: Basic Types -->
+            <div class="demo-pane active">
+                <div class="demo-desc">TypeScript has <strong>primitive types</strong>: <code>string</code>,
+                    <code>number</code>, <code>boolean</code>, <code>null</code>, <code>undefined</code>,
+                    <code>any</code>, <code>void</code>, and more.
+                </div>
+                <div class="code-compare">
+                    <div class="code-block js">
+                        <div class="code-block-header">⚠️ JavaScript</div>
+                        <pre><span class="kw">let</span> age = <span class="num">25</span>;
+age = <span class="str">"twenty five"</span>; <span class="hi"><span class="cm">// ← OK 😬</span></span>
+
+<span class="kw">let</span> items = [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>];
+items.push(<span class="str">"four"</span>);  <span class="hi"><span class="cm">// ← OK 😬</span></span>
+
+<span class="kw">let</span> active = <span class="kw">true</span>;
+active = <span class="num">1</span>;            <span class="hi"><span class="cm">// ← OK 😬</span></span></pre>
+                    </div>
+                    <div class="code-block ts">
+                        <div class="code-block-header">✅ TypeScript</div>
+                        <pre><span class="kw">let</span> age: <span class="tp">number</span> = <span class="num">25</span>;
+<span class="err">age = "twenty five";</span>
+<span class="err">// ❌ Type 'string' not</span>
+<span class="err">// assignable to 'number'</span>
+
+<span class="kw">let</span> items: <span class="tp">number</span>[] = [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>];
+<span class="err">items.push("four");</span>  <span class="err">// ❌</span>
+
+<span class="kw">let</span> active: <span class="tp">boolean</span> = <span class="kw">true</span>;
+<span class="err">active = 1;</span>           <span class="err">// ❌</span></pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 1: Interfaces -->
+            <div class="demo-pane">
+                <div class="demo-desc"><strong>Interfaces</strong> define the shape of an object — what properties it
+                    must have and what types they must be. Think of it as a contract for your data.</div>
+                <div class="code-compare">
+                    <div class="code-block js">
+                        <div class="code-block-header">⚠️ JavaScript</div>
+                        <pre><span class="cm">// What shape is a User? 🤷</span>
+<span class="kw">function</span> <span class="fn">greetUser</span>(user) {
+  <span class="kw">return</span> <span class="str">`Hi ${user.name}`</span>;
+}
+
+<span class="cm">// Passing wrong shape?</span>
+<span class="fn">greetUser</span>({ nm: <span class="str">"Alice"</span> });
+<span class="hi"><span class="cm">// → "Hi undefined" 😱</span></span>
+<span class="cm">// No warning, wrong output</span></pre>
+                    </div>
+                    <div class="code-block ts">
+                        <div class="code-block-header">✅ TypeScript</div>
+                        <pre><span class="kw">interface</span> <span class="tp">User</span> {
+  name: <span class="tp">string</span>;
+  age:  <span class="tp">number</span>;
+  email?: <span class="tp">string</span>; <span class="cm">// optional</span>
+}
+
+<span class="kw">function</span> <span class="fn">greetUser</span>(u: <span class="tp">User</span>) {
+  <span class="kw">return</span> <span class="str">`Hi ${u.name}`</span>;
+}
+
+<span class="err">greetUser({ nm: "Alice" });</span>
+<span class="err">// ❌ 'nm' not in 'User'</span>
+<span class="ok">greetUser({ name:"Alice", age:25 }); // ✓</span></pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 2: Functions -->
+            <div class="demo-pane">
+                <div class="demo-desc">TypeScript lets you annotate <strong>parameter types</strong> and <strong>return
+                        types</strong> on functions. The compiler verifies you always return the right thing.</div>
+                <div class="code-compare">
+                    <div class="code-block js">
+                        <div class="code-block-header">⚠️ JavaScript</div>
+                        <pre><span class="cm">// No idea what this returns</span>
+<span class="kw">function</span> <span class="fn">divide</span>(a, b) {
+  <span class="kw">if</span> (b === <span class="num">0</span>) <span class="kw">return</span> <span class="str">"error"</span>;
+  <span class="kw">return</span> a / b;
+}
+
+<span class="cm">// Returns string or number?</span>
+<span class="kw">const</span> result = divide(<span class="num">10</span>, <span class="num">0</span>);
+result + <span class="num">5</span>; <span class="hi"><span class="cm">// "error5" 😱</span></span></pre>
+                    </div>
+                    <div class="code-block ts">
+                        <div class="code-block-header">✅ TypeScript</div>
+                        <pre><span class="kw">function</span> <span class="fn">divide</span>(
+  a: <span class="tp">number</span>,
+  b: <span class="tp">number</span>
+): <span class="tp">number</span> {
+  <span class="kw">if</span> (b === <span class="num">0</span>) {
+    <span class="err">return "error";</span>
+    <span class="err">// ❌ Must return number!</span>
+  }
+  <span class="kw">return</span> a / b; <span class="ok">// ✓</span>
+}
+<span class="cm">// Forces you to handle it right</span></pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 3: Union Types -->
+            <div class="demo-pane">
+                <div class="demo-desc"><strong>Union types</strong> let a value be one of several specific types using
+                    the <code>|</code> operator. This is controlled flexibility — not the chaos of <code>any</code>.
+                </div>
+                <div class="code-compare">
+                    <div class="code-block js">
+                        <div class="code-block-header">⚠️ JavaScript</div>
+                        <pre><span class="cm">// id can be anything 😬</span>
+<span class="kw">function</span> <span class="fn">findUser</span>(id) {
+  <span class="cm">// Is id a string or number?</span>
+  <span class="cm">// A boolean? An object?</span>
+  <span class="cm">// We don't know...</span>
+  <span class="kw">return</span> db.find(id);
+}
+
+findUser(<span class="kw">true</span>); <span class="hi"><span class="cm">// ← Allowed 😱</span></span></pre>
+                    </div>
+                    <div class="code-block ts">
+                        <div class="code-block-header">✅ TypeScript</div>
+                        <pre><span class="cm">// id can be number OR string</span>
+<span class="kw">function</span> <span class="fn">findUser</span>(
+  id: <span class="tp">number</span> | <span class="tp">string</span>
+) {
+  <span class="kw">return</span> db.find(id);
+}
+
+findUser(<span class="num">42</span>);        <span class="ok">// ✓</span>
+findUser(<span class="str">"abc-123"</span>); <span class="ok">// ✓</span>
+<span class="err">findUser(true);</span>     <span class="err">// ❌</span></pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 4: Compilation -->
+            <div class="demo-pane">
+                <div class="demo-desc">TypeScript is a <strong>compile step</strong>. The <code>tsc</code> compiler
+                    checks your types and then outputs plain JavaScript. The types are <em>erased</em> — the browser
+                    never sees them.</div>
+                <div class="code-compare">
+                    <div class="code-block ts">
+                        <div class="code-block-header">📝 You Write (.ts)</div>
+                        <pre><span class="kw">interface</span> <span class="tp">Point</span> {
+  x: <span class="tp">number</span>;
+  y: <span class="tp">number</span>;
+}
+
+<span class="kw">function</span> <span class="fn">distance</span>(
+  a: <span class="tp">Point</span>,
+  b: <span class="tp">Point</span>
+): <span class="tp">number</span> {
+  <span class="kw">return</span> Math.sqrt(
+    (b.x-a.x)**<span class="num">2</span> + (b.y-a.y)**<span class="num">2</span>
+  );
+}</pre>
+                    </div>
+                    <div class="code-block js">
+                        <div class="code-block-header">⚙️ Browser Gets (.js)</div>
+                        <pre><span class="cm">// Types are stripped out!</span>
+<span class="cm">// Interface is GONE.</span>
+
+<span class="kw">function</span> <span class="fn">distance</span>(a, b) {
+  <span class="kw">return</span> Math.sqrt(
+    (b.x-a.x)**<span class="num">2</span>
+    + (b.y-a.y)**<span class="num">2</span>
+  );
+}
+
+<span class="cm">// Pure JavaScript ✓</span>
+<span class="cm">// Works in any browser</span></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ═══ SECTION 6: LIVE PLAYGROUND ═════════════════════ -->
+    <section class="section reveal">
+        <div class="section-label">Section 06 — Think Like TypeScript</div>
+        <h2>What would the TS compiler say?</h2>
+        <p class="lead">Look at each JS snippet below and predict what TypeScript would complain about — then reveal the
+            answer.</p>
+
+        <div id="scenarios">
+            <!-- Populated by JS -->
+        </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ═══ SECTION 7: QUIZ ══════════════════════════════════ -->
+    <section class="section reveal" id="quiz">
+        <div class="section-label">Section 07 — Knowledge Check</div>
+        <h2>Quiz yourself 🎯</h2>
+        <p class="lead">You've got the theory. Let's see how much stuck.</p>
+
+        <div class="quiz-card">
+            <div class="quiz-q" id="quiz-question"></div>
+            <div class="quiz-options" id="quiz-options"></div>
+            <div class="quiz-feedback" id="quiz-feedback"></div>
+            <div class="quiz-nav">
+                <div class="quiz-progress" id="quiz-progress"></div>
+                <button class="btn primary" id="quiz-next" onclick="nextQuestion()" style="display:none">Next →</button>
+            </div>
+        </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <footer class="footer">
+        <div style="font-size:1.8rem; margin-bottom:0.75rem;">🎉</div>
+        <div style="font-size:1.05rem; font-weight:600; color:var(--text); margin-bottom:0.5rem;">Ready to write
+            TypeScript?</div>
+        <div style="color:var(--muted);">Next up in MERN Stack: Setting up a TypeScript + Node.js project</div>
+    </footer>
+
+    <script>
+        // ─── SCROLL PROGRESS ────────────────────────────────────
+        window.addEventListener('scroll', () => {
+            const h = document.documentElement;
+            const pct = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+            document.getElementById('progress-bar').style.width = pct + '%';
+        });
+
+        // ─── SCROLL REVEAL ───────────────────────────────────────
+        const reveals = document.querySelectorAll('.reveal');
+        const obs = new IntersectionObserver(entries => {
+            entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+        }, { threshold: 0.1 });
+        reveals.forEach(r => obs.observe(r));
+
+        // ─── PROBLEM ACCORDION ──────────────────────────────────
+        function toggleProblem(id) {
+            const card = document.getElementById(id);
+            card.classList.toggle('open');
+        }
+
+        // ─── DEMO TABS ────────────────────────────────────────────
+        function showTab(idx) {
+            document.querySelectorAll('.demo-tab').forEach((t, i) => t.classList.toggle('active', i === idx));
+            document.querySelectorAll('.demo-pane').forEach((p, i) => p.classList.toggle('active', i === idx));
+        }
+
+        // ─── SCENARIOS ───────────────────────────────────────────
+        const scenarios = [
+            {
+                label: "Scenario A",
+                code: `let name = "Alice";\nname = 42;`,
+                question: "What would TypeScript say about line 2?",
+                answer: "Error: Type 'number' is not assignable to type 'string'. TypeScript infers the type as string from the initial assignment, so reassigning a number is illegal.",
+                errorLine: 1
+            },
+            {
+                label: "Scenario B",
+                code: `function greet(name: string): string {\n  return 42;\n}`,
+                question: "What's wrong with the return statement?",
+                answer: "Error: Type 'number' is not assignable to type 'string'. The function says it returns a string, but 42 is a number. TypeScript enforces the return type.",
+                errorLine: 1
+            },
+            {
+                label: "Scenario C",
+                code: `interface Car {\n  brand: string;\n  year: number;\n}\nconst c: Car = { brand: "Toyota" };`,
+                question: "Is this valid TypeScript?",
+                answer: "Error: Property 'year' is missing in type '{ brand: string }' but required in type 'Car'. All non-optional interface properties must be provided.",
+                errorLine: 4
+            }
+        ];
+
+        const container = document.getElementById('scenarios');
+        scenarios.forEach((s, i) => {
+            const div = document.createElement('div');
+            div.style.cssText = 'margin-bottom:1.5rem;';
+            div.innerHTML = `
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;">
+      <div style="padding:1rem 1.5rem;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-weight:600;font-size:0.9rem;color:var(--text-dim)">${s.label}</span>
+        <span style="font-size:0.8rem;color:var(--muted)">${s.question}</span>
+      </div>
+      <pre style="background:#09090f;padding:1.25rem;font-family:'JetBrains Mono',monospace;font-size:0.83rem;line-height:1.7;color:#c8d0e0;overflow-x:auto;">${s.code.split('\n').map((l, li) => li === s.errorLine ? `<span style="background:rgba(255,92,92,0.12);display:block;border-left:3px solid var(--danger);padding-left:0.5rem;margin-left:-0.5rem;">${escapeHtml(l)}</span>` : escapeHtml(l)).join('\n')}</pre>
+      <div style="padding:1rem 1.5rem;border-top:1px solid var(--border);display:flex;justify-content:flex-end;">
+        <button class="btn" onclick="revealAnswer(this, '${i}')" data-idx="${i}">🔍 Reveal TS Error</button>
+      </div>
+      <div id="ans-${i}" style="display:none;padding:1rem 1.5rem;border-top:1px solid var(--border);background:rgba(255,92,92,0.04);font-size:0.9rem;color:var(--text-dim);line-height:1.65;border-left:3px solid var(--danger);">
+        <strong style="color:var(--danger);">TypeScript says:</strong> ${s.answer}
+      </div>
+    </div>`;
+            container.appendChild(div);
+        });
+
+        function escapeHtml(t) {
+            return t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        function revealAnswer(btn, idx) {
+            const el = document.getElementById('ans-' + idx);
+            if (el.style.display === 'none') {
+                el.style.display = 'block';
+                btn.textContent = '✅ Shown';
+                btn.disabled = true;
+            }
+        }
+
+        // ─── QUIZ ────────────────────────────────────────────────
+        const questions = [
+            {
+                q: "What is TypeScript?",
+                opts: [
+                    "A completely different language from JavaScript",
+                    "A statically typed superset of JavaScript that compiles to JS",
+                    "A JavaScript runtime like Node.js",
+                    "A testing framework for JavaScript"
+                ],
+                ans: 1,
+                feedback: "Correct! TypeScript is a superset — every valid JS file is valid TS. It adds static types and then compiles down to plain JavaScript."
+            },
+            {
+                q: "When does TypeScript catch type errors?",
+                opts: [
+                    "At runtime, when the code runs in the browser",
+                    "Only when you run unit tests",
+                    "At compile time, before the code ever runs",
+                    "Only in production builds"
+                ],
+                ans: 2,
+                feedback: "Exactly! TypeScript catches errors at compile time — while you're writing code. This is the core advantage over JavaScript."
+            },
+            {
+                q: "What happens to TypeScript types when the code is compiled?",
+                opts: [
+                    "They are kept in the output JS file",
+                    "They are converted to JavaScript comments",
+                    "They are completely removed — the browser never sees them",
+                    "They are stored in a separate .types file"
+                ],
+                ans: 2,
+                feedback: "Right! Types are erased during compilation. The output is clean, standards-compliant JavaScript that runs anywhere."
+            },
+            {
+                q: "Which of these is valid TypeScript?",
+                opts: [
+                    "let age: number = 'twenty';",
+                    "let age: string = 25;",
+                    "let age: number = 25;",
+                    "let age = 25; age = 'twenty';"
+                ],
+                ans: 2,
+                feedback: "Correct! In option C, the value 25 matches the declared type number. All other options mix incompatible types."
+            },
+            {
+                q: "Who created TypeScript and when?",
+                opts: [
+                    "Google, in 2015",
+                    "Brendan Eich at Netscape, in 1997",
+                    "Ryan Dahl at Deno, in 2020",
+                    "Microsoft (Anders Hejlsberg), first released in 2012"
+                ],
+                ans: 3,
+                feedback: "Right! Anders Hejlsberg — the creator of C# — led the TypeScript project at Microsoft. It was first released in October 2012."
+            },
+            {
+                q: "What does the ? mean in `email?: string` inside an interface?",
+                opts: [
+                    "The property can be a string or a question mark",
+                    "The property is required",
+                    "The property is optional — it may or may not exist",
+                    "It means the type is unknown"
+                ],
+                ans: 2,
+                feedback: "Exactly! The ? makes a property optional. Objects satisfying this interface may omit the email field entirely."
+            }
+        ];
+
+        let current = 0;
+        let score = 0;
+        let answered = false;
+
+        function renderQuestion() {
+            const q = questions[current];
+            document.getElementById('quiz-question').textContent = `Q${current + 1}. ${q.q}`;
+            document.getElementById('quiz-feedback').textContent = '';
+            document.getElementById('quiz-next').style.display = 'none';
+            document.getElementById('quiz-progress').textContent = `${current + 1} / ${questions.length} — Score: ${score}`;
+            answered = false;
+
+            const opts = document.getElementById('quiz-options');
+            opts.innerHTML = '';
+            q.opts.forEach((o, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'quiz-opt';
+                btn.textContent = o;
+                btn.onclick = () => answer(i);
+                opts.appendChild(btn);
+            });
+        }
+
+        function answer(i) {
+            if (answered) return;
+            answered = true;
+            const q = questions[current];
+            const btns = document.querySelectorAll('.quiz-opt');
+            btns.forEach(b => b.disabled = true);
+            btns[q.ans].classList.add('correct');
+            if (i === q.ans) {
+                score++;
+                document.getElementById('quiz-feedback').innerHTML = `<span style="color:var(--success)">✅ Correct!</span> ${q.feedback}`;
+            } else {
+                btns[i].classList.add('wrong');
+                document.getElementById('quiz-feedback').innerHTML = `<span style="color:var(--danger)">❌ Not quite.</span> ${q.feedback}`;
+            }
+            document.getElementById('quiz-next').style.display = current < questions.length - 1 ? 'inline-flex' : 'none';
+            document.getElementById('quiz-progress').textContent = `${current + 1} / ${questions.length} — Score: ${score}`;
+
+            if (current === questions.length - 1) {
+                setTimeout(() => {
+                    const pct = Math.round((score / questions.length) * 100);
+                    const emoji = pct === 100 ? '🏆' : pct >= 70 ? '🎉' : pct >= 50 ? '👍' : '📖';
+                    document.querySelector('.quiz-card').innerHTML = `
+        <div style="text-align:center;padding:2rem 1rem;">
+          <div style="font-size:3rem;margin-bottom:1rem;">${emoji}</div>
+          <div style="font-size:1.5rem;font-weight:700;margin-bottom:0.5rem;">You scored ${score}/${questions.length}</div>
+          <div style="color:var(--text-dim);margin-bottom:1.5rem;">${pct === 100 ? 'Perfect! You understand TypeScript fundamentals.' : pct >= 70 ? 'Great job! Review the sections where you stumbled.' : pct >= 50 ? 'Good start — re-read the problem and solution sections.' : 'Head back to the top and read through again!'}</div>
+          <button class="btn primary" onclick="restartQuiz()">🔄 Try Again</button>
+        </div>`;
+                }, 1200);
+            }
+        }
+
+        function nextQuestion() {
+            current++;
+            renderQuestion();
+        }
+
+        function restartQuiz() {
+            current = 0;
+            score = 0;
+            document.querySelector('.quiz-card').innerHTML = `
+    <div class="quiz-q" id="quiz-question"></div>
+    <div class="quiz-options" id="quiz-options"></div>
+    <div class="quiz-feedback" id="quiz-feedback"></div>
+    <div class="quiz-nav">
+      <div class="quiz-progress" id="quiz-progress"></div>
+      <button class="btn primary" id="quiz-next" onclick="nextQuestion()" style="display:none">Next →</button>
+    </div>`;
+            renderQuestion();
+        }
+
+        renderQuestion();
+    </script>
+</body>
+
+</html>
