@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TypeScript: Interfaces vs Type Aliases</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap');
+
+        :root {
+            --bg-base: #09090b;
+            --bg-surface: rgba(24, 24, 27, 0.7);
+            --bg-surface-hover: rgba(39, 39, 42, 0.8);
+            --text-primary: #f4f4f5;
+            --text-secondary: #a1a1aa;
+            --accent-1: #3b82f6; /* Blue */
+            --accent-2: #8b5cf6; /* Violet */
+            --accent-3: #ec4899; /* Pink */
+            --border: rgba(255, 255, 255, 0.1);
+            --glow: 0 0 20px rgba(139, 92, 246, 0.3);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.15), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(236, 72, 153, 0.15), transparent 25%);
+            background-attachment: fixed;
+        }
+
+        /* Nav & Layout */
+        .glass-nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(9, 9, 11, 0.6);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-weight: 800;
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, var(--accent-1), var(--accent-3));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+            flex: 1;
+        }
+
+        /* Hero */
+        .hero {
+            text-align: center;
+            margin-bottom: 4rem;
+            animation: fadeIn 1s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            line-height: 1.1;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Interactive Tabs */
+        .tabs-wrapper {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 3rem;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 0.75rem 2rem;
+            border-radius: 99px;
+            font-family: inherit;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tab-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 0;
+        }
+
+        .tab-btn span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-primary);
+            border-color: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .tab-btn.active {
+            color: white;
+            border-color: transparent;
+            box-shadow: var(--glow);
+        }
+
+        .tab-btn.active::before {
+            opacity: 1;
+        }
+
+        /* Content Sections */
+        .tab-content {
+            display: none;
+            animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Glass Cards */
+        .glass-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 2.5rem;
+            backdrop-filter: blur(16px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            margin-bottom: 2rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.7), var(--glow);
+            border-color: rgba(255,255,255,0.2);
+        }
+
+        .glass-card h2 {
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .glass-card p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 2rem;
+        }
+
+        /* Code Blocks */
+        .code-container {
+            background: #000;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .code-header {
+            background: rgba(255,255,255,0.05);
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .code-lang {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--accent-1);
+            font-weight: 700;
+        }
+
+        .code-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .action-btn {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: var(--text-secondary);
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .action-btn:hover {
+            background: var(--accent-1);
+            color: white;
+        }
+
+        pre {
+            padding: 1.5rem;
+            overflow-x: auto;
+            margin: 0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #e2e8f0;
+        }
+
+        /* Syntax Highlighting */
+        .kw { color: #c678dd; } /* keyword */
+        .ty { color: #e5c07b; } /* type */
+        .id { color: #61afef; } /* identifier */
+        .st { color: #98c379; } /* string */
+        .cm { color: #5c6370; font-style: italic; } /* comment */
+        .op { color: #56b6c2; } /* operator */
+        .dt { color: #d19a66; } /* data */
+
+        /* Interactive Elements inside Code */
+        .interactive-token {
+            position: relative;
+            cursor: help;
+            border-bottom: 1px dashed rgba(255,255,255,0.4);
+            transition: color 0.2s, background 0.2s;
+            border-radius: 3px;
+        }
+
+        .interactive-token:hover {
+            background: rgba(255,255,255,0.1);
+            color: var(--accent-3);
+        }
+
+        .tooltip {
+            position: absolute;
+            bottom: 120%;
+            left: 50%;
+            transform: translateX(-50%) translateY(10px);
+            background: var(--bg-base);
+            border: 1px solid var(--accent-3);
+            color: white;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.9rem;
+            width: max-content;
+            max-width: 250px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            z-index: 10;
+        }
+
+        .interactive-token:hover .tooltip {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Comparison Table */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .comp-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            transition: transform 0.3s;
+        }
+
+        .comp-card:hover {
+            transform: scale(1.02);
+            background: rgba(255,255,255,0.05);
+        }
+
+        .comp-card h3 {
+            color: var(--accent-2);
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .comp-card ul {
+            list-style: none;
+        }
+
+        .comp-card li {
+            position: relative;
+            padding-left: 2rem;
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .comp-card li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: var(--accent-1);
+            font-weight: bold;
+        }
+
+        .comp-card.interface h3 { color: var(--accent-3); }
+        .comp-card.interface li::before { content: '✓'; color: var(--accent-3); }
+
+        /* Playground Toggle */
+        .playground-toggle {
+            display: flex;
+            background: rgba(0,0,0,0.5);
+            border-radius: 8px;
+            padding: 4px;
+            margin-bottom: 1rem;
+            width: max-content;
+        }
+
+        .pg-btn {
+            background: transparent;
+            color: var(--text-secondary);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        .pg-btn.active {
+            background: var(--bg-surface-hover);
+            color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .pg-content {
+            display: none;
+        }
+
+        .pg-content.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+        
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.5rem; }
+            .tabs-wrapper { flex-direction: column; align-items: stretch; }
+            .tab-btn { border-radius: 12px; }
+            .comparison-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="glass-nav">
+        <div class="logo">TypeScript Mastery</div>
+        <div style="color: var(--text-secondary); font-size: 0.9rem; font-weight: 600;">Advanced Types</div>
+    </nav>
+
+    <div class="container">
+        <div class="hero">
+            <h1>Type Aliases <span style="color: var(--text-secondary); font-weight: 300;">vs</span> Interfaces</h1>
+            <p>Two paths to the same destination. Discover when to use <code>type</code> and when to use <code>interface</code> with interactive examples.</p>
+        </div>
+
+        <div class="tabs-wrapper">
+            <button class="tab-btn active" data-target="aliases"><span>Type Aliases</span></button>
+            <button class="tab-btn" data-target="interfaces"><span>Interfaces</span></button>
+            <button class="tab-btn" data-target="showdown"><span>The Showdown</span></button>
+        </div>
+
+        <!-- TYPE ALIASES CONTENT -->
+        <div id="aliases" class="tab-content active">
+            <div class="glass-card">
+                <h2>The Chameleon: Type Aliases</h2>
+                <p>Type aliases (<code>type</code>) are incredibly versatile. They don't just shape objects; they can represent primitives, unions, intersections, and tuples. Hover over the underlined text to learn more.</p>
+                
+                <div class="code-container">
+                    <div class="code-header">
+                        <span class="code-lang">types.ts</span>
+                        <div class="code-actions">
+                            <button class="action-btn" onclick="copyCode(this)">Copy</button>
+                        </div>
+                    </div>
+                    <pre><code><span class="cm">// 1. Primitive Aliases</span>
+<span class="kw">type</span> <span class="ty">ID</span> = <span class="interactive-token"><span class="ty">string</span> | <span class="ty">number</span><span class="tooltip">This is a Union Type. An Interface CANNOT do this directly.</span></span>;
+
+<span class="cm">// 2. Object Aliases</span>
+<span class="kw">type</span> <span class="ty">User</span> = {
+  <span class="id">id</span>: <span class="ty">ID</span>;
+  <span class="id">name</span>: <span class="ty">string</span>;
+};
+
+<span class="cm">// 3. Tuples</span>
+<span class="kw">type</span> <span class="ty">Coordinate</span> = <span class="interactive-token">[<span class="ty">number</span>, <span class="ty">number</span>]<span class="tooltip">A Tuple with fixed length and types. Perfect for coordinates or RGB values.</span></span>;
+
+<span class="cm">// 4. Intersections (Combining types)</span>
+<span class="kw">type</span> <span class="ty">Admin</span> = <span class="ty">User</span> <span class="op">&</span> <span class="interactive-token">{ <span class="id">role</span>: <span class="ty">string</span> }<span class="tooltip">The '&' operator merges types together. Similar to 'extends' in interfaces, but works on any type!</span></span>;</code></pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- INTERFACES CONTENT -->
+        <div id="interfaces" class="tab-content">
+            <div class="glass-card">
+                <h2>The Blueprint: Interfaces</h2>
+                <p>Interfaces (<code>interface</code>) are specifically designed to define the shape of objects and classes. They excel at object-oriented concepts and have a superpower: <strong>Declaration Merging</strong>.</p>
+                
+                <div class="playground-toggle">
+                    <button class="pg-btn active" data-pg="extend">Extending</button>
+                    <button class="pg-btn" data-pg="merge">Declaration Merging</button>
+                </div>
+
+                <div id="pg-extend" class="pg-content active code-container">
+                    <div class="code-header">
+                        <span class="code-lang">interfaces.ts</span>
+                        <div class="code-actions"><button class="action-btn" onclick="copyCode(this)">Copy</button></div>
+                    </div>
+                    <pre><code><span class="kw">interface</span> <span class="ty">Animal</span> {
+  <span class="id">name</span>: <span class="ty">string</span>;
+}
+
+<span class="cm">// Interfaces extend other interfaces easily</span>
+<span class="kw">interface</span> <span class="ty">Bear</span> <span class="kw">extends</span> <span class="interactive-token"><span class="ty">Animal</span><span class="tooltip">Extends inherits properties. It's highly optimized by the TypeScript compiler.</span></span> {
+  <span class="id">honey</span>: <span class="ty">boolean</span>;
+}
+
+<span class="kw">const</span> <span class="id">bear</span>: <span class="ty">Bear</span> = {
+  <span class="id">name</span>: <span class="st">"Winnie"</span>,
+  <span class="id">honey</span>: <span class="dt">true</span>
+};</code></pre>
+                </div>
+
+                <div id="pg-merge" class="pg-content code-container">
+                    <div class="code-header">
+                        <span class="code-lang">merging.ts</span>
+                        <div class="code-actions"><button class="action-btn" onclick="copyCode(this)">Copy</button></div>
+                    </div>
+                    <pre><code><span class="kw">interface</span> <span class="ty">Window</span> {
+  <span class="id">title</span>: <span class="ty">string</span>;
+}
+
+<span class="cm">// Later in the same file or a different file...</span>
+<span class="kw">interface</span> <span class="interactive-token"><span class="ty">Window</span><span class="tooltip">Notice we redeclared Window! TS automatically merges them together instead of throwing an error. Types CANNOT do this.</span></span> {
+  <span class="id">ts</span>: <span class="ty">boolean</span>;
+}
+
+<span class="cm">// Window now has BOTH 'title' and 'ts'</span>
+<span class="kw">const</span> <span class="id">myWin</span>: <span class="ty">Window</span> = {
+  <span class="id">title</span>: <span class="st">"Hello"</span>,
+  <span class="id">ts</span>: <span class="dt">true</span>
+};</code></pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- SHOWDOWN CONTENT -->
+        <div id="showdown" class="tab-content">
+            <div class="glass-card">
+                <h2 style="justify-content: center; font-size: 2.5rem; margin-bottom: 3rem;">
+                    <span style="color: var(--accent-1)">Type</span> 
+                    <span style="color: var(--text-secondary); font-size: 1.5rem; margin: 0 1rem;">VS</span> 
+                    <span style="color: var(--accent-3)">Interface</span>
+                </h2>
+                
+                <div class="comparison-grid">
+                    <div class="comp-card">
+                        <h3>Type Alias</h3>
+                        <ul>
+                            <li>Can represent Primitives (string, number).</li>
+                            <li>Can represent Unions (<code>A | B</code>).</li>
+                            <li>Can represent Tuples (<code>[int, string]</code>).</li>
+                            <li>Uses <code>&</code> for intersection/merging.</li>
+                            <li><strong>Cannot</strong> be reopened to add new properties (No declaration merging).</li>
+                            <li>Slightly less performant for the compiler when dealing with complex intersections.</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="comp-card interface">
+                        <h3>Interface</h3>
+                        <ul>
+                            <li>Strictly for describing the shape of Objects and Classes.</li>
+                            <li>Cannot represent primitives, unions, or tuples directly.</li>
+                            <li>Uses <code>extends</code> to inherit from other interfaces or types.</li>
+                            <li><strong>Supports Declaration Merging</strong> (reopening to add properties).</li>
+                            <li>Often leads to better, cleaner error messages.</li>
+                            <li>Highly optimized by the TS compiler for caching.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div style="margin-top: 3rem; padding: 2rem; background: rgba(0,0,0,0.3); border-radius: 16px; border-left: 4px solid var(--accent-2);">
+                    <h4 style="color: white; font-size: 1.2rem; margin-bottom: 0.5rem;">The Golden Rule</h4>
+                    <p style="margin: 0; color: #cbd5e1;">Use <code>interface</code> until you need to use features from <code>type</code>. Interfaces provide better error messages and performance. Use <code>type</code> when you need unions, primitives, or complex mapped types.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Main Tabs Logic
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Remove active class from all
+                tabBtns.forEach(b => b.classList.remove('active'));
+                tabContents.forEach(c => c.classList.remove('active'));
+
+                // Add active class to clicked
+                btn.classList.add('active');
+                const target = document.getElementById(btn.dataset.target);
+                target.classList.add('active');
+            });
+        });
+
+        // Playground Tabs Logic (Interfaces section)
+        const pgBtns = document.querySelectorAll('.pg-btn');
+        const pgContents = document.querySelectorAll('.pg-content');
+
+        pgBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                pgBtns.forEach(b => b.classList.remove('active'));
+                pgContents.forEach(c => c.classList.remove('active'));
+
+                btn.classList.add('active');
+                const target = document.getElementById('pg-' + btn.dataset.pg);
+                target.classList.add('active');
+            });
+        });
+
+        // Copy Code Functionality
+        function copyCode(btn) {
+            const pre = btn.closest('.code-container').querySelector('pre');
+            const text = pre.innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = btn.innerText;
+                btn.innerText = 'Copied!';
+                btn.style.background = 'var(--accent-1)';
+                btn.style.color = 'white';
+                setTimeout(() => {
+                    btn.innerText = originalText;
+                    btn.style.background = '';
+                    btn.style.color = '';
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>

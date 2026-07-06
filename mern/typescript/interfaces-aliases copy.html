@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TypeScript Interfaces & Type Aliases</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.3.0/dist/tabler-icons.min.css">
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --color-background-primary: #ffffff;
+            --color-background-secondary: #f5f5f3;
+            --color-text-primary: #1a1a1a;
+            --color-text-secondary: #6b6b6b;
+            --color-border-tertiary: rgba(0, 0, 0, 0.12);
+            --color-border-secondary: rgba(0, 0, 0, 0.22);
+            --border-radius-md: 8px;
+            --border-radius-lg: 12px;
+            --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            color: var(--color-text-primary);
+            background: #f9f9f7;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 820px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+
+        h1 {
+            font-size: 22px;
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: var(--color-text-secondary);
+            margin-bottom: 2rem;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 7px 16px;
+            border: 0.5px solid rgba(0, 0, 0, 0.22);
+            border-radius: var(--border-radius-md);
+            font-size: 13px;
+            cursor: pointer;
+            background: #fff;
+            color: #6b6b6b;
+            transition: all 0.15s;
+            font-family: var(--font-sans);
+        }
+
+        .tab.active {
+            background: #EEEDFE;
+            color: #3C3489;
+            border-color: #AFA9EC;
+            font-weight: 500;
+        }
+
+        .tab:hover:not(.active) {
+            background: #f5f5f3;
+            color: #1a1a1a;
+        }
+
+        .panel {
+            display: none;
+        }
+
+        .panel.active {
+            display: block;
+        }
+
+        .card {
+            background: #fff;
+            border: 0.5px solid rgba(0, 0, 0, 0.12);
+            border-radius: var(--border-radius-lg);
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .card-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: #6b6b6b;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        code,
+        .code-block {
+            font-family: var(--font-mono);
+            font-size: 13px;
+        }
+
+        .code-block {
+            background: #f5f5f3;
+            border: 0.5px solid rgba(0, 0, 0, 0.12);
+            border-radius: var(--border-radius-md);
+            padding: 14px 16px;
+            line-height: 1.7;
+            overflow-x: auto;
+            white-space: pre;
+        }
+
+        .kw {
+            color: #534AB7;
+            font-weight: 500;
+        }
+
+        .type {
+            color: #0C447C;
+        }
+
+        .str {
+            color: #3B6D11;
+        }
+
+        .num {
+            color: #BA7517;
+        }
+
+        .cmt {
+            color: #6b6b6b;
+            font-style: italic;
+        }
+
+        .prop {
+            color: #993C1D;
+        }
+
+        .grid2 {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            gap: 1rem;
+        }
+
+        @media (max-width: 600px) {
+            .grid2 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .badge {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 500;
+            padding: 2px 8px;
+            border-radius: 99px;
+        }
+
+        .badge-purple {
+            background: #EEEDFE;
+            color: #3C3489;
+        }
+
+        .badge-teal {
+            background: #E1F5EE;
+            color: #085041;
+        }
+
+        .diff-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 10px 0;
+            border-bottom: 0.5px solid rgba(0, 0, 0, 0.12);
+        }
+
+        .diff-row:last-child {
+            border-bottom: none;
+        }
+
+        .diff-label {
+            font-size: 13px;
+            font-weight: 500;
+            min-width: 160px;
+            color: #1a1a1a;
+        }
+
+        .diff-val {
+            font-size: 13px;
+            color: #6b6b6b;
+            flex: 1;
+        }
+
+        .iface-val {
+            color: #3C3489;
+        }
+
+        .alias-val {
+            color: #085041;
+        }
+
+        .playground-col {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .playground-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: #6b6b6b;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        textarea {
+            width: 100%;
+            resize: vertical;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            line-height: 1.6;
+            border: 0.5px solid rgba(0, 0, 0, 0.22);
+            border-radius: var(--border-radius-md);
+            padding: 10px 12px;
+            background: #f5f5f3;
+            color: #1a1a1a;
+            min-height: 180px;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #AFA9EC;
+            box-shadow: 0 0 0 2px rgba(83, 74, 183, 0.12);
+        }
+
+        .run-btn {
+            padding: 8px 18px;
+            background: #534AB7;
+            color: #EEEDFE;
+            border: none;
+            border-radius: var(--border-radius-md);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .run-btn:hover {
+            background: #3C3489;
+        }
+
+        .output-box {
+            background: #F1EFE8;
+            border: 0.5px solid rgba(0, 0, 0, 0.12);
+            border-radius: var(--border-radius-md);
+            padding: 12px 14px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            line-height: 1.7;
+            min-height: 80px;
+            color: #1a1a1a;
+            white-space: pre-wrap;
+        }
+
+        .output-box.error {
+            background: #FCEBEB;
+            color: #791F1F;
+            border-color: #F7C1C1;
+        }
+
+        .output-box.success {
+            background: #EAF3DE;
+            color: #27500A;
+            border-color: #C0DD97;
+        }
+
+        .quiz-opt {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 10px 14px;
+            border: 0.5px solid rgba(0, 0, 0, 0.12);
+            border-radius: var(--border-radius-md);
+            cursor: pointer;
+            margin-bottom: 8px;
+            transition: all 0.15s;
+            font-size: 13px;
+            background: #fff;
+            font-family: var(--font-sans);
+            width: 100%;
+            text-align: left;
+        }
+
+        .quiz-opt:hover {
+            background: #f5f5f3;
+        }
+
+        .quiz-opt.correct {
+            background: #EAF3DE;
+            border-color: #C0DD97;
+            color: #27500A;
+        }
+
+        .quiz-opt.wrong {
+            background: #FCEBEB;
+            border-color: #F7C1C1;
+            color: #791F1F;
+        }
+
+        .quiz-q {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+
+        .explanation {
+            font-size: 13px;
+            color: #6b6b6b;
+            margin-top: 10px;
+            padding: 10px 12px;
+            background: #f5f5f3;
+            border-radius: var(--border-radius-md);
+            display: none;
+            line-height: 1.6;
+        }
+
+        .nav-btn {
+            font-size: 13px;
+            padding: 7px 14px;
+            border: 0.5px solid rgba(0, 0, 0, 0.22);
+            border-radius: var(--border-radius-md);
+            cursor: pointer;
+            background: #fff;
+            color: #1a1a1a;
+            font-family: var(--font-sans);
+        }
+
+        .nav-btn:hover {
+            background: #f5f5f3;
+        }
+
+        .progress-bar {
+            height: 4px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 2px;
+            margin-bottom: 1rem;
+        }
+
+        .progress-fill {
+            height: 4px;
+            background: #534AB7;
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        .example-tabs {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+
+        .ex-tab {
+            font-size: 12px;
+            padding: 4px 12px;
+            border: 0.5px solid rgba(0, 0, 0, 0.22);
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            background: #f5f5f3;
+            color: #6b6b6b;
+            border-bottom: none;
+            font-family: var(--font-sans);
+        }
+
+        .ex-tab.active {
+            background: #fff;
+            color: #1a1a1a;
+            font-weight: 500;
+        }
+
+        .ex-panel {
+            display: none;
+        }
+
+        .ex-panel.active {
+            display: block;
+        }
+
+        .section-intro {
+            font-size: 14px;
+            color: #6b6b6b;
+            line-height: 1.6;
+            margin-bottom: 1.25rem;
+        }
+
+        .snip-btns {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>TypeScript Interfaces &amp; Type Aliases</h1>
+        <p class="subtitle">An interactive guide for students — explore, compare, and practise.</p>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showPanel('intro', this)"><i class="ti ti-book-2"></i> Intro</button>
+            <button class="tab" onclick="showPanel('interface', this)"><i class="ti ti-brackets-curly"></i>
+                Interfaces</button>
+            <button class="tab" onclick="showPanel('alias', this)"><i class="ti ti-tag"></i> Type Aliases</button>
+            <button class="tab" onclick="showPanel('diff', this)"><i class="ti ti-arrows-diff"></i> Differences</button>
+            <button class="tab" onclick="showPanel('playground', this)"><i class="ti ti-player-play"></i>
+                Playground</button>
+            <button class="tab" onclick="showPanel('quiz', this)"><i class="ti ti-help"></i> Quiz</button>
+        </div>
+
+        <!-- INTRO -->
+        <div class="panel active" id="panel-intro">
+            <p class="section-intro">TypeScript gives you two powerful tools for describing the <strong>shape of
+                    data</strong>: <span class="badge badge-purple">interface</span> and <span
+                    class="badge badge-teal">type alias</span>. Both let you name a structure and reuse it — but they
+                have different strengths.</p>
+            <div class="grid2">
+                <div class="card">
+                    <div class="card-title"><span class="badge badge-purple">interface</span> Interface</div>
+                    <div class="code-block"><span class="kw">interface</span> <span class="type">User</span> {
+                        <span class="prop">name</span>: <span class="type">string</span>;
+                        <span class="prop">age</span>: <span class="type">number</span>;
+                        }
+                    </div>
+                    <p style="font-size:13px;color:#6b6b6b;margin-top:10px">Describes the <em>structure</em> of an
+                        object. Can be extended and merged.</p>
+                </div>
+                <div class="card">
+                    <div class="card-title"><span class="badge badge-teal">type</span> Type Alias</div>
+                    <div class="code-block"><span class="kw">type</span> <span class="type">User</span> = {
+                        <span class="prop">name</span>: <span class="type">string</span>;
+                        <span class="prop">age</span>: <span class="type">number</span>;
+                        }
+                    </div>
+                    <p style="font-size:13px;color:#6b6b6b;margin-top:10px">Names <em>any</em> type — objects, unions,
+                        primitives, tuples, and more.</p>
+                </div>
+            </div>
+            <div class="card" style="border-left:3px solid #534AB7;border-radius:0 12px 12px 0">
+                <div class="card-title"><i class="ti ti-bulb"></i> Key idea</div>
+                <p style="font-size:14px;line-height:1.6">Both let you <strong>name a shape</strong> and reuse it. For
+                    simple object shapes, they're almost identical. The differences show up in advanced patterns —
+                    unions, merging, and primitives.</p>
+            </div>
+        </div>
+
+        <!-- INTERFACES -->
+        <div class="panel" id="panel-interface">
+            <p class="section-intro">An <code>interface</code> declares a named contract for an object's structure. It's
+                the idiomatic TypeScript choice for describing objects and classes.</p>
+            <div class="example-tabs">
+                <button class="ex-tab active" onclick="showEx('iface',0,this)">Basic</button>
+                <button class="ex-tab" onclick="showEx('iface',1,this)">Optional props</button>
+                <button class="ex-tab" onclick="showEx('iface',2,this)">Readonly</button>
+                <button class="ex-tab" onclick="showEx('iface',3,this)">Extending</button>
+                <button class="ex-tab" onclick="showEx('iface',4,this)">Declaration merging</button>
+            </div>
+            <div class="card" style="border-radius:0 12px 12px 12px;margin-top:0;border-top:none">
+                <div class="ex-panel active" id="iface-0">
+                    <div class="card-title">Basic interface — define an object shape</div>
+                    <div class="code-block"><span class="kw">interface</span> <span class="type">Product</span> {
+                        <span class="prop">id</span>: <span class="type">number</span>;
+                        <span class="prop">name</span>: <span class="type">string</span>;
+                        <span class="prop">price</span>: <span class="type">number</span>;
+                        }
+
+                        <span class="kw">const</span> laptop: <span class="type">Product</span> = {
+                        <span class="prop">id</span>: <span class="num">1</span>,
+                        <span class="prop">name</span>: <span class="str">"ThinkPad"</span>,
+                        <span class="prop">price</span>: <span class="num">999</span>,
+                        };
+
+                        <span class="cmt">// ❌ Error: 'colour' does not exist in type 'Product'</span>
+                        <span class="kw">const</span> bad: <span class="type">Product</span> = { <span
+                            class="prop">colour</span>: <span class="str">"red"</span> };
+                    </div>
+                    <p style="font-size:13px;color:#6b6b6b;margin-top:10px">TypeScript checks that every object matches
+                        the declared shape — extra or missing props are caught at compile time.</p>
+                </div>
+                <div class="ex-panel" id="iface-1">
+                    <div class="card-title">Optional properties — use <code>?</code> to mark props as non-required</div>
+                    <div class="code-block"><span class="kw">interface</span> <span class="type">Config</span> {
+                        <span class="prop">host</span>: <span class="type">string</span>;
+                        <span class="prop">port</span>?: <span class="type">number</span>; <span class="cmt">//
+                            optional</span>
+                        <span class="prop">secure</span>?: <span class="type">boolean</span>; <span class="cmt">//
+                            optional</span>
+                        }
+
+                        <span class="kw">const</span> a: <span class="type">Config</span> = { <span
+                            class="prop">host</span>: <span class="str">"localhost"</span> };
+                        <span class="kw">const</span> b: <span class="type">Config</span> = { <span
+                            class="prop">host</span>: <span class="str">"prod.example.com"</span>, <span
+                            class="prop">port</span>: <span class="num">443</span>, <span class="prop">secure</span>:
+                        <span class="kw">true</span> };
+                    </div>
+                    <p style="font-size:13px;color:#6b6b6b;margin-top:10px">Optional props may be absent or
+                        <code>undefined</code>. Always narrow with an <code>if</code> check before using them.
+                    </p>
+                </div>
+                <div class="ex-panel" id="iface-2">
+                    <div class="card-title">Readonly properties — prevent mutation after creation</div>
+                    <div class="code-block"><span class="kw">interface</span> <span class="type">Point</span> {
+                        <span class="kw">readonly</span> <span class="prop">x</span>: <span class="type">number</span>;
+                        <span class="kw">readonly</span> <span class="prop">y</span>: <span class="type">number</span>;
+                        }
+
+                        <span class="kw">const</span> origin: <span class="type">Point</span> = { <span
+                            class="prop">x</span>: <span class="num">0</span>, <span class="prop">y</span>: <span
+                            class="num">0</span> };
+
+                        <span class="cmt">// ❌ Error: cannot assign to 'x' — it is readonly</span>
+                        origin.<span class="prop">x</span> = <span class="num">10</span>;
+                    </div>
+                    <p style="font-size:13px;color:#6b6b6b;margin-top:10px"><code>readonly</code> enforces immutability
+                        — great for coordinates, IDs, and config values.</p>
+                </div>
+                <div class="ex-panel" id="iface-3">
+                    <div class="card-title">Extending — build richer interfaces from existing ones</div>
+                    <div class="code-block"><span class="kw">interface</span> <span class="type">Animal</span> {
+                        <span class="prop">name</span>: <span class="type">string</span>;
+                        }
+
+                        <span class="kw">interface</span> <span class="type">Dog</span> <span class="kw">extends</span>
+                        <span class="type">Animal</span> {
+                        <span class="prop">breed</span>: <span class="type">string</span>;
+                        }
+
+                        <span class="kw">interface</span> <span class="type">ServiceDog</span> <span
+                            class="kw">extends</span> <span class="type">Dog</span> {
+                        <span class="prop">task</span>: <span class="type">string</span>;
+                        }
+
+                        <span class="kw">const</span> rex: <span class="type">ServiceDog</span> = {
+                        <span class="prop">name</span>: <span class="str">"Rex"</span>,
+                        <span class="prop">breed</span>: <span class="str">"Labrador"</span>,
+                        <span class="prop">task</span>: <span class="str">"Guide"</span>,
+                        };
+                    </div>
+                    <p style="font-size:13px;color:#6b6b6b;margin-top:10px"><code>extends</code> inherits all props from
+                        the parent. You can extend multiple interfaces: <code>extends A, B</code>.</p>
+                </div>
+                <div class="ex-panel" id="iface-4">
+                    <div class="card-title">Declaration merging — add props to an interface later (unique to
+                        interfaces!)</div>
+                    <div class="code-block"><span class="kw">interface</span> <span class="type">Window</span> {
+                        <span class="prop">myApp</span>: <span class="type">string</span>;
+                        }
+
+                        <span class="kw">interface</span> <span class="type">Window</span> { <span class="cmt">// Same
+                            name — they MERGE</span>
+                        <span class="prop">version</span>: <span class="type">number</span>;
+                        }
+
+                        <span class="cmt">// Window now has BOTH myApp and version</span>
+                        window.<span class="prop">myApp</span> = <span class="str">"MyApp"</span>;
+                        window.<span class="prop">version</span> = <span class="num">2</span>;
+                    </div>
+                    <p style="font-size:13px;color:#6b6b6b;margin-top:10px">Two <code>interface</code> blocks with the
+                        same name automatically merge. Useful when extending third-party types. Type aliases
+                        <strong>cannot</strong> do this.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TYPE ALIASES -->
+        <div class="panel" id="panel-alias">
+            <p class="section-intro">A <code>type</code> alias gives a name to <em>any</em> type expression — objects,
+                unions, intersections, primitives, tuples, and more.</p>
+            <div class="example-tabs">
+                <button class="ex-tab active" onclick="showEx('alias',0,this)">Object</button>
+                <button class="ex-tab" onclick="showEx('alias',1,this)">Union</button>
+                <button class="ex-tab" onclick="showEx('alias',2,this)">Intersection</button>
+                <button class="ex-tab" onclick="showEx('alias',3,this)">Primitives</button>
+                <button class="ex-tab" onclick="showEx('alias',4,this)">Tuple</button>
+            </div>
+            <div class="card" style="border-radius:0 12px 12px 12px;margin-top:0;border-top:none">
+                <div class="ex-panel active" id="alias-0">
+                    <div class="card-title">Object type alias — same as interface for simple objects</div>
+                    <div class="code-block"><span class="kw">type</span> <span class="type">Product</span> = {
+                        <span class="prop">id</span>: <span class="type">number</span>;
+                        <span class="prop">name</span>: <span class="type">string</span>;
+                        <span class="prop">price</span>: <span class="type">number</span>;
+                        };
+
+                        <span class="kw">const</span> book: <span class="type">Product</span> = {
+                        <span class="prop">id</span>: <span class="num">42</span>,
+                        <span class="prop">name</span>: <span class="str">"Clean Code"</span>,
+                        <span class="prop">price</span>: <span class="num">29</span>,
+                        };
+                    </div>
+                    <p style="font-size:13px;color:#6b6b6b;margin-top:10px">For plain object shapes, <code>type</code>
+                        and <code>interface</code> are nearly interchangeable. Note the <code>=</code> sign.</p>
+                </div>
+                <div class="ex-panel" id="alias-1">
+                    <div class="card-title">Union types — one of several possible types</div>
+                    <div class="code-block"><span class="kw">type</span> <span class="type">Status</span> = <span
+                            class="str">"pending"</span> | <span class="str">"active"</span> | <span
+                            class="str">"closed"</span>;
+                        <span class="kw">type</span> <span class="type">ID</span> = <span class="type">string</span> |
+                        <span class="type">number</span>;
+
+                        <span class="kw">function</span> <span class="prop">printId</span>(<span class="prop">id</span>:
+                        <span class="type">ID</span>) {
+                        <span class="kw">if</span> (<span class="kw">typeof</span> id === <span
+                            class="str">"string"</span>) {
+                        console.<span class="prop">log</span>(id.<span class="prop">toUpperCase</span>());
+                        } <span class="kw">else</span> {
+                        console.<span class="prop">log</span>(id.<span class="prop">toFixed</span>(<span
+                            class="num">0</span>));
+                        }
+                        }
+                    </div>
+                    <p style="font-size:13px;color:#6b6b6b;margin-top:10px">The <code>|</code> operator creates a union.
+                        Interfaces <strong>cannot</strong> express union types — only <code>type</code> aliases can.</p>
+                </div>
+                <div class="ex-panel" id="alias-2">
+                    <div class="card-title">Intersection types — combine multiple types into one</div>
+                    <div class="code-block"><span class="kw">type</span> <span class="type">HasId</span> = { <span
+                            class="prop">id</span>: <span class="type">number</span> };
+                        <span class="kw">type</span> <span class="type">HasName</span> = { <span
+                            class="prop">name</span>: <span class="type">string</span> };
+
+                        <span class="cmt">// Must have BOTH id and name</span>
+                        <span class="kw">type</span> <span class="type">Entity</span> = <span class="type">HasId</span>
+                        &amp; <span class="type">HasName</span>;
+
+                        <span class="kw">const</span> user: <span class="type">Entity</span> = { <span
+                            class="prop">id</span>: <span class="num">1</span>, <span class="prop">name</span>: <span
+                            class="str">"Ana"</span> };
+                    </div>
+                    <p style="font-size:13px;color:#6b6b6b;margin-top:10px">The <code>&amp;</code> operator merges all
+                        properties together. Similar to <code>extends</code> for interfaces but works on any types.</p>
+                </div>
+                <div class="ex-panel" id="alias-3">
+                    <div class="card-title">Primitive aliases — name a primitive type (interfaces can't!)</div>
+                    <div class="code-block"><span class="kw">type</span> <span class="type">Age</span> = <span
+                            class="type">number</span>;
+                        <span class="kw">type</span> <span class="type">Username</span> = <span
+                            class="type">string</span>;
+                        <span class="kw">type</span> <span class="type">IsActive</span> = <span
+                            class="type">boolean</span>;
+
+                        <span class="kw">function</span> <span class="prop">greet</span>(<span class="prop">name</span>:
+                        <span class="type">Username</span>, <span class="prop">age</span>: <span
+                            class="type">Age</span>) {
+                        <span class="kw">return</span> <span class="str">`Hello ${name}, you are ${age} years
+                            old`</span>;
+                        }
+                    </div>
+                    <p style="font-size:13px;color:#6b6b6b;margin-top:10px">Aliasing primitives adds semantic meaning.
+                        <code>Username</code> reads better than raw <code>string</code> in a function signature.
+                    </p>
+                </div>
+                <div class="ex-panel" id="alias-4">
+                    <div class="card-title">Tuple types — fixed-length arrays with typed positions</div>
+                    <div class="code-block"><span class="kw">type</span> <span class="type">Coordinate</span> = [<span
+                            class="type">number</span>, <span class="type">number</span>];
+                        <span class="kw">type</span> <span class="type">NameAndAge</span> = [<span
+                            class="type">string</span>, <span class="type">number</span>];
+
+                        <span class="kw">const</span> pos: <span class="type">Coordinate</span> = [<span
+                            class="num">12.5</span>, <span class="num">7.3</span>];
+                        <span class="kw">const</span> person: <span class="type">NameAndAge</span> = [<span
+                            class="str">"Asha"</span>, <span class="num">24</span>];
+
+                        <span class="cmt">// ❌ Error: Type 'string' is not assignable to 'number'</span>
+                        <span class="kw">const</span> bad: <span class="type">Coordinate</span> = [<span
+                            class="str">"a"</span>, <span class="str">"b"</span>];
+                    </div>
+                    <p style="font-size:13px;color:#6b6b6b;margin-top:10px">Tuples enforce both the <em>count</em> and
+                        <em>type at each index</em>. Common in React (<code>[state, setter]</code> from
+                        <code>useState</code>).
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- DIFFERENCES -->
+        <div class="panel" id="panel-diff">
+            <p class="section-intro">Both tools overlap heavily for object types. Here's exactly where they diverge:</p>
+            <div class="card">
+                <div class="diff-row" style="padding-top:0">
+                    <div class="diff-label" style="font-size:12px;color:#6b6b6b">Feature</div>
+                    <div class="diff-val iface-val" style="font-weight:500;font-size:12px">interface</div>
+                    <div class="diff-val alias-val" style="font-weight:500;font-size:12px">type alias</div>
+                </div>
+                <div class="diff-row">
+                    <div class="diff-label">Object shapes</div>
+                    <div class="diff-val iface-val">✓ Yes</div>
+                    <div class="diff-val alias-val">✓ Yes</div>
+                </div>
+                <div class="diff-row">
+                    <div class="diff-label">Union types</div>
+                    <div class="diff-val" style="color:#6b6b6b">✗ No</div>
+                    <div class="diff-val alias-val">✓ Yes</div>
+                </div>
+                <div class="diff-row">
+                    <div class="diff-label">Primitive aliases</div>
+                    <div class="diff-val" style="color:#6b6b6b">✗ No</div>
+                    <div class="diff-val alias-val">✓ Yes</div>
+                </div>
+                <div class="diff-row">
+                    <div class="diff-label">Tuple types</div>
+                    <div class="diff-val" style="color:#6b6b6b">✗ No</div>
+                    <div class="diff-val alias-val">✓ Yes</div>
+                </div>
+                <div class="diff-row">
+                    <div class="diff-label">Declaration merging</div>
+                    <div class="diff-val iface-val">✓ Yes (unique!)</div>
+                    <div class="diff-val" style="color:#6b6b6b">✗ No</div>
+                </div>
+                <div class="diff-row">
+                    <div class="diff-label">extends keyword</div>
+                    <div class="diff-val iface-val">✓ Yes</div>
+                    <div class="diff-val alias-val">✓ Via &amp; intersection</div>
+                </div>
+                <div class="diff-row">
+                    <div class="diff-label">Implements in class</div>
+                    <div class="diff-val iface-val">✓ Yes</div>
+                    <div class="diff-val alias-val">✓ Yes (object types only)</div>
+                </div>
+            </div>
+            <div class="card" style="background:#f5f5f3">
+                <div class="card-title">When to choose which</div>
+                <div style="display:flex;flex-direction:column;gap:10px;margin-top:4px">
+                    <div style="display:flex;gap:10px;align-items:flex-start">
+                        <span class="badge badge-purple" style="margin-top:2px;white-space:nowrap">interface</span>
+                        <p style="font-size:13px;color:#6b6b6b;line-height:1.6">Describing object shapes that might be
+                            <strong>extended</strong> or implemented by a class. Library authors prefer interfaces
+                            because consumers can augment them.
+                        </p>
+                    </div>
+                    <div style="display:flex;gap:10px;align-items:flex-start">
+                        <span class="badge badge-teal" style="margin-top:2px;white-space:nowrap">type</span>
+                        <p style="font-size:13px;color:#6b6b6b;line-height:1.6">Anything that isn't a plain extendable
+                            object — unions, intersections, primitives, tuples, mapped types, conditional types.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PLAYGROUND -->
+        <div class="panel" id="panel-playground">
+            <p class="section-intro">Write your own interface or type alias below and click Check code for instant
+                feedback.</p>
+            <div class="grid2">
+                <div class="playground-col">
+                    <div class="playground-label">Your code</div>
+                    <textarea id="pg-code" spellcheck="false">interface Car {
+  make: string;
+  model: string;
+  year: number;
+  electric?: boolean;
+}
+
+const tesla: Car = {
+  make: "Tesla",
+  model: "Model 3",
+  year: 2023,
+  electric: true,
+};</textarea>
+                    <button class="run-btn" onclick="runCheck()">▶ Check code</button>
+                    <div style="margin-top:12px">
+                        <div class="playground-label" style="margin-bottom:6px">Load an example</div>
+                        <div class="snip-btns">
+                            <button class="nav-btn" onclick="loadSnippet('union')">Union type</button>
+                            <button class="nav-btn" onclick="loadSnippet('intersect')">Intersection</button>
+                            <button class="nav-btn" onclick="loadSnippet('extend')">Extending</button>
+                            <button class="nav-btn" onclick="loadSnippet('tuple')">Tuple</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="playground-col">
+                    <div class="playground-label">Output</div>
+                    <div class="output-box" id="pg-out" style="min-height:200px">Click "Check code" to validate your
+                        TypeScript.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- QUIZ -->
+        <div class="panel" id="panel-quiz">
+            <div class="progress-bar">
+                <div class="progress-fill" id="qprogress" style="width:0%"></div>
+            </div>
+            <div id="quiz-container"></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1rem">
+                <button class="nav-btn" id="q-prev" onclick="qMove(-1)" style="visibility:hidden">← Prev</button>
+                <span id="q-counter" style="font-size:13px;color:#6b6b6b">1 / 5</span>
+                <button class="nav-btn" id="q-next" onclick="qMove(1)">Next →</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showPanel(id, btn) {
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById('panel-' + id).classList.add('active');
+            btn.classList.add('active');
+        }
+        function showEx(prefix, idx, btn) {
+            var container = btn.closest('.card');
+            container.querySelectorAll('.ex-panel').forEach(p => p.classList.remove('active'));
+            container.querySelector('#' + prefix + '-' + idx).classList.add('active');
+            btn.closest('.example-tabs').querySelectorAll('.ex-tab').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        var snippets = {
+            union: `type Shape = "circle" | "square" | "triangle";\ntype ID = string | number;\n\nfunction describe(shape: Shape): string {\n  return "This is a " + shape;\n}\n\nconst s: Shape = "circle";\nconst id1: ID = 42;\nconst id2: ID = "user-abc";`,
+            intersect: `type HasName = { name: string };\ntype HasAge = { age: number };\ntype HasEmail = { email: string };\n\ntype Person = HasName & HasAge & HasEmail;\n\nconst p: Person = {\n  name: "Riya",\n  age: 28,\n  email: "riya@example.com",\n};`,
+            extend: `interface Vehicle {\n  make: string;\n  model: string;\n}\n\ninterface ElectricVehicle extends Vehicle {\n  batteryCapacity: number;\n  rangeKm: number;\n}\n\nconst ev: ElectricVehicle = {\n  make: "Tesla",\n  model: "Model Y",\n  batteryCapacity: 75,\n  rangeKm: 505,\n};`,
+            tuple: `type RGB = [number, number, number];\ntype NameAge = [string, number];\n\nconst red: RGB = [255, 0, 0];\nconst user: NameAge = ["Amir", 31];\n\nfunction toHex([r, g, b]: RGB): string {\n  return "#" + [r,g,b].map(n => n.toString(16).padStart(2,"0")).join("");\n}`
+        };
+
+        function loadSnippet(key) {
+            document.getElementById('pg-code').value = snippets[key];
+            document.getElementById('pg-out').textContent = 'Click "Check code" to validate your TypeScript.';
+            document.getElementById('pg-out').className = 'output-box';
+        }
+
+        function runCheck() {
+            var code = document.getElementById('pg-code').value.trim();
+            var out = document.getElementById('pg-out');
+            out.className = 'output-box';
+            var issues = [];
+            if (!code) { out.textContent = '⚠ Please write some code first.'; return; }
+            var hasInterface = /\binterface\s+\w+/.test(code);
+            var hasType = /\btype\s+\w+\s*=/.test(code);
+            if (!hasInterface && !hasType) issues.push("No interface or type alias found. Try: interface MyType { ... } or type MyType = { ... }");
+            var openBraces = (code.match(/\{/g) || []).length;
+            var closeBraces = (code.match(/\}/g) || []).length;
+            if (openBraces !== closeBraces) issues.push("Unmatched braces: " + openBraces + " opening { but " + closeBraces + " closing }");
+            var openParens = (code.match(/\(/g) || []).length;
+            var closeParens = (code.match(/\)/g) || []).length;
+            if (openParens !== closeParens) issues.push("Unmatched parentheses.");
+            if (issues.length > 0) {
+                out.className = 'output-box error';
+                out.textContent = '❌ Issues found:\n\n' + issues.map((i, n) => (n + 1) + '. ' + i).join('\n\n');
+            } else {
+                out.className = 'output-box success';
+                var ifaceMatches = code.match(/\binterface\s+(\w+)/g) || [];
+                var typeMatches = code.match(/\btype\s+(\w+)\s*=/g) || [];
+                var summary = '✅ Looks good!\n\n';
+                if (hasInterface) summary += '• Defines ' + ifaceMatches.length + ' interface(s): ' + ifaceMatches.map(m => m.replace('interface ', '')).join(', ') + '\n';
+                if (hasType) summary += '• Defines ' + typeMatches.length + ' type alias(es): ' + typeMatches.map(m => m.replace(/type /, '').replace(/\s*=/, '')).join(', ') + '\n';
+                if (/\w+\s*\|\s*\w+/.test(code)) summary += '• Uses union type (|)\n';
+                if (/\w+\s*&\s*\w+/.test(code)) summary += '• Uses intersection type (&)\n';
+                if (/\w+\?:/.test(code)) summary += '• Uses optional properties (?)\n';
+                if (/\breadonly\b/.test(code)) summary += '• Uses readonly modifier\n';
+                if (/\bextends\b/.test(code)) summary += '• Uses extends for inheritance\n';
+                out.textContent = summary;
+            }
+        }
+
+        var questions = [
+            { q: "Which keyword declares a named contract for an object's structure that can be extended?", opts: ["type", "interface", "class", "enum"], answer: 1, explain: "'interface' is the keyword for declaring extensible object contracts. While 'type' can also describe objects, 'interface' supports extends and declaration merging." },
+            { q: "Which of the following is ONLY possible with a type alias, not an interface?", opts: ["Optional properties with ?", "Union types with |", "Extending another type", "Using readonly"], answer: 1, explain: "Union types (string | number) can only be expressed with type aliases. Interfaces cannot represent unions — they are always object shapes." },
+            { q: "What happens when you declare two interfaces with the same name in TypeScript?", opts: ["A compile error is thrown", "The second one overwrites the first", "They are merged into one interface", "Only the first is used"], answer: 2, explain: "This is 'declaration merging' — a feature unique to interfaces. Both declarations are merged automatically, combining all their properties." },
+            { q: "Which syntax correctly creates a type alias for a union of string literals?", opts: ["interface Direction = 'left' | 'right'", "type Direction { left: string, right: string }", "type Direction = 'left' | 'right'", "interface Direction extends 'left' | 'right'"], answer: 2, explain: "type aliases use = to assign a type. type Direction = 'left' | 'right' creates a union of two string literal types." },
+            { q: "What does the ? symbol mean in: interface User { nickname?: string }", opts: ["nickname must be a string", "nickname is required and nullable", "nickname is optional — may be undefined", "nickname can be any type"], answer: 2, explain: "The ? makes a property optional. nickname?: string means the object may or may not include nickname. If present, it must be a string; if absent, it is undefined." }
+        ];
+        var curQ = 0;
+        var answered = new Array(questions.length).fill(null);
+
+        function renderQuiz() {
+            var q = questions[curQ];
+            var container = document.getElementById('quiz-container');
+            container.innerHTML = '<div style="margin-bottom:1rem"><div class="quiz-q">Q' + (curQ + 1) + '. ' + q.q + '</div>' +
+                q.opts.map(function (o, i) {
+                    var cls = 'quiz-opt';
+                    if (answered[curQ] !== null) {
+                        if (i === q.answer) cls += ' correct';
+                        else if (i === answered[curQ] && answered[curQ] !== q.answer) cls += ' wrong';
+                    }
+                    return '<button class="' + cls + '" onclick="answer(' + i + ')">' +
+                        '<span style="width:20px;height:20px;border-radius:50%;border:0.5px solid rgba(0,0,0,0.22);display:inline-flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0">' + String.fromCharCode(65 + i) + '</span>' +
+                        '<span>' + o + '</span></button>';
+                }).join('') +
+                '<div class="explanation" style="display:' + (answered[curQ] !== null ? 'block' : 'none') + '">' +
+                (answered[curQ] !== null ? (answered[curQ] === q.answer ? '✅ Correct! ' : '❌ Not quite. ') + q.explain : '') +
+                '</div></div>';
+            var pct = (answered.filter(a => a !== null).length / questions.length * 100).toFixed(0);
+            document.getElementById('qprogress').style.width = pct + '%';
+            document.getElementById('q-counter').textContent = (curQ + 1) + ' / ' + questions.length;
+            document.getElementById('q-prev').style.visibility = curQ === 0 ? 'hidden' : 'visible';
+            document.getElementById('q-next').textContent = curQ === questions.length - 1 ? 'Finish' : 'Next →';
+        }
+
+        function answer(i) {
+            if (answered[curQ] !== null) return;
+            answered[curQ] = i;
+            renderQuiz();
+        }
+
+        function qMove(dir) {
+            if (curQ + dir < 0) return;
+            if (curQ + dir >= questions.length) {
+                var score = answered.filter((a, i) => a === questions[i].answer).length;
+                document.getElementById('quiz-container').innerHTML =
+                    '<div class="card" style="text-align:center;padding:2rem">' +
+                    '<div style="font-size:36px;font-weight:500;margin-bottom:8px">' + score + ' / ' + questions.length + '</div>' +
+                    '<div style="color:#6b6b6b;font-size:14px;margin-bottom:1.5rem">' +
+                    (score === 5 ? '🎉 Perfect score! You know your TypeScript.' : score >= 3 ? '👍 Good work! Review the ones you missed.' : '📖 Keep practising — check the Interfaces and Type Aliases tabs.') +
+                    '</div><button class="nav-btn" onclick="resetQuiz()">Try again</button></div>';
+                document.getElementById('q-prev').style.visibility = 'hidden';
+                document.getElementById('q-next').style.display = 'none';
+                document.getElementById('q-counter').textContent = '';
+                return;
+            }
+            curQ += dir;
+            renderQuiz();
+        }
+
+        function resetQuiz() {
+            curQ = 0;
+            answered = new Array(questions.length).fill(null);
+            document.getElementById('q-next').style.display = '';
+            renderQuiz();
+        }
+
+        renderQuiz();
+    </script>
+</body>
+
+</html>

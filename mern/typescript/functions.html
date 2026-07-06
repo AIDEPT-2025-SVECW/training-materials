@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TypeScript Functions</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.3.0/dist/tabler-icons.min.css">
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --color-background-primary: #ffffff;
+            --color-background-secondary: #f5f5f3;
+            --color-text-primary: #1a1a1a;
+            --color-text-secondary: #6b6b6b;
+            --color-border-tertiary: rgba(0, 0, 0, 0.12);
+            --color-border-secondary: rgba(0, 0, 0, 0.22);
+            --border-radius-md: 8px;
+            --border-radius-lg: 12px;
+            --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            color: var(--color-text-primary);
+            background: #f9f9f7;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 820px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+
+        h1 {
+            font-size: 22px;
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: var(--color-text-secondary);
+            margin-bottom: 2rem;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 7px 16px;
+            border: 0.5px solid rgba(0, 0, 0, 0.22);
+            border-radius: var(--border-radius-md);
+            font-size: 13px;
+            cursor: pointer;
+            background: #fff;
+            color: #6b6b6b;
+            transition: all 0.15s;
+            font-family: var(--font-sans);
+        }
+
+        .tab.active {
+            background: #EEEDFE;
+            color: #3C3489;
+            border-color: #AFA9EC;
+            font-weight: 500;
+        }
+
+        .tab:hover:not(.active) {
+            background: #f5f5f3;
+            color: #1a1a1a;
+        }
+
+        .panel {
+            display: none;
+        }
+
+        .panel.active {
+            display: block;
+        }
+
+        .card {
+            background: #fff;
+            border: 0.5px solid rgba(0, 0, 0, 0.12);
+            border-radius: var(--border-radius-lg);
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .card-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: #6b6b6b;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        code,
+        .code-block {
+            font-family: var(--font-mono);
+            font-size: 13px;
+        }
+
+        .code-block {
+            background: #f5f5f3;
+            border: 0.5px solid rgba(0, 0, 0, 0.12);
+            border-radius: var(--border-radius-md);
+            padding: 14px 16px;
+            line-height: 1.7;
+            overflow-x: auto;
+            white-space: pre;
+        }
+
+        .kw {
+            color: #534AB7;
+            font-weight: 500;
+        }
+
+        .type {
+            color: #0C447C;
+        }
+
+        .str {
+            color: #3B6D11;
+        }
+
+        .num {
+            color: #BA7517;
+        }
+
+        .cmt {
+            color: #6b6b6b;
+            font-style: italic;
+        }
+
+        .prop {
+            color: #993C1D;
+        }
+
+        .grid2 {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            gap: 1rem;
+        }
+
+        @media (max-width: 600px) {
+            .grid2 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .badge {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 500;
+            padding: 2px 8px;
+            border-radius: 99px;
+        }
+
+        .badge-purple {
+            background: #EEEDFE;
+            color: #3C3489;
+        }
+
+        .badge-teal {
+            background: #E1F5EE;
+            color: #085041;
+        }
+
+        .playground-col {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .playground-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: #6b6b6b;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        textarea {
+            width: 100%;
+            resize: vertical;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            line-height: 1.6;
+            border: 0.5px solid rgba(0, 0, 0, 0.22);
+            border-radius: var(--border-radius-md);
+            padding: 10px 12px;
+            background: #f5f5f3;
+            color: #1a1a1a;
+            min-height: 180px;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #AFA9EC;
+            box-shadow: 0 0 0 2px rgba(83, 74, 183, 0.12);
+        }
+
+        .run-btn {
+            padding: 8px 18px;
+            background: #534AB7;
+            color: #EEEDFE;
+            border: none;
+            border-radius: var(--border-radius-md);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .run-btn:hover {
+            background: #3C3489;
+        }
+
+        .output-box {
+            background: #F1EFE8;
+            border: 0.5px solid rgba(0, 0, 0, 0.12);
+            border-radius: var(--border-radius-md);
+            padding: 12px 14px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            line-height: 1.7;
+            min-height: 80px;
+            color: #1a1a1a;
+            white-space: pre-wrap;
+        }
+
+        .output-box.error {
+            background: #FCEBEB;
+            color: #791F1F;
+            border-color: #F7C1C1;
+        }
+
+        .output-box.success {
+            background: #EAF3DE;
+            color: #27500A;
+            border-color: #C0DD97;
+        }
+
+        .example-tabs {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+
+        .ex-tab {
+            font-size: 12px;
+            padding: 4px 12px;
+            border: 0.5px solid rgba(0, 0, 0, 0.22);
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            background: #f5f5f3;
+            color: #6b6b6b;
+            border-bottom: none;
+            font-family: var(--font-sans);
+        }
+
+        .ex-tab.active {
+            background: #fff;
+            color: #1a1a1a;
+            font-weight: 500;
+        }
+
+        .ex-panel {
+            display: none;
+        }
+
+        .ex-panel.active {
+            display: block;
+        }
+
+        .section-intro {
+            font-size: 14px;
+            color: #6b6b6b;
+            line-height: 1.6;
+            margin-bottom: 1.25rem;
+        }
+
+        .snip-btns {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .nav-btn {
+            font-size: 13px;
+            padding: 7px 14px;
+            border: 0.5px solid rgba(0, 0, 0, 0.22);
+            border-radius: var(--border-radius-md);
+            cursor: pointer;
+            background: #fff;
+            color: #1a1a1a;
+            font-family: var(--font-sans);
+        }
+
+        .nav-btn:hover {
+            background: #f5f5f3;
+        }
+
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>TypeScript Functions</h1>
+        <p class="subtitle">An interactive guide for students — explore function parameters, returns, and signatures.</p>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showPanel('intro', this)"><i class="ti ti-book-2"></i> Intro</button>
+            <button class="tab" onclick="showPanel('params', this)"><i class="ti ti-list"></i> Parameters</button>
+            <button class="tab" onclick="showPanel('returns', this)"><i class="ti ti-arrow-forward"></i> Return Types</button>
+            <button class="tab" onclick="showPanel('arrow', this)"><i class="ti ti-arrow-right-tail"></i> Arrow Functions</button>
+            <button class="tab" onclick="showPanel('signatures', this)"><i class="ti ti-file-signature"></i> Signatures</button>
+            <button class="tab" onclick="showPanel('playground', this)"><i class="ti ti-player-play"></i> Playground</button>
+        </div>
+
+        <!-- INTRO -->
+        <div class="panel active" id="panel-intro">
+            <p class="section-intro">JavaScript functions are already powerful. TypeScript takes them to the next level by allowing you to define exactly <strong>what goes in</strong> (Parameters) and <strong>what comes out</strong> (Return Types).</p>
+            <div class="grid2">
+                <div class="card">
+                    <div class="card-title"><span class="badge badge-purple">JavaScript</span> Dynamic, loosely typed</div>
+                    <div class="code-block"><span class="kw">function</span> <span class="prop">add</span>(a, b) {
+    <span class="kw">return</span> a + b;
+}
+
+<span class="cmt">// What happens if someone passes strings?</span>
+<span class="prop">add</span>(<span class="str">"Hello"</span>, <span class="str">" World"</span>); <span class="cmt">// Returns "Hello World"</span>
+<span class="prop">add</span>(<span class="num">5</span>); <span class="cmt">// Returns NaN (b is undefined)</span></div>
+                </div>
+                <div class="card">
+                    <div class="card-title"><span class="badge badge-teal">TypeScript</span> Static, strongly typed</div>
+                    <div class="code-block"><span class="kw">function</span> <span class="prop">add</span>(a: <span class="type">number</span>, b: <span class="type">number</span>): <span class="type">number</span> {
+    <span class="kw">return</span> a + b;
+}
+
+<span class="cmt">// ❌ Error: Argument of type 'string' is not assignable</span>
+<span class="prop">add</span>(<span class="str">"Hello"</span>, <span class="str">" World"</span>); 
+<span class="cmt">// ❌ Error: Expected 2 arguments, but got 1.</span>
+<span class="prop">add</span>(<span class="num">5</span>);</div>
+                </div>
+            </div>
+            <div class="card" style="border-left:3px solid #534AB7;border-radius:0 12px 12px 0">
+                <div class="card-title"><i class="ti ti-bulb"></i> Key idea</div>
+                <p style="font-size:14px;line-height:1.6">TypeScript functions ensure that callers pass the correct arguments and that the function returns the correct type of data. It serves as self-documenting code.</p>
+            </div>
+        </div>
+
+        <!-- PARAMETERS -->
+        <div class="panel" id="panel-params">
+            <p class="section-intro">Just like in JavaScript, functions can take optional arguments, default values, and rest parameters. TypeScript just adds types to the mix.</p>
+            <div class="example-tabs">
+                <button class="ex-tab active" onclick="showEx('params',0,this)">Required & Optional</button>
+                <button class="ex-tab" onclick="showEx('params',1,this)">Default Values</button>
+                <button class="ex-tab" onclick="showEx('params',2,this)">Rest Parameters</button>
+                <button class="ex-tab" onclick="showEx('params',3,this)">Destructured</button>
+            </div>
+            <div class="card" style="border-radius:0 12px 12px 12px;margin-top:0;border-top:none">
+                <div class="ex-panel active" id="params-0">
+                    <div class="card-title">Optional Parameters</div>
+                    <div class="code-block"><span class="kw">function</span> <span class="prop">greet</span>(name: <span class="type">string</span>, greeting?: <span class="type">string</span>) {
+    <span class="kw">if</span> (greeting) {
+        <span class="kw">return</span> <span class="str">`${greeting}, ${name}!`</span>;
+    }
+    <span class="kw">return</span> <span class="str">`Hello, ${name}!`</span>;
+}
+
+<span class="prop">greet</span>(<span class="str">"Alice"</span>); <span class="cmt">// OK: "Hello, Alice!"</span>
+<span class="prop">greet</span>(<span class="str">"Bob"</span>, <span class="str">"Good morning"</span>); <span class="cmt">// OK: "Good morning, Bob!"</span></div>
+                    <p style="font-size:13px;color:#6b6b6b;margin-top:10px">Use a question mark <code>?</code> after the parameter name to make it optional. Optional parameters must appear <strong>after</strong> all required parameters.</p>
+                </div>
+                <div class="ex-panel" id="params-1">
+                    <div class="card-title">Default Parameters</div>
+                    <div class="code-block"><span class="cmt">// TypeScript infers the type of 'greeting' as string from the default</span>
+<span class="kw">function</span> <span class="prop">greet</span>(name: <span class="type">string</span>, greeting: <span class="type">string</span> = <span class="str">"Hello"</span>) {
+    <span class="kw">return</span> <span class="str">`${greeting}, ${name}!`</span>;
+}
+
+<span class="prop">greet</span>(<span class="str">"Alice"</span>); <span class="cmt">// "Hello, Alice!"</span>
+<span class="prop">greet</span>(<span class="str">"Bob"</span>, <span class="str">"Hi"</span>); <span class="cmt">// "Hi, Bob!"</span></div>
+                    <p style="font-size:13px;color:#6b6b6b;margin-top:10px">When you provide a default value, TypeScript automatically infers the type and treats it as an optional parameter.</p>
+                </div>
+                <div class="ex-panel" id="params-2">
+                    <div class="card-title">Rest Parameters</div>
+                    <div class="code-block"><span class="cmt">// ...scores gathers all remaining arguments into an array</span>
+<span class="kw">function</span> <span class="prop">calculateAverage</span>(name: <span class="type">string</span>, ...scores: <span class="type">number</span>[]) {
+    <span class="kw">let</span> total = scores.<span class="prop">reduce</span>((a, b) => a + b, <span class="num">0</span>);
+    <span class="kw">return</span> <span class="str">`${name}'s average is ${total / scores.length}`</span>;
+}
+
+<span class="prop">calculateAverage</span>(<span class="str">"Ravi"</span>, <span class="num">85</span>, <span class="num">90</span>, <span class="num">92</span>, <span class="num">88</span>);</div>
+                    <p style="font-size:13px;color:#6b6b6b;margin-top:10px">Rest parameters are typed as an array (e.g. <code>number[]</code>). They must be the last parameter in the function.</p>
+                </div>
+                <div class="ex-panel" id="params-3">
+                    <div class="card-title">Destructured Parameters</div>
+                    <div class="code-block"><span class="kw">interface</span> <span class="type">Config</span> {
+    <span class="prop">method</span>: <span class="type">string</span>;
+    <span class="prop">url</span>: <span class="type">string</span>;
+    <span class="prop">timeout</span>?: <span class="type">number</span>;
+}
+
+<span class="cmt">// We destructure the object and define its type in one go</span>
+<span class="kw">function</span> <span class="prop">fetchData</span>({ method, url, timeout = <span class="num">3000</span> }: <span class="type">Config</span>) {
+    console.<span class="prop">log</span>(<span class="str">`Fetching ${url} via ${method} (Timeout: ${timeout})`</span>);
+}</div>
+                    <p style="font-size:13px;color:#6b6b6b;margin-top:10px">It is highly recommended to use an interface or type alias when typing a destructured parameter instead of inline typing.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- RETURN TYPES -->
+        <div class="panel" id="panel-returns">
+            <p class="section-intro">TypeScript can usually infer the return type of a function based on its <code>return</code> statements, but explicitly defining it is best practice for clarity.</p>
+            <div class="grid2">
+                <div class="card">
+                    <div class="card-title"><span class="badge badge-purple">Implicit Inference</span></div>
+                    <div class="code-block"><span class="cmt">// TS knows this returns a number</span>
+<span class="kw">function</span> <span class="prop">multiply</span>(a: <span class="type">number</span>, b: <span class="type">number</span>) {
+    <span class="kw">return</span> a * b;
+}</div>
+                    <p style="font-size:13px;color:#6b6b6b;margin-top:10px">Quick and easy, but can lead to unexpected behaviors in complex functions if you accidentally return the wrong type.</p>
+                </div>
+                <div class="card">
+                    <div class="card-title"><span class="badge badge-teal">Explicit Typing</span></div>
+                    <div class="code-block"><span class="cmt">// Explicitly state we expect a number</span>
+<span class="kw">function</span> <span class="prop">multiply</span>(a: <span class="type">number</span>, b: <span class="type">number</span>): <span class="type">number</span> {
+    <span class="kw">return</span> a * b;
+}</div>
+                    <p style="font-size:13px;color:#6b6b6b;margin-top:10px">Strongly recommended. It prevents accidental return types and helps editors provide better autocompletion.</p>
+                </div>
+            </div>
+
+            <h3 style="font-size: 16px; margin: 20px 0 10px;">Special Return Types</h3>
+            <div class="card">
+                <div class="diff-row" style="padding-top:0">
+                    <div class="diff-label" style="font-size:12px;color:#6b6b6b">Type</div>
+                    <div class="diff-val iface-val" style="font-weight:500;font-size:12px">Usage Example</div>
+                    <div class="diff-val alias-val" style="font-weight:500;font-size:12px">Meaning</div>
+                </div>
+                <div class="diff-row">
+                    <div class="diff-label"><code>void</code></div>
+                    <div class="diff-val"><code>function log(): void { ... }</code></div>
+                    <div class="diff-val">The function does not return any value (e.g. just logs to console).</div>
+                </div>
+                <div class="diff-row">
+                    <div class="diff-label"><code>never</code></div>
+                    <div class="diff-val"><code>function crash(): never { throw err; }</code></div>
+                    <div class="diff-val">The function NEVER finishes executing (it throws an error or infinite loops).</div>
+                </div>
+                <div class="diff-row">
+                    <div class="diff-label"><code>Promise&lt;T&gt;</code></div>
+                    <div class="diff-val"><code>async function get(): Promise&lt;string&gt;</code></div>
+                    <div class="diff-val">Used for asynchronous functions. Replaces resolving types directly.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ARROW FUNCTIONS -->
+        <div class="panel" id="panel-arrow">
+            <p class="section-intro">Arrow functions provide a shorter syntax and bind <code>this</code> lexically. In TypeScript, you can fully type them, making them perfect for callbacks and array methods.</p>
+            <div class="grid2">
+                <div class="card">
+                    <div class="card-title"><span class="badge badge-purple">Basic syntax</span></div>
+                    <div class="code-block"><span class="cmt">// Explicitly typed parameters and return type</span>
+<span class="kw">const</span> <span class="prop">add</span> = (a: <span class="type">number</span>, b: <span class="type">number</span>): <span class="type">number</span> => {
+    <span class="kw">return</span> a + b;
+};
+
+<span class="cmt">// Implicit return type (shorthand)</span>
+<span class="kw">const</span> <span class="prop">subtract</span> = (a: <span class="type">number</span>, b: <span class="type">number</span>) => a - b;</div>
+                </div>
+                <div class="card">
+                    <div class="card-title"><span class="badge badge-teal">Typing the Variable</span></div>
+                    <div class="code-block"><span class="cmt">// Defining the function type alias</span>
+<span class="kw">type</span> <span class="type">MathFunc</span> = (x: <span class="type">number</span>, y: <span class="type">number</span>) => <span class="type">number</span>;
+
+<span class="cmt">// Applying it to an arrow function</span>
+<span class="kw">const</span> <span class="prop">multiply</span>: <span class="type">MathFunc</span> = (a, b) => a * b;</div>
+                    <p style="font-size:13px;color:#6b6b6b;margin-top:10px">By typing the variable with <code>MathFunc</code>, TypeScript infers the types of <code>a</code> and <code>b</code> automatically!</p>
+                </div>
+            </div>
+            <div class="card" style="border-left:3px solid #534AB7;border-radius:0 12px 12px 0">
+                <div class="card-title"><i class="ti ti-bulb"></i> Lexical 'this'</div>
+                <p style="font-size:14px;line-height:1.6">Just like in JavaScript, arrow functions in TypeScript inherit the <code>this</code> context from their surrounding scope. TypeScript will statically check your use of <code>this</code> to prevent errors at compile time.</p>
+            </div>
+        </div>
+
+        <!-- SIGNATURES -->
+        <div class="panel" id="panel-signatures">
+            <p class="section-intro">A function signature defines the shape of a function: what parameters it takes and what it returns. This is extremely useful when passing functions as callbacks.</p>
+            <div class="card">
+                <div class="card-title">Typing a callback parameter</div>
+                <div class="code-block"><span class="cmt">// Type Alias for a function signature</span>
+<span class="kw">type</span> <span class="type">MathOperation</span> = (a: <span class="type">number</span>, b: <span class="type">number</span>) => <span class="type">number</span>;
+
+<span class="cmt">// Function that accepts our callback</span>
+<span class="kw">function</span> <span class="prop">calculate</span>(a: <span class="type">number</span>, b: <span class="type">number</span>, operation: <span class="type">MathOperation</span>) {
+    <span class="kw">return</span> <span class="prop">operation</span>(a, b);
+}
+
+<span class="cmt">// Usage</span>
+<span class="kw">const</span> add: <span class="type">MathOperation</span> = (x, y) => x + y;
+<span class="prop">calculate</span>(<span class="num">10</span>, <span class="num">5</span>, add);</div>
+                <p style="font-size:13px;color:#6b6b6b;margin-top:10px">The syntax <code>(args) => ReturnType</code> is standard for declaring function types in TypeScript.</p>
+            </div>
+            <div class="card" style="border-left:3px solid #534AB7;border-radius:0 12px 12px 0">
+                <div class="card-title"><i class="ti ti-info-circle"></i> Interfaces for functions</div>
+                <p style="font-size:14px;line-height:1.6">You can also use interfaces to declare function signatures, although it's less common than using type aliases for simple functions.</p>
+                <div class="code-block" style="margin-top: 10px;"><span class="kw">interface</span> <span class="type">StringProcessor</span> {
+  (input: <span class="type">string</span>): <span class="type">string</span>;
+}</div>
+            </div>
+        </div>
+
+        <!-- PLAYGROUND -->
+        <div class="panel" id="panel-playground">
+            <p class="section-intro">Experiment with TypeScript function types. Click Check code for instant feedback.</p>
+            <div class="grid2">
+                <div class="playground-col">
+                    <div class="playground-label">Your code</div>
+                    <textarea id="pg-code" spellcheck="false">// Try writing a function that accepts an array of strings
+// and returns a single concatenated string.
+
+function concatenate(words: string[]): string {
+  return words.join(" ");
+}
+
+const result = concatenate(["Hello", "TypeScript"]);
+</textarea>
+                    <button class="run-btn" onclick="runCheck()">▶ Check code</button>
+                    <div style="margin-top:12px">
+                        <div class="playground-label" style="margin-bottom:6px">Load an example</div>
+                        <div class="snip-btns">
+                            <button class="nav-btn" onclick="loadSnippet('optional')">Optional Params</button>
+                            <button class="nav-btn" onclick="loadSnippet('rest')">Rest Params</button>
+                            <button class="nav-btn" onclick="loadSnippet('callback')">Callbacks</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="playground-col">
+                    <div class="playground-label">Compiler Output</div>
+                    <div id="pg-output" class="output-box">Ready.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showPanel(id, btn) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('panel-' + id).classList.add('active');
+        }
+
+        function showEx(group, idx, btn) {
+            const container = btn.closest('.panel');
+            container.querySelectorAll('.ex-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.ex-panel').forEach(p => p.classList.remove('active'));
+            btn.classList.add('active');
+            container.querySelector(`#${group}-${idx}`).classList.add('active');
+        }
+
+        const snippets = {
+            'optional': `// Function with optional and default parameters
+function buildName(first: string, last?: string, title: string = "Mx."): string {
+  if (last) {
+    return \`\${title} \${first} \${last}\`;
+  }
+  return \`\${title} \${first}\`;
+}
+
+// Hover over the variables in your editor to see their types!
+const a = buildName("Alex");
+const b = buildName("Alex", "Smith");
+const c = buildName("Alex", "Smith", "Dr.");
+`,
+            'rest': `// A function using rest parameters
+function sumValues(multiplier: number, ...values: number[]): number {
+  const sum = values.reduce((total, val) => total + val, 0);
+  return sum * multiplier;
+}
+
+// 2 is multiplier, the rest are gathered into the 'values' array
+const total = sumValues(2, 10, 20, 30);
+`,
+            'callback': `// Defining a function signature type
+type NumberProcessor = (num: number) => number;
+
+function processArray(arr: number[], processor: NumberProcessor): number[] {
+  return arr.map(processor);
+}
+
+const numbers = [1, 2, 3];
+const double: NumberProcessor = (n) => n * 2;
+const square: NumberProcessor = (n) => n * n;
+
+const doubled = processArray(numbers, double);
+`
+        };
+
+        function loadSnippet(id) {
+            document.getElementById('pg-code').value = snippets[id];
+            document.getElementById('pg-output').className = 'output-box';
+            document.getElementById('pg-output').textContent = 'Ready.';
+        }
+
+        function runCheck() {
+            const code = document.getElementById('pg-code').value;
+            const out = document.getElementById('pg-output');
+            
+            // Dummy logic to simulate TS compilation for educational purposes
+            if (code.includes('any')) {
+                out.className = 'output-box error';
+                out.textContent = "Error: Avoid using 'any'. Try to use specific types.";
+            } else if (code.trim() === "") {
+                out.className = 'output-box error';
+                out.textContent = "Error: Provide some TypeScript code to check.";
+            } else if (code.includes('interface') && !code.includes('type')) {
+                out.className = 'output-box success';
+                out.textContent = "✅ Compilation successful.\n\nNote: You're using interfaces! Good job.";
+            } else if (code.includes('=>')) {
+                out.className = 'output-box success';
+                out.textContent = "✅ Compilation successful.\n\nGreat use of function signatures!";
+            } else {
+                out.className = 'output-box success';
+                out.textContent = "✅ Compilation successful.\n\nZero errors found.";
+            }
+        }
+    </script>
+</body>
+</html>

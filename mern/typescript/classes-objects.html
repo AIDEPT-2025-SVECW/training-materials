@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TypeScript: Classes & OOP Blueprint</title>
+    <!-- Google Fonts for Sci-Fi / Blueprint Look -->
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #050a15;
+            --bg-grid: #0d1b2a;
+            --grid-line: rgba(0, 240, 255, 0.05);
+            --neon-cyan: #00f0ff;
+            --neon-pink: #ff0055;
+            --neon-yellow: #fcee0a;
+            --text-main: #e2e8f0;
+            --text-muted: #94a3b8;
+            --panel-bg: rgba(13, 27, 42, 0.7);
+            --border-glow: 0 0 10px rgba(0, 240, 255, 0.3), inset 0 0 10px rgba(0, 240, 255, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-image: 
+                linear-gradient(var(--grid-line) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+            background-size: 30px 30px;
+            background-position: center center;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,240,255,0.03) 2px, rgba(0,240,255,0.03) 4px);
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+            position: relative;
+        }
+
+        .hud-header {
+            border-left: 4px solid var(--neon-cyan);
+            padding-left: 2rem;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .hud-header::before {
+            content: "SYSTEM OP: TYPESCRIPT_OOP";
+            position: absolute;
+            top: -1.5rem;
+            left: 2rem;
+            font-family: 'Share Tech Mono', monospace;
+            color: var(--neon-cyan);
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+        }
+
+        .hud-header h1 {
+            font-size: 3.5rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            line-height: 1.1;
+            background: linear-gradient(90deg, #fff, var(--neon-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(0, 240, 255, 0.2);
+        }
+
+        /* TABS NAVIGATION */
+        .cyber-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            border-bottom: 1px solid rgba(0, 240, 255, 0.2);
+            padding-bottom: 10px;
+        }
+
+        .cyber-tab {
+            background: transparent;
+            border: 1px solid rgba(0, 240, 255, 0.2);
+            color: var(--text-muted);
+            font-family: 'Share Tech Mono', monospace;
+            padding: 10px 20px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+        }
+
+        .cyber-tab:hover {
+            border-color: var(--neon-cyan);
+            color: var(--neon-cyan);
+        }
+
+        .cyber-tab.active {
+            background: rgba(0, 240, 255, 0.1);
+            border-color: var(--neon-cyan);
+            color: var(--neon-cyan);
+            box-shadow: inset 0 0 10px rgba(0, 240, 255, 0.2);
+            text-shadow: 0 0 5px rgba(0, 240, 255, 0.5);
+        }
+
+        /* TAB CONTENT PANES */
+        .tab-pane {
+            display: none;
+            animation: fadeInTab 0.3s ease;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        @keyframes fadeInTab {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .panel {
+            background: var(--panel-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 240, 255, 0.2);
+            clip-path: polygon(0 0, calc(100% - 30px) 0, 100% 30px, 100% 100%, 30px 100%, 0 calc(100% - 30px));
+            padding: 2.5rem;
+            margin-bottom: 3rem;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .panel:hover {
+            border-color: var(--neon-cyan);
+            box-shadow: var(--border-glow);
+        }
+
+        .panel-badge {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: var(--neon-cyan);
+            color: #000;
+            font-family: 'Share Tech Mono', monospace;
+            padding: 0.25rem 1.5rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+            clip-path: polygon(0 0, 100% 0, 100% 100%, 15px 100%);
+        }
+
+        .panel h2 {
+            font-size: 2rem;
+            color: var(--neon-cyan);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .panel h2::before {
+            content: ">>";
+            color: var(--neon-pink);
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        p {
+            line-height: 1.7;
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+            color: var(--text-main);
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2 { grid-template-columns: 1fr; }
+        }
+
+        .terminal {
+            background: #02060d;
+            border: 1px solid rgba(0, 240, 255, 0.1);
+            border-radius: 4px;
+            padding: 1.5rem;
+            position: relative;
+            margin-bottom: 1.5rem;
+            font-family: 'Share Tech Mono', monospace;
+            overflow-x: auto;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.8);
+        }
+
+        .terminal::before {
+            content: "TS_COMPILER_V5.0";
+            position: absolute;
+            top: 0; right: 0;
+            background: rgba(0, 240, 255, 0.1);
+            color: var(--neon-cyan);
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-bottom-left-radius: 4px;
+        }
+
+        .terminal pre {
+            color: #a3b8cc;
+            font-size: 1rem;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .kw { color: #ff0055; }
+        .cls { color: #fcee0a; }
+        .mod { color: #00f0ff; }
+        .str { color: #4ade80; }
+        .cmt { color: #64748b; font-style: italic; }
+        .type { color: #c084fc; }
+        .var { color: #e2e8f0; } 
+
+        .data-node {
+            border-left: 2px solid var(--neon-cyan);
+            padding: 1rem 1.5rem;
+            margin-bottom: 1rem;
+            background: rgba(0, 240, 255, 0.02);
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .data-node:hover {
+            background: rgba(0, 240, 255, 0.05);
+            border-left-color: var(--neon-pink);
+        }
+
+        .node-title {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 1.2rem;
+            color: var(--neon-yellow);
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .node-content {
+            display: none;
+            padding-top: 1rem;
+            border-top: 1px dashed rgba(255,255,255,0.1);
+            margin-top: 0.5rem;
+        }
+
+        .data-node.active .node-content {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .data-node.active {
+            border-left-width: 4px;
+        }
+
+        .mission-box {
+            border: 2px solid var(--neon-yellow);
+            background: rgba(252, 238, 10, 0.05);
+            padding: 2.5rem;
+            position: relative;
+        }
+
+        .mission-box::after {
+            content: "";
+            position: absolute;
+            bottom: -2px; right: -2px;
+            width: 40px; height: 40px;
+            background: var(--bg);
+            border-top: 2px solid var(--neon-yellow);
+            border-left: 2px solid var(--neon-yellow);
+        }
+
+        .mission-header {
+            color: var(--neon-yellow);
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .mission-header span {
+            background: var(--neon-yellow);
+            color: #000;
+            padding: 2px 10px;
+            font-size: 1rem;
+        }
+
+        .btn-reveal {
+            background: transparent;
+            border: 1px solid var(--neon-cyan);
+            color: var(--neon-cyan);
+            font-family: 'Share Tech Mono', monospace;
+            padding: 0.75rem 2rem;
+            font-size: 1rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s;
+            display: inline-block;
+            margin-top: 1.5rem;
+        }
+
+        .btn-reveal:hover {
+            background: var(--neon-cyan);
+            color: #000;
+            box-shadow: 0 0 15px var(--neon-cyan);
+        }
+
+        .solution-area {
+            display: none;
+            margin-top: 2rem;
+        }
+
+        .hl {
+            color: var(--neon-cyan);
+            font-family: 'Share Tech Mono', monospace;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <header class="hud-header">
+            <h1>Object-Oriented Blueprints</h1>
+            <p style="color: var(--neon-cyan); font-family: 'Share Tech Mono', monospace;">MODULE: CLASSES, CONSTRUCTORS & ACCESS SPECIFIERS</p>
+        </header>
+
+        <!-- TABS NAVIGATION -->
+        <div class="cyber-tabs">
+            <button class="cyber-tab active" onclick="switchTab('significance', this)">01: SIGNIFICANCE</button>
+            <button class="cyber-tab" onclick="switchTab('constructors', this)">02: CONSTRUCTORS</button>
+            <button class="cyber-tab" onclick="switchTab('modifiers', this)">03: MODIFIERS</button>
+            <button class="cyber-tab" onclick="switchTab('static', this)">04: STATIC & READONLY</button>
+            <button class="cyber-tab" onclick="switchTab('realworld', this)">05: REAL WORLD</button>
+            <button class="cyber-tab" onclick="switchTab('exercise', this)">06: EXERCISE</button>
+        </div>
+
+        <!-- SIGNIFICANCE -->
+        <div id="tab-significance" class="tab-pane active">
+            <div class="panel">
+                <div class="panel-badge">DATALOG_01</div>
+                <h2>The Significance of Classes</h2>
+                <p>In the vast ecosystem of JavaScript, <span class="hl">Classes</span> provide a blueprint for creating objects (instances) that share the same properties and methods. They introduce classic Object-Oriented Programming (OOP) concepts to the web.</p>
+                <p><strong>Why TypeScript?</strong> JavaScript classes are dynamic; you can add or remove properties at runtime. TypeScript locks this down. It enforces strict structural contracts, meaning if a property isn't in the class blueprint, it doesn't exist.</p>
+            </div>
+        </div>
+
+        <!-- CONSTRUCTORS & SHORTHAND -->
+        <div id="tab-constructors" class="tab-pane">
+            <div class="panel">
+                <div class="panel-badge">DATALOG_02</div>
+                <h2>Constructors & The Shorthand</h2>
+                <p>The <span class="hl">constructor</span> is a special function called automatically when you create a new instance of a class using the <code>new</code> keyword.</p>
+                
+                <div class="grid-2">
+                    <div>
+                        <h3 style="color: var(--text-muted); margin-bottom: 1rem; font-family: 'Share Tech Mono', monospace;">[ STANDARD APPROACH ]</h3>
+                        <div class="terminal">
+<pre><span class="kw">class</span> <span class="cls">Spaceship</span> {
+  <span class="cmt">// 1. Declare properties</span>
+  <span class="var">name</span>: <span class="type">string</span>;
+  <span class="var">speed</span>: <span class="type">number</span>;
+
+  <span class="cmt">// 2. Constructor receives values</span>
+  <span class="kw">constructor</span>(n: <span class="type">string</span>, s: <span class="type">number</span>) {
+    <span class="cmt">// 3. Assign to instance</span>
+    <span class="kw">this</span>.<span class="var">name</span> = n;
+    <span class="kw">this</span>.<span class="var">speed</span> = s;
+  }
+}</pre>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3 style="color: var(--neon-cyan); margin-bottom: 1rem; font-family: 'Share Tech Mono', monospace;">[ TYPESCRIPT SHORTHAND ]</h3>
+                        <div class="terminal" style="border-color: var(--neon-cyan);">
+<pre><span class="kw">class</span> <span class="cls">Spaceship</span> {
+  <span class="cmt">// TS Magic: Declare, receive, and assign </span>
+  <span class="cmt">// all in ONE line inside the constructor!</span>
+  
+  <span class="kw">constructor</span>(
+    <span class="mod">public</span> <span class="var">name</span>: <span class="type">string</span>, 
+    <span class="mod">public</span> <span class="var">speed</span>: <span class="type">number</span>
+  ) {
+    <span class="cmt">// Empty body! TS handles the rest.</span>
+  }
+}</pre>
+                        </div>
+                        <p style="font-size: 0.9rem; color: var(--text-muted);">By adding an access modifier (like <code>public</code>) in the constructor parameters, TypeScript creates the property and assigns it automatically.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ACCESS MODIFIERS -->
+        <div id="tab-modifiers" class="tab-pane">
+            <div class="panel">
+                <div class="panel-badge">DATALOG_03</div>
+                <h2>Access Security Protocol (Modifiers)</h2>
+                <p>Access modifiers control <em>where</em> your data can be seen and modified. They are the core of <strong>Encapsulation</strong>.</p>
+                
+                <!-- Interactive Nodes -->
+                <div class="data-node" onclick="toggleNode(this)">
+                    <div class="node-title">
+                        <span>[01] PUBLIC (Default)</span>
+                        <span>[+]</span>
+                    </div>
+                    <div class="node-content">
+                        <p>The default state. Data is freely accessible from anywhere—inside the class, subclasses, and external instances.</p>
+                        <div class="terminal">
+<pre><span class="kw">class</span> <span class="cls">User</span> {
+  <span class="mod">public</span> <span class="var">username</span>: <span class="type">string</span>;
+}
+<span class="kw">const</span> <span class="var">u</span> = <span class="kw">new</span> <span class="cls">User</span>();
+<span class="var">u</span>.<span class="var">username</span> = <span class="str">"Neo"</span>; <span class="cmt">// ✅ Allowed</span></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="data-node" onclick="toggleNode(this)">
+                    <div class="node-title">
+                        <span style="color: var(--neon-pink);">[02] PRIVATE</span>
+                        <span>[+]</span>
+                    </div>
+                    <div class="node-content">
+                        <p>Maximum security. Data can <strong>only</strong> be accessed or modified from <em>within the exact class</em> it was defined. Not even subclasses can see it.</p>
+                        <div class="terminal" style="border-color: var(--neon-pink);">
+<pre><span class="kw">class</span> <span class="cls">BankSystem</span> {
+  <span class="mod">private</span> <span class="var">vaultCode</span>: <span class="type">number</span> = <span class="num">1234</span>;
+}
+<span class="kw">const</span> <span class="var">bank</span> = <span class="kw">new</span> <span class="cls">BankSystem</span>();
+<span class="var">bank</span>.<span class="var">vaultCode</span>; <span class="cmt">// ❌ ERROR: Property is private</span></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="data-node" onclick="toggleNode(this)">
+                    <div class="node-title">
+                        <span style="color: var(--neon-cyan);">[03] PROTECTED</span>
+                        <span>[+]</span>
+                    </div>
+                    <div class="node-content">
+                        <p>Internal network only. Data is accessible within the defining class <strong>AND</strong> any subclasses that <code>extend</code> it, but hidden from the outside world.</p>
+                        <div class="terminal">
+<pre><span class="kw">class</span> <span class="cls">Employee</span> {
+  <span class="mod">protected</span> <span class="var">salary</span>: <span class="type">number</span> = <span class="num">5000</span>;
+}
+<span class="kw">class</span> <span class="cls">Manager</span> <span class="kw">extends</span> <span class="cls">Employee</span> {
+  <span class="var">viewSalary</span>() { <span class="kw">return</span> <span class="kw">this</span>.<span class="var">salary</span>; } <span class="cmt">// ✅ Allowed in subclass</span>
+}
+<span class="kw">const</span> <span class="var">emp</span> = <span class="kw">new</span> <span class="cls">Employee</span>();
+<span class="var">emp</span>.<span class="var">salary</span>; <span class="cmt">// ❌ ERROR: Cannot access from outside</span></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- READONLY & STATIC -->
+        <div id="tab-static" class="tab-pane">
+            <div class="panel">
+                <div class="panel-badge">DATALOG_04</div>
+                <h2>Readonly & Static Directives</h2>
+                
+                <div class="grid-2">
+                    <div>
+                        <h3 style="color: var(--neon-cyan); margin-bottom: 1rem;">>> READONLY</h3>
+                        <p>Prevents a property from being changed after it is initialized. It can only be assigned during declaration or inside the constructor.</p>
+                        <div class="terminal">
+<pre><span class="kw">class</span> <span class="cls">ServerConfig</span> {
+  <span class="mod">readonly</span> <span class="var">ipAddress</span>: <span class="type">string</span>;
+
+  <span class="kw">constructor</span>(ip: <span class="type">string</span>) {
+    <span class="kw">this</span>.<span class="var">ipAddress</span> = ip; <span class="cmt">// ✅ First assignment OK</span>
+  }
+
+  <span class="var">hack</span>() {
+    <span class="kw">this</span>.<span class="var">ipAddress</span> = <span class="str">"0.0.0.0"</span>; <span class="cmt">// ❌ ERROR</span>
+  }
+}</pre>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 style="color: var(--neon-yellow); margin-bottom: 1rem;">>> STATIC</h3>
+                        <p>Attaches a property or method to the <strong>Class itself</strong>, rather than an instance of the class. You access it via the Class name.</p>
+                        <div class="terminal">
+<pre><span class="kw">class</span> <span class="cls">MathUtils</span> {
+  <span class="mod">static</span> <span class="var">PI</span>: <span class="type">number</span> = <span class="num">3.14159</span>;
+
+  <span class="mod">static</span> <span class="var">calcArea</span>(r: <span class="type">number</span>) {
+    <span class="kw">return</span> <span class="cls">MathUtils</span>.<span class="var">PI</span> * r * r;
+  }
+}
+
+<span class="cmt">// Accessed without 'new'</span>
+console.<span class="var">log</span>(<span class="cls">MathUtils</span>.<span class="var">PI</span>);</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- REAL WORLD SIMULATION -->
+        <div id="tab-realworld" class="tab-pane">
+            <div class="panel">
+                <div class="panel-badge">DATALOG_05</div>
+                <h2>Real-World Architecture Simulation</h2>
+                <p>Let's combine these features. Here is a <code>DatabaseService</code> using the Singleton pattern—a very common pattern in ExpressJS backends to ensure only one database connection exists.</p>
+                
+                <div class="terminal">
+<pre><span class="kw">class</span> <span class="cls">DatabaseService</span> {
+  <span class="cmt">// 1. Static instance stores the single connection</span>
+  <span class="mod">private static</span> <span class="var">instance</span>: <span class="cls">DatabaseService</span>;
+  
+  <span class="cmt">// 2. Readonly configuration</span>
+  <span class="mod">private readonly</span> <span class="var">dbUrl</span>: <span class="type">string</span>;
+
+  <span class="cmt">// 3. Private constructor prevents 'new DatabaseService()' from outside</span>
+  <span class="mod">private</span> <span class="kw">constructor</span>() {
+    <span class="kw">this</span>.<span class="var">dbUrl</span> = <span class="str">"mongodb://localhost:27017/core"</span>;
+    console.<span class="var">log</span>(<span class="str">"System Initialized. Connected to DB."</span>);
+  }
+
+  <span class="cmt">// 4. Static method to get the instance (Singleton Pattern)</span>
+  <span class="mod">public static</span> <span class="var">getInstance</span>(): <span class="cls">DatabaseService</span> {
+    <span class="kw">if</span> (!<span class="cls">DatabaseService</span>.<span class="var">instance</span>) {
+        <span class="cls">DatabaseService</span>.<span class="var">instance</span> = <span class="kw">new</span> <span class="cls">DatabaseService</span>();
+    }
+    <span class="kw">return</span> <span class="cls">DatabaseService</span>.<span class="var">instance</span>;
+  }
+}
+
+<span class="cmt">// USAGE:</span>
+<span class="kw">const</span> <span class="var">db1</span> = <span class="cls">DatabaseService</span>.<span class="var">getInstance</span>(); <span class="cmt">// "System Initialized..."</span>
+<span class="kw">const</span> <span class="var">db2</span> = <span class="cls">DatabaseService</span>.<span class="var">getInstance</span>(); <span class="cmt">// Uses existing instance!</span></pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- EXERCISE MISSION -->
+        <div id="tab-exercise" class="tab-pane">
+            <div class="mission-box">
+                <div class="mission-header">
+                    <span>ASSIGNMENT</span>
+                    TRAINING PROTOCOL: OOP MASTERY
+                </div>
+                <p><strong>OBJECTIVE:</strong> Build a <code>CyberLibrary</code> system.</p>
+                <ul style="list-style: none; margin-bottom: 1.5rem;">
+                    <li style="margin-bottom: 0.5rem; color: var(--text-main);">[ ] Create a <code>Book</code> class. It should have a <code>title</code> (public), an <code>author</code> (public), and an <code>id</code> (private & readonly).</li>
+                    <li style="margin-bottom: 0.5rem; color: var(--text-main);">[ ] Use the TypeScript Constructor Shorthand to initialize these properties.</li>
+                    <li style="margin-bottom: 0.5rem; color: var(--text-main);">[ ] Create a <code>CyberLibrary</code> class. It should have a private array of <code>Book</code>s.</li>
+                    <li style="margin-bottom: 0.5rem; color: var(--text-main);">[ ] Add a public method to <code>addBook(book: Book)</code>.</li>
+                    <li style="margin-bottom: 0.5rem; color: var(--text-main);">[ ] Add a static property <code>totalLibraries</code> that increments every time a new Library is created.</li>
+                </ul>
+
+                <button class="btn-reveal" onclick="document.getElementById('solution').style.display='block'; this.style.display='none';">Decrypt Solution</button>
+
+                <div id="solution" class="solution-area">
+                    <h3 style="color: var(--neon-cyan); margin-bottom: 1rem; font-family: 'Share Tech Mono', monospace;">>> DECRYPTED ARCHIVE:</h3>
+                    <div class="terminal">
+<pre><span class="kw">class</span> <span class="cls">Book</span> {
+  <span class="kw">constructor</span>(
+    <span class="mod">public</span> <span class="var">title</span>: <span class="type">string</span>,
+    <span class="mod">public</span> <span class="var">author</span>: <span class="type">string</span>,
+    <span class="mod">private readonly</span> <span class="var">id</span>: <span class="type">number</span>
+  ) {}
+
+  <span class="mod">public</span> <span class="var">getLog</span>() {
+    <span class="kw">return</span> <span class="str">`Book: ${<span class="kw">this</span>.title} (ID Auth: ${<span class="kw">this</span>.id})`</span>;
+  }
+}
+
+<span class="kw">class</span> <span class="cls">CyberLibrary</span> {
+  <span class="mod">public static</span> <span class="var">totalLibraries</span>: <span class="type">number</span> = <span class="num">0</span>;
+  <span class="mod">private</span> <span class="var">inventory</span>: <span class="cls">Book</span>[] = [];
+
+  <span class="kw">constructor</span>() {
+    <span class="cls">CyberLibrary</span>.<span class="var">totalLibraries</span>++;
+  }
+
+  <span class="mod">public</span> <span class="var">addBook</span>(b: <span class="cls">Book</span>) {
+    <span class="kw">this</span>.<span class="var">inventory</span>.push(b);
+    console.<span class="var">log</span>(<span class="str">`Data absorbed: ${b.title}`</span>);
+  }
+}</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Tab switching logic
+        function switchTab(tabId, btn) {
+            // Update buttons
+            document.querySelectorAll('.cyber-tab').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+
+            // Update panels
+            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+            document.getElementById('tab-' + tabId).classList.add('active');
+        }
+
+        // Interactive nodes logic for modifiers
+        function toggleNode(element) {
+            const isActive = element.classList.contains('active');
+            
+            // Close all
+            document.querySelectorAll('.data-node').forEach(node => {
+                node.classList.remove('active');
+                node.querySelector('.node-title span:last-child').textContent = '[+]';
+            });
+
+            // Open clicked if it wasn't active
+            if (!isActive) {
+                element.classList.add('active');
+                element.querySelector('.node-title span:last-child').textContent = '[-]';
+            }
+        }
+    </script>
+</body>
+
+</html>
