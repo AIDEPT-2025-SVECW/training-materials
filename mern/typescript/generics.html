@@ -1,622 +1,381 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TypeScript: Modules & Generics</title>
-    <!-- Fonts: Inter for UI, Fira Code for code -->
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.3.0/dist/tabler-icons.min.css" rel="stylesheet">
-    <style>
-        :root {
-            --bg-activity: #333333;
-            --bg-sidebar: #252526;
-            --bg-editor: #1e1e1e;
-            --bg-terminal: #1e1e1e;
-            --bg-tab-active: #1e1e1e;
-            --bg-tab-inactive: #2d2d2d;
-            --text-main: #cccccc;
-            --text-muted: #969696;
-            --accent: #007acc;
-            --border: #3c3c3c;
-            
-            --kw: #569cd6;      /* keywords */
-            --type: #4ec9b0;    /* types/classes */
-            --str: #ce9178;     /* strings */
-            --cmt: #6a9955;     /* comments */
-            --fn: #dcdcaa;      /* functions */
-            --num: #b5cea8;     /* numbers */
-            --var: #9cdcfe;     /* variables */
-            --ctrl: #c586c0;    /* control flow */
-        }
+<meta charset="UTF-8">
+<title>Generics: Why Types Should Follow the Data</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  :root{
+    --bg: #0d1117;
+    --panel: #11161d;
+    --panel-line: #1e2530;
+    --ts-blue: #3178C6;
+    --ts-blue-soft: rgba(49,120,198,0.15);
+    --amber: #f0883e;
+    --green: #3fb950;
+    --muted: #8b949e;
+    --text: #e6edf3;
+    --any-gray: #6e7681;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: radial-gradient(1200px 600px at 15% -10%, #131b26 0%, var(--bg) 55%);
+    color: var(--text);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    min-height:100vh;
+    padding: 40px 20px 80px;
+  }
+  .wrap{max-width: 1080px; margin: 0 auto;}
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+  header{margin-bottom: 36px;}
+  .eyebrow{
+    font-family:'JetBrains Mono','Fira Code',monospace;
+    color: var(--ts-blue);
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  h1{
+    font-size: clamp(28px, 4vw, 42px);
+    line-height: 1.15;
+    margin: 0 0 12px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  h1 span{color: var(--ts-blue);}
+  .sub{color: var(--muted); font-size: 16px; max-width: 640px; line-height: 1.6;}
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-editor);
-            color: var(--text-main);
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
+  /* Signature: type-flow diagram */
+  .flow-card{
+    background: var(--panel);
+    border: 1px solid var(--panel-line);
+    border-radius: 14px;
+    padding: 28px 24px;
+    margin-bottom: 40px;
+  }
+  .flow-card h2{
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin: 0 0 20px;
+    font-weight: 600;
+  }
+  .flow-rows{display:flex; flex-direction:column; gap: 22px;}
+  .flow-row{display:flex; align-items:center; gap: 14px; font-family:'JetBrains Mono','Fira Code',monospace; font-size: 14px;}
+  .flow-label{width: 130px; color: var(--muted); flex-shrink:0; font-size:12px;}
+  .flow-track{
+    flex:1; display:flex; align-items:center; gap: 10px; overflow-x:auto;
+  }
+  .node{
+    padding: 6px 12px; border-radius: 8px; white-space:nowrap;
+    border: 1px solid var(--panel-line); background:#0b1017;
+    transition: all .5s ease;
+  }
+  .node.in{color: var(--text);}
+  .arrow{color: var(--panel-line); font-size: 16px;}
+  .node.lost{color: var(--any-gray); border-style: dashed;}
+  .node.kept{color: var(--ts-blue); border-color: var(--ts-blue); background: var(--ts-blue-soft);}
+  .node.string{color:#ff9d5c;} .node.number{color:#79c0ff;} .node.boolean{color:#7ee787;}
 
-        /* TOP TITLE BAR */
-        .title-bar {
-            height: 30px;
-            background: #333;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            color: #ccc;
-            user-select: none;
-            border-bottom: 1px solid #111;
-        }
+  /* Tabs */
+  .tabs{display:flex; gap: 6px; margin-bottom: 20px; flex-wrap: wrap;}
+  .tab{
+    background: transparent; border: 1px solid var(--panel-line); color: var(--muted);
+    padding: 9px 16px; border-radius: 999px; font-size: 14px; cursor:pointer;
+    font-family: inherit; transition: all .2s ease;
+  }
+  .tab:hover{color: var(--text); border-color: var(--ts-blue);}
+  .tab.active{background: var(--ts-blue); color: #061019; border-color: var(--ts-blue); font-weight:600;}
 
-        /* MAIN WORKSPACE */
-        .workspace {
-            display: flex;
-            flex: 1;
-            height: calc(100vh - 30px);
-        }
+  .scenario-title{font-size:20px; font-weight:600; margin: 4px 0 4px;}
+  .scenario-desc{color:var(--muted); font-size:14px; margin-bottom:22px; line-height:1.6; max-width:700px;}
 
-        /* ACTIVITY BAR (Far Left) */
-        .activity-bar {
-            width: 48px;
-            background: var(--bg-activity);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding-top: 10px;
-            border-right: 1px solid var(--border);
-        }
+  .compare{display:grid; grid-template-columns: 1fr 1fr; gap: 18px;}
+  @media (max-width: 800px){.compare{grid-template-columns:1fr;}}
 
-        .activity-icon {
-            color: var(--text-muted);
-            font-size: 24px;
-            margin-bottom: 20px;
-            cursor: pointer;
-            transition: color 0.2s;
-        }
+  .code-panel{
+    background: var(--panel);
+    border: 1px solid var(--panel-line);
+    border-radius: 12px;
+    overflow:hidden;
+    display:flex; flex-direction:column;
+  }
+  .code-panel .tag{
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 10px 14px; border-bottom: 1px solid var(--panel-line);
+    font-size:12px; letter-spacing:.04em; text-transform:uppercase; font-weight:600;
+  }
+  .code-panel.without .tag{color: var(--amber);}
+  .code-panel.with .tag{color: var(--green);}
+  .badge{font-size:10px; padding:2px 8px; border-radius:999px; border:1px solid currentColor; opacity:.85;}
 
-        .activity-icon.active, .activity-icon:hover {
-            color: #fff;
-        }
+  pre{
+    margin:0; padding: 16px; font-family:'JetBrains Mono','Fira Code',monospace;
+    font-size: 13px; line-height:1.65; overflow-x:auto; color:#c9d1d9;
+  }
+  .kw{color:#ff7b72;} .type{color:#79c0ff;} .fn{color:#d2a8ff;} .str{color:#a5d6ff;} .cm{color:#8b949e; font-style:italic;} .any{color:#ffa657;}
 
-        /* SIDEBAR (Explorer) */
-        .sidebar {
-            width: 250px;
-            background: var(--bg-sidebar);
-            display: flex;
-            flex-direction: column;
-            border-right: 1px solid var(--border);
-        }
+  .playground{
+    padding: 14px; border-top: 1px solid var(--panel-line); background: #0b0f14;
+  }
+  .playground label{font-size:12px; color:var(--muted); display:block; margin-bottom:6px;}
+  select{
+    background:#0d1117; color: var(--text); border: 1px solid var(--panel-line);
+    border-radius:6px; padding:6px 10px; font-family:inherit; font-size:13px; width:100%;
+  }
+  .result{
+    margin-top:10px; font-family:'JetBrains Mono','Fira Code',monospace; font-size:13px;
+    padding: 10px 12px; border-radius:8px; border:1px solid var(--panel-line);
+    min-height: 20px;
+  }
+  .result.ok{border-color: var(--green); color: var(--green); background: rgba(63,185,80,0.08);}
+  .result.err{border-color: var(--amber); color: var(--amber); background: rgba(240,136,62,0.08);}
 
-        .sidebar-header {
-            padding: 10px 20px;
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 1px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .explorer-folder {
-            padding: 5px 10px;
-            font-size: 13px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            cursor: pointer;
-            user-select: none;
-        }
-
-        .file-list {
-            list-style: none;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .file-item {
-            padding: 4px 10px 4px 30px;
-            font-size: 13px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            cursor: pointer;
-            color: var(--text-main);
-            user-select: none;
-        }
-
-        .file-item:hover {
-            background: #2a2d2e;
-        }
-
-        .file-item.active {
-            background: #37373d;
-            color: #fff;
-        }
-
-        .ts-icon {
-            color: #3178c6;
-            font-size: 14px;
-        }
-
-        /* EDITOR AREA */
-        .editor-area {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background: var(--bg-editor);
-            min-width: 0; /* allows text truncation */
-        }
-
-        /* TABS */
-        .editor-tabs {
-            height: 35px;
-            background: var(--bg-sidebar);
-            display: flex;
-            overflow-x: auto;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .editor-tabs::-webkit-scrollbar { height: 0; }
-
-        .editor-tab {
-            padding: 0 15px;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            background: var(--bg-tab-inactive);
-            color: var(--text-muted);
-            font-size: 13px;
-            cursor: pointer;
-            border-right: 1px solid var(--border);
-            min-width: fit-content;
-        }
-
-        .editor-tab.active {
-            background: var(--bg-tab-active);
-            color: #fff;
-            border-top: 2px solid var(--accent);
-        }
-
-        /* BREADCRUMBS */
-        .breadcrumbs {
-            height: 22px;
-            padding: 0 15px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 12px;
-            color: var(--text-muted);
-            border-bottom: 1px solid #2a2a2a;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        /* CODE CONTENT */
-        .code-content {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px 0;
-            font-family: 'Fira Code', monospace;
-            font-size: 14px;
-            line-height: 1.6;
-            display: none;
-        }
-
-        .code-content.active {
-            display: block;
-            animation: fadeIn 0.2s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .line {
-            display: flex;
-            padding: 0 20px;
-        }
-
-        .line:hover {
-            background: #232323;
-        }
-
-        .line-num {
-            color: #858585;
-            width: 40px;
-            text-align: right;
-            padding-right: 15px;
-            user-select: none;
-            flex-shrink: 0;
-        }
-
-        .line-code {
-            flex: 1;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
-
-        /* Markdown styling inside code comments */
-        .md-h1 { color: #fff; font-size: 1.2em; font-weight: 600; }
-        .md-bold { color: #fff; font-weight: 600; }
-        .md-italic { font-style: italic; }
-
-        /* TERMINAL PANEL */
-        .terminal-panel {
-            height: 250px;
-            background: var(--bg-terminal);
-            border-top: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-        }
-
-        .terminal-header {
-            display: flex;
-            gap: 20px;
-            padding: 8px 20px;
-            font-size: 11px;
-            text-transform: uppercase;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .term-tab {
-            color: var(--text-muted);
-            cursor: pointer;
-        }
-
-        .term-tab.active {
-            color: #fff;
-            border-bottom: 1px solid var(--accent);
-            padding-bottom: 2px;
-        }
-
-        .terminal-body {
-            flex: 1;
-            padding: 10px 20px;
-            font-family: 'Fira Code', monospace;
-            font-size: 13px;
-            color: #cccccc;
-            overflow-y: auto;
-        }
-
-        .prompt { color: #4af626; }
-        .path { color: #3b8eea; }
-
-        .btn-run {
-            background: #007acc;
-            color: #fff;
-            border: none;
-            padding: 4px 12px;
-            border-radius: 2px;
-            cursor: pointer;
-            font-family: 'Inter', sans-serif;
-            font-size: 12px;
-            margin-top: 10px;
-        }
-
-        .btn-run:hover { background: #0098ff; }
-
-        /* RESPONSIVENESS */
-        @media (max-width: 768px) {
-            .sidebar { display: none; }
-            .terminal-panel { height: 200px; }
-        }
-
-    </style>
+  .takeaway{
+    margin-top: 40px; padding: 20px 22px; border-radius: 12px;
+    background: var(--ts-blue-soft); border: 1px solid rgba(49,120,198,0.4);
+    font-size: 14px; line-height: 1.7; color: var(--text);
+  }
+  .takeaway b{color: var(--ts-blue);}
+</style>
 </head>
-
 <body>
+<div class="wrap">
 
-    <!-- TOP BAR -->
-    <div class="title-bar">
-        VS Code - TypeScript Training Environment (Generics & Modules)
+  <header>
+    <div class="eyebrow">TypeScript &middot; type system</div>
+    <h1>Generics: why types should <span>follow the data</span></h1>
+    <p class="sub">A function without generics either locks you into one type, or gives up with <code>any</code> and stops checking anything. A generic function lets the type flow in through the input and come back out the other side &mdash; unchanged, and still checked.</p>
+  </header>
+
+  <div class="flow-card">
+    <h2>Where the type information goes</h2>
+    <div class="flow-rows">
+      <div class="flow-row">
+        <div class="flow-label">without generics</div>
+        <div class="flow-track">
+          <div class="node in string">string</div>
+          <div class="arrow">&rarr;</div>
+          <div class="node">fn(x: <span class="any">any</span>)</div>
+          <div class="arrow">&rarr;</div>
+          <div class="node lost">any &mdash; type erased</div>
+        </div>
+      </div>
+      <div class="flow-row">
+        <div class="flow-label">with generics</div>
+        <div class="flow-track">
+          <div class="node in string">string</div>
+          <div class="arrow">&rarr;</div>
+          <div class="node">fn&lt;T&gt;(x: T)</div>
+          <div class="arrow">&rarr;</div>
+          <div class="node kept">string &mdash; type preserved</div>
+        </div>
+      </div>
     </div>
+  </div>
 
-    <div class="workspace">
-        <!-- ACTIVITY BAR -->
-        <div class="activity-bar">
-            <i class="ti ti-files activity-icon active"></i>
-            <i class="ti ti-search activity-icon"></i>
-            <i class="ti ti-git-branch activity-icon"></i>
-            <i class="ti ti-settings activity-icon" style="margin-top: auto; margin-bottom: 10px;"></i>
+  <div class="tabs" id="tabs">
+    <button class="tab active" data-s="identity">Identity function</button>
+    <button class="tab" data-s="first">First array element</button>
+    <button class="tab" data-s="stack">Stack container</button>
+  </div>
+
+  <div id="scenario-body"></div>
+
+  <div class="takeaway" id="takeaway"></div>
+
+</div>
+
+<script>
+const scenarios = {
+  identity: {
+    title: "The identity function",
+    desc: "The simplest case: a function that just hands back what it was given. Without generics you either write one version per type, or use `any` and lose every guarantee the compiler could give you.",
+    without: {
+      code:
+`<span class="kw">function</span> <span class="fn">identity</span>(value: <span class="any">any</span>): <span class="any">any</span> {
+  <span class="kw">return</span> value;
+}
+
+<span class="cm">// TypeScript can't tell what comes back</span>
+<span class="kw">const</span> result = <span class="fn">identity</span>(<span class="str">"hello"</span>);
+result.toUpperCase();  <span class="cm">// ok</span>
+result.toFixed(2);     <span class="cm">// also "ok" to the compiler!</span>
+                        <span class="cm">// crashes at RUNTIME instead</span>`,
+    },
+    withG: {
+      code:
+`<span class="kw">function</span> <span class="fn">identity</span>&lt;<span class="type">T</span>&gt;(value: <span class="type">T</span>): <span class="type">T</span> {
+  <span class="kw">return</span> value;
+}
+
+<span class="cm">// T is locked to "string" the moment you call it</span>
+<span class="kw">const</span> result = <span class="fn">identity</span>(<span class="str">"hello"</span>);
+result.toUpperCase();  <span class="cm">// ok</span>
+result.toFixed(2);     <span class="cm">// red squiggle at COMPILE TIME</span>`,
+    },
+    demoLabel: "Call identity(...) with:",
+    demoOptions: ["string \"hello\"", "number 42", "boolean true"],
+    demo: (opt) => {
+      const map = {
+        "string \"hello\"": {without:{ok:false, msg:"identity(\"hello\").toFixed(2) → typechecks fine, throws at runtime: hello.toFixed is not a function"}, withG:{ok:true, msg:"identity(\"hello\") → T is string. .toFixed(2) is flagged before you even run it."}},
+        "number 42": {without:{ok:false, msg:"identity(42).toUpperCase() → typechecks fine, throws at runtime: 42.toUpperCase is not a function"}, withG:{ok:true, msg:"identity(42) → T is number. .toUpperCase() is flagged before you even run it."}},
+        "boolean true": {without:{ok:false, msg:"identity(true).toFixed(2) → typechecks fine, throws at runtime: true.toFixed is not a function"}, withG:{ok:true, msg:"identity(true) → T is boolean. .toFixed(2) is flagged before you even run it."}},
+      };
+      return map[opt];
+    }
+  },
+  first: {
+    title: "First element of an array",
+    desc: "A helper that grabs the first item from a list. Without generics you either accept `any[]` and hand back `any`, or you write a near-duplicate function for every array type you support.",
+    without: {
+      code:
+`<span class="kw">function</span> <span class="fn">firstElement</span>(arr: <span class="any">any</span>[]): <span class="any">any</span> {
+  <span class="kw">return</span> arr[0];
+}
+
+<span class="kw">const</span> user = <span class="fn">firstElement</span>([{ name: <span class="str">"Ana"</span> }]);
+<span class="cm">// user is "any" — no autocomplete, no safety</span>
+user.nam;  <span class="cm">// typo — compiler says nothing</span>`,
+    },
+    withG: {
+      code:
+`<span class="kw">function</span> <span class="fn">firstElement</span>&lt;<span class="type">T</span>&gt;(arr: <span class="type">T</span>[]): <span class="type">T</span> <span class="kw">|</span> <span class="kw">undefined</span> {
+  <span class="kw">return</span> arr[0];
+}
+
+<span class="kw">const</span> user = <span class="fn">firstElement</span>([{ name: <span class="str">"Ana"</span> }]);
+<span class="cm">// user is { name: string } | undefined</span>
+user.nam;  <span class="cm">// compiler catches the typo immediately</span>`,
+    },
+    demoLabel: "Call firstElement(...) on an array of:",
+    demoOptions: ["strings", "numbers", "user objects { name }"],
+    demo: (opt) => {
+      const map = {
+        "strings": {without:{ok:false, msg:"firstElement([\"a\",\"b\"]) returns any → arr[0].toFixed() typechecks, breaks at runtime"}, withG:{ok:true, msg:"firstElement([\"a\",\"b\"]) returns string | undefined → .toFixed() is rejected before runtime"}},
+        "numbers": {without:{ok:false, msg:"firstElement([1,2]) returns any → arr[0].toUpperCase() typechecks, breaks at runtime"}, withG:{ok:true, msg:"firstElement([1,2]) returns number | undefined → .toUpperCase() is rejected before runtime"}},
+        "user objects { name }": {without:{ok:false, msg:"firstElement(users) returns any → user.nam (typo) typechecks silently"}, withG:{ok:true, msg:"firstElement(users) returns { name: string } | undefined → user.nam (typo) is flagged"}},
+      };
+      return map[opt];
+    }
+  },
+  stack: {
+    title: "A reusable Stack container",
+    desc: "The gap widens with data structures. A non-generic Stack must pick one type forever — or fall back to `any` and become a bag of unchecked values. A generic Stack<T> is written once and stays type-safe for every T you use it with.",
+    without: {
+      code:
+`<span class="kw">class</span> <span class="fn">Stack</span> {
+  <span class="kw">private</span> items: <span class="any">any</span>[] = [];
+  <span class="fn">push</span>(item: <span class="any">any</span>) { this.items.push(item); }
+  <span class="fn">pop</span>(): <span class="any">any</span> { <span class="kw">return</span> this.items.pop(); }
+}
+
+<span class="kw">const</span> s = <span class="kw">new</span> <span class="fn">Stack</span>();
+s.push(<span class="str">"a"</span>);
+s.push(42);          <span class="cm">// mixed types, compiler allows it</span>
+<span class="kw">const</span> x = s.pop();
+x.toUpperCase();     <span class="cm">// might be 42 — boom, at runtime</span>`,
+    },
+    withG: {
+      code:
+`<span class="kw">class</span> <span class="fn">Stack</span>&lt;<span class="type">T</span>&gt; {
+  <span class="kw">private</span> items: <span class="type">T</span>[] = [];
+  <span class="fn">push</span>(item: <span class="type">T</span>) { this.items.push(item); }
+  <span class="fn">pop</span>(): <span class="type">T</span> <span class="kw">|</span> <span class="kw">undefined</span> { <span class="kw">return</span> this.items.pop(); }
+}
+
+<span class="kw">const</span> s = <span class="kw">new</span> <span class="fn">Stack</span>&lt;<span class="type">string</span>&gt;();
+s.push(<span class="str">"a"</span>);
+s.push(42);           <span class="cm">// compile error — Stack&lt;string&gt; only</span>
+<span class="kw">const</span> x = s.pop();
+x?.toUpperCase();     <span class="cm">// safe — x is string | undefined</span>`,
+    },
+    demoLabel: "Create a Stack of:",
+    demoOptions: ["strings", "numbers", "booleans"],
+    demo: (opt) => {
+      const map = {
+        "strings": {without:{ok:false, msg:"new Stack(); s.push(\"a\"); s.push(42) → both allowed, pop() might be a number when you expected a string"}, withG:{ok:true, msg:"new Stack<string>(); s.push(42) → compile error immediately, mixed data can't sneak in"}},
+        "numbers": {without:{ok:false, msg:"new Stack(); s.push(1); s.push(\"oops\") → both allowed, later math on pop() may crash"}, withG:{ok:true, msg:"new Stack<number>(); s.push(\"oops\") → compile error immediately"}},
+        "booleans": {without:{ok:false, msg:"new Stack(); s.push(true); s.push(\"yes\") → both allowed, logic bugs slip through"}, withG:{ok:true, msg:"new Stack<boolean>(); s.push(\"yes\") → compile error immediately"}},
+      };
+      return map[opt];
+    }
+  }
+};
+
+const takeaways = {
+  identity: "The function is identical in behavior for every type &mdash; only the type <b>label</b> differs. That's exactly what a generic parameter <b>T</b> is for: one implementation, type safety for every caller.",
+  first: "Notice the return type changes shape depending on what array you pass in. <b>any</b> can't express that relationship. <b>T</b> can &mdash; it links the input type to the output type.",
+  stack: "As soon as a type shows up in more than one place (stored, pushed, popped), <b>any</b> stops protecting you entirely. Generics let the class stay reusable <i>and</i> keep every one of those places in sync."
+};
+
+let current = "identity";
+
+function renderScenario(key){
+  const s = scenarios[key];
+  const body = document.getElementById("scenario-body");
+  body.innerHTML = `
+    <div class="scenario-title">${s.title}</div>
+    <div class="scenario-desc">${s.desc}</div>
+    <div class="compare">
+      <div class="code-panel without">
+        <div class="tag"><span>Without generics</span><span class="badge">any</span></div>
+        <pre>${s.without.code}</pre>
+        <div class="playground">
+          <label>${s.demoLabel}</label>
+          <select data-panel="without">
+            ${s.demoOptions.map(o=>`<option>${o}</option>`).join("")}
+          </select>
+          <div class="result" id="result-without"></div>
         </div>
-
-        <!-- SIDEBAR -->
-        <div class="sidebar">
-            <div class="sidebar-header">
-                EXPLORER <i class="ti ti-dots"></i>
-            </div>
-            <div class="explorer-folder">
-                <i class="ti ti-chevron-down"></i> MERN_TS_COURSE
-            </div>
-            <ul class="file-list">
-                <li class="file-item active" onclick="openFile('modules', this)">
-                    <i class="ti ti-brand-typescript ts-icon"></i> 01-modules.ts
-                </li>
-                <li class="file-item" onclick="openFile('generics-intro', this)">
-                    <i class="ti ti-brand-typescript ts-icon"></i> 02-generics-intro.ts
-                </li>
-                <li class="file-item" onclick="openFile('generic-functions', this)">
-                    <i class="ti ti-brand-typescript ts-icon"></i> 03-generic-funcs.ts
-                </li>
-                <li class="file-item" onclick="openFile('constraints', this)">
-                    <i class="ti ti-brand-typescript ts-icon"></i> 04-constraints.ts
-                </li>
-                <li class="file-item" onclick="openFile('exercise', this)">
-                    <i class="ti ti-brand-typescript ts-icon"></i> exercise-api.ts
-                </li>
-            </ul>
+      </div>
+      <div class="code-panel with">
+        <div class="tag"><span>With generics</span><span class="badge">&lt;T&gt;</span></div>
+        <pre>${s.withG.code}</pre>
+        <div class="playground">
+          <label>${s.demoLabel}</label>
+          <select data-panel="with">
+            ${s.demoOptions.map(o=>`<option>${o}</option>`).join("")}
+          </select>
+          <div class="result" id="result-with"></div>
         </div>
-
-        <!-- EDITOR AREA -->
-        <div class="editor-area">
-            
-            <!-- TABS -->
-            <div class="editor-tabs" id="tab-container">
-                <div class="editor-tab active" id="tab-modules">
-                    <i class="ti ti-brand-typescript ts-icon"></i> 01-modules.ts
-                </div>
-            </div>
-
-            <!-- BREADCRUMBS -->
-            <div class="breadcrumbs">
-                MERN_TS_COURSE <i class="ti ti-chevron-right" style="font-size:10px"></i> src <i class="ti ti-chevron-right" style="font-size:10px"></i> <span id="breadcrumb-filename">01-modules.ts</span>
-            </div>
-
-            <!-- FILE 1: MODULES -->
-            <div class="code-content active" id="file-modules">
-<div class="line"><div class="line-num">1</div><div class="line-code"><span class="cmt">/**</span></div></div>
-<div class="line"><div class="line-num">2</div><div class="line-code"><span class="cmt"> * <span class="md-h1">ES Modules in TypeScript</span></span></div></div>
-<div class="line"><div class="line-num">3</div><div class="line-code"><span class="cmt"> * As codebases grow, putting everything in one file becomes a nightmare.</span></div></div>
-<div class="line"><div class="line-num">4</div><div class="line-code"><span class="cmt"> * ES Modules allow you to split code into multiple files.</span></div></div>
-<div class="line"><div class="line-num">5</div><div class="line-code"><span class="cmt"> * Every file containing a top-level `import` or `export` is a module.</span></div></div>
-<div class="line"><div class="line-num">6</div><div class="line-code"><span class="cmt"> */</span></div></div>
-<div class="line"><div class="line-num">7</div><div class="line-code"></div></div>
-<div class="line"><div class="line-num">8</div><div class="line-code"><span class="cmt">// --- 1. NAMED EXPORTS ---</span></div></div>
-<div class="line"><div class="line-num">9</div><div class="line-code"><span class="cmt">// You can export multiple variables, functions, or classes from one file.</span></div></div>
-<div class="line"><div class="line-num">10</div><div class="line-code"><span class="ctrl">export</span> <span class="kw">const</span> <span class="var">PI</span> = <span class="num">3.14159</span>;</div></div>
-<div class="line"><div class="line-num">11</div><div class="line-code"><span class="ctrl">export</span> <span class="kw">function</span> <span class="fn">calculateArea</span>(r: <span class="type">number</span>) { <span class="ctrl">return</span> <span class="var">PI</span> * r * r; }</div></div>
-<div class="line"><div class="line-num">12</div><div class="line-code"></div></div>
-<div class="line"><div class="line-num">13</div><div class="line-code"><span class="cmt">// --- 2. DEFAULT EXPORTS ---</span></div></div>
-<div class="line"><div class="line-num">14</div><div class="line-code"><span class="cmt">// Each file can have exactly ONE default export. </span></div></div>
-<div class="line"><div class="line-num">15</div><div class="line-code"><span class="cmt">// Used commonly in React for exporting the main Component.</span></div></div>
-<div class="line"><div class="line-num">16</div><div class="line-code"><span class="ctrl">export default class</span> <span class="type">MathUtils</span> {</div></div>
-<div class="line"><div class="line-num">17</div><div class="line-code">  <span class="kw">static</span> <span class="fn">log</span>() { console.<span class="fn">log</span>(<span class="str">"Math Toolkit Initialized"</span>); }</div></div>
-<div class="line"><div class="line-num">18</div><div class="line-code">}</div></div>
-<div class="line"><div class="line-num">19</div><div class="line-code"></div></div>
-<div class="line"><div class="line-num">20</div><div class="line-code"><span class="cmt">/* </span></div></div>
-<div class="line"><div class="line-num">21</div><div class="line-code"><span class="cmt">  How you would import them in another file:</span></div></div>
-<div class="line"><div class="line-num">22</div><div class="line-code"><span class="cmt">  </span></div></div>
-<div class="line"><div class="line-num">23</div><div class="line-code"><span class="cmt">  import MathUtils, { PI, calculateArea } from './01-modules';</span></div></div>
-<div class="line"><div class="line-num">24</div><div class="line-code"><span class="cmt">  </span></div></div>
-<div class="line"><div class="line-num">25</div><div class="line-code"><span class="cmt">  Notice how the default import (MathUtils) doesn't use curly braces,</span></div></div>
-<div class="line"><div class="line-num">26</div><div class="line-code"><span class="cmt">  while named imports (PI) require curly braces.</span></div></div>
-<div class="line"><div class="line-num">27</div><div class="line-code"><span class="cmt">*/</span></div></div>
-            </div>
-
-            <!-- FILE 2: GENERICS INTRO -->
-            <div class="code-content" id="file-generics-intro">
-<div class="line"><div class="line-num">1</div><div class="line-code"><span class="cmt">/**</span></div></div>
-<div class="line"><div class="line-num">2</div><div class="line-code"><span class="cmt"> * <span class="md-h1">The Problem: Why Generics?</span></span></div></div>
-<div class="line"><div class="line-num">3</div><div class="line-code"><span class="cmt"> * Without generics, we have to use `any` when building reusable code.</span></div></div>
-<div class="line"><div class="line-num">4</div><div class="line-code"><span class="cmt"> */</span></div></div>
-<div class="line"><div class="line-num">5</div><div class="line-code"></div></div>
-<div class="line"><div class="line-num">6</div><div class="line-code"><span class="cmt">// A function that takes an argument and returns it.</span></div></div>
-<div class="line"><div class="line-num">7</div><div class="line-code"><span class="kw">function</span> <span class="fn">echo</span>(<span class="var">arg</span>: <span class="type">any</span>): <span class="type">any</span> {</div></div>
-<div class="line"><div class="line-num">8</div><div class="line-code">  <span class="ctrl">return</span> <span class="var">arg</span>;</div></div>
-<div class="line"><div class="line-num">9</div><div class="line-code">}</div></div>
-<div class="line"><div class="line-num">10</div><div class="line-code"></div></div>
-<div class="line"><div class="line-num">11</div><div class="line-code"><span class="kw">let</span> <span class="var">result</span> = <span class="fn">echo</span>(<span class="str">"Hello World"</span>); </div></div>
-<div class="line"><div class="line-num">12</div><div class="line-code"></div></div>
-<div class="line"><div class="line-num">13</div><div class="line-code"><span class="cmt">// ❌ THE FLAW: We lost the type information! </span></div></div>
-<div class="line"><div class="line-num">14</div><div class="line-code"><span class="cmt">// TS thinks 'result' is of type 'any', not 'string'.</span></div></div>
-<div class="line"><div class="line-num">15</div><div class="line-code"><span class="cmt">// If we try to call result.length, we won't get autocomplete or safety.</span></div></div>
-<div class="line"><div class="line-num">16</div><div class="line-code"></div></div>
-<div class="line"><div class="line-num">17</div><div class="line-code"><span class="cmt">/**</span></div></div>
-<div class="line"><div class="line-num">18</div><div class="line-code"><span class="cmt"> * <span class="md-h1">The Solution: Generics</span></span></div></div>
-<div class="line"><div class="line-num">19</div><div class="line-code"><span class="cmt"> * Generics allow us to pass a "Type Variable" into our function.</span></div></div>
-<div class="line"><div class="line-num">20</div><div class="line-code"><span class="cmt"> * It captures the type the user provides, and locks it in.</span></div></div>
-<div class="line"><div class="line-num">21</div><div class="line-code"><span class="cmt"> */</span></div></div>
-<div class="line"><div class="line-num">22</div><div class="line-code"></div></div>
-<div class="line"><div class="line-num">23</div><div class="line-code"><span class="cmt">// <T> declares the generic type variable.</span></div></div>
-<div class="line"><div class="line-num">24</div><div class="line-code"><span class="kw">function</span> <span class="fn">genericEcho</span>&lt;<span class="type">T</span>&gt;(<span class="var">arg</span>: <span class="type">T</span>): <span class="type">T</span> {</div></div>
-<div class="line"><div class="line-num">25</div><div class="line-code">  <span class="ctrl">return</span> <span class="var">arg</span>;</div></div>
-<div class="line"><div class="line-num">26</div><div class="line-code">}</div></div>
-<div class="line"><div class="line-num">27</div><div class="line-code"></div></div>
-<div class="line"><div class="line-num">28</div><div class="line-code"><span class="cmt">// ✅ SUCCESS: TS captures that T is a string!</span></div></div>
-<div class="line"><div class="line-num">29</div><div class="line-code"><span class="kw">let</span> <span class="var">safeResult</span> = <span class="fn">genericEcho</span>&lt;<span class="type">string</span>&gt;(<span class="str">"Hello World"</span>);</div></div>
-<div class="line"><div class="line-num">30</div><div class="line-code"></div></div>
-<div class="line"><div class="line-num">31</div><div class="line-code"><span class="cmt">// Note: Type Inference usually allows you to drop the <string> entirely!</span></div></div>
-<div class="line"><div class="line-num">32</div><div class="line-code"><span class="kw">let</span> <span class="var">autoResult</span> = <span class="fn">genericEcho</span>(<span class="num">42</span>); <span class="cmt">// TS automatically infers <number></span></div></div>
-            </div>
-
-            <!-- FILE 3: GENERIC FUNCS & INTERFACES -->
-            <div class="code-content" id="file-generic-functions">
-<div class="line"><div class="line-num">1</div><div class="line-code"><span class="cmt">/**</span></div></div>
-<div class="line"><div class="line-num">2</div><div class="line-code"><span class="cmt"> * <span class="md-h1">Generics in Interfaces & API Responses</span></span></div></div>
-<div class="line"><div class="line-num">3</div><div class="line-code"><span class="cmt"> * This is where Generics shine in the MERN stack!</span></div></div>
-<div class="line"><div class="line-num">4</div><div class="line-code"><span class="cmt"> */</span></div></div>
-<div class="line"><div class="line-num">5</div><div class="line-code"></div></div>
-<div class="line"><div class="line-num">6</div><div class="line-code"><span class="cmt">// Imagine a standard API Response wrapper</span></div></div>
-<div class="line"><div class="line-num">7</div><div class="line-code"><span class="kw">interface</span> <span class="type">ApiResponse</span>&lt;<span class="type">DataType</span>&gt; {</div></div>
-<div class="line"><div class="line-num">8</div><div class="line-code">  <span class="var">status</span>: <span class="type">number</span>;</div></div>
-<div class="line"><div class="line-num">9</div><div class="line-code">  <span class="var">message</span>: <span class="type">string</span>;</div></div>
-<div class="line"><div class="line-num">10</div><div class="line-code">  <span class="var">data</span>: <span class="type">DataType</span>; <span class="cmt">// The data payload changes depending on the endpoint!</span></div></div>
-<div class="line"><div class="line-num">11</div><div class="line-code">}</div></div>
-<div class="line"><div class="line-num">12</div><div class="line-code"></div></div>
-<div class="line"><div class="line-num">13</div><div class="line-code"><span class="kw">interface</span> <span class="type">User</span> { <span class="var">name</span>: <span class="type">string</span>; }</div></div>
-<div class="line"><div class="line-num">14</div><div class="line-code"><span class="kw">interface</span> <span class="type">Product</span> { <span class="var">price</span>: <span class="type">number</span>; }</div></div>
-<div class="line"><div class="line-num">15</div><div class="line-code"></div></div>
-<div class="line"><div class="line-num">16</div><div class="line-code"><span class="cmt">// When we hit the User endpoint, we pass <User> into the generic interface</span></div></div>
-<div class="line"><div class="line-num">17</div><div class="line-code"><span class="kw">const</span> <span class="var">userResp</span>: <span class="type">ApiResponse</span>&lt;<span class="type">User</span>&gt; = {</div></div>
-<div class="line"><div class="line-num">18</div><div class="line-code">  <span class="var">status</span>: <span class="num">200</span>,</div></div>
-<div class="line"><div class="line-num">19</div><div class="line-code">  <span class="var">message</span>: <span class="str">"Success"</span>,</div></div>
-<div class="line"><div class="line-num">20</div><div class="line-code">  <span class="var">data</span>: { <span class="var">name</span>: <span class="str">"Alice"</span> }</div></div>
-<div class="line"><div class="line-num">21</div><div class="line-code">};</div></div>
-<div class="line"><div class="line-num">22</div><div class="line-code"></div></div>
-<div class="line"><div class="line-num">23</div><div class="line-code"><span class="cmt">// Reusing the EXACT SAME interface for the Product endpoint!</span></div></div>
-<div class="line"><div class="line-num">24</div><div class="line-code"><span class="kw">const</span> <span class="var">prodResp</span>: <span class="type">ApiResponse</span>&lt;<span class="type">Product</span>&gt; = {</div></div>
-<div class="line"><div class="line-num">25</div><div class="line-code">  <span class="var">status</span>: <span class="num">200</span>,</div></div>
-<div class="line"><div class="line-num">26</div><div class="line-code">  <span class="var">message</span>: <span class="str">"Success"</span>,</div></div>
-<div class="line"><div class="line-num">27</div><div class="line-code">  <span class="var">data</span>: { <span class="var">price</span>: <span class="num">99.99</span> }</div></div>
-<div class="line"><div class="line-num">28</div><div class="line-code">};</div></div>
-            </div>
-
-            <!-- FILE 4: CONSTRAINTS -->
-            <div class="code-content" id="file-constraints">
-<div class="line"><div class="line-num">1</div><div class="line-code"><span class="cmt">/**</span></div></div>
-<div class="line"><div class="line-num">2</div><div class="line-code"><span class="cmt"> * <span class="md-h1">Generic Constraints</span></span></div></div>
-<div class="line"><div class="line-num">3</div><div class="line-code"><span class="cmt"> * Sometimes you want a Generic, but you don't want it to be *anything*.</span></div></div>
-<div class="line"><div class="line-num">4</div><div class="line-code"><span class="cmt"> * You want to constrain it to guarantee it has certain properties.</span></div></div>
-<div class="line"><div class="line-num">5</div><div class="line-code"><span class="cmt"> */</span></div></div>
-<div class="line"><div class="line-num">6</div><div class="line-code"></div></div>
-<div class="line"><div class="line-num">7</div><div class="line-code"><span class="kw">interface</span> <span class="type">Lengthwise</span> {</div></div>
-<div class="line"><div class="line-num">8</div><div class="line-code">  <span class="var">length</span>: <span class="type">number</span>;</div></div>
-<div class="line"><div class="line-num">9</div><div class="line-code">}</div></div>
-<div class="line"><div class="line-num">10</div><div class="line-code"></div></div>
-<div class="line"><div class="line-num">11</div><div class="line-code"><span class="cmt">// We use the `extends` keyword. </span></div></div>
-<div class="line"><div class="line-num">12</div><div class="line-code"><span class="cmt">// T can be anything, AS LONG AS it has a .length property!</span></div></div>
-<div class="line"><div class="line-num">13</div><div class="line-code"><span class="kw">function</span> <span class="fn">logLength</span>&lt;<span class="type">T</span> <span class="ctrl">extends</span> <span class="type">Lengthwise</span>&gt;(<span class="var">arg</span>: <span class="type">T</span>): <span class="type">T</span> {</div></div>
-<div class="line"><div class="line-num">14</div><div class="line-code">  console.<span class="fn">log</span>(<span class="var">arg</span>.<span class="var">length</span>); <span class="cmt">// TS knows .length exists safely!</span></div></div>
-<div class="line"><div class="line-num">15</div><div class="line-code">  <span class="ctrl">return</span> <span class="var">arg</span>;</div></div>
-<div class="line"><div class="line-num">16</div><div class="line-code">}</div></div>
-<div class="line"><div class="line-num">17</div><div class="line-code"></div></div>
-<div class="line"><div class="line-num">18</div><div class="line-code"><span class="fn">logLength</span>([<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>]); <span class="cmt">// ✅ OK: Arrays have length</span></div></div>
-<div class="line"><div class="line-num">19</div><div class="line-code"><span class="fn">logLength</span>(<span class="str">"Hello"</span>);   <span class="cmt">// ✅ OK: Strings have length</span></div></div>
-<div class="line"><div class="line-num">20</div><div class="line-code"><span class="fn">logLength</span>(<span class="num">100</span>);       <span class="cmt">// ❌ ERROR: Number does not have length</span></div></div>
-            </div>
-
-            <!-- FILE 5: EXERCISE -->
-            <div class="code-content" id="file-exercise">
-<div class="line"><div class="line-num">1</div><div class="line-code"><span class="cmt">/**</span></div></div>
-<div class="line"><div class="line-num">2</div><div class="line-code"><span class="cmt"> * <span class="md-h1">Interactive Exercise: Build a Generic Cache</span></span></div></div>
-<div class="line"><div class="line-num">3</div><div class="line-code"><span class="cmt"> * Review the code below, then click "Run Code" in the terminal panel.</span></div></div>
-<div class="line"><div class="line-num">4</div><div class="line-code"><span class="cmt"> */</span></div></div>
-<div class="line"><div class="line-num">5</div><div class="line-code"></div></div>
-<div class="line"><div class="line-num">6</div><div class="line-code"><span class="cmt">// A class can also be generic!</span></div></div>
-<div class="line"><div class="line-num">7</div><div class="line-code"><span class="kw">class</span> <span class="type">DataCache</span>&lt;<span class="type">T</span>&gt; {</div></div>
-<div class="line"><div class="line-num">8</div><div class="line-code">  <span class="kw">private</span> <span class="var">data</span>: <span class="type">T</span>[] = [];</div></div>
-<div class="line"><div class="line-num">9</div><div class="line-code"></div></div>
-<div class="line"><div class="line-num">10</div><div class="line-code">  <span class="fn">add</span>(<span class="var">item</span>: <span class="type">T</span>) {</div></div>
-<div class="line"><div class="line-num">11</div><div class="line-code">    <span class="kw">this</span>.<span class="var">data</span>.push(<span class="var">item</span>);</div></div>
-<div class="line"><div class="line-num">12</div><div class="line-code">  }</div></div>
-<div class="line"><div class="line-num">13</div><div class="line-code"></div></div>
-<div class="line"><div class="line-num">14</div><div class="line-code">  <span class="fn">getAll</span>(): <span class="type">T</span>[] {</div></div>
-<div class="line"><div class="line-num">15</div><div class="line-code">    <span class="ctrl">return</span> <span class="kw">this</span>.<span class="var">data</span>;</div></div>
-<div class="line"><div class="line-num">16</div><div class="line-code">  }</div></div>
-<div class="line"><div class="line-num">17</div><div class="line-code">}</div></div>
-<div class="line"><div class="line-num">18</div><div class="line-code"></div></div>
-<div class="line"><div class="line-num">19</div><div class="line-code"><span class="cmt">// 1. String Cache</span></div></div>
-<div class="line"><div class="line-num">20</div><div class="line-code"><span class="kw">const</span> <span class="var">stringCache</span> = <span class="kw">new</span> <span class="type">DataCache</span>&lt;<span class="type">string</span>&gt;();</div></div>
-<div class="line"><div class="line-num">21</div><div class="line-code"><span class="var">stringCache</span>.<span class="fn">add</span>(<span class="str">"Access Token"</span>);</div></div>
-<div class="line"><div class="line-num">22</div><div class="line-code"></div></div>
-<div class="line"><div class="line-num">23</div><div class="line-code"><span class="cmt">// 2. Number Cache</span></div></div>
-<div class="line"><div class="line-num">24</div><div class="line-code"><span class="kw">const</span> <span class="var">numCache</span> = <span class="kw">new</span> <span class="type">DataCache</span>&lt;<span class="type">number</span>&gt;();</div></div>
-<div class="line"><div class="line-num">25</div><div class="line-code"><span class="var">numCache</span>.<span class="fn">add</span>(<span class="num">404</span>);</div></div>
-<div class="line"><div class="line-num">26</div><div class="line-code"></div></div>
-<div class="line"><div class="line-num">27</div><div class="line-code"><span class="cmt">// Try running this code below to see the compilation output!</span></div></div>
-            </div>
-
-            <!-- TERMINAL PANEL -->
-            <div class="terminal-panel">
-                <div class="terminal-header">
-                    <div class="term-tab active">TERMINAL</div>
-                    <div class="term-tab">OUTPUT</div>
-                    <div class="term-tab">PROBLEMS <span style="background: #333; padding: 2px 6px; border-radius: 10px; font-size: 10px;">0</span></div>
-                </div>
-                <div class="terminal-body" id="term-body">
-                    <div><span class="prompt">pradeep@windows</span>:<span class="path">~/bv-raju/mern/typescript</span>$ tsc</div>
-                    <div style="color: #4ec9b0; margin-bottom: 10px;">Compilation complete. Watching for file changes.</div>
-                    
-                    <!-- Run Button for Exercise -->
-                    <div id="exercise-runner" style="display: none; border-top: 1px dashed #333; padding-top: 10px; margin-top: 10px;">
-                        <span class="prompt">Execute `exercise-api.js` using Node.js?</span><br>
-                        <button class="btn-run" onclick="runExercise()">▶ Run Code</button>
-                    </div>
-                </div>
-            </div>
-
-        </div>
+      </div>
     </div>
+  `;
+  document.getElementById("takeaway").innerHTML = takeaways[key];
 
-    <script>
-        const files = [
-            { id: 'modules', title: '01-modules.ts' },
-            { id: 'generics-intro', title: '02-generics-intro.ts' },
-            { id: 'generic-functions', title: '03-generic-funcs.ts' },
-            { id: 'constraints', title: '04-constraints.ts' },
-            { id: 'exercise', title: 'exercise-api.ts' }
-        ];
+  const selWithout = body.querySelector('select[data-panel="without"]');
+  const selWith = body.querySelector('select[data-panel="with"]');
+  function update(){
+    const opt = selWithout.value;
+    selWith.value = opt;
+    const d = s.demo(opt);
+    const rw = document.getElementById("result-without");
+    const rg = document.getElementById("result-with");
+    rw.textContent = d.without.msg;
+    rw.className = "result " + (d.without.ok ? "ok" : "err");
+    rg.textContent = d.withG.msg;
+    rg.className = "result " + (d.withG.ok ? "ok" : "err");
+  }
+  selWithout.addEventListener("change", ()=>{ selWith.value = selWithout.value; update(); });
+  selWith.addEventListener("change", ()=>{ selWithout.value = selWith.value; update(); });
+  update();
+}
 
-        let openTabs = ['modules'];
+document.getElementById("tabs").addEventListener("click", (e)=>{
+  const btn = e.target.closest(".tab");
+  if(!btn) return;
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+  btn.classList.add("active");
+  current = btn.dataset.s;
+  renderScenario(current);
+});
 
-        function openFile(id, listItem) {
-            // Update sidebar active state
-            document.querySelectorAll('.file-item').forEach(el => el.classList.remove('active'));
-            if(listItem) listItem.classList.add('active');
+renderScenario(current);
+</script>
 
-            // Manage Tabs
-            if (!openTabs.includes(id)) {
-                openTabs.push(id);
-                const tabTitle = files.find(f => f.id === id).title;
-                const newTab = document.createElement('div');
-                newTab.className = 'editor-tab';
-                newTab.id = `tab-${id}`;
-                newTab.innerHTML = `<i class="ti ti-brand-typescript ts-icon"></i> ${tabTitle}`;
-                newTab.onclick = () => switchTab(id);
-                document.getElementById('tab-container').appendChild(newTab);
-            }
-            
-            switchTab(id);
-        }
-
-        function switchTab(id) {
-            // Update tabs
-            document.querySelectorAll('.editor-tab').forEach(el => el.classList.remove('active'));
-            document.getElementById(`tab-${id}`).classList.add('active');
-
-            // Update Breadcrumb
-            document.getElementById('breadcrumb-filename').innerText = files.find(f => f.id === id).title;
-
-            // Update content
-            document.querySelectorAll('.code-content').forEach(el => el.classList.remove('active'));
-            document.getElementById(`file-${id}`).classList.add('active');
-
-            // Show runner in terminal if exercise
-            if (id === 'exercise') {
-                document.getElementById('exercise-runner').style.display = 'block';
-            } else {
-                document.getElementById('exercise-runner').style.display = 'none';
-            }
-        }
-
-        function runExercise() {
-            const tb = document.getElementById('term-body');
-            tb.innerHTML += `<div><span class="prompt">pradeep@windows</span>:<span class="path">~/bv-raju/mern/typescript</span>$ node exercise-api.js</div>`;
-            tb.innerHTML += `<div style="color: #dcdcaa;">[ 'Access Token' ]</div>`;
-            tb.innerHTML += `<div style="color: #b5cea8;">[ 404 ]</div>`;
-            tb.innerHTML += `<div style="color: #4ec9b0;">Process finished with exit code 0</div><br>`;
-            tb.scrollTop = tb.scrollHeight;
-        }
-
-        // Initialize first tab click
-        document.getElementById('tab-modules').onclick = () => switchTab('modules');
-    </script>
 </body>
-
 </html>
