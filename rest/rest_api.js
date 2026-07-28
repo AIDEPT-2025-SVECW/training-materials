@@ -843,6 +843,39 @@ Quick Navigation Tips:
 Happy Learning! 📚
 `);
 
+// Restaurant Analogy Interactive Function
+function simulateRestaurantAnalogy(action) {
+    const display = document.getElementById('restaurantAnalogyResult');
+    if (!display) return;
+    
+    switch(action) {
+        case 'GET':
+            display.innerHTML = `<span style="color: #10b981;">[HTTP GET Request]</span> ➡️ <strong>Client (Customer):</strong> "Waiter, can I see the menu for /dishes?"<br>` +
+                `<span style="color: #3b82f6;">[Server Processing]</span> ⚡ <strong>Waiter (REST API):</strong> Fetches list of dishes from Kitchen...<br>` +
+                `<span style="color: #a855f7;">[HTTP 200 OK Response]</span> ⬅️ <strong>REST Response (JSON):</strong><br>` +
+                `<pre style="background:#111827; color:#34d399; padding:10px; border-radius:6px; margin-top:5px;">{\n  "status": 200,\n  "data": ["Paneer Butter Masala", "Chicken Biryani", "Garlic Naan"]\n}</pre>`;
+            break;
+        case 'POST':
+            display.innerHTML = `<span style="color: #3b82f6;">[HTTP POST Request]</span> ➡️ <strong>Client (Customer):</strong> "Waiter, place a new order for 1x Chicken Biryani!"<br>` +
+                `<span style="color: #f59e0b;">[Server Processing]</span> ⚡ <strong>Waiter (REST API):</strong> Sends order payload to Kitchen (Database creates new record)...<br>` +
+                `<span style="color: #10b981;">[HTTP 201 Created Response]</span> ⬅️ <strong>REST Response (JSON):</strong><br>` +
+                `<pre style="background:#111827; color:#60a5fa; padding:10px; border-radius:6px; margin-top:5px;">{\n  "status": 201,\n  "message": "Order created successfully",\n  "orderId": 1042,\n  "item": "Chicken Biryani"\n}</pre>`;
+            break;
+        case 'PUT':
+            display.innerHTML = `<span style="color: #f59e0b;">[HTTP PUT Request]</span> ➡️ <strong>Client (Customer):</strong> "Waiter, update Order #1042: add Extra Spice!"<br>` +
+                `<span style="color: #f59e0b;">[Server Processing]</span> ⚡ <strong>Waiter (REST API):</strong> Updates existing order record #1042 in Kitchen...<br>` +
+                `<span style="color: #10b981;">[HTTP 200 OK Response]</span> ⬅️ <strong>REST Response (JSON):</strong><br>` +
+                `<pre style="background:#111827; color:#fbbf24; padding:10px; border-radius:6px; margin-top:5px;">{\n  "status": 200,\n  "orderId": 1042,\n  "item": "Chicken Biryani",\n  "customization": "Extra Spice"\n}</pre>`;
+            break;
+        case 'DELETE':
+            display.innerHTML = `<span style="color: #ef4444;">[HTTP DELETE Request]</span> ➡️ <strong>Client (Customer):</strong> "Waiter, cancel Order #1042!"<br>` +
+                `<span style="color: #f59e0b;">[Server Processing]</span> ⚡ <strong>Waiter (REST API):</strong> Notifies Kitchen to delete order record #1042...<br>` +
+                `<span style="color: #10b981;">[HTTP 200 OK Response]</span> ⬅️ <strong>REST Response (JSON):</strong><br>` +
+                `<pre style="background:#111827; color:#f87171; padding:10px; border-radius:6px; margin-top:5px;">{\n  "status": 200,\n  "message": "Order #1042 successfully canceled"\n}</pre>`;
+            break;
+    }
+}
+
 // Export functions for potential module usage
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
@@ -851,6 +884,7 @@ if (typeof module !== 'undefined' && module.exports) {
         previousSection,
         simulateClientServer,
         demonstrateMethod,
-        explainPrinciple
+        explainPrinciple,
+        simulateRestaurantAnalogy
     };
 }

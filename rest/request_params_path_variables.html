@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📌 Request Parameters vs Path Variables Interactive Guide</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: #1e293b;
+            background: linear-gradient(135deg, #064e3b 0%, #022c22 100%);
+            min-height: 100vh;
+            padding: 30px 20px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .nav-back {
+            display: inline-block;
+            margin: 20px 30px 0;
+            color: #047857;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .nav-back:hover {
+            text-decoration: underline;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .card h2 {
+            color: #064e3b;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            border-bottom: 3px solid #10b981;
+            padding-bottom: 8px;
+            display: inline-block;
+        }
+
+        /* Comparison Cards Grid */
+        .comp-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        @media (max-width: 768px) {
+            .comp-grid { grid-template-columns: 1fr; }
+        }
+
+        .comp-card {
+            border-radius: 12px;
+            padding: 20px;
+            background: white;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        }
+
+        .comp-card.path { border-top: 5px solid #2563eb; }
+        .comp-card.param { border-top: 5px solid #d97706; }
+
+        .comp-card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+
+        .comp-card.path h3 { color: #2563eb; }
+        .comp-card.param h3 { color: #d97706; }
+
+        /* Simulator */
+        .sim-box {
+            background: #0f172a;
+            color: white;
+            padding: 25px;
+            border-radius: 16px;
+            margin: 20px 0;
+        }
+
+        .sim-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .sim-controls label {
+            display: block;
+            font-size: 0.85rem;
+            color: #94a3b8;
+            margin-bottom: 5px;
+        }
+
+        .sim-controls input, .sim-controls select {
+            width: 100%;
+            padding: 10px;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            color: #38bdf8;
+            outline: none;
+        }
+
+        .url-preview {
+            background: #1e293b;
+            padding: 15px;
+            border-radius: 10px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.95rem;
+            color: #34d399;
+            word-break: break-all;
+            margin-bottom: 15px;
+        }
+
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th, td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background: #047857;
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+            background: #f1f5f9;
+        }
+
+        code {
+            font-family: 'Fira Code', monospace;
+            background: #e2e8f0;
+            color: #0f172a;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.88rem;
+        }
+
+        .code-block {
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 12px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+
+        /* Quiz */
+        .quiz-option {
+            background: white;
+            border: 2px solid #cbd5e1;
+            padding: 14px;
+            border-radius: 10px;
+            margin-top: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .quiz-option:hover {
+            border-color: #10b981;
+            background: #ecfdf5;
+        }
+
+        .quiz-option.correct {
+            background: #dcfce7;
+            border-color: #22c55e;
+            color: #15803d;
+            font-weight: 600;
+        }
+
+        .quiz-option.incorrect {
+            background: #fee2e2;
+            border-color: #ef4444;
+            color: #b91c1c;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <a href="index.html" class="nav-back">← Back to REST & Web Protocols Hub</a>
+
+        <header class="header">
+            <h1>📌 Request Parameters vs Path Variables</h1>
+            <p>Designing RESTful Endpoints with <code>@PathVariable</code> and <code>@RequestParam</code></p>
+        </header>
+
+        <div class="content">
+
+            <!-- 🎓 Real-Life Analogy Section -->
+            <div class="card" style="background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border: 2px solid #a7f3d0; border-radius: 16px; padding: 25px; margin-bottom: 30px;">
+                <h2 style="color: #065f46; border-bottom: 2px solid #10b981; padding-bottom: 8px; margin-bottom: 15px; font-size: 1.4rem;">
+                    🎓 Real-World Analogy: College Student Portal
+                </h2>
+                <p style="color: #064e3b; font-size: 1.05rem; margin-bottom: 20px; line-height: 1.6;">
+                    Imagine your college's online portal. How does the backend retrieve a specific student's profile vs filtering batch records?
+                </p>
+
+                <div class="comp-grid" style="gap: 20px;">
+                    <div style="background: white; border-radius: 12px; padding: 20px; border-left: 5px solid #2563eb; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+                        <h3 style="color: #1e40af; font-size: 1.15rem; margin-bottom: 8px;">🆔 Path Variable = Student Reg No</h3>
+                        <p style="font-size: 0.95rem; color: #1e293b; margin-bottom: 10px;">
+                            <strong>URL:</strong> <code>GET /students/21B91A0501</code>
+                        </p>
+                        <p style="font-size: 0.9rem; color: #475569; line-height: 1.5;">
+                            When you open the profile of <strong>one specific student</strong>, the Registration Number (<code>21B91A0501</code>) is embedded in the URL path. It uniquely identifies <em>which specific student</em> to fetch.
+                        </p>
+                    </div>
+
+                    <div style="background: white; border-radius: 12px; padding: 20px; border-left: 5px solid #d97706; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+                        <h3 style="color: #92400e; font-size: 1.15rem; margin-bottom: 8px;">🔍 Request Param = Filter Options</h3>
+                        <p style="font-size: 0.95rem; color: #1e293b; margin-bottom: 10px;">
+                            <strong>URL:</strong> <code>GET /students?branch=CSE&sem=5&minGpa=8.5</code>
+                        </p>
+                        <p style="font-size: 0.9rem; color: #475569; line-height: 1.5;">
+                            When HOD views the student directory and filters by <strong>Branch</strong>, <strong>Semester</strong>, or <strong>Min GPA</strong>, these appear after <code>?</code>. They don't change the resource (still <code>/students</code>), but filter the results!
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 1: Overview Cards -->
+            <div class="card">
+                <h2>1. Core Concepts</h2>
+                <div class="comp-grid">
+                    <div class="comp-card path">
+                        <h3>📍 Path Variables (URI Path)</h3>
+                        <p>Used to <strong>identify a specific resource</strong> directly within the URL path hierarchy.</p>
+                        <p style="margin-top: 10px;"><strong>Example URL:</strong> <code>/students/21B91A0501</code> or <code>/departments/cse/students/501</code></p>
+                        <ul style="margin-left: 20px; margin-top: 10px; font-size: 0.9rem; color: #475569;">
+                            <li>Required part of the endpoint path</li>
+                            <li>Identifies a single resource instance (e.g. Student Reg No)</li>
+                            <li>Spring Boot: <code>@PathVariable</code></li>
+                            <li>Express.js: <code>req.params</code></li>
+                        </ul>
+                    </div>
+
+                    <div class="comp-card param">
+                        <h3>🔍 Request Parameters (Query String)</h3>
+                        <p>Used to <strong>filter, sort, search, or paginate</strong> data collections.</p>
+                        <p style="margin-top: 10px;"><strong>Example URL:</strong> <code>/students?branch=CSE&status=active&page=1</code></p>
+                        <ul style="margin-left: 20px; margin-top: 10px; font-size: 0.9rem; color: #475569;">
+                            <li>Appears after <code>?</code> as key-value pairs</li>
+                            <li>Usually optional with default values</li>
+                            <li>Spring Boot: <code>@RequestParam</code></li>
+                            <li>Express.js: <code>req.query</code></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 2: Interactive Simulator -->
+            <div class="card">
+                <h2>🎮 Interactive Student Portal Simulator</h2>
+                <p>Modify the Student Registration Number and Filter Parameters below to see how URLs and Backend Controllers are constructed!</p>
+
+                <div class="sim-box">
+                    <div class="sim-controls">
+                        <div>
+                            <label>Path Variable: Student Reg No (Required)</label>
+                            <input type="text" id="regNoInput" value="21B91A0501" oninput="updateSim()">
+                        </div>
+                        <div>
+                            <label>Request Param: Branch Filter</label>
+                            <select id="branchInput" onchange="updateSim()">
+                                <option value="CSE">CSE</option>
+                                <option value="ECE">ECE</option>
+                                <option value="IT">IT</option>
+                                <option value="EEE">EEE</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Request Param: Semester</label>
+                            <select id="semInput" onchange="updateSim()">
+                                <option value="5">Semester 5</option>
+                                <option value="6">Semester 6</option>
+                                <option value="7">Semester 7</option>
+                                <option value="8">Semester 8</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Request Param: Sort By</label>
+                            <select id="sortInput" onchange="updateSim()">
+                                <option value="gpa">GPA (Highest First)</option>
+                                <option value="name">Name (Alphabetical)</option>
+                                <option value="regNo">Reg No</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 8px; font-size: 0.85rem; color: #94a3b8;">Generated REST API Request URL:</div>
+                    <div class="url-preview" id="urlOutput">https://portal.svecw.edu.in/api/v1/students/21B91A0501/results?branch=CSE&sem=5&sortBy=gpa</div>
+
+                    <div style="margin-top: 15px; font-size: 0.85rem; color: #94a3b8;">Corresponding Spring Boot Controller Signature:</div>
+                    <pre style="background: #111827; padding: 14px; border-radius: 8px; font-family: 'Fira Code', monospace; font-size: 0.85rem; color: #a7f3d0; white-space: pre; overflow-x: auto;" id="codeOutput"><code>@GetMapping("/students/{regNo}/results")
+public StudentResult getStudentResults(
+    @PathVariable("regNo") String regNo,      // Extracts "21B91A0501"
+    @RequestParam(required=false) String branch, // Extracts "CSE"
+    @RequestParam(defaultValue="1") int sem,    // Extracts 5
+    @RequestParam(defaultValue="gpa") String sortBy // Extracts "gpa"
+) { ... }</code></pre>
+                </div>
+            </div>
+
+            <!-- Section 3: Summary Comparison Table -->
+            <div class="card">
+                <h2>📋 Side-by-Side Comparison</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Feature</th>
+                            <th>Path Variable (e.g. Student Reg No)</th>
+                            <th>Request / Query Parameter (e.g. Branch/GPA)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Primary Purpose</strong></td>
+                            <td>Identifies specific student record</td>
+                            <td>Filters/sorts list of students</td>
+                        </tr>
+                        <tr>
+                            <td><strong>URL Structure</strong></td>
+                            <td><code>/students/{regNo}</code></td>
+                            <td><code>/students?branch=CSE&minGpa=8.0</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Optionality</strong></td>
+                            <td>Mandatory (URL broken without it)</td>
+                            <td>Optional (can fallback to defaults)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Spring Boot Annotation</strong></td>
+                            <td><code>@PathVariable("regNo")</code></td>
+                            <td><code>@RequestParam("branch")</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Express.js Property</strong></td>
+                            <td><code>req.params.regNo</code></td>
+                            <td><code>req.query.branch</code></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Section 4: Code Examples -->
+            <div class="card">
+                <h2>💻 Framework Implementation Snippets</h2>
+
+                <h3 style="color: #047857; margin-top: 10px;">Spring Boot REST Controller:</h3>
+                <pre class="code-block"><code>@RestController
+@RequestMapping("/api/v1/students")
+public class StudentController {
+
+    // Path Variable: GET /api/v1/students/21B91A0501
+    @GetMapping("/{regNo}")
+    public Student getStudentByRegNo(@PathVariable("regNo") String regNo) {
+        return studentService.findByRegNo(regNo);
+    }
+
+    // Request Parameters: GET /api/v1/students?branch=CSE&minGpa=8.5
+    @GetMapping
+    public List&lt;Student&gt; filterStudents(
+            @RequestParam(name = "branch", required = false) String branch,
+            @RequestParam(name = "minGpa", defaultValue = "0.0") Double minGpa) {
+        return studentService.searchStudents(branch, minGpa);
+    }
+}</code></pre>
+
+                <h3 style="color: #047857; margin-top: 20px;">Express.js (Node.js):</h3>
+                <pre class="code-block"><code>const express = require('express');
+const app = express();
+
+// Path Variable: GET /students/21B91A0501
+app.get('/students/:regNo', (req, res) => {
+    const regNo = req.params.regNo; // Access path variable
+    res.json({ regNo: regNo, name: "Ananya", branch: "CSE" });
+});
+
+// Request Parameters: GET /students?branch=CSE
+app.get('/students', (req, res) => {
+    const branch = req.query.branch; // Access query parameter
+    res.json({ branch: branch, students: [] });
+});</code></pre>
+            </div>
+
+            <!-- Section 5: Quiz -->
+            <div class="card">
+                <h2>🧠 Quick Knowledge Check</h2>
+                <div style="margin-top: 15px;">
+                    <p style="font-weight: 600;">Question: In the URL <code>GET /students/21B91A0501/marks?semester=5</code>, which part is the Path Variable?</p>
+                    <div class="quiz-option" onclick="checkQuiz(this, false)">A) semester=5</div>
+                    <div class="quiz-option" onclick="checkQuiz(this, true)">B) 21B91A0501</div>
+                    <div class="quiz-option" onclick="checkQuiz(this, false)">C) /marks</div>
+                    <div class="quiz-option" onclick="checkQuiz(this, false)">D) Both B and A</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        function updateSim() {
+            const regNo = document.getElementById('regNoInput').value || '21B91A0501';
+            const branch = document.getElementById('branchInput').value;
+            const sem = document.getElementById('semInput').value;
+            const sort = document.getElementById('sortInput').value;
+
+            const url = `https://portal.svecw.edu.in/api/v1/students/${regNo}/results?branch=${branch}&sem=${sem}&sortBy=${sort}`;
+            document.getElementById('urlOutput').innerText = url;
+
+            document.getElementById('codeOutput').innerText = 
+`@GetMapping("/students/{regNo}/results")
+public StudentResult getStudentResults(
+    @PathVariable("regNo") String regNo,         // Extracts: "${regNo}"
+    @RequestParam(required=false) String branch, // Extracts: "${branch}"
+    @RequestParam(defaultValue="1") int sem,       // Extracts: ${sem}
+    @RequestParam(defaultValue="gpa") String sortBy // Extracts: "${sort}"
+) { ... }`;
+        }
+
+        function checkQuiz(element, isCorrect) {
+            const options = element.parentElement.querySelectorAll('.quiz-option');
+            options.forEach(opt => opt.className = 'quiz-option');
+            if (isCorrect) {
+                element.className = 'quiz-option correct';
+            } else {
+                element.className = 'quiz-option incorrect';
+            }
+        }
+    </script>
+</body>
+</html>

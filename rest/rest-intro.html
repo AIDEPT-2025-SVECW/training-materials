@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>REST APIs & Postman — A Field Guide to Correspondence</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --paper: #faf8f3;
+            --paper-deep: #f2ede2;
+            --line: #ddd5c4;
+            --ink: #221f1b;
+            --ink-soft: #6e6656;
+            --stamp-red: #a63a2e;
+            --stamp-red-dim: #c98d84;
+            --postal-blue: #2c4a5e;
+            --postal-blue-dim: #7d97a4;
+            --stamp-green: #3f6b4a;
+            --stamp-green-dim: #9ab7a1;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            background: var(--paper);
+            color: var(--ink);
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        ::selection {
+            background: var(--stamp-red-dim);
+            color: #fff;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4 {
+            font-family: 'Fraunces', serif;
+            font-weight: 600;
+            margin: 0;
+            letter-spacing: -0.01em;
+        }
+
+        a {
+            color: var(--postal-blue);
+        }
+
+        .rule {
+            border: none;
+            border-top: 1.5px dashed var(--line);
+            margin: 0;
+        }
+
+        code,
+        .mono {
+            font-family: 'IBM Plex Mono', monospace;
+        }
+
+        /* ---------- margin-ruled page frame ---------- */
+        .page {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 0 48px 0 72px;
+            position: relative;
+        }
+
+        .page::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 48px;
+            width: 1px;
+            background: var(--stamp-red-dim);
+            opacity: .45;
+        }
+
+        @media (max-width:700px) {
+            .page {
+                padding: 0 20px 0 40px;
+            }
+
+            .page::before {
+                left: 22px;
+            }
+        }
+
+        /* ---------- nav ---------- */
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: rgba(250, 248, 243, .9);
+            backdrop-filter: blur(6px);
+            border-bottom: 1px solid var(--line);
+        }
+
+        .nav-inner {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 16px 48px 16px 72px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        @media (max-width:700px) {
+            .nav-inner {
+                padding: 14px 20px 14px 40px;
+            }
+        }
+
+        .brand {
+            font-family: 'Fraunces', serif;
+            font-weight: 600;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .brand .mark {
+            display: inline-block;
+            width: 20px;
+            height: 14px;
+            border: 1.5px solid var(--ink);
+            position: relative;
+        }
+
+        .brand .mark::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 7px solid var(--ink);
+        }
+
+        .navlinks {
+            display: flex;
+            gap: 22px;
+            font-size: 13px;
+        }
+
+        .navlinks a {
+            color: var(--ink-soft);
+            text-decoration: none;
+            letter-spacing: .02em;
+        }
+
+        .navlinks a:hover {
+            color: var(--stamp-red);
+        }
+
+        @media (max-width:640px) {
+            .navlinks {
+                display: none;
+            }
+        }
+
+        /* ---------- hero ---------- */
+        header.hero {
+            padding: 88px 0 64px;
+        }
+
+        .eyebrow {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 12px;
+            letter-spacing: .14em;
+            text-transform: uppercase;
+            color: var(--stamp-red);
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .eyebrow::before {
+            content: "✉";
+            font-size: 14px;
+        }
+
+        h1.title {
+            font-size: clamp(34px, 5.4vw, 58px);
+            line-height: 1.04;
+            max-width: 11.5ch;
+        }
+
+        h1.title em {
+            font-style: italic;
+            color: var(--postal-blue);
+            font-weight: 500;
+        }
+
+        .hero-sub {
+            max-width: 56ch;
+            color: var(--ink-soft);
+            font-size: 17px;
+            margin-top: 22px;
+        }
+
+        /* envelope illustration */
+        .envelope-wrap {
+            margin-top: 52px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .envelope {
+            width: min(560px, 100%);
+            aspect-ratio: 16/9;
+            background: var(--paper-deep);
+            border: 1.5px solid var(--ink);
+            position: relative;
+            box-shadow: 6px 6px 0 var(--postal-blue-dim);
+        }
+
+        .envelope::before,
+        .envelope::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            width: 50%;
+            height: 100%;
+            border-bottom: 1.5px solid var(--ink);
+        }
+
+        .envelope::before {
+            left: 0;
+            clip-path: polygon(0 0, 100% 0, 0 100%);
+            background: linear-gradient(135deg, transparent 49%, var(--line) 49.5%);
+        }
+
+        .envelope::after {
+            right: 0;
+            clip-path: polygon(100% 0, 0 0, 100% 100%);
+            background: linear-gradient(225deg, transparent 49%, var(--line) 49.5%);
+        }
+
+        .envelope .addr {
+            position: absolute;
+            right: 34px;
+            bottom: 30px;
+            text-align: right;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13px;
+            color: var(--ink);
+        }
+
+        .envelope .addr .method {
+            color: var(--stamp-red);
+            font-weight: 600;
+        }
+
+        .envelope .stamp {
+            position: absolute;
+            left: 28px;
+            top: 24px;
+            width: 58px;
+            height: 58px;
+            border: 2px solid var(--stamp-red);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--stamp-red);
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 600;
+            transform: rotate(-8deg);
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        /* ---------- sections generic ---------- */
+        section {
+            padding: 70px 0;
+        }
+
+        .section-head {
+            display: flex;
+            align-items: baseline;
+            gap: 16px;
+            margin-bottom: 8px;
+        }
+
+        .section-num {
+            font-family: 'IBM Plex Mono', monospace;
+            color: var(--stamp-red-dim);
+            font-size: 14px;
+        }
+
+        section h2 {
+            font-size: clamp(26px, 3.4vw, 36px);
+        }
+
+        .section-intro {
+            color: var(--ink-soft);
+            max-width: 64ch;
+            margin-top: 14px;
+            font-size: 15.5px;
+        }
+
+        /* ---------- analogy strip ---------- */
+        .analogy {
+            margin-top: 34px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0;
+            border: 1px solid var(--line);
+        }
+
+        .analogy>div {
+            padding: 20px 24px;
+            border-bottom: 1px dashed var(--line);
+        }
+
+        .analogy>div:nth-child(odd) {
+            border-right: 1px dashed var(--line);
+        }
+
+        @media (max-width:600px) {
+            .analogy {
+                grid-template-columns: 1fr;
+            }
+
+            .analogy>div:nth-child(odd) {
+                border-right: none;
+            }
+        }
+
+        .analogy .k {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11.5px;
+            color: var(--postal-blue);
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            margin-bottom: 6px;
+        }
+
+        .analogy .v {
+            font-size: 14.5px;
+        }
+
+        .analogy .v b {
+            color: var(--ink);
+        }
+
+        /* ---------- method stamp cards ---------- */
+        .stamp-grid {
+            margin-top: 40px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 22px;
+        }
+
+        .stamp-card {
+            background: var(--paper-deep);
+            padding: 22px 22px 20px;
+            position: relative;
+            --perf: radial-gradient(circle at 8px 8px, transparent 6px, var(--paper) 6.5px);
+        }
+
+        .stamp-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image:
+                radial-gradient(circle 5px at 0 12px, var(--paper) 5px, transparent 5.5px),
+                radial-gradient(circle 5px at 100% 12px, var(--paper) 5px, transparent 5.5px),
+                radial-gradient(circle 5px at 0 calc(100% - 12px), var(--paper) 5px, transparent 5.5px),
+                radial-gradient(circle 5px at 100% calc(100% - 12px), var(--paper) 5px, transparent 5.5px);
+            pointer-events: none;
+        }
+
+        .stamp-card .m {
+            font-family: 'IBM Plex Mono', monospace;
+            font-weight: 600;
+            font-size: 19px;
+            letter-spacing: .03em;
+        }
+
+        .stamp-card.get .m {
+            color: var(--postal-blue);
+        }
+
+        .stamp-card.post .m {
+            color: var(--stamp-red);
+        }
+
+        .stamp-card.put .m {
+            color: var(--stamp-green);
+        }
+
+        .stamp-card.patch .m {
+            color: #8a5a2e;
+        }
+
+        .stamp-card.delete .m {
+            color: var(--stamp-red);
+        }
+
+        .stamp-card p {
+            font-size: 13.6px;
+            color: var(--ink-soft);
+            margin: 10px 0 14px;
+        }
+
+        .tag-row {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10.5px;
+            border: 1px solid var(--line);
+            padding: 2px 7px;
+            color: var(--ink-soft);
+        }
+
+        .tag.yes {
+            border-color: var(--stamp-green-dim);
+            color: var(--stamp-green);
+        }
+
+        .tag.no {
+            border-color: var(--stamp-red-dim);
+            color: var(--stamp-red);
+        }
+
+        /* ---------- ledger table ---------- */
+        table.ledger {
+            margin-top: 34px;
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13.6px;
+        }
+
+        table.ledger th,
+        table.ledger td {
+            text-align: left;
+            padding: 11px 14px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        table.ledger th {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: var(--ink-soft);
+            border-bottom: 1.5px solid var(--ink);
+        }
+
+        table.ledger td.m {
+            font-family: 'IBM Plex Mono', monospace;
+            font-weight: 600;
+        }
+
+        /* ---------- postman intro cards ---------- */
+        .toolkit {
+            margin-top: 38px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 2px;
+            background: var(--line);
+            border: 1px solid var(--line);
+        }
+
+        .toolkit>div {
+            background: var(--paper);
+            padding: 22px;
+        }
+
+        .toolkit h4 {
+            font-size: 15px;
+            margin-bottom: 8px;
+        }
+
+        .toolkit .idx {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            color: var(--stamp-red-dim);
+        }
+
+        .toolkit p {
+            font-size: 13.5px;
+            color: var(--ink-soft);
+            margin: 6px 0 0;
+        }
+
+        /* ---------- simulator ---------- */
+        .sim {
+            margin-top: 40px;
+            border: 1.5px solid var(--ink);
+            background: var(--paper-deep);
+        }
+
+        .sim-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 18px;
+            border-bottom: 1px dashed var(--line);
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 12px;
+            color: var(--ink-soft);
+        }
+
+        .sim-body {
+            padding: 22px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 28px;
+        }
+
+        @media (max-width:720px) {
+            .sim-body {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .method-picker {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .method-btn {
+            font-family: 'IBM Plex Mono', monospace;
+            font-weight: 600;
+            font-size: 13px;
+            padding: 8px 14px;
+            background: var(--paper);
+            border: 1.5px solid var(--line);
+            cursor: pointer;
+            color: var(--ink-soft);
+            transition: transform .1s ease, border-color .15s ease, color .15s ease;
+        }
+
+        .method-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .method-btn.active {
+            border-color: var(--ink);
+            color: var(--ink);
+            background: #fff;
+        }
+
+        .method-btn:focus-visible {
+            outline: 2px solid var(--postal-blue);
+            outline-offset: 2px;
+        }
+
+        label.field-label {
+            display: block;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: var(--ink-soft);
+            margin: 14px 0 6px;
+        }
+
+        select,
+        textarea {
+            width: 100%;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13px;
+            padding: 9px 11px;
+            border: 1.5px solid var(--line);
+            background: #fff;
+            color: var(--ink);
+            resize: vertical;
+        }
+
+        select:focus,
+        textarea:focus,
+        .method-btn:focus-visible {
+            outline: 2px solid var(--postal-blue);
+            outline-offset: 1px;
+        }
+
+        textarea:disabled {
+            background: var(--paper-deep);
+            color: var(--ink-soft);
+        }
+
+        .send-btn {
+            margin-top: 20px;
+            width: 100%;
+            font-family: 'Fraunces', serif;
+            font-weight: 600;
+            font-size: 15px;
+            padding: 12px;
+            background: var(--ink);
+            color: var(--paper);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .send-btn:hover {
+            background: var(--stamp-red);
+        }
+
+        .send-btn:focus-visible {
+            outline: 2px solid var(--postal-blue);
+            outline-offset: 2px;
+        }
+
+        .response-pane {
+            border: 1.5px dashed var(--line);
+            padding: 18px;
+            min-height: 220px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+        }
+
+        .response-pane .placeholder {
+            margin: auto;
+            text-align: center;
+            color: var(--ink-soft);
+            font-size: 13px;
+            font-family: 'IBM Plex Mono', monospace;
+        }
+
+        .resp-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .status-stamp {
+            font-family: 'IBM Plex Mono', monospace;
+            font-weight: 700;
+            font-size: 13px;
+            border: 2px solid currentColor;
+            padding: 4px 10px;
+            border-radius: 3px;
+            transform: rotate(-4deg);
+            opacity: 0;
+            transform-origin: center;
+        }
+
+        .status-stamp.show {
+            animation: stamp-in .38s ease-out forwards;
+        }
+
+        @keyframes stamp-in {
+            0% {
+                opacity: 0;
+                transform: rotate(-4deg) scale(2.2);
+            }
+
+            70% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 1;
+                transform: rotate(-4deg) scale(1);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .status-stamp.show {
+                animation: none;
+                opacity: 1;
+            }
+        }
+
+        .status-stamp.ok {
+            color: var(--stamp-green);
+        }
+
+        .status-stamp.created {
+            color: var(--postal-blue);
+        }
+
+        .status-stamp.err {
+            color: var(--stamp-red);
+        }
+
+        .resp-meta {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11.5px;
+            color: var(--ink-soft);
+        }
+
+        pre.resp-body {
+            margin: 0;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 12.5px;
+            background: var(--paper-deep);
+            padding: 14px;
+            overflow: auto;
+            flex: 1;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        /* ---------- exercise checklist ---------- */
+        .checklist {
+            margin-top: 36px;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .check-item {
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+            padding: 16px 0;
+            border-bottom: 1px dashed var(--line);
+        }
+
+        .check-item input {
+            margin-top: 3px;
+            width: 16px;
+            height: 16px;
+            accent-color: var(--stamp-green);
+            cursor: pointer;
+        }
+
+        .check-item label {
+            cursor: pointer;
+            font-size: 14.5px;
+        }
+
+        .check-item .step-idx {
+            font-family: 'IBM Plex Mono', monospace;
+            color: var(--stamp-red-dim);
+            font-size: 12px;
+            margin-right: 6px;
+        }
+
+        .check-item.done label {
+            color: var(--ink-soft);
+            text-decoration: line-through;
+        }
+
+        .progress-line {
+            margin-top: 18px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 12.5px;
+            color: var(--ink-soft);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .progress-track {
+            flex: 1;
+            height: 4px;
+            background: var(--line);
+            position: relative;
+            max-width: 220px;
+        }
+
+        .progress-fill {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            background: var(--stamp-green);
+            width: 0%;
+            transition: width .3s ease;
+        }
+
+        code.inline {
+            background: var(--paper-deep);
+            padding: 1px 6px;
+            font-size: 12.5px;
+        }
+
+        footer {
+            padding: 60px 0 90px;
+            color: var(--ink-soft);
+            font-size: 13px;
+        }
+
+        footer .brand {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <div class="nav-inner">
+            <div class="brand"><span class="mark"></span> Field Guide</div>
+            <div class="navlinks">
+                <a href="#what-is-rest">REST</a>
+                <a href="#methods">Methods</a>
+                <a href="#postman">Postman</a>
+                <a href="#simulator">Try it</a>
+                <a href="#exercise">Exercise</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="page">
+
+        <header class="hero">
+            <div class="eyebrow">A short field guide</div>
+            <h1 class="title">Every API call is <em>correspondence</em></h1>
+            <p class="hero-sub">
+                A REST API works like sending a letter. The URL is the address, the HTTP method is the instruction
+                stamped on the envelope, and the body is what's written inside. This guide walks through the
+                fundamentals,
+                why the method you choose matters, and lets you send a real request with Postman-style tools — right
+                here.
+            </p>
+
+            <div class="envelope-wrap">
+                <div class="envelope">
+                    <div class="stamp">HTTP<br>1.1</div>
+                    <div class="addr">
+                        <span class="method">GET</span> /letters/42<br>
+                        Host: api.postoffice.dev
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <hr class="rule">
+
+        <section id="what-is-rest">
+            <div class="section-head"><span class="section-num">01</span>
+                <h2>What a REST API actually is</h2>
+            </div>
+            <p class="section-intro">
+                REST (Representational State Transfer) is a set of conventions for how a client and a server talk to
+                each
+                other over HTTP. A client doesn't ask a server to "run a function" — it asks for, or acts on, a
+                <b>resource</b>: a letter, a user, an order, a comment. Every resource lives at its own address, and the
+                server replies with a <b>representation</b> of it, almost always as JSON.
+            </p>
+            <div class="analogy">
+                <div>
+                    <div class="k">Resource</div>
+                    <div class="v">The <b>letter</b> sitting in a mailbox — a user, a post, an order.</div>
+                </div>
+                <div>
+                    <div class="k">URL</div>
+                    <div class="v">The <b>address on the envelope</b> — where that specific resource lives.</div>
+                </div>
+                <div>
+                    <div class="k">HTTP method</div>
+                    <div class="v">The <b>instruction stamped on it</b> — read it, send a new one, replace it, throw it
+                        out.</div>
+                </div>
+                <div>
+                    <div class="k">Response</div>
+                    <div class="v">The <b>reply that comes back</b> — a status code plus, usually, a JSON body.</div>
+                </div>
+            </div>
+            <p class="section-intro" style="margin-top:26px;">
+                Two conventions make this predictable across every REST API you'll ever use: the server keeps no memory
+                of previous requests (<b>statelessness</b> — each letter must stand on its own), and every resource is
+                handled through the same small set of verbs, no matter what the resource is. That second point is the
+                whole reason HTTP methods matter as much as they do.
+            </p>
+        </section>
+
+        <hr class="rule">
+
+        <section id="methods">
+            <div class="section-head"><span class="section-num">02</span>
+                <h2>HTTP methods, and why the choice isn't cosmetic</h2>
+            </div>
+            <p class="section-intro">
+                Picking the right method isn't a style preference — it tells every browser, cache, proxy, and teammate
+                reading your API exactly what a request is allowed to do before it even runs. A <code
+                    class="inline">GET</code>
+                is safe to prefetch or retry endlessly; a <code class="inline">POST</code> is not. Get this wrong and
+                you'll
+                get double-charged orders, browsers that refuse to cache things they safely could, and APIs that are
+                miserable to reason about.
+            </p>
+
+            <div class="stamp-grid">
+                <div class="stamp-card get">
+                    <div class="m">GET</div>
+                    <p>Fetch a representation of a resource. Reading it should never change anything.</p>
+                    <div class="tag-row"><span class="tag yes">safe</span><span class="tag yes">idempotent</span><span
+                            class="tag">cacheable</span></div>
+                </div>
+                <div class="stamp-card post">
+                    <div class="m">POST</div>
+                    <p>Create a new resource, or trigger an action that isn't a clean fetch or replace.</p>
+                    <div class="tag-row"><span class="tag no">not safe</span><span class="tag no">not idempotent</span>
+                    </div>
+                </div>
+                <div class="stamp-card put">
+                    <div class="m">PUT</div>
+                    <p>Replace a resource entirely with the version you send — the whole letter, rewritten.</p>
+                    <div class="tag-row"><span class="tag no">not safe</span><span class="tag yes">idempotent</span>
+                    </div>
+                </div>
+                <div class="stamp-card patch">
+                    <div class="m">PATCH</div>
+                    <p>Apply a partial update — change one line without retyping the whole letter.</p>
+                    <div class="tag-row"><span class="tag no">not safe</span><span class="tag">usually idempotent</span>
+                    </div>
+                </div>
+                <div class="stamp-card delete">
+                    <div class="m">DELETE</div>
+                    <p>Remove the resource. Asking twice leaves the same empty mailbox.</p>
+                    <div class="tag-row"><span class="tag no">not safe</span><span class="tag yes">idempotent</span>
+                    </div>
+                </div>
+            </div>
+
+            <table class="ledger">
+                <thead>
+                    <tr>
+                        <th>Method</th>
+                        <th>Safe</th>
+                        <th>Idempotent</th>
+                        <th>Typical success code</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="m">GET</td>
+                        <td>Yes</td>
+                        <td>Yes</td>
+                        <td>200 OK</td>
+                    </tr>
+                    <tr>
+                        <td class="m">POST</td>
+                        <td>No</td>
+                        <td>No</td>
+                        <td>201 Created</td>
+                    </tr>
+                    <tr>
+                        <td class="m">PUT</td>
+                        <td>No</td>
+                        <td>Yes</td>
+                        <td>200 OK</td>
+                    </tr>
+                    <tr>
+                        <td class="m">PATCH</td>
+                        <td>No</td>
+                        <td>Usually</td>
+                        <td>200 OK</td>
+                    </tr>
+                    <tr>
+                        <td class="m">DELETE</td>
+                        <td>No</td>
+                        <td>Yes</td>
+                        <td>204 No Content</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p style="font-size:12.5px; color:var(--ink-soft); margin-top:10px;">
+                <b>Safe</b> = doesn't change server state. <b>Idempotent</b> = calling it once or ten times leaves the
+                resource in the same state.
+            </p>
+        </section>
+
+        <hr class="rule">
+
+        <section id="postman">
+            <div class="section-head"><span class="section-num">03</span>
+                <h2>Postman, briefly</h2>
+            </div>
+            <p class="section-intro">
+                Postman is a desk for building and sending HTTP requests without writing any client code first. You pick
+                a method, type an address, fill in a body if the request needs one, and send it — then read exactly what
+                came back. It's usually the first place developers try out an API before wiring it into an application.
+            </p>
+            <div class="toolkit">
+                <div>
+                    <div class="idx">01</div>
+                    <h4>Request builder</h4>
+                    <p>Method, URL, headers, and body in one form. Send it and see the raw response immediately.</p>
+                </div>
+                <div>
+                    <div class="idx">02</div>
+                    <h4>Collections</h4>
+                    <p>A folder of saved requests for one API, so a whole team reuses the same tested set of calls.</p>
+                </div>
+                <div>
+                    <div class="idx">03</div>
+                    <h4>Environments</h4>
+                    <p>Swap variables like <code class="inline">base_url</code> or an auth token between dev, staging,
+                        prod.</p>
+                </div>
+                <div>
+                    <div class="idx">04</div>
+                    <h4>Tests &amp; runner</h4>
+                    <p>Small scripts that check a response automatically, run across an entire collection at once.</p>
+                </div>
+            </div>
+        </section>
+
+        <hr class="rule">
+
+        <section id="simulator">
+            <div class="section-head"><span class="section-num">04</span>
+                <h2>Send a letter</h2>
+            </div>
+            <p class="section-intro">
+                This is a small, self-contained stand-in for Postman's request builder, talking to a pretend
+                <code class="inline">/letters</code> API. Pick a method, choose an address, edit the body if there is
+                one,
+                and send it — the stamped reply is a real response to what you chose, not a canned demo.
+            </p>
+
+            <div class="sim">
+                <div class="sim-head"><span>REQUEST BUILDER</span><span>mock://api.postoffice.dev</span></div>
+                <div class="sim-body">
+                    <div>
+                        <label class="field-label">Method</label>
+                        <div class="method-picker" id="methodPicker">
+                            <button class="method-btn active" data-method="GET">GET</button>
+                            <button class="method-btn" data-method="POST">POST</button>
+                            <button class="method-btn" data-method="PUT">PUT</button>
+                            <button class="method-btn" data-method="PATCH">PATCH</button>
+                            <button class="method-btn" data-method="DELETE">DELETE</button>
+                        </div>
+
+                        <label class="field-label" for="endpointSelect">Endpoint</label>
+                        <select id="endpointSelect">
+                            <option value="/letters">/letters</option>
+                            <option value="/letters/1">/letters/1</option>
+                            <option value="/letters/2">/letters/2</option>
+                            <option value="/letters/99">/letters/99 (doesn't exist)</option>
+                        </select>
+
+                        <label class="field-label" for="bodyBox">Body (JSON)</label>
+                        <textarea id="bodyBox" rows="6" disabled>{
+  "from": "Priya",
+  "to": "Arjun",
+  "subject": "Meeting notes"
+}</textarea>
+
+                        <button class="send-btn" id="sendBtn">Send request →</button>
+                    </div>
+
+                    <div class="response-pane" id="responsePane">
+                        <div class="placeholder">— response will appear here —</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <hr class="rule">
+
+        <section id="exercise">
+            <div class="section-head"><span class="section-num">05</span>
+                <h2>Field exercise — do it in real Postman</h2>
+            </div>
+            <p class="section-intro">
+                The simulator above is a sketch. The real habit is built by doing this once against a live API. Tick
+                these
+                off as you go — they use a free public test API, so nothing needs signing up for.
+            </p>
+
+            <div class="checklist" id="checklist">
+                <div class="check-item">
+                    <input type="checkbox" id="s1"><label for="s1"><span class="step-idx">01</span>Install Postman (or
+                        open the web version) and create a free account.</label>
+                </div>
+                <div class="check-item">
+                    <input type="checkbox" id="s2"><label for="s2"><span class="step-idx">02</span>Create a new
+                        Collection and name it <code class="inline">Fundamentals</code>.</label>
+                </div>
+                <div class="check-item">
+                    <input type="checkbox" id="s3"><label for="s3"><span class="step-idx">03</span>Add a <code
+                            class="inline">GET</code> request to <code
+                            class="inline">https://jsonplaceholder.typicode.com/posts/1</code> and send it.</label>
+                </div>
+                <div class="check-item">
+                    <input type="checkbox" id="s4"><label for="s4"><span class="step-idx">04</span>Read the status code
+                        and the JSON body — note what changed vs. what you sent.</label>
+                </div>
+                <div class="check-item">
+                    <input type="checkbox" id="s5"><label for="s5"><span class="step-idx">05</span>Add a <code
+                            class="inline">POST</code> request to <code
+                            class="inline">https://jsonplaceholder.typicode.com/posts</code> with a small JSON body, and
+                        send it.</label>
+                </div>
+                <div class="check-item">
+                    <input type="checkbox" id="s6"><label for="s6"><span class="step-idx">06</span>Save both requests
+                        into your <code class="inline">Fundamentals</code> collection.</label>
+                </div>
+                <div class="check-item">
+                    <input type="checkbox" id="s7"><label for="s7"><span class="step-idx">07</span>Stretch: in the GET
+                        request's Tests tab, add <code
+                            class="inline">pm.test("status is 200", () =&gt; pm.response.to.have.status(200))</code>.</label>
+                </div>
+            </div>
+
+            <div class="progress-line">
+                <span id="progressText">0 of 7 done</span>
+                <div class="progress-track">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <footer>
+        <div class="page" style="padding-left:0;">
+            <div class="brand" style="font-family:'Fraunces',serif; color:var(--ink);">Field Guide — REST &amp; Postman
+            </div>
+            Resource, address, method, reply. Everything else is detail on top of that.
+        </div>
+    </footer>
+
+    <script>
+        // ---------- letters "database" ----------
+        let letters = {
+            1: { id: 1, from: "Priya", to: "Arjun", subject: "Meeting notes" },
+            2: { id: 2, from: "Dev", to: "Team", subject: "Launch plan" }
+        };
+        let nextId = 3;
+
+        const methodPicker = document.getElementById('methodPicker');
+        const endpointSelect = document.getElementById('endpointSelect');
+        const bodyBox = document.getElementById('bodyBox');
+        const sendBtn = document.getElementById('sendBtn');
+        const responsePane = document.getElementById('responsePane');
+        let currentMethod = 'GET';
+
+        function bodyAllowed(method) {
+            return method === 'POST' || method === 'PUT' || method === 'PATCH';
+        }
+
+        methodPicker.addEventListener('click', (e) => {
+            const btn = e.target.closest('.method-btn');
+            if (!btn) return;
+            methodPicker.querySelectorAll('.method-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentMethod = btn.dataset.method;
+            bodyBox.disabled = !bodyAllowed(currentMethod);
+        });
+
+        function idFromEndpoint(ep) {
+            const m = ep.match(/\/letters\/(\d+)/);
+            return m ? parseInt(m[1], 10) : null;
+        }
+
+        function respond(status, statusText, body) {
+            let cls = 'ok';
+            if (status === 201) cls = 'created';
+            if (status >= 400) cls = 'err';
+
+            responsePane.innerHTML = `
+      <div class="resp-top">
+        <div class="status-stamp ${cls}">${status} ${statusText}</div>
+        <div class="resp-meta">${currentMethod} ${endpointSelect.value}</div>
+      </div>
+      <pre class="resp-body">${body === undefined ? '' : JSON.stringify(body, null, 2)}</pre>
+    `;
+            requestAnimationFrame(() => {
+                responsePane.querySelector('.status-stamp').classList.add('show');
+            });
+        }
+
+        sendBtn.addEventListener('click', () => {
+            const ep = endpointSelect.value;
+            const id = idFromEndpoint(ep);
+
+            if (currentMethod === 'GET') {
+                if (id === null) {
+                    respond(200, 'OK', Object.values(letters));
+                } else if (letters[id]) {
+                    respond(200, 'OK', letters[id]);
+                } else {
+                    respond(404, 'Not Found', { error: `No letter with id ${id}` });
+                }
+                return;
+            }
+
+            if (currentMethod === 'POST') {
+                let payload;
+                try { payload = JSON.parse(bodyBox.value); }
+                catch (e) { respond(400, 'Bad Request', { error: 'Body is not valid JSON' }); return; }
+                const newLetter = { id: nextId, ...payload };
+                letters[nextId] = newLetter;
+                nextId++;
+                respond(201, 'Created', newLetter);
+                return;
+            }
+
+            if (currentMethod === 'PUT') {
+                if (id === null) { respond(400, 'Bad Request', { error: 'PUT needs a specific /letters/{id}' }); return; }
+                let payload;
+                try { payload = JSON.parse(bodyBox.value); }
+                catch (e) { respond(400, 'Bad Request', { error: 'Body is not valid JSON' }); return; }
+                if (!letters[id]) { respond(404, 'Not Found', { error: `No letter with id ${id}` }); return; }
+                letters[id] = { id, ...payload };
+                respond(200, 'OK', letters[id]);
+                return;
+            }
+
+            if (currentMethod === 'PATCH') {
+                if (id === null) { respond(400, 'Bad Request', { error: 'PATCH needs a specific /letters/{id}' }); return; }
+                let payload;
+                try { payload = JSON.parse(bodyBox.value); }
+                catch (e) { respond(400, 'Bad Request', { error: 'Body is not valid JSON' }); return; }
+                if (!letters[id]) { respond(404, 'Not Found', { error: `No letter with id ${id}` }); return; }
+                letters[id] = { ...letters[id], ...payload };
+                respond(200, 'OK', letters[id]);
+                return;
+            }
+
+            if (currentMethod === 'DELETE') {
+                if (id === null) { respond(400, 'Bad Request', { error: 'DELETE needs a specific /letters/{id}' }); return; }
+                if (!letters[id]) { respond(404, 'Not Found', { error: `No letter with id ${id}` }); return; }
+                delete letters[id];
+                respond(204, 'No Content', undefined);
+                return;
+            }
+        });
+
+        // ---------- checklist progress ----------
+        const checklist = document.getElementById('checklist');
+        const progressText = document.getElementById('progressText');
+        const progressFill = document.getElementById('progressFill');
+        const items = checklist.querySelectorAll('.check-item');
+
+        function updateProgress() {
+            let done = 0;
+            items.forEach(item => {
+                const cb = item.querySelector('input');
+                item.classList.toggle('done', cb.checked);
+                if (cb.checked) done++;
+            });
+            progressText.textContent = `${done} of ${items.length} done`;
+            progressFill.style.width = (done / items.length * 100) + '%';
+        }
+        checklist.addEventListener('change', updateProgress);
+        updateProgress();
+    </script>
+
+</body>
+
+</html>
