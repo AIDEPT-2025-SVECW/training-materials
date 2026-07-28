@@ -4,7 +4,7 @@
 // Global variables for tutorial state
 let currentSectionIndex = 0;
 let completedSections = new Set();
-const sections = ['client-server', 'servers', 'services', 'rest-intro', 'principles', 'methods','best-practices'];
+const sections = ['client-server', 'servers', 'services', 'rest-intro', 'principles', 'methods', 'best-practices', 'demo-project'];
 
 // Initialize tutorial when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
