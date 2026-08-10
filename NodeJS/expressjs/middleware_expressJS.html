@@ -188,6 +188,115 @@
             border-radius: 5px;
             font-size: 1em;
         }
+
+        /* Architecture Diagram & Lightbox Styling */
+        .diagram-card {
+            background: #ffffff;
+            border: 2px solid #667eea;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.15);
+            text-align: center;
+        }
+
+        .diagram-img-wrapper {
+            position: relative;
+            display: inline-block;
+            max-width: 100%;
+            cursor: pointer;
+            overflow: hidden;
+            border-radius: 8px;
+        }
+
+        .diagram-img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            display: block;
+            transition: transform 0.3s ease, filter 0.3s ease;
+        }
+
+        .diagram-img-wrapper:hover .diagram-img {
+            transform: scale(1.015);
+            filter: brightness(1.02);
+        }
+
+        .zoom-badge {
+            position: absolute;
+            bottom: 12px;
+            right: 12px;
+            background: rgba(30, 41, 59, 0.85);
+            color: #ffffff;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            backdrop-filter: blur(4px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            pointer-events: none;
+            transition: background 0.3s ease;
+        }
+
+        .diagram-img-wrapper:hover .zoom-badge {
+            background: #667eea;
+        }
+
+        .diagram-caption {
+            margin-top: 15px;
+            color: #555;
+            font-size: 0.95em;
+        }
+
+        /* Lightbox Modal */
+        .lightbox-modal {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .lightbox-modal.active {
+            display: flex;
+            animation: fadeIn 0.25s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .lightbox-content {
+            max-width: 92vw;
+            max-height: 90vh;
+            border-radius: 10px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            object-fit: contain;
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 20px;
+            right: 25px;
+            color: #fff;
+            font-size: 35px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.2s;
+            user-select: none;
+        }
+
+        .lightbox-close:hover {
+            color: #ffd700;
+        }
     </style>
 </head>
 <body>
@@ -208,10 +317,47 @@
                 <li>Call the next middleware in the chain</li>
             </ul>
             
-            <div class="analogy-box">
-                <h3>🏭 Real-World Analogy: Assembly Line</h3>
+            <!-- FIRST: Real-World Analogy (College Gates & Student Attire) -->
+            <div class="analogy-box" style="margin-top: 20px; background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%); border-left: 5px solid #4f46e5;">
+                <h3 style="color: #4f46e5; display: flex; align-items: center; gap: 8px;">
+                    🎓 Real-World Analogy: The College Campus Gate System
+                </h3>
+                <p class="explanation" style="margin-top: 10px;">
+                    Imagine a <strong>Student (Incoming HTTP Request)</strong> arriving at the entrance of a college campus. Before entering the <strong>Main Classroom / Exam Hall (Route Handler)</strong>, the student passes through sequential checkpoint gates (Middleware functions), each inspecting, verifying, or modifying the student:
+                </p>
+                
+                <ul style="margin-left: 25px; line-height: 2; color: #334155;">
+                    <li>
+                        <strong>Gate 1 - Security Guard (Logger Middleware):</strong> 
+                        Scans the student's entry time and logs arrival in the register <code>[GET /college/classroom]</code> before waving them through (calls <code>next()</code>).
+                    </li>
+                    <li>
+                        <strong>Gate 2 - ID Check Gate (Auth Middleware):</strong> 
+                        Checks if the student carries a valid College ID (Token). If missing, entry is blocked on the spot (<code>401 Unauthorized</code> response). If valid, attaches <code>req.student = studentInfo</code> and passes them along (calls <code>next()</code>).
+                    </li>
+                    <li>
+                        <strong>Gate 3 - Uniform & Gear Counter (Body Parser & Attire Modifier):</strong> 
+                        Hands the student an official lab coat, ID badge, and laptop (attaches parsed <code>req.body</code> data to the request object), modifying their attire for class.
+                    </li>
+                    <li>
+                        <strong>Main Classroom (Route Handler):</strong> 
+                        The student, now fully verified and equipped with proper attire, attends the lecture and completes the evaluation.
+                    </li>
+                    <li>
+                        <strong>Campus Exit (Enhanced Student / Final Response):</strong> 
+                        The student exits college as an <strong>Enhanced Graduate</strong> equipped with a degree certificate (HTTP Response payload sent back to client: <code>res.json({ status: 200, degree: "B.Tech" })</code>)!
+                    </li>
+                </ul>
+
+                <div style="background: #ffffff; padding: 15px; border-radius: 8px; border: 1px dashed #6366f1; margin-top: 15px; font-size: 0.95em; color: #1e1b4b;">
+                    💡 <strong>Core Takeaway:</strong> Just like each college gate modifies the student's attire and equipment step-by-step before handing them over to the professor, Express.js middleware functions sequentially process and enrich the <code>req</code> and <code>res</code> objects before the route handler constructs the final response!
+                </div>
+            </div>
+
+            <div class="analogy-box" style="margin-top: 20px;">
+                <h3>🏭 Alternative Analogy: Factory Assembly Line</h3>
                 <p class="explanation">
-                    Think of middleware like an <strong>assembly line in a factory</strong>:
+                    You can also think of middleware like an <strong>assembly line in a factory</strong>:
                 </p>
                 <ul style="margin-left: 30px; line-height: 1.8;">
                     <li><strong>Raw Material</strong> → The incoming request</li>
@@ -220,10 +366,43 @@
                     <li><strong>Passing to Next Station</strong> → Calling next()</li>
                     <li><strong>Final Product</strong> → The response sent back</li>
                 </ul>
-                <p class="explanation" style="margin-top: 10px;">
-                    If any station finds a defect, it can stop the process (error handling). 
-                    Otherwise, it improves the product and passes it along!
+            </div>
+        </div>
+
+        <!-- SECOND: Real Technical Architecture Diagram -->
+        <div class="section">
+            <h2>🗺️ Technical Architecture: How Express.js Middleware Works</h2>
+            <p class="explanation">
+                Now that you have the intuitive college gate model in mind, let's map it directly onto the real technical architecture of an <strong>Express.js Application</strong>:
+            </p>
+            
+            <div class="diagram-card">
+                <div class="diagram-img-wrapper" onclick="openLightbox('middleware_overview.png')">
+                    <img src="middleware_overview.png" alt="Express.js Middleware Execution Flow & Architecture Diagram" class="diagram-img" id="diagramImg">
+                    <div class="zoom-badge">🔍 Click to Enlarge Diagram</div>
+                </div>
+                <p class="diagram-caption">
+                    📌 <strong>Figure 1:</strong> Complete Express.js Request-Response Cycle & Middleware Execution Architecture
                 </p>
+            </div>
+
+            <div class="diagram-breakdown" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 20px;">
+                <div style="background: #f0f4ff; border-left: 4px solid #667eea; padding: 15px; border-radius: 8px;">
+                    <h4 style="color: #667eea; margin-bottom: 5px;">1. Client Request ➔ (Student Enters Gate)</h4>
+                    <p style="font-size: 0.9em; color: #444; line-height: 1.5;">The client (Browser or Postman) initiates an HTTP Request (e.g., <code>GET /api/data</code>) entering the Express.js application.</p>
+                </div>
+                <div style="background: #fff8eb; border-left: 4px solid #f59e0b; padding: 15px; border-radius: 8px;">
+                    <h4 style="color: #d97706; margin-bottom: 5px;">2. Sequential Middleware ➔ (Attire/Data Modified)</h4>
+                    <p style="font-size: 0.9em; color: #444; line-height: 1.5;">Functions like <code>Logger</code>, <code>Auth</code>, and <code>Body Parser</code> execute in order. Each accesses <code>(req, res, next)</code> and calls <code>next()</code> to pass control forward.</p>
+                </div>
+                <div style="background: #ecfdf5; border-left: 4px solid #10b981; padding: 15px; border-radius: 8px;">
+                    <h4 style="color: #059669; margin-bottom: 5px;">3. Route Controller ➔ (Classroom Evaluation)</h4>
+                    <p style="font-size: 0.9em; color: #444; line-height: 1.5;">The route handler processes the request logic and sends back an HTTP Response (JSON / HTML / Status code) ending the cycle.</p>
+                </div>
+                <div style="background: #fef2f2; border-left: 4px solid #ef4444; padding: 15px; border-radius: 8px;">
+                    <h4 style="color: #dc2626; margin-bottom: 5px;">4. Error Handling ➔ (Gate Rejection / Denied)</h4>
+                    <p style="font-size: 0.9em; color: #444; line-height: 1.5;">Special error-handling middleware uses 4 arguments <code>(err, req, res, next)</code> and must be declared last in the application setup.</p>
+                </div>
             </div>
         </div>
         
@@ -530,6 +709,31 @@ app.use(async (ctx, next) => {
             log(`📤 Response sent: { status: 200, message: "Hello, ${userName}!" }`, 'response');
             log('✨ Request completed successfully', 'response');
         }
+
+        // Lightbox Modal Functions
+        function openLightbox(src) {
+            const modal = document.getElementById('lightboxModal');
+            const img = document.getElementById('lightboxImg');
+            img.src = src;
+            modal.classList.add('active');
+        }
+
+        function closeLightbox() {
+            const modal = document.getElementById('lightboxModal');
+            modal.classList.remove('active');
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeLightbox();
+            }
+        });
     </script>
+
+    <!-- Lightbox Modal -->
+    <div class="lightbox-modal" id="lightboxModal" onclick="closeLightbox()">
+        <span class="lightbox-close" onclick="closeLightbox()">&times;</span>
+        <img class="lightbox-content" id="lightboxImg" onclick="event.stopPropagation()" alt="Full view diagram">
+    </div>
 </body>
 </html>

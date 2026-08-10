@@ -275,6 +275,75 @@
               attaches it to <code>req.body</code>.
             </div>
 
+            <!-- Comparison: WITHOUT vs WITH express.json() -->
+            <div style="margin: 25px 0;">
+              <h3 style="color: #2d3748; margin-bottom: 12px; font-size: 1.3em;">
+                ⚖️ Code Comparison: Without Middleware vs With <code>express.json()</code>
+              </h3>
+              <p style="margin-bottom: 15px; color: #4a5568; line-height: 1.6;">
+                By default, Express does <strong>NOT</strong> parse incoming HTTP request bodies — leaving <code>req.body</code> as <code>undefined</code>. See how much complex code you would have to write manually without middleware versus how simple it becomes with <code>express.json()</code>:
+              </p>
+
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
+                <!-- WITHOUT Middleware -->
+                <div style="background: #fff5f5; border: 2px solid #feb2b2; border-radius: 8px; padding: 18px;">
+                  <h4 style="color: #c53030; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+                    ❌ WITHOUT Middleware (Manual Stream & Parsing)
+                  </h4>
+                  <p style="font-size: 0.88em; color: #742a2a; margin-bottom: 10px;">
+                    You must listen for raw data stream events, concatenate chunks, manually parse JSON, and handle errors:
+                  </p>
+                  <pre style="background: #1a202c; font-size: 13px; margin: 0; padding: 15px;">// ❌ Without express.json()
+app.post('/api/users', (req, res) => {
+  let rawData = '';
+
+  // 1. Listen to data stream chunks
+  req.on('data', chunk => {
+    rawData += chunk;
+  });
+
+  // 2. Stream ends - parse manually
+  req.on('end', () => {
+    try {
+      const body = JSON.parse(rawData);
+      console.log(body.name);
+      res.json({ message: 'Saved', user: body });
+    } catch (err) {
+      res.status(400).json({ error: 'Invalid JSON' });
+    }
+  });
+});</pre>
+                </div>
+
+                <!-- WITH Middleware -->
+                <div style="background: #f0fff4; border: 2px solid #9ae6b4; border-radius: 8px; padding: 18px;">
+                  <h4 style="color: #276749; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+                    ✅ WITH <code>express.json()</code> (Simplified & Clean)
+                  </h4>
+                  <p style="font-size: 0.88em; color: #22543d; margin-bottom: 10px;">
+                    Express handles stream reading, JSON parsing, error checking, and populates <code>req.body</code> in 1 line:
+                  </p>
+                  <pre style="background: #1a202c; font-size: 13px; margin: 0; padding: 15px;">// ✅ Enable middleware ONCE at app top
+app.use(express.json());
+
+// ✅ Route handler stays clean & readable!
+app.post('/api/users', (req, res) => {
+  // req.body is ALREADY parsed!
+  console.log(req.body.name);
+
+  res.json({ 
+    message: 'Saved', 
+    user: req.body 
+  });
+});</pre>
+                </div>
+              </div>
+
+              <div style="background: #ebf8ff; border-left: 4px solid #3182ce; padding: 12px 15px; margin-top: 15px; border-radius: 6px; font-size: 0.9em; color: #2b6cb0;">
+                💡 <strong>Key Takeaway:</strong> <code>express.json()</code> eliminates 15+ lines of boilerplate event listeners and error handling per route, making your code clean, readable, and maintainable!
+              </div>
+            </div>
+
             <h3>Basic Setup:</h3>
             <pre>
 const express = require('express');
