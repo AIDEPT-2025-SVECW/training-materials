@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTTP Session Lifecycle — Ghajini Analogy</title>
+    <style>
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: #f4f7fb;
+            color: #172033
+        }
+
+        .wrap {
+            max-width: 1150px;
+            margin: auto;
+            padding: 28px 20px 50px
+        }
+
+        .hero,
+        .panel {
+            background: #fff;
+            border-radius: 18px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 28px rgba(20, 30, 60, .08)
+        }
+
+        h1 {
+            font-size: 34px;
+            margin: 0 0 8px
+        }
+
+        .subtitle {
+            color: #5d687b;
+            font-size: 17px
+        }
+
+        .badge {
+            display: inline-block;
+            background: #eaf0ff;
+            color: #3157a5;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700
+        }
+
+        .story {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 18px
+        }
+
+        .card {
+            border: 1px solid #e1e6ef;
+            border-radius: 14px;
+            padding: 18px;
+            background: #fafcff
+        }
+
+        .lifecycle {
+            display: flex;
+            gap: 8px;
+            align-items: stretch;
+            margin: 20px 0;
+            overflow: auto
+        }
+
+        .step {
+            min-width: 145px;
+            flex: 1;
+            border: 2px solid #dce3ef;
+            border-radius: 12px;
+            padding: 13px;
+            text-align: center;
+            background: #fbfcff
+        }
+
+        .step.active {
+            border-color: #3157d5;
+            background: #edf3ff
+        }
+
+        .step.done {
+            border-color: #70a982;
+            background: #effaf2
+        }
+
+        .num {
+            font-size: 12px;
+            font-weight: 800;
+            color: #65738a
+        }
+
+        .step h3 {
+            margin: 6px 0;
+            font-size: 16px
+        }
+
+        .controls button {
+            margin: 4px;
+            padding: 11px 15px;
+            border: 0;
+            border-radius: 10px;
+            background: #3157d5;
+            color: white;
+            font-weight: 700;
+            cursor: pointer
+        }
+
+        .controls button.secondary {
+            background: #e9edf4;
+            color: #25324a
+        }
+
+        .controls button.danger {
+            background: #c94b4b
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px
+        }
+
+        .box {
+            background: #101828;
+            color: #edf3ff;
+            border-radius: 14px;
+            padding: 18px
+        }
+
+        .box h3 {
+            margin-top: 0;
+            color: white
+        }
+
+        .code {
+            font: 13px Consolas, monospace;
+            background: #0a101c;
+            border-radius: 10px;
+            padding: 13px;
+            line-height: 1.7;
+            min-height: 90px
+        }
+
+        .memory {
+            background: #fff8df;
+            border: 1px solid #efd88d;
+            color: #47390e;
+            border-radius: 12px;
+            padding: 15px;
+            min-height: 110px
+        }
+
+        .cookie {
+            background: #eaf8ee;
+            border: 1px solid #acdcb9;
+            border-radius: 12px;
+            padding: 15px;
+            min-height: 110px
+        }
+
+        .event {
+            padding: 10px 12px;
+            border-left: 4px solid #3157d5;
+            background: #f5f7fb;
+            margin: 8px 0;
+            border-radius: 5px
+        }
+
+        .explain {
+            background: #edf3ff;
+            border-left: 5px solid #3157d5;
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 16px
+        }
+
+        .quiz button {
+            background: #eef1f7;
+            color: #1d2a42;
+            border: 1px solid #d8dfeb
+        }
+
+        .answer {
+            font-weight: 700;
+            margin-top: 10px;
+            min-height: 24px
+        }
+
+        @media(max-width:760px) {
+            .story,
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .lifecycle {
+                flex-direction: column;
+            }
+        }
+
+        .infographic-box {
+            width: 100%;
+            max-width: 100%;
+            margin-top: 24px;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 2px solid #dce3ef;
+            box-shadow: 0 10px 30px rgba(20, 30, 60, 0.08);
+            background: white;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .infographic-box:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 36px rgba(20, 30, 60, 0.14);
+        }
+
+        .hero-img {
+            width: 100%;
+            max-width: 100%;
+            height: auto;
+            display: block;
+            object-fit: contain;
+        }
+
+        .img-disclaimer {
+            font-size: 13px;
+            color: #64748b;
+            font-style: italic;
+            text-align: center;
+            padding: 10px 14px;
+            margin: 0;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrap">
+
+        <section class="hero">
+            <span class="badge">For Freshers • HTTP + Sessions</span>
+            <h1>Session Lifecycle — explained using the Ghajini analogy 🎬</h1>
+            <p class="subtitle">
+                Imagine Asin meets Surya. Surya cannot remember previous conversations, so they need a
+                <strong>session</strong> to maintain continuity across multiple HTTP requests.
+            </p>
+
+            <div class="story">
+                <div class="card">
+                    <h3>🎬 Movie analogy</h3>
+                    <p>Think of Surya keeping a small <strong>memory notebook</strong>.</p>
+                    <p>When Asin first meets him, he creates an identity number for their interaction and stores useful
+                        information against that number.</p>
+                </div>
+                <div class="card">
+                    <h3>🌐 Web analogy</h3>
+                    <p>The server creates a <strong>session</strong> and gives the browser a <strong>Session
+                            ID</strong>.</p>
+                    <p>The browser sends that ID with later requests, allowing the server to find the stored session
+                        data.</p>
+                </div>
+            </div>
+
+            <div class="infographic-box">
+                <img src="session-lifecycle.png" alt="Session Lifecycle Ghajini Analogy Diagram" class="hero-img">
+                <p class="img-disclaimer">📌 <b>Note:</b> This diagram is for illustration purposes only. The character portraits are AI-generated representations and are not real photos of Surya and Asin.</p>
+            </div>
+        </section>
+
+        <section class="panel">
+            <h2>1. Play the Session Lifecycle</h2>
+            <p>Click each step and watch what happens between Browser, Server and Session.</p>
+
+            <div class="lifecycle">
+                <div class="step active" id="s1">
+                    <div class="num">STEP 1</div>
+                    <h3>Visit Website</h3><small>No session yet</small>
+                </div>
+                <div class="step" id="s2">
+                    <div class="num">STEP 2</div>
+                    <h3>Login</h3><small>Create session</small>
+                </div>
+                <div class="step" id="s3">
+                    <div class="num">STEP 3</div>
+                    <h3>Session ID</h3><small>Browser stores ID</small>
+                </div>
+                <div class="step" id="s4">
+                    <div class="num">STEP 4</div>
+                    <h3>Requests</h3><small>ID travels back</small>
+                </div>
+                <div class="step" id="s5">
+                    <div class="num">STEP 5</div>
+                    <h3>Logout / Expire</h3><small>Session ends</small>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button onclick="visit()">1. Visit</button>
+                <button onclick="login()">2. Login</button>
+                <button onclick="request()">3. Make Request</button>
+                <button onclick="request()">4. Make Another Request</button>
+                <button class="danger" onclick="logout()">5. Logout</button>
+                <button class="secondary" onclick="resetDemo()">Reset</button>
+            </div>
+
+            <div class="grid" style="margin-top:18px">
+                <div class="box">
+                    <h3>🌐 Browser — Asin</h3>
+                    <div class="code" id="browser">No session ID stored yet.</div>
+                </div>
+                <div class="box">
+                    <h3>🖥️ Server — Surya</h3>
+                    <div class="memory" id="server">I don't have a session for this user.</div>
+                </div>
+            </div>
+
+            <div class="grid" style="margin-top:16px">
+                <div>
+                    <h3>🍪 Cookie / Session ID</h3>
+                    <div class="cookie" id="cookie">No cookie yet.</div>
+                </div>
+                <div>
+                    <h3>📜 What just happened?</h3>
+                    <div id="events">
+                        <div class="event">Waiting for you to start...</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel">
+            <h2>2. The Most Important Idea</h2>
+            <div class="explain">
+                <p><strong>Cookie ≠ Session</strong></p>
+                <p>In a common web application:</p>
+                <p>🍪 <strong>Cookie</strong> → browser stores a Session ID</p>
+                <p>🗄️ <strong>Session</strong> → server stores information associated with that ID</p>
+                <p>🔁 <strong>Next request</strong> → browser sends the Session ID → server finds the session → user is
+                    recognized</p>
+            </div>
+        </section>
+
+        <section class="panel quiz">
+            <h2>3. Quick Check 🧠</h2>
+            <p><strong>Question:</strong> Where is the actual session information normally maintained in a traditional
+                server-side session?</p>
+            <button onclick="quiz(false)">Inside HTTP itself</button>
+            <button onclick="quiz(false)">Only inside the browser</button>
+            <button onclick="quiz(true)">On the server, linked to a Session ID</button>
+            <div class="answer" id="answer"></div>
+        </section>
+
+        <section class="panel">
+            <h2>4. Session Lifecycle in One Picture 🖼️</h2>
+
+            <div class="infographic-box" style="margin-bottom: 20px;">
+                <img src="session-lifecycle.png" alt="Session Lifecycle Complete Diagram" class="hero-img">
+                <p class="img-disclaimer">📌 <b>Note:</b> This diagram is for illustration purposes only. The character portraits are AI-generated representations and are not real photos of Surya and Asin.</p>
+            </div>
+
+            <div class="explain">
+                <p><strong>Visit → Login → Session Created → Session ID given to Browser → Browser sends ID with
+                        requests → Server finds Session → Logout / Timeout → Session Destroyed</strong></p>
+                <p style="margin-bottom:0"><strong>Simple memory trick:</strong> The cookie is like the <em>identity
+                        card</em>; the session is like the <em>memory notebook</em> associated with that identity.</p>
+            </div>
+        </section>
+
+    </div>
+
+    <script>
+        let sessionId = null, loggedIn = false, req = 0;
+
+        function log(msg) {
+            const e = document.getElementById("events");
+            if (e.innerHTML.includes("Waiting")) e.innerHTML = "";
+            e.innerHTML += '<div class="event">' + msg + '</div>';
+            e.scrollTop = e.scrollHeight;
+        }
+
+        function step(n) {
+            for (let i = 1; i <= 5; i++) document.getElementById("s" + i).classList.remove("active", "done");
+            for (let i = 1; i < n; i++) document.getElementById("s" + i).classList.add("done");
+            document.getElementById("s" + n).classList.add("active");
+        }
+
+        function visit() {
+            step(1);
+            document.getElementById("browser").textContent = "GET /home\nCookie: none";
+            document.getElementById("server").innerHTML = "<strong>Surya:</strong> No Session ID received.<br>I treat this as a new visit.";
+            document.getElementById("cookie").textContent = "No cookie yet.";
+            log("Browser → Server: GET /home (no Session ID)");
+        }
+
+        function login() {
+            step(2);
+            sessionId = "SID-1024";
+            loggedIn = true;
+            req = 0;
+            document.getElementById("browser").textContent = "Login request sent.\nWaiting for Session ID...";
+            document.getElementById("server").innerHTML = "<strong>Surya:</strong> Login successful.<br>Created a new session for Asin.";
+            document.getElementById("cookie").innerHTML = "<strong>Cookie:</strong> session_id=" + sessionId + "<br><small>Browser stores this ID.</small>";
+            document.getElementById("browser").textContent = "Cookie stored:\nsession_id=" + sessionId;
+            log("Server → Browser: Set-Cookie: session_id=" + sessionId);
+            log("Server: Session created → user=Asin, loggedIn=true");
+            step(3);
+        }
+
+        function request() {
+            if (!loggedIn || !sessionId) {
+                document.getElementById("server").innerHTML = "<strong>Surya:</strong> No active session. Please login first.";
+                log("Request rejected for demo: no active session.");
+                return;
+            }
+            req++;
+            step(4);
+            document.getElementById("browser").textContent = "GET /profile\nCookie: session_id=" + sessionId;
+            document.getElementById("server").innerHTML = "<strong>Surya:</strong> Found session <b>" + sessionId + "</b>.<br>Welcome back, Asin!<br>Request #" + req + " understood.";
+            log("Browser → Server: GET /profile + session_id=" + sessionId);
+            log("Server: Looks up " + sessionId + " → recognizes Asin → sends response");
+        }
+
+        function logout() {
+            if (!sessionId) {
+                document.getElementById("server").innerHTML = "<strong>Surya:</strong> There is no active session to logout.";
+                return;
+            }
+            step(5);
+            const old = sessionId;
+            loggedIn = false;
+            sessionId = null;
+            document.getElementById("server").innerHTML = "<strong>Surya:</strong> Session " + old + " has been destroyed/invalidated.<br>Asin is no longer logged in.";
+            document.getElementById("browser").textContent = "Cookie cleared/expired.\nNo active Session ID.";
+            document.getElementById("cookie").textContent = "No active session cookie.";
+            log("Browser → Server: Logout request with " + old);
+            log("Server: Session " + old + " invalidated");
+        }
+
+        function resetDemo() {
+            sessionId = null; loggedIn = false; req = 0;
+            for (let i = 1; i <= 5; i++) document.getElementById("s" + i).classList.remove("active", "done");
+            document.getElementById("s1").classList.add("active");
+            document.getElementById("browser").textContent = "No session ID stored yet.";
+            document.getElementById("server").textContent = "I don't have a session for this user.";
+            document.getElementById("cookie").textContent = "No cookie yet.";
+            document.getElementById("events").innerHTML = '<div class="event">Waiting for you to start...</div>';
+        }
+
+        function quiz(correct) {
+            document.getElementById("answer").textContent = correct
+                ? "✅ Correct! In a traditional server-side session, the server stores the session data and the browser commonly carries only the Session ID in a cookie."
+                : "❌ Not quite. HTTP itself does not store session state. The browser commonly carries a Session ID, while the server stores the associated session data.";
+        }
+    </script>
+</body>
+
+</html>
