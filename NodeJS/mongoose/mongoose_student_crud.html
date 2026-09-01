@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mongoose MongoDB CRUD Operations — Student Management Example</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+            margin: 25px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #10b981;
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 4px;
+        }
+
+        .topic-nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-btn:hover,
+        .nav-btn.active {
+            background: rgba(255, 255, 255, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .content-section {
+            display: none;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .content-section.active {
+            display: block;
+            animation: fadeIn 0.4s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .content-section h2 {
+            color: #3730a3;
+            margin-bottom: 20px;
+            font-size: 2.2rem;
+            border-bottom: 3px solid #6366f1;
+            padding-bottom: 10px;
+        }
+
+        .content-section h3 {
+            color: #4338ca;
+            margin: 25px 0 15px 0;
+            font-size: 1.4rem;
+        }
+
+        .code-block {
+            background: #1e1e2e;
+            color: #cdd6f4;
+            padding: 25px 20px 20px 20px;
+            border-radius: 12px;
+            margin: 18px 0;
+            font-family: 'Consolas', 'Fira Code', 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            position: relative;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+        }
+
+        .code-block code {
+            font-family: inherit;
+            color: inherit;
+            background: transparent;
+            padding: 0;
+        }
+
+        code {
+            font-family: 'Consolas', 'Fira Code', 'Monaco', 'Courier New', monospace;
+        }
+
+        :not(pre) > code {
+            background: #e0e7ff;
+            color: #3730a3;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        .code-block::before {
+            content: "Node.js / Mongoose";
+            position: absolute;
+            top: -10px;
+            left: 20px;
+            background: #6366f1;
+            color: white;
+            padding: 2px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .info-box {
+            background: #e0e7ff;
+            border-left: 5px solid #4f46e5;
+            padding: 18px;
+            margin: 20px 0;
+            border-radius: 0 10px 10px 0;
+        }
+
+        .tip-box {
+            background: #d1fae5;
+            border-left: 5px solid #10b981;
+            padding: 18px;
+            margin: 20px 0;
+            border-radius: 0 10px 10px 0;
+        }
+
+        .warning-box {
+            background: #fef3c7;
+            border-left: 5px solid #f59e0b;
+            padding: 18px;
+            margin: 20px 0;
+            border-radius: 0 10px 10px 0;
+        }
+
+        .grid-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+        }
+
+        .card h4 {
+            color: #4f46e5;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+
+        /* Interactive Simulator Styles */
+        .simulator-container {
+            background: #f1f5f9;
+            border-radius: 16px;
+            padding: 25px;
+            margin: 25px 0;
+            border: 2px solid #cbd5e1;
+        }
+
+        .sim-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 900px) {
+            .sim-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .sim-form-group {
+            margin-bottom: 12px;
+        }
+
+        .sim-form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #334155;
+        }
+
+        .sim-input, .sim-select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .sim-btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .sim-btn {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            color: white;
+        }
+
+        .btn-create { background: #10b981; }
+        .btn-create:hover { background: #059669; }
+
+        .btn-read { background: #3b82f6; }
+        .btn-read:hover { background: #2563eb; }
+
+        .btn-update { background: #f59e0b; }
+        .btn-update:hover { background: #d97706; }
+
+        .btn-delete { background: #ef4444; }
+        .btn-delete:hover { background: #dc2626; }
+
+        .sim-output {
+            background: #1e1e2e;
+            color: #a6e3a1;
+            padding: 15px;
+            border-radius: 10px;
+            font-family: 'Consolas', monospace;
+            font-size: 13px;
+            min-height: 250px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+
+        .nav-button {
+            background: #4f46e5;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .nav-button:hover {
+            background: #4338ca;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(79, 70, 229, 0.4);
+        }
+
+        .nav-button:disabled {
+            background: #cbd5e1;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎓 Mongoose & MongoDB CRUD Operations</h1>
+            <p>Complete Guide with Student Management Code Examples & Live Interactive Simulator</p>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="topic-nav">
+            <button class="nav-btn active" onclick="showSection('schema', 0)">1. Student Schema</button>
+            <button class="nav-btn" onclick="showSection('create', 1)">2. Create (C)</button>
+            <button class="nav-btn" onclick="showSection('read', 2)">3. Read (R)</button>
+            <button class="nav-btn" onclick="showSection('update', 3)">4. Update (U)</button>
+            <button class="nav-btn" onclick="showSection('delete', 4)">5. Delete (D)</button>
+            <button class="nav-btn" onclick="showSection('simulator', 5)">6. Live Demo</button>
+        </div>
+
+        <!-- Section 1: Student Schema & Model -->
+        <div class="content-section active" id="schema">
+            <h2>📜 1. Defining Student Schema & Model</h2>
+
+            <p>A <strong>Schema</strong> defines the shape of documents inside a collection. A <strong>Model</strong> is a constructor compiled from the Schema that provides the interface to query, insert, update, and delete documents in MongoDB.</p>
+
+            <h3>Student Model Definition (`Student.js`)</h3>
+
+            <pre class="code-block"><code>// Student.js - Mongoose Schema and Model Definition
+const mongoose = require('mongoose');
+
+const studentSchema = new mongoose.Schema({
+  rollNo: {
+    type: Number,
+    required: [true, 'Roll number is required'],
+    unique: true,
+    index: true
+  },
+  name: {
+    type: String,
+    required: [true, 'Student name is required'],
+    trim: true,
+    minlength: [2, 'Name must be at least 2 characters long']
+  },
+  email: {
+    type: String,
+    required: [true, 'Email is required'],
+    lowercase: true,
+    trim: true
+  },
+  age: {
+    type: Number,
+    min: [15, 'Age must be at least 15'],
+    max: [60, 'Age cannot exceed 60']
+  },
+  branch: {
+    type: String,
+    required: true,
+    enum: ['CSE', 'ECE', 'EEE', 'IT', 'MECH', 'CIVIL']
+  },
+  cgpa: {
+    type: Number,
+    min: [0, 'CGPA cannot be negative'],
+    max: [10, 'CGPA cannot exceed 10.0'],
+    default: 0.0
+  },
+  courses: [{
+    type: String
+  }],
+  isEnrolled: {
+    type: Boolean,
+    default: true
+  }
+}, {
+  timestamps: true // Automatically adds createdAt and updatedAt fields
+});
+
+// Compile Schema into a Model
+const Student = mongoose.model('Student', studentSchema);
+
+module.exports = Student;</code></pre>
+
+            <div class="grid-cards">
+                <div class="card">
+                    <h4>🔒 Validations</h4>
+                    <p>Enforces `required`, `min`, `max`, `minlength`, `enum`, and custom error messages automatically.</p>
+                </div>
+                <div class="card">
+                    <h4>⚙️ Options & Defaults</h4>
+                    <p>`trim`, `lowercase`, `default`, and `timestamps: true` handle clean data formatting.</p>
+                </div>
+                <div class="card">
+                    <h4>🔑 Index & Unique</h4>
+                    <p>`unique: true` on `rollNo` prevents duplicate student entries in the database.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 2: Create Operations -->
+        <div class="content-section" id="create">
+            <h2>➕ 2. Create (Insert) Operations</h2>
+
+            <p>Mongoose provides multiple methods to insert new document records into MongoDB:</p>
+
+            <h3>Method A: Using `save()` (Instance Method)</h3>
+            <pre class="code-block"><code>const Student = require('./Student');
+
+// 1. Create a new document instance
+async function createSingleStudent() {
+  try {
+    const student = new Student({
+      rollNo: 101,
+      name: "Rahul Sharma",
+      email: "rahul.s@example.com",
+      age: 20,
+      branch: "CSE",
+      cgpa: 8.75,
+      courses: ["Data Structures", "DBMS", "Web Dev"]
+    });
+
+    // 2. Save document to MongoDB
+    const savedStudent = await student.save();
+    console.log("✅ Student Created Successfully:", savedStudent);
+  } catch (error) {
+    console.error("❌ Save Error:", error.message);
+  }
+}</code></pre>
+
+            <h3>Method B: Using `Student.create()` (Model Method)</h3>
+            <pre class="code-block"><code>// Create and save in a single operation
+async function quickCreateStudent() {
+  try {
+    const newStudent = await Student.create({
+      rollNo: 102,
+      name: "Ananya Roy",
+      email: "ananya@example.com",
+      age: 21,
+      branch: "ECE",
+      cgpa: 9.10,
+      courses: ["VLSI", "Digital Signal Processing"]
+    });
+    console.log("✅ Quick Created Student:", newStudent);
+  } catch (error) {
+    console.error("❌ Creation Error:", error.message);
+  }
+}</code></pre>
+
+            <h3>Method C: Bulk Insert with `Student.insertMany()`</h3>
+            <pre class="code-block"><code>async function insertMultipleStudents() {
+  const studentsList = [
+    { rollNo: 103, name: "Priya Patel", email: "priya@example.com", age: 20, branch: "CSE", cgpa: 8.4 },
+    { rollNo: 104, name: "Vikas Reddy", email: "vikas@example.com", age: 22, branch: "IT", cgpa: 7.9 },
+    { rollNo: 105, name: "Sneha Verma", email: "sneha@example.com", age: 19, branch: "EEE", cgpa: 9.3 }
+  ];
+
+  try {
+    const docs = await Student.insertMany(studentsList);
+    console.log(`✅ Bulk inserted ${docs.length} students into database.`);
+  } catch (error) {
+    console.error("❌ Bulk Insert Error:", error.message);
+  }
+}</code></pre>
+        </div>
+
+        <!-- Section 3: Read Operations -->
+        <div class="content-section" id="read">
+            <h2>🔍 3. Read (Query) Operations</h2>
+
+            <p>Mongoose provides powerful query helper methods to retrieve student documents from MongoDB.</p>
+
+            <h3>1. Find All Students & Filter by Condition</h3>
+            <pre class="code-block"><code>// Fetch all enrolled students
+async function getAllStudents() {
+  const students = await Student.find();
+  console.log("All Students:", students);
+}
+
+// Find students with filter conditions (CSE branch and CGPA >= 8.0)
+async function getTopCSEStudents() {
+  const topStudents = await Student.find({
+    branch: 'CSE',
+    cgpa: { $gte: 8.0 }
+  });
+  console.log("Top CSE Students:", topStudents);
+}</code></pre>
+
+            <h3>2. Find Single Document (`findOne` & `findById`)</h3>
+            <pre class="code-block"><code>// Find by Roll Number
+async function getStudentByRollNo(rollNo) {
+  const student = await Student.findOne({ rollNo: rollNo });
+  if (!student) {
+    console.log("No student found with Roll No:", rollNo);
+  } else {
+    console.log("Student Found:", student.name);
+  }
+}
+
+// Find by MongoDB _id
+async function getStudentById(id) {
+  const student = await Student.findById(id);
+  console.log("Found by ID:", student);
+}</code></pre>
+
+            <h3>3. Projection, Sorting, and Pagination</h3>
+            <pre class="code-block"><code>async function getSortedStudentRoster() {
+  const result = await Student.find({ isEnrolled: true })
+    .select('name rollNo branch cgpa -_id') // Include name, rollNo, branch, cgpa; Exclude _id
+    .sort({ cgpa: -1 })                     // Sort by CGPA descending
+    .limit(5)                               // Limit to top 5 results
+    .skip(0);                               // Skip offset for pagination
+
+  console.log("Ranked Top 5 Students:", result);
+}</code></pre>
+        </div>
+
+        <!-- Section 4: Update Operations -->
+        <div class="content-section" id="update">
+            <h2>✏️ 4. Update Operations</h2>
+
+            <p>Mongoose offers methods to update existing student records safely.</p>
+
+            <h3>1. `findByIdAndUpdate()` or `findOneAndUpdate()` (Recommended)</h3>
+            <div class="tip-box">
+                Set <code>{ new: true, runValidators: true }</code> to get the updated document back and enforce schema validations during update!
+            </div>
+
+            <pre class="code-block"><code>// Update CGPA and return updated document
+async function updateStudentCGPA(rollNo, newCgpa) {
+  try {
+    const updatedStudent = await Student.findOneAndUpdate(
+      { rollNo: rollNo },
+      { $set: { cgpa: newCgpa } },
+      { new: true, runValidators: true } // Returns updated doc & runs validations
+    );
+
+    console.log("✅ Updated Student:", updatedStudent);
+  } catch (error) {
+    console.error("❌ Update failed:", error.message);
+  }
+}
+
+// Add a new course to student's course list ($push array operator)
+async function addCourseToStudent(rollNo, courseName) {
+  const student = await Student.findOneAndUpdate(
+    { rollNo: rollNo },
+    { $addToSet: { courses: courseName } }, // $addToSet prevents duplicate entries
+    { new: true }
+  );
+  console.log("✅ Updated Courses:", student.courses);
+}</code></pre>
+
+            <h3>2. Bulk Update (`updateMany`)</h3>
+            <pre class="code-block"><code>// Increment age of all CSE students by 1 year
+async function incrementCSEAge() {
+  const result = await Student.updateMany(
+    { branch: 'CSE' },
+    { $inc: { age: 1 } }
+  );
+  console.log(`✅ Modified ${result.modifiedCount} student records.`);
+}</code></pre>
+        </div>
+
+        <!-- Section 5: Delete Operations -->
+        <div class="content-section" id="delete">
+            <h2>🗑️ 5. Delete Operations</h2>
+
+            <p>Methods to delete single or multiple student records from the database.</p>
+
+            <h3>1. Delete Single Document (`deleteOne` / `findByIdAndDelete`)</h3>
+            <pre class="code-block"><code>// Delete by Roll Number
+async function deleteStudentByRoll(rollNo) {
+  const result = await Student.deleteOne({ rollNo: rollNo });
+  if (result.deletedCount > 0) {
+    console.log(`✅ Student with Roll No ${rollNo} deleted successfully.`);
+  } else {
+    console.log(`⚠️ No student found with Roll No ${rollNo}.`);
+  }
+}
+
+// Find and delete (returns deleted document)
+async function removeStudent(id) {
+  const deletedStudent = await Student.findByIdAndDelete(id);
+  console.log("Deleted Record:", deletedStudent);
+}</code></pre>
+
+            <h3>2. Bulk Delete (`deleteMany`)</h3>
+            <pre class="code-block"><code>// Remove all students who are no longer enrolled
+async function cleanupUnenrolledStudents() {
+  const result = await Student.deleteMany({ isEnrolled: false });
+  console.log(`✅ Removed ${result.deletedCount} unenrolled students.`);
+}</code></pre>
+
+            <div class="warning-box">
+                <strong>⚠️ Warning:</strong> Calling <code>Student.deleteMany({})</code> without a query filter will wipe out all records in the collection!
+            </div>
+        </div>
+
+        <!-- Section 6: Live Interactive Demo -->
+        <div class="content-section" id="simulator">
+            <h2>🧪 6. Interactive Live Student CRUD Simulator</h2>
+            <p>Test Mongoose CRUD operations directly in your browser with real-time simulated MongoDB output!</p>
+
+            <div class="simulator-container">
+                <div class="sim-grid">
+                    <div>
+                        <h4 style="margin-bottom:15px; color:#334155;">Student Input Form</h4>
+                        
+                        <div class="sim-form-group">
+                            <label>Roll Number</label>
+                            <input type="number" id="simRollNo" class="sim-input" value="101">
+                        </div>
+
+                        <div class="sim-form-group">
+                            <label>Student Name</label>
+                            <input type="text" id="simName" class="sim-input" value="Rahul Sharma">
+                        </div>
+
+                        <div class="sim-form-group">
+                            <label>Email Address</label>
+                            <input type="email" id="simEmail" class="sim-input" value="rahul@example.com">
+                        </div>
+
+                        <div class="sim-form-group">
+                            <label>Branch</label>
+                            <select id="simBranch" class="sim-select">
+                                <option value="CSE">CSE</option>
+                                <option value="ECE">ECE</option>
+                                <option value="EEE">EEE</option>
+                                <option value="IT">IT</option>
+                                <option value="MECH">MECH</option>
+                            </select>
+                        </div>
+
+                        <div class="sim-form-group">
+                            <label>CGPA</label>
+                            <input type="number" step="0.1" id="simCgpa" class="sim-input" value="8.5">
+                        </div>
+
+                        <div class="sim-btn-group">
+                            <button class="sim-btn btn-create" onclick="simCreate()">Create (save)</button>
+                            <button class="sim-btn btn-read" onclick="simRead()">Read (find)</button>
+                            <button class="sim-btn btn-update" onclick="simUpdate()">Update (cgpa)</button>
+                            <button class="sim-btn btn-delete" onclick="simDelete()">Delete (deleteOne)</button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 style="margin-bottom:15px; color:#334155;">Database State & Output Log</h4>
+                        <div class="sim-output" id="simOutput">Console initialized. Ready to execute Mongoose operations...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="navigation-buttons">
+            <button class="nav-button" id="prevBtn" onclick="previousSection()" disabled>← Previous</button>
+            <button class="nav-button" id="nextBtn" onclick="nextSection()">Next →</button>
+        </div>
+    </div>
+
+    <script>
+        // Topic Navigation Logic
+        let currentSection = 0;
+        const sections = ['schema', 'create', 'read', 'update', 'delete', 'simulator'];
+
+        function showSection(sectionId, index) {
+            document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+
+            document.getElementById(sectionId).classList.add('active');
+            document.querySelectorAll('.nav-btn')[index].classList.add('active');
+
+            currentSection = index;
+            updateProgress();
+            updateNavigationButtons();
+        }
+
+        function updateProgress() {
+            const progress = ((currentSection + 1) / sections.length) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+
+        function updateNavigationButtons() {
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+
+            prevBtn.disabled = currentSection === 0;
+            nextBtn.disabled = currentSection === sections.length - 1;
+
+            nextBtn.textContent = currentSection === sections.length - 1 ? 'Topic Complete! 🎉' : 'Next →';
+        }
+
+        function previousSection() {
+            if (currentSection > 0) {
+                showSection(sections[currentSection - 1], currentSection - 1);
+            }
+        }
+
+        function nextSection() {
+            if (currentSection < sections.length - 1) {
+                showSection(sections[currentSection + 1], currentSection + 1);
+            }
+        }
+
+        // Live In-Browser Simulator Logic
+        let localDb = [
+            { _id: "65d8a1f2e1a2b3c4d5e6f7a1", rollNo: 101, name: "Rahul Sharma", email: "rahul@example.com", branch: "CSE", cgpa: 8.5, isEnrolled: true, createdAt: new Date().toISOString() },
+            { _id: "65d8a1f2e1a2b3c4d5e6f7a2", rollNo: 102, name: "Ananya Roy", email: "ananya@example.com", branch: "ECE", cgpa: 9.1, isEnrolled: true, createdAt: new Date().toISOString() }
+        ];
+
+        function logOutput(msg) {
+            const outputBox = document.getElementById('simOutput');
+            outputBox.textContent = msg;
+        }
+
+        function simCreate() {
+            const rollNo = parseInt(document.getElementById('simRollNo').value);
+            const name = document.getElementById('simName').value;
+            const email = document.getElementById('simEmail').value;
+            const branch = document.getElementById('simBranch').value;
+            const cgpa = parseFloat(document.getElementById('simCgpa').value);
+
+            if (!rollNo || !name || !email) {
+                logOutput("❌ ValidationError: Roll Number, Name, and Email are required!");
+                return;
+            }
+
+            if (localDb.some(s => s.rollNo === rollNo)) {
+                logOutput(`❌ MongoServerError: E11000 duplicate key error collection: student_db.students index: rollNo_1 dup key: { rollNo: ${rollNo} }`);
+                return;
+            }
+
+            const newDoc = {
+                _id: "65d8a" + Math.random().toString(16).substring(2, 18),
+                rollNo, name, email, branch, cgpa,
+                isEnrolled: true,
+                createdAt: new Date().toISOString()
+            };
+
+            localDb.push(newDoc);
+            logOutput(`> const student = new Student({...});\n> await student.save();\n\n✅ [200 OK] Student Created Successfully:\n` + JSON.stringify(newDoc, null, 2));
+        }
+
+        function simRead() {
+            logOutput(`> await Student.find({});\n\n🔍 Database Records (${localDb.length} documents found):\n` + JSON.stringify(localDb, null, 2));
+        }
+
+        function simUpdate() {
+            const rollNo = parseInt(document.getElementById('simRollNo').value);
+            const newCgpa = parseFloat(document.getElementById('simCgpa').value);
+
+            const index = localDb.findIndex(s => s.rollNo === rollNo);
+            if (index === -1) {
+                logOutput(`> await Student.findOneAndUpdate({ rollNo: ${rollNo} }, ...);\n\n⚠️ Student with Roll No ${rollNo} not found.`);
+                return;
+            }
+
+            localDb[index].cgpa = newCgpa;
+            localDb[index].updatedAt = new Date().toISOString();
+
+            logOutput(`> await Student.findOneAndUpdate({ rollNo: ${rollNo} }, { $set: { cgpa: ${newCgpa} } }, { new: true });\n\n✅ Updated Student Document:\n` + JSON.stringify(localDb[index], null, 2));
+        }
+
+        function simDelete() {
+            const rollNo = parseInt(document.getElementById('simRollNo').value);
+            const initialLen = localDb.length;
+            localDb = localDb.filter(s => s.rollNo !== rollNo);
+
+            if (localDb.length < initialLen) {
+                logOutput(`> await Student.deleteOne({ rollNo: ${rollNo} });\n\n✅ Successfully deleted student document with Roll No: ${rollNo}.\nRemaining documents: ${localDb.length}`);
+            } else {
+                logOutput(`> await Student.deleteOne({ rollNo: ${rollNo} });\n\n⚠️ No student document matched Roll No: ${rollNo}. deletedCount: 0`);
+            }
+        }
+    </script>
+</body>
+</html>
