@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vertical Scaling (Scale-Up) vs Horizontal Scaling (Scale-Out) Deep Dive</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,560;9..144,680&family=IBM+Plex+Mono:wght@400;500;600&family=Karla:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-page: #f8faf9;
+            --surface: #ffffff;
+            --surface-subtle: #f1f5f3;
+            --border-soft: #e2e8f0;
+            --border-strong: #cbd5e1;
+            
+            --ink-main: #0f172a;
+            --ink-muted: #475569;
+            --ink-subtle: #64748b;
+            
+            --brand-sky: #0284c7;
+            --brand-indigo: #4338ca;
+            --brand-emerald: #047857;
+            --brand-amber: #b45309;
+            --brand-rose: #be123c;
+            --brand-violet: #6d28d9;
+            
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 16px;
+            --shadow-subtle: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
+            --shadow-card: 0 10px 30px -4px rgba(15, 23, 42, 0.08);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-page);
+            background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
+            background-size: 20px 20px;
+            color: var(--ink-main);
+            font-family: 'Karla', sans-serif;
+            line-height: 1.65;
+            padding-bottom: 80px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        ::selection { background: #e0f2fe; color: #0369a1; }
+
+        .container { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+        /* Editorial Light Header */
+        header.hero {
+            background: #ffffff;
+            border-bottom: 1px solid var(--border-soft);
+            padding: 54px 24px 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+        }
+
+        .hero-inner { max-width: 1080px; margin: 0 auto; }
+
+        .kicker {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13px;
+            color: var(--brand-sky);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .kicker .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--brand-sky); }
+
+        h1 {
+            font-family: 'Fraunces', serif;
+            font-weight: 560;
+            font-size: clamp(34px, 5.2vw, 48px);
+            line-height: 1.1;
+            color: #0f172a;
+            margin-bottom: 18px;
+            letter-spacing: -0.02em;
+        }
+
+        h1 em { font-style: italic; color: var(--brand-sky); font-weight: 400; }
+
+        .dek {
+            font-size: 17.5px;
+            color: var(--ink-muted);
+            max-width: 72ch;
+            margin-bottom: 18px;
+            line-height: 1.6;
+        }
+
+        .source-note {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13px;
+            color: var(--ink-subtle);
+            background: var(--surface-subtle);
+            padding: 8px 14px;
+            border-radius: var(--radius-sm);
+            display: inline-block;
+        }
+
+        /* Navigation Tabs */
+        .tabs {
+            display: flex;
+            gap: 6px;
+            margin: 36px 0 0;
+            border-bottom: 1px solid var(--border-soft);
+            overflow-x: auto;
+        }
+
+        .tab {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13.5px;
+            padding: 14px 22px;
+            background: none;
+            border: none;
+            color: var(--ink-subtle);
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+            border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+        }
+
+        .tab:hover { color: var(--ink-main); background: rgba(241, 245, 243, 0.6); }
+        .tab.active { color: var(--brand-sky); font-weight: 600; background: #ffffff; }
+
+        .tab::after {
+            content: "";
+            position: absolute;
+            left: 0; right: 0; bottom: -1px;
+            height: 3px;
+            background: transparent;
+        }
+
+        .tab.active::after { background: var(--brand-sky); }
+
+        .panel { display: none; padding-top: 36px; }
+        .panel.active { display: block; animation: fade 0.25s ease; }
+
+        @keyframes fade {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Light Cards */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius-lg);
+            padding: 30px;
+            margin-bottom: 28px;
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .card h2 {
+            font-family: 'Fraunces', serif;
+            font-size: 26px;
+            margin-bottom: 12px;
+            color: var(--ink-main);
+            letter-spacing: -0.01em;
+        }
+
+        .card p { color: var(--ink-muted); font-size: 16px; line-height: 1.7; margin-bottom: 16px; }
+
+        /* Comparison Grids */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin: 24px 0;
+        }
+
+        @media (max-width: 768px) { .comparison-grid { grid-template-columns: 1fr; } }
+
+        .info-card {
+            background: #ffffff;
+            border-radius: var(--radius-md);
+            padding: 24px;
+            border: 1px solid var(--border-soft);
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .info-card.vert { border-top: 4px solid var(--brand-rose); }
+        .info-card.horiz { border-top: 4px solid var(--brand-emerald); }
+
+        .card-badge {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+        }
+
+        .badge-vert { background: #fef2f2; color: var(--brand-rose); border: 1px solid #fecdd3; }
+        .badge-horiz { background: #ecfdf5; color: var(--brand-emerald); border: 1px solid #a7f3d0; }
+
+        /* Comparison Table */
+        .comp-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            margin-top: 16px;
+        }
+
+        .comp-table th, .comp-table td {
+            padding: 14px 16px;
+            border: 1px solid var(--border-soft);
+            text-align: left;
+        }
+
+        .comp-table th {
+            background: var(--surface-subtle);
+            font-family: 'IBM Plex Mono', monospace;
+            font-weight: 600;
+            color: var(--ink-main);
+        }
+
+        .comp-table td.feature {
+            font-family: 'IBM Plex Mono', monospace;
+            font-weight: 600;
+            background: #ffffff;
+            color: var(--ink-main);
+        }
+
+        /* Simulator Layout */
+        .sim-box {
+            background: #0f172a;
+            color: #f8fafc;
+            border-radius: var(--radius-md);
+            padding: 24px;
+            font-family: 'IBM Plex Mono', monospace;
+            margin-top: 20px;
+        }
+
+        .sim-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 640px) { .sim-controls { grid-template-columns: 1fr; } }
+
+        .control-block {
+            background: #1e293b;
+            padding: 16px;
+            border-radius: var(--radius-sm);
+        }
+
+        .control-title {
+            font-size: 12px;
+            color: #38bdf8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 10px;
+        }
+
+        .btn-sim {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13px;
+            padding: 8px 14px;
+            background: #334155;
+            color: #ffffff;
+            border: 1px solid #475569;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .btn-sim:hover { background: #38bdf8; color: #0f172a; font-weight: 600; }
+
+        .server-fleet {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 14px;
+            min-height: 80px;
+            padding: 12px;
+            background: #090d16;
+            border-radius: var(--radius-sm);
+            align-items: center;
+        }
+
+        .server-node {
+            background: #1e293b;
+            border: 1px solid #3b82f6;
+            padding: 10px 14px;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 12px;
+            color: #ffffff;
+            min-width: 100px;
+        }
+
+        .server-node.down {
+            border-color: #f43f5e;
+            background: #450a0a;
+            color: #fca5a5;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="hero">
+        <div class="hero-inner">
+            <div class="kicker">
+                <span class="dot"></span> SYSTEM ARCHITECTURE · CLOUD SCALABILITY
+            </div>
+            <h1>Vertical vs. Horizontal Scaling <em>Deep Dive</em></h1>
+            <p class="dek">
+                Master the technical trade-offs between Scaling Up (bigger hardware) and Scaling Out (more server nodes), database scaling strategies, load balancing requirements, and Capgemini assessment scenarios.
+            </p>
+            <div class="source-note">
+                Context: <strong>Full Stack & Cloud Architecture</strong> (Session 8: Scaling Strategies).
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Navigation Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('overview')"><i class="fa-solid fa-layer-group"></i> Core Scaling Concepts</button>
+            <button class="tab" onclick="switchTab('comparison')"><i class="fa-solid fa-table-columns"></i> Side-by-Side Comparison</button>
+            <button class="tab" onclick="switchTab('database')"><i class="fa-solid fa-database"></i> Database Scaling (RDBMS vs NoSQL)</button>
+            <button class="tab" onclick="switchTab('simulator')"><i class="fa-solid fa-sliders"></i> Interactive Scaling Simulator</button>
+        </div>
+
+        <!-- TAB 1: CORE SCALING CONCEPTS -->
+        <div id="overview" class="panel active">
+            <div class="card">
+                <h2>Understanding Scaling Strategies</h2>
+                <p>
+                    As user traffic grows, application servers and databases experience CPU spikes, memory exhaustion, and response latency. Software engineers use two fundamental approaches to handle increased load:
+                </p>
+
+                <div class="comparison-grid">
+                    <div class="info-card vert">
+                        <span class="card-badge badge-vert">Vertical Scaling (Scale-Up)</span>
+                        <h3 style="font-family: 'Fraunces'; font-size: 20px; margin-bottom: 8px;">Upgrade Single Machine Hardware</h3>
+                        <p style="font-size: 14.5px; color: var(--ink-muted);">
+                            Increasing the physical capacity of an existing single server by adding more vCPUs, RAM, or faster NVMe SSD storage (e.g. upgrading an AWS EC2 instance from <code>t3.medium</code> with 4GB RAM to <code>m5.4xlarge</code> with 64GB RAM).
+                        </p>
+                        <ul style="font-size: 13.5px; color: var(--ink-muted); padding-left: 18px; margin-top: 10px; display: flex; flex-direction: column; gap: 6px;">
+                            <li>✅ <strong>Zero Code Changes:</strong> Monolithic apps run unchanged without needing distributed sessions.</li>
+                            <li>✅ <strong>Simplicity:</strong> No load balancers or network inter-process communication required.</li>
+                            <li>❌ <strong>Hardware Ceiling:</strong> Physical limit on max RAM/CPU a single motherboard can hold.</li>
+                            <li>❌ <strong>Single Point of Failure (SPOF):</strong> If the server hardware crashes, the entire system goes down!</li>
+                            <li>❌ <strong>Downtime Required:</strong> Resizing a server requires restarting the VM instance.</li>
+                        </ul>
+                    </div>
+
+                    <div class="info-card horiz">
+                        <span class="card-badge badge-horiz">Horizontal Scaling (Scale-Out)</span>
+                        <h3 style="font-family: 'Fraunces'; font-size: 20px; margin-bottom: 8px;">Add Parallel Server Nodes</h3>
+                        <p style="font-size: 14.5px; color: var(--ink-muted);">
+                            Adding more commodity server instances into a resource pool behind an Elastic Load Balancer (ELB). Instead of 1 massive server, traffic is distributed across 10 smaller worker nodes.
+                        </p>
+                        <ul style="font-size: 13.5px; color: var(--ink-muted); padding-left: 18px; margin-top: 10px; display: flex; flex-direction: column; gap: 6px;">
+                            <li>✅ <strong>Infinite Scalability:</strong> Add as many server nodes as needed to handle millions of requests.</li>
+                            <li>✅ <strong>High Availability & Fault Tolerance:</strong> If 1 node fails, the load balancer routes traffic to remaining healthy nodes.</li>
+                            <li>✅ <strong>Zero Downtime Upgrades:</strong> Rolling updates allow patching servers one by one without taking the app offline.</li>
+                            <li>❌ <strong>Architecture Complexity:</strong> Requires stateless session management (JWT / Redis session store).</li>
+                            <li>❌ <strong>Network Overhead:</strong> Requires Load Balancer setup and distributed data synchronization.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Architectural Diagram Card -->
+                <div style="margin-top: 28px; background: var(--surface-subtle); padding: 24px; border-radius: var(--radius-md); border: 1px solid var(--border-soft);">
+                    <h3 style="font-family: 'Fraunces', serif; font-size: 22px; margin-bottom: 8px; color: var(--ink-main); display: flex; align-items: center; gap: 10px;">
+                        <i class="fa-solid fa-diagram-project" style="color: var(--brand-sky);"></i> Architectural Diagram: Scale-Up vs Scale-Out
+                    </h3>
+                    <p style="color: var(--ink-muted); font-size: 15px; margin-bottom: 16px; line-height: 1.6;">
+                        Visual representation comparing Vertical Scaling (adding CPU/RAM resources to a single instance) versus Horizontal Scaling (distributing requests across multiple instances via a Load Balancer).
+                    </p>
+                    <div style="text-align: center; background: #ffffff; padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-soft); box-shadow: var(--shadow-subtle);">
+                        <img src="verticalVsHorizontalScaling.png" alt="Vertical Scaling vs Horizontal Scaling Architecture Diagram" style="max-width: 100%; height: auto; border-radius: var(--radius-sm);">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: SIDE-BY-SIDE COMPARISON TABLE -->
+        <div id="comparison" class="panel">
+            <div class="card">
+                <h2>Detailed Technical Feature Comparison</h2>
+                <p>Use this comparison matrix to answer architecture and assessment questions:</p>
+
+                <table class="comp-table">
+                    <thead>
+                        <tr>
+                            <th>Architectural Metric</th>
+                            <th>Vertical Scaling (Scale-Up)</th>
+                            <th>Horizontal Scaling (Scale-Out)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="feature">Primary Mechanism</td>
+                            <td>Add CPU / RAM to single server</td>
+                            <td>Add more server instances to fleet</td>
+                        </tr>
+                        <tr>
+                            <td class="feature">Capacity Limit</td>
+                            <td>Strict hardware ceiling (Max RAM/CPU)</td>
+                            <td>Virtually Unlimited (Commodity clusters)</td>
+                        </tr>
+                        <tr>
+                            <td class="feature">Fault Tolerance</td>
+                            <td><span style="color: var(--brand-rose); font-weight: 600;">Low (SPOF - Single Point of Failure)</span></td>
+                            <td><span style="color: var(--brand-emerald); font-weight: 600;">High (Fault tolerant across multi-AZs)</span></td>
+                        </tr>
+                        <tr>
+                            <td class="feature">Load Balancer Required?</td>
+                            <td>No</td>
+                            <td>Yes (ALB / NGINX / HAProxy)</td>
+                        </tr>
+                        <tr>
+                            <td class="feature">Application Statefulness</td>
+                            <td>Supports Stateful (In-memory sessions)</td>
+                            <td>Requires Stateless design (Redis / JWT)</td>
+                        </tr>
+                        <tr>
+                            <td class="feature">Resizing Downtime</td>
+                            <td>Requires instance reboot/downtime</td>
+                            <td>Zero-downtime (Rolling auto-scaling)</td>
+                        </tr>
+                        <tr>
+                            <td class="feature">Cost Efficiency</td>
+                            <td>High-end hardware gets exponentially expensive</td>
+                            <td>Pay-as-you-go using cheap commodity instances</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB 3: DATABASE SCALING (RDBMS VS NOSQL) -->
+        <div id="database" class="panel">
+            <div class="card">
+                <h2>Database Scaling: Relational (RDBMS) vs. NoSQL</h2>
+                <p>
+                    Scaling databases is significantly harder than scaling web servers because databases maintain state on disk!
+                </p>
+
+                <div class="comparison-grid">
+                    <div class="info-card" style="border-top: 4px solid var(--brand-indigo);">
+                        <span class="card-badge badge-vert">Scaling RDBMS (PostgreSQL / MySQL)</span>
+                        <h4 style="font-size: 18px; margin-bottom: 8px; font-family: 'Fraunces';">Vertical Primary + Read Replicas</h4>
+                        <p style="font-size: 14px; color: var(--ink-muted);">
+                            Relational databases rely on ACID transactions, making multi-master horizontal writes difficult.
+                        </p>
+                        <ul style="font-size: 13.5px; color: var(--ink-muted); padding-left: 18px; margin-top: 8px;">
+                            <li><strong>Write Path:</strong> Scaled vertically on 1 Primary DB master node.</li>
+                            <li><strong>Read Path:</strong> Scaled horizontally using asynchronous <strong>Read Replicas</strong>.</li>
+                            <li><strong>Advanced Sharding:</strong> Partitioning table rows across multiple DB instances by Shard Key.</li>
+                        </ul>
+                    </div>
+
+                    <div class="info-card" style="border-top: 4px solid var(--brand-emerald);">
+                        <span class="card-badge badge-horiz">Scaling NoSQL (MongoDB / DynamoDB)</span>
+                        <h4 style="font-size: 18px; margin-bottom: 8px; font-family: 'Fraunces';">Native Horizontal Sharding</h4>
+                        <p style="font-size: 14px; color: var(--ink-muted);">
+                            NoSQL databases relax strict ACID constraints (BASE model) to achieve seamless horizontal scaling across clusters.
+                        </p>
+                        <ul style="font-size: 13.5px; color: var(--ink-muted); padding-left: 18px; margin-top: 8px;">
+                            <li><strong>Automatic Sharding:</strong> Data distributed across nodes using Partition Keys.</li>
+                            <li><strong>High Throughput:</strong> Reads and writes scale horizontally automatically.</li>
+                            <li><strong>Use Case:</strong> Real-time food order tracking, user session stores, chat logs.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: INTERACTIVE SCALING SIMULATOR -->
+        <div id="simulator" class="panel">
+            <div class="card">
+                <h2>Interactive Fleet Scaling & Fault Tolerance Simulator</h2>
+                <p>Simulate how Vertical Scaling vs Horizontal Scaling handles traffic surges and hardware crashes:</p>
+
+                <div class="sim-box">
+                    <div class="sim-controls">
+                        <div class="control-block">
+                            <div class="control-title">1. Vertical Scale-Up Actions:</div>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn-sim" onclick="scaleVertical(2)">2 vCPU / 4GB RAM</button>
+                                <button class="btn-sim" onclick="scaleVertical(8)">8 vCPU / 16GB RAM</button>
+                                <button class="btn-sim" onclick="scaleVertical(32)">32 vCPU / 64GB RAM</button>
+                            </div>
+                        </div>
+
+                        <div class="control-block">
+                            <div class="control-title">2. Horizontal Scale-Out Actions:</div>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn-sim" onclick="addHorizontalNode()">+ Add Worker Node</button>
+                                <button class="btn-sim" onclick="killRandomNode()" style="background: #9f1239; border-color: #be123c;">⚡ Simulate Hardware Crash</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="font-size: 12px; color: #94a3b8; text-transform: uppercase;">ACTIVE SERVER FLEET IN LOAD BALANCER POOL:</div>
+                    <div class="server-fleet" id="fleetDisplay">
+                        <!-- Rendered via JS -->
+                    </div>
+
+                    <div id="simLog" style="margin-top: 16px; font-size: 13px; color: #a7f3d0; border-top: 1px solid #334155; padding-top: 12px;">
+                        System operating normally.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let isVerticalMode = false;
+        let vertCores = 4;
+        let horizontalNodes = [
+            { id: 1, status: 'healthy', cpu: 35 },
+            { id: 2, status: 'healthy', cpu: 38 }
+        ];
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+
+            if (tabId === 'simulator') renderFleet();
+        }
+
+        function scaleVertical(cores) {
+            isVerticalMode = true;
+            vertCores = cores;
+            document.getElementById('simLog').innerHTML = `<span style="color: #fbbf24;"><i class="fa-solid fa-rotate"></i> REBOOTING INSTANCE... Resized single server to ${cores} vCPUs & ${cores * 2}GB RAM. App experienced 15 seconds downtime during reboot.</span>`;
+            renderFleet();
+        }
+
+        function addHorizontalNode() {
+            isVerticalMode = false;
+            const newId = horizontalNodes.length + 1;
+            horizontalNodes.push({ id: newId, status: 'healthy', cpu: Math.floor(Math.random() * 20) + 25 });
+            document.getElementById('simLog').innerHTML = `<span style="color: #34d399;"><i class="fa-solid fa-circle-check"></i> Zero-downtime auto-scaling: Added Node #${newId} to Elastic Load Balancer target group.</span>`;
+            renderFleet();
+        }
+
+        function killRandomNode() {
+            if (isVerticalMode) {
+                document.getElementById('simLog').innerHTML = `<span style="color: #f43f5e;"><i class="fa-solid fa-triangle-exclamation"></i> <strong>CRITICAL OUTAGE!</strong> The single vertical server crashed. 100% of traffic failed because there is no backup node!</span>`;
+                const fleet = document.getElementById('fleetDisplay');
+                fleet.innerHTML = `<div class="server-node down">🔥 Main Server CRASHED (SPOF)</div>`;
+            } else {
+                const healthy = horizontalNodes.filter(n => n.status === 'healthy');
+                if (healthy.length === 0) return;
+                const nodeToKill = healthy[Math.floor(Math.random() * healthy.length)];
+                nodeToKill.status = 'down';
+                document.getElementById('simLog').innerHTML = `<span style="color: #f43f5e;"><i class="fa-solid fa-shield-virus"></i> <strong>NODE FAILURE:</strong> Node #${nodeToKill.id} crashed! Load balancer automatically removed Node #${nodeToKill.id} and routed traffic to healthy nodes. <strong>Zero outage experienced by users!</strong></span>`;
+                renderFleet();
+            }
+        }
+
+        function renderFleet() {
+            const fleet = document.getElementById('fleetDisplay');
+            fleet.innerHTML = "";
+
+            if (isVerticalMode) {
+                const node = document.createElement('div');
+                node.className = "server-node";
+                node.style.borderColor = "#fbbf24";
+                node.innerHTML = `🖥️ Single Monster Instance<br><strong>${vertCores} vCPUs / ${vertCores * 2}GB RAM</strong><br>CPU Load: 42%`;
+                fleet.appendChild(node);
+            } else {
+                horizontalNodes.forEach(n => {
+                    const node = document.createElement('div');
+                    node.className = `server-node ${n.status === 'down' ? 'down' : ''}`;
+                    node.innerHTML = n.status === 'down' 
+                        ? `💥 Node #${n.id}<br><strong>CRASHED</strong>` 
+                        : `🟢 Node #${n.id}<br>2 vCPU / 4GB<br>CPU Load: ${n.cpu}%`;
+                    fleet.appendChild(node);
+                });
+            }
+        }
+
+        // Init
+        renderFleet();
+    </script>
+</body>
+</html>

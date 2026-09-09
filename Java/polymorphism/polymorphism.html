@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Up: Two Kinds of Polymorphism</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,560;9..144,680&family=IBM+Plex+Mono:wght@400;500;600&family=Karla:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #152219;
+            --surface: #1c2c22;
+            --surface-2: #24392c;
+            --border: #3a5240;
+            --border-soft: #2c4234;
+            --chalk: #f2ede0;
+            --chalk-dim: #aebbac;
+            --amber: #e3a857;
+            --amber-dim: #8a6a3c;
+            --teal: #7fb8ae;
+            --teal-dim: #456e66;
+            --tomato: #c1443c;
+            --radius: 3px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background:
+                linear-gradient(180deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.18)),
+                var(--bg);
+            color: var(--chalk);
+            font-family: 'Karla', sans-serif;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        ::selection {
+            background: var(--amber);
+            color: #1c2c22;
+        }
+
+        .wrap {
+            max-width: 920px;
+            margin: 0 auto;
+            padding: 0 24px 80px;
+        }
+
+        /* ---------- Hero ---------- */
+        header.hero {
+            padding: 56px 24px 40px;
+            border-bottom: 1px solid var(--border-soft);
+            background:
+                repeating-linear-gradient(180deg, transparent, transparent 27px, rgba(242, 237, 224, 0.025) 28px);
+        }
+
+        .hero-inner {
+            max-width: 920px;
+            margin: 0 auto;
+        }
+
+        .kicker {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13px;
+            color: var(--chalk-dim);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+
+        .kicker .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--amber);
+        }
+
+        h1 {
+            font-family: 'Fraunces', serif;
+            font-weight: 560;
+            font-size: clamp(34px, 5.6vw, 54px);
+            line-height: 1.06;
+            margin: 0 0 18px;
+            letter-spacing: -0.01em;
+        }
+
+        h1 em {
+            font-style: italic;
+            font-weight: 400;
+            color: var(--amber);
+        }
+
+        .dek {
+            font-size: 17px;
+            color: var(--chalk-dim);
+            max-width: 60ch;
+            margin: 0 0 6px;
+        }
+
+        .dek a {
+            color: var(--teal);
+        }
+
+        .source-note {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 12.5px;
+            color: var(--chalk-dim);
+            opacity: 0.8;
+            margin-top: 14px;
+        }
+
+        .source-note a {
+            color: inherit;
+        }
+
+        /* ---------- Tabs ---------- */
+        .tabs {
+            display: flex;
+            gap: 2px;
+            margin: 36px 0 0;
+            border-bottom: 1px solid var(--border-soft);
+        }
+
+        .tab {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13.5px;
+            padding: 14px 18px 12px;
+            background: none;
+            border: none;
+            color: var(--chalk-dim);
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            transition: color 0.15s ease;
+        }
+
+        .tab .n {
+            font-size: 11px;
+            padding: 2px 6px;
+            border: 1px solid currentColor;
+            border-radius: 2px;
+            opacity: 0.7;
+        }
+
+        .tab[data-tab="compile"].active {
+            color: var(--amber);
+        }
+
+        .tab[data-tab="runtime"].active {
+            color: var(--teal);
+        }
+
+        .tab:not(.active):hover {
+            color: var(--chalk);
+        }
+
+        .tab::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: -1px;
+            height: 2px;
+            background: transparent;
+        }
+
+        .tab[data-tab="compile"].active::after {
+            background: var(--amber);
+        }
+
+        .tab[data-tab="runtime"].active::after {
+            background: var(--teal);
+        }
+
+        section.panel {
+            display: none;
+            padding-top: 38px;
+        }
+
+        section.panel.active {
+            display: block;
+            animation: fade 0.25s ease;
+        }
+
+        @keyframes fade {
+            from {
+                opacity: 0;
+                transform: translateY(4px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h2.panel-title {
+            font-family: 'Fraunces', serif;
+            font-weight: 560;
+            font-size: 28px;
+            margin: 0 0 10px;
+        }
+
+        .panel[data-accent="compile"] h2.panel-title {
+            color: var(--amber);
+        }
+
+        .panel[data-accent="runtime"] h2.panel-title {
+            color: var(--teal);
+        }
+
+        p.lede {
+            color: var(--chalk-dim);
+            max-width: 66ch;
+            font-size: 15.5px;
+        }
+
+        p.lede strong {
+            color: var(--chalk);
+            font-weight: 700;
+        }
+
+        /* ---------- Code block ---------- */
+        .code {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13px;
+            background: var(--surface);
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius);
+            padding: 16px 18px;
+            overflow-x: auto;
+            white-space: pre;
+            line-height: 1.65;
+        }
+
+        .code .c1 {
+            color: var(--chalk-dim);
+            font-style: italic;
+        }
+
+        .code .kw {
+            color: var(--teal);
+        }
+
+        .code .ty {
+            color: var(--amber);
+        }
+
+        .code .str {
+            color: #c7d9a0;
+        }
+
+        .code .hl {
+            display: inline-block;
+            background: rgba(227, 168, 87, 0.18);
+            border-radius: 2px;
+            padding: 0 2px;
+            transition: background 0.2s ease;
+        }
+
+        .runtime .code .hl {
+            background: rgba(127, 184, 174, 0.2);
+        }
+
+        /* ---------- Compile-time interactive ---------- */
+        .order-builder {
+            margin-top: 28px;
+            display: grid;
+            grid-template-columns: 1.1fr 1fr;
+            gap: 22px;
+        }
+
+        @media (max-width:720px) {
+            .order-builder {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .builder-card,
+        .result-card {
+            background: var(--surface);
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius);
+            padding: 20px;
+        }
+
+        .field-label {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11.5px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--chalk-dim);
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .toggle-row {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 22px;
+        }
+
+        .toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14.5px;
+            cursor: pointer;
+            padding: 10px 12px;
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius);
+            background: var(--surface-2);
+            transition: border-color 0.15s ease;
+        }
+
+        .toggle:hover {
+            border-color: var(--amber-dim);
+        }
+
+        .toggle input {
+            accent-color: var(--amber);
+            width: 15px;
+            height: 15px;
+        }
+
+        .toggle .tag {
+            margin-left: auto;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            color: var(--chalk-dim);
+        }
+
+        .call-preview {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 14px;
+            background: #101a13;
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius);
+            padding: 14px 16px;
+            color: var(--chalk);
+            min-height: 20px;
+        }
+
+        .call-preview .call-fn {
+            color: var(--amber);
+        }
+
+        .result-card h3 {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--chalk-dim);
+            margin: 0 0 14px;
+        }
+
+        .binding-line {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13.5px;
+            padding: 9px 0;
+            border-bottom: 1px dashed var(--border-soft);
+        }
+
+        .binding-line:last-of-type {
+            border-bottom: none;
+        }
+
+        .binding-line .k {
+            color: var(--chalk-dim);
+            min-width: 120px;
+        }
+
+        .binding-line .v {
+            color: var(--chalk);
+        }
+
+        .binding-line .v.match {
+            color: var(--amber);
+            font-weight: 600;
+        }
+
+        .verdict {
+            margin-top: 16px;
+            padding: 12px 14px;
+            border-left: 3px solid var(--amber);
+            background: rgba(227, 168, 87, 0.08);
+            font-size: 14px;
+            color: var(--chalk);
+        }
+
+        .verdict strong {
+            color: var(--amber);
+        }
+
+        /* ---------- Runtime interactive ---------- */
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+            margin: 24px 0 20px;
+        }
+
+        .menu-item {
+            background: var(--surface);
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius);
+            padding: 14px;
+            cursor: pointer;
+            transition: border-color 0.15s ease, transform 0.15s ease;
+            position: relative;
+        }
+
+        .menu-item:hover {
+            border-color: var(--teal-dim);
+        }
+
+        .menu-item.selected {
+            border-color: var(--teal);
+            background: var(--surface-2);
+        }
+
+        .menu-item .glyph {
+            font-size: 22px;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .menu-item .name {
+            font-weight: 700;
+            font-size: 14.5px;
+        }
+
+        .menu-item .kind {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            color: var(--chalk-dim);
+            margin-top: 4px;
+        }
+
+        .menu-item .kind.food {
+            color: #c9a86a;
+        }
+
+        .menu-item .kind.bev {
+            color: var(--teal);
+        }
+
+        .menu-item .price {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 12.5px;
+            color: var(--chalk-dim);
+            margin-top: 6px;
+        }
+
+        .menu-item .check {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+        }
+
+        .menu-item.selected .check {
+            background: var(--teal);
+            border-color: var(--teal);
+        }
+
+        .run-btn {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13.5px;
+            padding: 11px 20px;
+            border-radius: var(--radius);
+            border: 1px solid var(--amber);
+            background: transparent;
+            color: var(--amber);
+            cursor: pointer;
+            transition: background 0.15s ease, color 0.15s ease;
+        }
+
+        .run-btn:hover {
+            background: var(--amber);
+            color: #1c2c22;
+        }
+
+        .run-btn.teal {
+            border-color: var(--teal);
+            color: var(--teal);
+        }
+
+        .run-btn.teal:hover {
+            background: var(--teal);
+            color: #12211c;
+        }
+
+        .run-btn:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+        }
+
+        .run-btn:disabled:hover {
+            background: transparent;
+            color: var(--teal);
+        }
+
+        .dispatch-log {
+            margin-top: 22px;
+            background: var(--surface);
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius);
+            padding: 6px 0;
+            min-height: 56px;
+        }
+
+        .dispatch-row {
+            display: grid;
+            grid-template-columns: 26px 1fr auto auto;
+            align-items: center;
+            gap: 12px;
+            padding: 11px 18px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13px;
+            border-bottom: 1px dashed var(--border-soft);
+            opacity: 0;
+            animation: rowIn 0.35s ease forwards;
+        }
+
+        .dispatch-row:last-child {
+            border-bottom: none;
+        }
+
+        @keyframes rowIn {
+            from {
+                opacity: 0;
+                transform: translateX(-6px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .dispatch-row .glyph {
+            font-size: 16px;
+        }
+
+        .dispatch-row .call {
+            color: var(--chalk-dim);
+        }
+
+        .dispatch-row .call .type {
+            color: var(--amber);
+        }
+
+        .dispatch-row .resolved {
+            color: var(--teal);
+            font-weight: 600;
+        }
+
+        .dispatch-row .amount {
+            color: var(--chalk);
+        }
+
+        .dispatch-placeholder {
+            padding: 18px;
+            color: var(--chalk-dim);
+            font-size: 13.5px;
+            font-style: italic;
+        }
+
+        .dispatch-total {
+            padding: 14px 18px 4px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13.5px;
+            color: var(--chalk-dim);
+        }
+
+        .dispatch-total b {
+            color: var(--chalk);
+        }
+
+        /* ---------- Compare table ---------- */
+        .compare {
+            margin-top: 64px;
+            border-top: 1px solid var(--border-soft);
+            padding-top: 36px;
+        }
+
+        .compare h2 {
+            font-family: 'Fraunces', serif;
+            font-weight: 560;
+            font-size: 26px;
+            margin: 0 0 22px;
+        }
+
+        table.cmp {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        table.cmp th,
+        table.cmp td {
+            text-align: left;
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border-soft);
+            vertical-align: top;
+        }
+
+        table.cmp th {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11.5px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--chalk-dim);
+            font-weight: 500;
+        }
+
+        table.cmp td.label {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 12.5px;
+            color: var(--chalk-dim);
+            white-space: nowrap;
+        }
+
+        table.cmp td.amber {
+            color: var(--amber);
+        }
+
+        table.cmp td.teal {
+            color: var(--teal);
+        }
+
+        footer.foot {
+            margin-top: 56px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border-soft);
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 12px;
+            color: var(--chalk-dim);
+        }
+
+        footer.foot a {
+            color: var(--teal);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.001ms !important;
+                transition-duration: 0.001ms !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="hero">
+        <div class="hero-inner">
+            <div class="kicker"><span class="dot"></span>JAVA · OOP · TWO WAYS TO SAY "SAME NAME, DIFFERENT BEHAVIOR"
+            </div>
+            <h1>Order Up: <em>Polymorphism</em>, plated two ways</h1>
+            <p class="dek">A food-ordering backend needs one <code>placeOrder</code> that works with or without a
+                coupon, and one <code>calculateTax()</code> that behaves differently for a pizza than for a cola. The
+                first is decided by the compiler before the app ever runs. The second is decided by the JVM while the
+                order is being processed. Pick a tab and place some orders to see the difference.</p>
+            <div class="source-note">Modeled after the class layout in <a
+                    href="https://github.com/pradeepjuluri143/FoodOrderingSystem" target="_blank"
+                    rel="noopener">pradeepjuluri143/FoodOrderingSystem</a> — a Spring Boot + React app built to teach
+                OOP concepts.</div>
+        </div>
+    </header>
+
+    <div class="wrap">
+
+        <div class="tabs">
+            <button class="tab active" data-tab="compile"><span class="dot" style="display:none"></span>Compile-Time
+                <span class="n">overloading</span></button>
+            <button class="tab" data-tab="runtime">Runtime <span class="n">overriding</span></button>
+        </div>
+
+        <!-- ===================== COMPILE-TIME PANEL ===================== -->
+        <section class="panel active" data-accent="compile" id="panel-compile">
+            <h2 class="panel-title">Method Overloading — resolved at compile time</h2>
+            <p class="lede"><strong>OrderService</strong> exposes two methods both named <code>placeOrder</code>. The
+                compiler looks only at the <em>method signature</em> — the number and types of arguments you write at
+                the call site — and picks one of them while compiling your code. No order object needs to exist yet, and
+                nothing about it changes the decision. This is <strong>static binding</strong>.</p>
+
+            <div class="code">public class OrderService {
+
+                <span class="c1">// Signature #1 — one argument</span>
+                public Order <span class="hl" id="sig-1">placeOrder(OrderRequest request)</span> {
+                return placeOrder(request, <span class="kw">null</span>);
+                }
+
+                <span class="c1">// Signature #2 — two arguments, second is a coupon code</span>
+                public Order <span class="hl" id="sig-2">placeOrder(OrderRequest request, String couponCode)</span> {
+                DiscountStrategy strategy = resolveStrategy(couponCode);
+                <span class="c1">// ...apply strategy, deduct wallet, create Order</span>
+                }
+                }
+            </div>
+
+            <div class="order-builder">
+                <div class="builder-card">
+                    <span class="field-label">Build a call site</span>
+                    <div class="toggle-row">
+                        <label class="toggle">
+                            <input type="checkbox" checked disabled>
+                            OrderRequest request
+                            <span class="tag">always required</span>
+                        </label>
+                        <label class="toggle">
+                            <input type="checkbox" id="chk-coupon">
+                            String couponCode
+                            <span class="tag">optional 2nd argument</span>
+                        </label>
+                    </div>
+                    <span class="field-label">Compiler sees this call</span>
+                    <div class="call-preview" id="call-preview">
+                        <span class="call-fn">placeOrder</span>(request)
+                    </div>
+                </div>
+
+                <div class="result-card">
+                    <h3>Compiler's resolution</h3>
+                    <div class="binding-line"><span class="k">Arguments</span><span class="v" id="res-args">1</span>
+                    </div>
+                    <div class="binding-line"><span class="k">Bound to</span><span class="v match"
+                            id="res-sig">placeOrder(OrderRequest)</span></div>
+                    <div class="binding-line"><span class="k">Decided</span><span class="v">at javac compile time</span>
+                    </div>
+                    <div class="binding-line"><span class="k">Object needed?</span><span class="v" id="res-object">No —
+                            types only</span></div>
+                    <div class="verdict" id="verdict-compile">
+                        <strong>Compile-time polymorphism:</strong> since only <code>request</code> is passed, the
+                        single-argument overload is the only signature that matches. The JVM never has to decide
+                        anything — this was locked in before the .class file was written.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===================== RUNTIME PANEL ===================== -->
+        <section class="panel" data-accent="runtime" id="panel-runtime">
+            <h2 class="panel-title">Method Overriding — resolved at runtime</h2>
+            <p class="lede"><strong>FoodItem</strong> and <strong>BeverageItem</strong> both extend the abstract class
+                <strong>MenuItem</strong> and both override <code>calculateTax()</code>. When code loops over a
+                <code>List&lt;MenuItem&gt;</code> and calls <code>item.calculateTax()</code>, the compiler only knows
+                it's <em>some</em> MenuItem — the JVM checks the object's actual class the moment the line executes and
+                dispatches to the matching override. This is <strong>dynamic dispatch</strong>.
+            </p>
+
+            <div class="code runtime">public abstract class MenuItem {
+                protected double basePrice;
+                public abstract <span class="hl" id="rt-sig">double calculateTax()</span>;
+                }
+
+                public class FoodItem extends MenuItem {
+                <span class="c1">@Override</span>
+                public double calculateTax() { <span class="c1">return basePrice * 0.05;</span> } <span class="c1">// 5%
+                    GST</span>
+                }
+
+                public class BeverageItem extends MenuItem {
+                <span class="c1">@Override</span>
+                public double calculateTax() { <span class="c1">return basePrice * 0.12;</span> } <span class="c1">//
+                    12% beverage tax</span>
+                }
+
+                <span class="c1">// same line of code, called on a MenuItem reference — behavior depends on the real
+                    object</span>
+                for (MenuItem item : cart) { total += <span class="hl">item.calculateTax()</span>; }
+            </div>
+
+            <p class="lede" style="margin-top:22px;">Build a cart from the menu below, then send it to the kitchen.
+                Every item is held as a plain <code>MenuItem</code> reference — watch the log resolve each one to its
+                real class only when the loop actually runs.</p>
+
+            <div class="menu-grid" id="menu-grid">
+                <div class="menu-item" data-name="Margherita Pizza" data-kind="FoodItem" data-price="9.00"
+                    data-rate="0.05" data-glyph="🍕">
+                    <span class="check"></span>
+                    <span class="glyph">🍕</span>
+                    <div class="name">Margherita Pizza</div>
+                    <div class="kind food">FoodItem</div>
+                    <div class="price">$9.00 base</div>
+                </div>
+                <div class="menu-item" data-name="Paneer Tikka Wrap" data-kind="FoodItem" data-price="7.50"
+                    data-rate="0.05" data-glyph="🌯">
+                    <span class="check"></span>
+                    <span class="glyph">🌯</span>
+                    <div class="name">Paneer Tikka Wrap</div>
+                    <div class="kind food">FoodItem</div>
+                    <div class="price">$7.50 base</div>
+                </div>
+                <div class="menu-item" data-name="Cold Coffee" data-kind="BeverageItem" data-price="4.00"
+                    data-rate="0.12" data-glyph="🥤">
+                    <span class="check"></span>
+                    <span class="glyph">🥤</span>
+                    <div class="name">Cold Coffee</div>
+                    <div class="kind bev">BeverageItem</div>
+                    <div class="price">$4.00 base</div>
+                </div>
+                <div class="menu-item" data-name="Sparkling Cola" data-kind="BeverageItem" data-price="3.00"
+                    data-rate="0.12" data-glyph="🧋">
+                    <span class="check"></span>
+                    <span class="glyph">🧋</span>
+                    <div class="name">Sparkling Cola</div>
+                    <div class="kind bev">BeverageItem</div>
+                    <div class="price">$3.00 base</div>
+                </div>
+            </div>
+
+            <button class="run-btn teal" id="run-dispatch" disabled>Send cart to kitchen — item.calculateTax()</button>
+
+            <div class="dispatch-log" id="dispatch-log">
+                <div class="dispatch-placeholder">Select at least one item above, then send the cart to see dynamic
+                    dispatch resolve each call.</div>
+            </div>
+            <div class="dispatch-total" id="dispatch-total" style="display:none;"></div>
+        </section>
+
+        <!-- ===================== COMPARISON ===================== -->
+        <div class="compare">
+            <h2>Same idea, two different moments</h2>
+            <table class="cmp">
+                <thead>
+                    <tr>
+                        <th>Question</th>
+                        <th>Compile-time (overloading)</th>
+                        <th>Runtime (overriding)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="label">Where in the repo</td>
+                        <td class="amber"><code>OrderService.placeOrder(...)</code></td>
+                        <td class="teal"><code>FoodItem</code> / <code>BeverageItem</code>.<code>calculateTax()</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="label">What varies</td>
+                        <td class="amber">Parameter list of the same method name</td>
+                        <td class="teal">Which subclass's method body actually runs</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Who decides</td>
+                        <td class="amber">javac, reading the call site's argument types</td>
+                        <td class="teal">The JVM, reading the object's real class at that line</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Relationship needed</td>
+                        <td class="amber">None — methods can live in the same class unrelated</td>
+                        <td class="teal">Inheritance — a subclass overriding a superclass/abstract method</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Common name</td>
+                        <td class="amber">Static binding</td>
+                        <td class="teal">Dynamic binding / dynamic dispatch</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <footer class="foot">
+            Built as a study aid for OOP concepts demonstrated in <a
+                href="https://github.com/pradeepjuluri143/FoodOrderingSystem" target="_blank"
+                rel="noopener">FoodOrderingSystem</a>. Code snippets above are simplified for teaching, not copied from
+            the repository.
+        </footer>
+    </div>
+
+    <script>
+        // ---------- Tabs ----------
+        document.querySelectorAll('.tab').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+            });
+        });
+
+        // ---------- Compile-time interactive ----------
+        const chkCoupon = document.getElementById('chk-coupon');
+        const callPreview = document.getElementById('call-preview');
+        const resArgs = document.getElementById('res-args');
+        const resSig = document.getElementById('res-sig');
+        const resObject = document.getElementById('res-object');
+        const verdict = document.getElementById('verdict-compile');
+        const sig1 = document.getElementById('sig-1');
+        const sig2 = document.getElementById('sig-2');
+
+        function updateCompile() {
+            const withCoupon = chkCoupon.checked;
+            if (withCoupon) {
+                callPreview.innerHTML = '<span class="call-fn">placeOrder</span>(request, "FLAT15")';
+                resArgs.textContent = '2 — (OrderRequest, String)';
+                resSig.textContent = 'placeOrder(OrderRequest, String)';
+                resObject.textContent = 'No — types only';
+                sig1.style.background = 'transparent';
+                sig2.style.background = 'rgba(227,168,87,0.28)';
+                verdict.innerHTML = '<strong>Compile-time polymorphism:</strong> adding a second String argument changes nothing about any object\'s state — it only changes which signature matches. The compiler now binds the call to the two-argument overload, permanently, before the program runs.';
+            } else {
+                callPreview.innerHTML = '<span class="call-fn">placeOrder</span>(request)';
+                resArgs.textContent = '1 — (OrderRequest)';
+                resSig.textContent = 'placeOrder(OrderRequest)';
+                resObject.textContent = 'No — types only';
+                sig1.style.background = 'rgba(227,168,87,0.28)';
+                sig2.style.background = 'transparent';
+                verdict.innerHTML = '<strong>Compile-time polymorphism:</strong> since only <code>request</code> is passed, the single-argument overload is the only signature that matches. The JVM never has to decide anything — this was locked in before the .class file was written.';
+            }
+        }
+        chkCoupon.addEventListener('change', updateCompile);
+        updateCompile();
+
+        // ---------- Runtime interactive ----------
+        const menuItems = document.querySelectorAll('.menu-item');
+        const runBtn = document.getElementById('run-dispatch');
+        const log = document.getElementById('dispatch-log');
+        const totalEl = document.getElementById('dispatch-total');
+        const selected = new Set();
+
+        menuItems.forEach(el => {
+            el.addEventListener('click', () => {
+                el.classList.toggle('selected');
+                if (el.classList.contains('selected')) selected.add(el);
+                else selected.delete(el);
+                runBtn.disabled = selected.size === 0;
+            });
+        });
+
+        runBtn.addEventListener('click', () => {
+            log.innerHTML = '';
+            totalEl.style.display = 'none';
+            const items = Array.from(selected);
+            let total = 0;
+            let i = 0;
+
+            function next() {
+                if (i >= items.length) {
+                    totalEl.innerHTML = 'Loop finished — total tax across ' + items.length + ' item(s): <b>$' + total.toFixed(2) + '</b>. Every call was the identical line <code>item.calculateTax()</code>; the class that answered it changed each time.';
+                    totalEl.style.display = 'block';
+                    return;
+                }
+                const el = items[i];
+                const kind = el.dataset.kind;
+                const price = parseFloat(el.dataset.price);
+                const rate = parseFloat(el.dataset.rate);
+                const tax = price * rate;
+                total += tax;
+
+                const row = document.createElement('div');
+                row.className = 'dispatch-row';
+                row.innerHTML =
+                    '<span class="glyph">' + el.dataset.glyph + '</span>' +
+                    '<span class="call">MenuItem ref → <span class="type">' + kind + '</span>.calculateTax()</span>' +
+                    '<span class="resolved">' + (kind === 'FoodItem' ? '5% GST' : '12% bev tax') + '</span>' +
+                    '<span class="amount">$' + tax.toFixed(2) + '</span>';
+                log.appendChild(row);
+                i++;
+                setTimeout(next, 420);
+            }
+            next();
+        });
+    </script>
+
+</body>
+
+</html>

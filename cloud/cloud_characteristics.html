@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloud Characteristics, Elasticity & High Availability - Capgemini Technical Prep</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,560;9..144,680&family=IBM+Plex+Mono:wght@400;500;600&family=Karla:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-page: #f8faf9;
+            --surface: #ffffff;
+            --surface-subtle: #f1f5f3;
+            --border-soft: #e2e8f0;
+            --border-strong: #cbd5e1;
+            
+            --ink-main: #0f172a;
+            --ink-muted: #475569;
+            --ink-subtle: #64748b;
+            
+            --brand-sky: #0284c7;
+            --brand-indigo: #4338ca;
+            --brand-emerald: #047857;
+            --brand-amber: #b45309;
+            --brand-rose: #be123c;
+            --brand-violet: #6d28d9;
+            
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 16px;
+            --shadow-subtle: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
+            --shadow-card: 0 10px 30px -4px rgba(15, 23, 42, 0.08);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-page);
+            background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
+            background-size: 20px 20px;
+            color: var(--ink-main);
+            font-family: 'Karla', sans-serif;
+            line-height: 1.65;
+            padding-bottom: 80px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        ::selection { background: #e0f2fe; color: #0369a1; }
+
+        .container { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+        /* Editorial Light Header */
+        header.hero {
+            background: #ffffff;
+            border-bottom: 1px solid var(--border-soft);
+            padding: 54px 24px 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+        }
+
+        .hero-inner { max-width: 1080px; margin: 0 auto; }
+
+        .kicker {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13px;
+            color: var(--brand-sky);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .kicker .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--brand-sky); }
+
+        h1 {
+            font-family: 'Fraunces', serif;
+            font-weight: 560;
+            font-size: clamp(34px, 5.2vw, 48px);
+            line-height: 1.1;
+            color: #0f172a;
+            margin-bottom: 18px;
+            letter-spacing: -0.02em;
+        }
+
+        h1 em { font-style: italic; color: var(--brand-sky); font-weight: 400; }
+
+        .dek {
+            font-size: 17.5px;
+            color: var(--ink-muted);
+            max-width: 72ch;
+            margin-bottom: 18px;
+            line-height: 1.6;
+        }
+
+        .source-note {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13px;
+            color: var(--ink-subtle);
+            background: var(--surface-subtle);
+            padding: 8px 14px;
+            border-radius: var(--radius-sm);
+            display: inline-block;
+        }
+
+        /* Navigation Tabs */
+        .tabs {
+            display: flex;
+            gap: 6px;
+            margin: 36px 0 0;
+            border-bottom: 1px solid var(--border-soft);
+            overflow-x: auto;
+        }
+
+        .tab {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13.5px;
+            padding: 14px 22px;
+            background: none;
+            border: none;
+            color: var(--ink-subtle);
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+            border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+        }
+
+        .tab:hover { color: var(--ink-main); background: rgba(241, 245, 243, 0.6); }
+        .tab.active { color: var(--brand-sky); font-weight: 600; background: #ffffff; }
+
+        .tab::after {
+            content: "";
+            position: absolute;
+            left: 0; right: 0; bottom: -1px;
+            height: 3px;
+            background: transparent;
+        }
+
+        .tab.active::after { background: var(--brand-sky); }
+
+        .panel { display: none; padding-top: 36px; }
+        .panel.active { display: block; animation: fade 0.25s ease; }
+
+        @keyframes fade {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Light Cards */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius-lg);
+            padding: 30px;
+            margin-bottom: 28px;
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .card h2 {
+            font-family: 'Fraunces', serif;
+            font-size: 26px;
+            margin-bottom: 12px;
+            color: var(--ink-main);
+            letter-spacing: -0.01em;
+        }
+
+        .card p { color: var(--ink-muted); font-size: 16px; line-height: 1.7; margin-bottom: 16px; }
+
+        /* Comparison Grids */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin: 24px 0;
+        }
+
+        .info-card {
+            background: #ffffff;
+            border-radius: var(--radius-md);
+            padding: 24px;
+            border: 1px solid var(--border-soft);
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .card-badge {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+        }
+
+        .badge-sky { background: #f0f9ff; color: var(--brand-sky); border: 1px solid #bae6fd; }
+        .badge-indigo { background: #f5f3ff; color: var(--brand-indigo); border: 1px solid #ddd6fe; }
+        .badge-emerald { background: #ecfdf5; color: var(--brand-emerald); border: 1px solid #a7f3d0; }
+        .badge-amber { background: #fffbeb; color: var(--brand-amber); border: 1px solid #fde68a; }
+        .badge-rose { background: #fef2f2; color: var(--brand-rose); border: 1px solid #fecdd3; }
+
+        /* NIST Grid */
+        .nist-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .nist-card {
+            background: var(--surface-subtle);
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            transition: all 0.2s ease;
+        }
+
+        .nist-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+            border-color: var(--border-strong);
+        }
+
+        .nist-num {
+            font-family: 'IBM Plex Mono', monospace;
+            font-weight: 700;
+            font-size: 13px;
+            color: var(--brand-sky);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+
+        .nist-title {
+            font-family: 'Fraunces', serif;
+            font-size: 20px;
+            color: var(--ink-main);
+            margin-bottom: 8px;
+        }
+
+        .nist-desc {
+            font-size: 14.5px;
+            color: var(--ink-muted);
+            line-height: 1.6;
+        }
+
+        /* SLA Table */
+        .sla-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            margin-top: 16px;
+        }
+
+        .sla-table th, .sla-table td {
+            padding: 12px 16px;
+            border: 1px solid var(--border-soft);
+            text-align: left;
+        }
+
+        .sla-table th {
+            background: var(--surface-subtle);
+            font-family: 'IBM Plex Mono', monospace;
+            font-weight: 600;
+            color: var(--ink-main);
+        }
+
+        .sla-highlight {
+            font-family: 'IBM Plex Mono', monospace;
+            font-weight: 600;
+            color: var(--brand-emerald);
+        }
+
+        /* Quiz Simulator */
+        .quiz-container {
+            background: #ffffff;
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .quiz-question {
+            font-family: 'Fraunces', serif;
+            font-size: 19px;
+            color: var(--ink-main);
+            margin-bottom: 14px;
+        }
+
+        .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .quiz-opt {
+            padding: 12px 16px;
+            border: 1px solid var(--border-strong);
+            border-radius: var(--radius-sm);
+            background: #ffffff;
+            font-family: 'Karla', sans-serif;
+            font-size: 15px;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.15s ease;
+        }
+
+        .quiz-opt:hover { background: var(--surface-subtle); border-color: var(--brand-sky); }
+
+        .quiz-opt.correct { background: #ecfdf5; border-color: var(--brand-emerald); color: var(--brand-emerald); font-weight: 600; }
+        .quiz-opt.incorrect { background: #fef2f2; border-color: var(--brand-rose); color: var(--brand-rose); }
+
+        .quiz-feedback {
+            margin-top: 14px;
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13.5px;
+            display: none;
+        }
+
+        /* Interactive SLA Calculator */
+        .sla-calc-box {
+            background: #0f172a;
+            color: #f8fafc;
+            border-radius: var(--radius-md);
+            padding: 24px;
+            font-family: 'IBM Plex Mono', monospace;
+            margin-top: 20px;
+        }
+
+        .sla-select {
+            background: #1e293b;
+            color: #38bdf8;
+            border: 1px solid #334155;
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 14px;
+            outline: none;
+            width: 100%;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="hero">
+        <div class="hero-inner">
+            <div class="kicker">
+                <span class="dot"></span> CAPGEMINI TECHNICAL ASSESSMENT PREP · CLOUD CONCEPTUAL ARCHITECTURE
+            </div>
+            <h1>Characteristics of Cloud <em>Elasticity & Availability</em></h1>
+            <p class="dek">
+                Master the 5 NIST essential cloud characteristics, elasticity vs. scalability trade-offs, SLA uptime calculations, and deployment models tested in Capgemini and enterprise IT assessments.
+            </p>
+            <div class="source-note">
+                Targeted for: <strong>Capgemini Technical Assessment & Software Engineering Interviews</strong>.
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Navigation Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('nist')"><i class="fa-solid fa-star"></i> NIST 5 Essential Characteristics</button>
+            <button class="tab" onclick="switchTab('elasticity')"><i class="fa-solid fa-arrows-left-right-to-line"></i> Elasticity vs. Scalability</button>
+            <button class="tab" onclick="switchTab('availability')"><i class="fa-solid fa-shield-halved"></i> High Availability & SLAs</button>
+            <button class="tab" onclick="switchTab('models')"><i class="fa-solid fa-network-wired"></i> Deployment Models (Public/Private/Hybrid)</button>
+            <button class="tab" onclick="switchTab('quiz')"><i class="fa-solid fa-graduation-cap"></i> Capgemini Assessment Prep Quiz</button>
+        </div>
+
+        <!-- TAB 1: NIST 5 ESSENTIAL CHARACTERISTICS -->
+        <div id="nist" class="panel active">
+            <div class="card">
+                <h2>The 5 NIST Essential Characteristics of Cloud Computing</h2>
+                <p>
+                    According to the <strong>National Institute of Standards and Technology (NIST SP 800-145)</strong>—which is heavily referenced in Capgemini exams—a system MUST possess these five characteristics to be classified as a true Cloud service:
+                </p>
+
+                <div class="nist-grid">
+                    <div class="nist-card">
+                        <div class="nist-num">Characteristic #1</div>
+                        <div class="nist-title">1. On-Demand Self-Service</div>
+                        <div class="nist-desc">
+                            Users can provision compute, storage, or database resources automatically via a web portal or API <strong>without human intervention</strong> from cloud support engineers.
+                            <br><em style="color: var(--brand-sky); font-size: 13px; display: block; margin-top: 6px;">Example: Launching an AWS EC2 instance in 30 seconds via AWS Console.</em>
+                        </div>
+                    </div>
+
+                    <div class="nist-card">
+                        <div class="nist-num">Characteristic #2</div>
+                        <div class="nist-title">2. Broad Network Access</div>
+                        <div class="nist-desc">
+                            Cloud capabilities are accessible over standard network mechanisms (Internet/WAN) using heterogeneous client platforms (laptops, mobile phones, IoT devices, web browsers).
+                            <br><em style="color: var(--brand-indigo); font-size: 13px; display: block; margin-top: 6px;">Example: Accessing REST APIs from mobile iOS apps and desktop web apps.</em>
+                        </div>
+                    </div>
+
+                    <div class="nist-card">
+                        <div class="nist-num">Characteristic #3</div>
+                        <div class="nist-title">3. Resource Pooling (Multi-Tenancy)</div>
+                        <div class="nist-desc">
+                            Provider compute resources are pooled to serve multiple customers (tenants) using a multi-tenant model. Physical resources are dynamically assigned and reassigned based on demand.
+                            <br><em style="color: var(--brand-emerald); font-size: 13px; display: block; margin-top: 6px;">Example: Multiple companies sharing the same physical server hardware securely via hypervisors.</em>
+                        </div>
+                    </div>
+
+                    <div class="nist-card">
+                        <div class="nist-num">Characteristic #4</div>
+                        <div class="nist-title">4. Rapid Elasticity</div>
+                        <div class="nist-desc">
+                            Capabilities can be elastically provisioned and released—automatically or manually—to scale rapidly outward and inward with demand. To the user, available resources appear infinite.
+                            <br><em style="color: var(--brand-amber); font-size: 13px; display: block; margin-top: 6px;">Example: Auto Scaling Groups expanding server count from 2 to 20 during Black Friday.</em>
+                        </div>
+                    </div>
+
+                    <div class="nist-card">
+                        <div class="nist-num">Characteristic #5</div>
+                        <div class="nist-title">5. Measured Service</div>
+                        <div class="nist-desc">
+                            Resource usage (CPU hours, bandwidth, storage gigabytes) is automatically monitored, controlled, and reported. This enables transparent <strong>pay-per-use (metered) billing</strong>.
+                            <br><em style="color: var(--brand-violet); font-size: 13px; display: block; margin-top: 6px;">Example: Receiving a detailed AWS monthly bill itemized by gigabyte-hours used.</em>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: ELASTICITY VS SCALABILITY -->
+        <div id="elasticity" class="panel">
+            <div class="card">
+                <h2>Elasticity vs. Scalability (Key Capgemini Assessment Question)</h2>
+                <p>
+                    Candidates frequently confuse <strong>Scalability</strong> with <strong>Elasticity</strong>. Here is the definitive distinction for technical exams:
+                </p>
+
+                <div class="comparison-grid">
+                    <div class="info-card" style="border-top: 4px solid var(--brand-sky);">
+                        <span class="card-badge badge-sky">Scalability (Long-Term Growth)</span>
+                        <h3 style="font-family: 'Fraunces'; font-size: 20px; margin-bottom: 8px;">Ability to Handle Increased Load</h3>
+                        <p style="font-size: 14.5px; color: var(--ink-muted);">
+                            Scalability is the infrastructure's capacity to accommodate growth over weeks or months by adding resources.
+                        </p>
+                        <ul style="font-size: 13.5px; color: var(--ink-muted); padding-left: 18px; margin-top: 8px;">
+                            <li><strong>Vertical Scaling (Scale-Up):</strong> Adding more CPU/RAM to an existing server (e.g. upgrading from 4GB to 32GB RAM). <em>Has a hardware limit!</em></li>
+                            <li><strong>Horizontal Scaling (Scale-Out):</strong> Adding more server nodes to a load balancer (e.g. going from 2 servers to 10 servers). <em>Infinite potential!</em></li>
+                        </ul>
+                    </div>
+
+                    <div class="info-card" style="border-top: 4px solid var(--brand-emerald);">
+                        <span class="card-badge badge-emerald">Elasticity (Real-Time Adaptability)</span>
+                        <h3 style="font-family: 'Fraunces'; font-size: 20px; margin-bottom: 8px;">Dynamic Scale-In & Scale-Out</h3>
+                        <p style="font-size: 14.5px; color: var(--ink-muted);">
+                            Elasticity is the system's ability to automatically <strong>expand AND contract</strong> resources in real-time to match fluctuating hourly workload demand.
+                        </p>
+                        <ul style="font-size: 13.5px; color: var(--ink-muted); padding-left: 18px; margin-top: 8px;">
+                            <li>Scales <strong>UP</strong> automatically when CPU exceeds 80%.</li>
+                            <li>Scales <strong>DOWN</strong> automatically when traffic drops at night to save costs.</li>
+                            <li>Key Metric: <strong>Time-to-provision & Cost Efficiency</strong>.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div style="background: var(--surface-subtle); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border-soft); margin-top: 20px;">
+                    <h4 style="font-family: 'IBM Plex Mono', monospace; font-size: 14px; color: var(--brand-indigo); text-transform: uppercase;">🧠 Capgemini Exam Summary Rule:</h4>
+                    <p style="font-size: 15px; color: var(--ink-main); margin-top: 6px;">
+                        <em>"All elastic systems are scalable, but NOT all scalable systems are elastic!"</em><br>
+                        A database that can take 6 months to add 10 new hard drives is <strong>Scalable</strong>, but NOT <strong>Elastic</strong> because it cannot scale down automatically when traffic drops.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: HIGH AVAILABILITY & SLAS -->
+        <div id="availability" class="panel">
+            <div class="card">
+                <h2>High Availability (HA), Fault Tolerance & SLA Math</h2>
+                <p>
+                    <strong>High Availability (HA)</strong> ensures an application remains accessible without interruption even during component failures.
+                </p>
+
+                <div class="comparison-grid">
+                    <div class="info-card">
+                        <span class="card-badge badge-sky">Availability vs Reliability</span>
+                        <h4 style="font-size: 17px; margin-bottom: 6px; font-family: 'Fraunces';">Core Definitions</h4>
+                        <p style="font-size: 14px; color: var(--ink-muted);">
+                            <strong>Availability:</strong> Percentage of total time a system is functional and accessible (Uptime vs Total Time).<br>
+                            <strong>Reliability:</strong> Probability that a system will perform without failure for a specified duration (measured by Mean Time Between Failures - MTBF).
+                        </p>
+                    </div>
+
+                    <div class="info-card">
+                        <span class="card-badge badge-indigo">Disaster Recovery (DR)</span>
+                        <h4 style="font-size: 17px; margin-bottom: 6px; font-family: 'Fraunces';">RTO & RPO Metrics</h4>
+                        <p style="font-size: 14px; color: var(--ink-muted);">
+                            <strong>RTO (Recovery Time Objective):</strong> Maximum acceptable duration of system downtime after an outage.<br>
+                            <strong>RPO (Recovery Point Objective):</strong> Maximum acceptable amount of data loss measured in time (e.g. last 15 min backup).
+                        </p>
+                    </div>
+                </div>
+
+                <h3 style="font-family: 'Fraunces'; font-size: 22px; margin: 24px 0 12px; color: var(--ink-main);">SLA Uptime & Allowed Downtime Table ("The Nines")</h3>
+                <p>Capgemini exams frequently ask candidates to calculate max allowed downtime for specific SLAs:</p>
+
+                <table class="sla-table">
+                    <thead>
+                        <tr>
+                            <th>SLA Percentage</th>
+                            <th>Uptime Rating</th>
+                            <th>Allowed Downtime / Year</th>
+                            <th>Allowed Downtime / Month</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>99% ("Two Nines")</td>
+                            <td>Standard Web App</td>
+                            <td>3.65 days</td>
+                            <td>7.31 hours</td>
+                        </tr>
+                        <tr>
+                            <td>99.9% ("Three Nines")</td>
+                            <td>Production Cloud App</td>
+                            <td>8.77 hours</td>
+                            <td>43.8 minutes</td>
+                        </tr>
+                        <tr style="background: #f0f9ff;">
+                            <td class="sla-highlight">99.99% ("Four Nines")</td>
+                            <td>Enterprise Mission-Critical</td>
+                            <td class="sla-highlight">52.6 minutes</td>
+                            <td class="sla-highlight">4.38 minutes</td>
+                        </tr>
+                        <tr>
+                            <td>99.999% ("Five Nines")</td>
+                            <td>Carrier-Grade Telecom/Banking</td>
+                            <td>5.26 minutes</td>
+                            <td>26.3 seconds</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- SLA Interactive Calculator -->
+                <div class="sla-calc-box">
+                    <div style="font-size: 12px; color: #94a3b8; text-transform: uppercase;">INTERACTIVE SLA DOWNTIME CALCULATOR:</div>
+                    <label style="font-size: 14px; color: #ffffff; display: block; margin-top: 10px;">Select Target SLA Level:</label>
+                    <select id="slaSelect" class="sla-select" onchange="calculateSLA()">
+                        <option value="99">99% SLA (Two Nines)</option>
+                        <option value="99.9">99.9% SLA (Three Nines)</option>
+                        <option value="99.99" selected>99.99% SLA (Four Nines - Enterprise Default)</option>
+                        <option value="99.999">99.999% SLA (Five Nines - High Availability)</option>
+                    </select>
+
+                    <div id="slaResultDisplay" style="margin-top: 18px; padding-top: 14px; border-top: 1px solid #334155; color: #38bdf8;">
+                        <!-- Calculated via JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: DEPLOYMENT MODELS -->
+        <div id="models" class="panel">
+            <div class="card">
+                <h2>Cloud Deployment Models (Public, Private, Hybrid, Multi-Cloud)</h2>
+
+                <div class="comparison-grid">
+                    <div class="info-card" style="border-top: 4px solid var(--brand-sky);">
+                        <span class="card-badge badge-sky">1. Public Cloud</span>
+                        <h4 style="font-family: 'Fraunces'; font-size: 18px; margin-bottom: 6px;">Multi-Tenant Shared Vendor Infra</h4>
+                        <p style="font-size: 14px; color: var(--ink-muted);">
+                            Infrastructure owned and managed by third-party cloud providers (AWS, GCP, Azure) accessible over the public Internet.
+                        </p>
+                    </div>
+
+                    <div class="info-card" style="border-top: 4px solid var(--brand-rose);">
+                        <span class="card-badge badge-rose">2. Private Cloud</span>
+                        <h4 style="font-family: 'Fraunces'; font-size: 18px; margin-bottom: 6px;">Single-Tenant Dedicated Infra</h4>
+                        <p style="font-size: 14px; color: var(--ink-muted);">
+                            Infrastructure operated solely for a single organization, hosted on-premises or by a third party with dedicated hardware.
+                        </p>
+                    </div>
+
+                    <div class="info-card" style="border-top: 4px solid var(--brand-violet);">
+                        <span class="card-badge badge-indigo">3. Hybrid Cloud</span>
+                        <h4 style="font-family: 'Fraunces'; font-size: 18px; margin-bottom: 6px;">Combined On-Prem + Public Cloud</h4>
+                        <p style="font-size: 14px; color: var(--ink-muted);">
+                            Integrates private data centers with public cloud infrastructure via VPN/Direct Connect for security & compliance.
+                        </p>
+                    </div>
+
+                    <div class="info-card" style="border-top: 4px solid var(--brand-amber);">
+                        <span class="card-badge badge-amber">4. Multi-Cloud</span>
+                        <h4 style="font-family: 'Fraunces'; font-size: 18px; margin-bottom: 6px;">Multiple Vendor Providers</h4>
+                        <p style="font-size: 14px; color: var(--ink-muted);">
+                            Using services from two or more public cloud vendors (e.g. AWS for compute + GCP for AI BigQuery) to prevent vendor lock-in.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 5: CAPGEMINI PREP QUIZ -->
+        <div id="quiz" class="panel">
+            <div class="card">
+                <h2>Capgemini Technical Assessment Practice Quiz</h2>
+                <p>Test your knowledge with typical multiple-choice questions encountered in technical assessments:</p>
+
+                <!-- Q1 -->
+                <div class="quiz-container">
+                    <div class="quiz-question">Q1: Which NIST characteristic describes a system that automatically adds servers during peak traffic hours and terminates them when traffic declines?</div>
+                    <div class="quiz-options">
+                        <button class="quiz-opt" onclick="checkAnswer(this, false, 'q1')">A) Broad Network Access</button>
+                        <button class="quiz-opt" onclick="checkAnswer(this, true, 'q1')">B) Rapid Elasticity</button>
+                        <button class="quiz-opt" onclick="checkAnswer(this, false, 'q1')">C) Resource Pooling</button>
+                        <button class="quiz-opt" onclick="checkAnswer(this, false, 'q1')">D) On-Demand Self-Service</button>
+                    </div>
+                    <div id="feedback-q1" class="quiz-feedback"></div>
+                </div>
+
+                <!-- Q2 -->
+                <div class="quiz-container">
+                    <div class="quiz-question">Q2: Upgrading an existing database server from 8 vCPUs and 16GB RAM to 32 vCPUs and 64GB RAM is an example of:</div>
+                    <div class="quiz-options">
+                        <button class="quiz-opt" onclick="checkAnswer(this, false, 'q2')">A) Horizontal Scaling (Scale-Out)</button>
+                        <button class="quiz-opt" onclick="checkAnswer(this, true, 'q2')">B) Vertical Scaling (Scale-Up)</button>
+                        <button class="quiz-opt" onclick="checkAnswer(this, false, 'q2')">C) Rapid Elasticity</button>
+                        <button class="quiz-opt" onclick="checkAnswer(this, false, 'q2')">D) Multi-Tenancy</button>
+                    </div>
+                    <div id="feedback-q2" class="quiz-feedback"></div>
+                </div>
+
+                <!-- Q3 -->
+                <div class="quiz-container">
+                    <div class="quiz-question">Q3: An enterprise target SLA of 99.99% ("Four Nines") allows a maximum total downtime per year of approximately:</div>
+                    <div class="quiz-options">
+                        <button class="quiz-opt" onclick="checkAnswer(this, false, 'q3')">A) 8.77 hours</button>
+                        <button class="quiz-opt" onclick="checkAnswer(this, true, 'q3')">B) 52.6 minutes</button>
+                        <button class="quiz-opt" onclick="checkAnswer(this, false, 'q3')">C) 5.26 minutes</button>
+                        <button class="quiz-opt" onclick="checkAnswer(this, false, 'q3')">D) 3.65 days</button>
+                    </div>
+                    <div id="feedback-q3" class="quiz-feedback"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function switchTab(tabId) {
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+
+            if (tabId === 'availability') calculateSLA();
+        }
+
+        function calculateSLA() {
+            const slaVal = parseFloat(document.getElementById('slaSelect').value);
+            const uptimeFraction = slaVal / 100;
+            const downtimeFraction = 1 - uptimeFraction;
+
+            const minutesInYear = 365.25 * 24 * 60; // 525,960 mins
+            const downtimeMinsYear = minutesInYear * downtimeFraction;
+            const downtimeMinsMonth = (30.4375 * 24 * 60) * downtimeFraction;
+
+            let yearStr = downtimeMinsYear > 60 ? (downtimeMinsYear / 60).toFixed(2) + " hours" : downtimeMinsYear.toFixed(2) + " minutes";
+            let monthStr = downtimeMinsMonth > 60 ? (downtimeMinsMonth / 60).toFixed(2) + " hours" : (downtimeMinsMonth >= 1 ? downtimeMinsMonth.toFixed(2) + " minutes" : (downtimeMinsMonth * 60).toFixed(1) + " seconds");
+
+            document.getElementById('slaResultDisplay').innerHTML = `
+                <strong>Calculated Allowed Downtime for ${slaVal}% SLA:</strong><br>
+                • Per Year: <span style="color: #ffffff; font-weight: bold;">${yearStr}</span><br>
+                • Per Month: <span style="color: #ffffff; font-weight: bold;">${monthStr}</span>
+            `;
+        }
+
+        function checkAnswer(btnElement, isCorrect, qId) {
+            const parent = btnElement.parentElement;
+            parent.querySelectorAll('.quiz-opt').forEach(opt => {
+                opt.disabled = true;
+                opt.classList.remove('correct', 'incorrect');
+            });
+
+            const feedback = document.getElementById('feedback-' + qId);
+
+            if (isCorrect) {
+                btnElement.classList.add('correct');
+                feedback.style.display = 'block';
+                feedback.style.background = '#ecfdf5';
+                feedback.style.color = '#047857';
+                feedback.style.border = '1px solid #a7f3d0';
+                feedback.innerHTML = '<i class="fa-solid fa-circle-check"></i> <strong>Correct!</strong> Great job. This concept is a core technical assessment question.';
+            } else {
+                btnElement.classList.add('incorrect');
+                feedback.style.display = 'block';
+                feedback.style.background = '#fef2f2';
+                feedback.style.color = '#be123c';
+                feedback.style.border = '1px solid #fecdd3';
+                feedback.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> <strong>Incorrect.</strong> Review the explanation tab for this topic.';
+            }
+        }
+
+        // Init
+        calculateSLA();
+    </script>
+</body>
+</html>

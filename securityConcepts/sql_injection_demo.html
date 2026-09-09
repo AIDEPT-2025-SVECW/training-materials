@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Injection (SQLi) - Attack, Impact & Defense Guide</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,560;9..144,680&family=IBM+Plex+Mono:wght@400;500;600&family=Karla:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-page: #f8faf9;
+            --surface: #ffffff;
+            --surface-subtle: #f1f5f3;
+            --border-soft: #e2e8f0;
+            --border-strong: #cbd5e1;
+            
+            --ink-main: #0f172a;
+            --ink-muted: #475569;
+            --ink-subtle: #64748b;
+            
+            --brand-indigo: #4338ca;
+            --brand-amber: #b45309;
+            --brand-emerald: #047857;
+            --brand-rose: #be123c;
+            --brand-violet: #6d28d9;
+            
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 16px;
+            --shadow-subtle: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
+            --shadow-card: 0 10px 30px -4px rgba(15, 23, 42, 0.08);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-page);
+            background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
+            background-size: 20px 20px;
+            color: var(--ink-main);
+            font-family: 'Karla', sans-serif;
+            line-height: 1.65;
+            padding-bottom: 80px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        ::selection { background: #fef08a; color: #0f172a; }
+
+        .container { max-width: 1060px; margin: 0 auto; padding: 0 24px; }
+
+        /* Editorial Light Header */
+        header.hero {
+            background: #ffffff;
+            border-bottom: 1px solid var(--border-soft);
+            padding: 54px 24px 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+        }
+
+        .hero-inner { max-width: 1060px; margin: 0 auto; }
+
+        .kicker {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13px;
+            color: var(--brand-rose);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .kicker .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--brand-rose); }
+
+        h1 {
+            font-family: 'Fraunces', serif;
+            font-weight: 560;
+            font-size: clamp(34px, 5.2vw, 48px);
+            line-height: 1.1;
+            color: #0f172a;
+            margin-bottom: 18px;
+            letter-spacing: -0.02em;
+        }
+
+        h1 em { font-style: italic; color: var(--brand-rose); font-weight: 400; }
+
+        .dek {
+            font-size: 17.5px;
+            color: var(--ink-muted);
+            max-width: 68ch;
+            margin-bottom: 18px;
+            line-height: 1.6;
+        }
+
+        .source-note {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13px;
+            color: var(--ink-subtle);
+            background: var(--surface-subtle);
+            padding: 8px 14px;
+            border-radius: var(--radius-sm);
+            display: inline-block;
+        }
+
+        /* Navigation Tabs */
+        .tabs {
+            display: flex;
+            gap: 6px;
+            margin: 36px 0 0;
+            border-bottom: 1px solid var(--border-soft);
+            overflow-x: auto;
+        }
+
+        .tab {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13.5px;
+            padding: 14px 22px;
+            background: none;
+            border: none;
+            color: var(--ink-subtle);
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+            border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+        }
+
+        .tab:hover { color: var(--ink-main); background: rgba(241, 245, 243, 0.6); }
+        .tab.active { color: var(--brand-rose); font-weight: 600; background: #ffffff; }
+
+        .tab::after {
+            content: "";
+            position: absolute;
+            left: 0; right: 0; bottom: -1px;
+            height: 3px;
+            background: transparent;
+        }
+
+        .tab.active::after { background: var(--brand-rose); }
+
+        .panel { display: none; padding-top: 36px; }
+        .panel.active { display: block; animation: fade 0.25s ease; }
+
+        @keyframes fade {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Light Cards */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius-lg);
+            padding: 30px;
+            margin-bottom: 28px;
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .card h2 {
+            font-family: 'Fraunces', serif;
+            font-size: 26px;
+            margin-bottom: 12px;
+            color: var(--ink-main);
+            letter-spacing: -0.01em;
+        }
+
+        .card p { color: var(--ink-muted); font-size: 16px; line-height: 1.7; margin-bottom: 16px; }
+
+        /* Side-by-Side Cards Grid */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin: 24px 0;
+        }
+
+        @media (max-width: 768px) { .comparison-grid { grid-template-columns: 1fr; } }
+
+        .code-card {
+            background: #ffffff;
+            border-radius: var(--radius-md);
+            padding: 24px;
+            border: 1px solid var(--border-soft);
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .code-card.vulnerable { border-top: 4px solid var(--brand-rose); }
+        .code-card.secure { border-top: 4px solid var(--brand-emerald); }
+
+        .card-badge {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+        }
+
+        .badge-vuln { background: #fef2f2; color: var(--brand-rose); border: 1px solid #fecdd3; }
+        .badge-secure { background: #ecfdf5; color: var(--brand-emerald); border: 1px solid #a7f3d0; }
+
+        .code-display {
+            background: #0f172a;
+            color: #f8fafc;
+            border-radius: var(--radius-sm);
+            padding: 16px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            overflow-x: auto;
+            white-space: pre;
+            margin: 12px 0;
+        }
+
+        .kw { color: #818cf8; font-weight: 600; }
+        .ty { color: #fbbf24; font-weight: 600; }
+        .str { color: #a7f3d0; }
+        .cm { color: #94a3b8; font-style: italic; }
+        .err { color: #f87171; font-weight: 700; }
+        .sql-kw { color: #f472b6; font-weight: 700; }
+
+        /* Simulator Layout */
+        .sim-container {
+            display: grid;
+            grid-template-columns: 1fr 1.1fr;
+            gap: 24px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 820px) { .sim-container { grid-template-columns: 1fr; } }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .form-label {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--ink-muted);
+            text-transform: uppercase;
+        }
+
+        .form-select, .form-input {
+            background: #ffffff;
+            border: 1px solid var(--border-strong);
+            color: var(--ink-main);
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13.5px;
+            outline: none;
+            width: 100%;
+        }
+
+        .btn-attack {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 14px;
+            padding: 14px 24px;
+            background: var(--brand-rose);
+            color: #ffffff;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 4px 12px rgba(190, 18, 60, 0.25);
+        }
+
+        .btn-attack:hover { background: #9f1239; transform: translateY(-1px); }
+
+        .btn-mode {
+            padding: 10px 16px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-strong);
+            cursor: pointer;
+            background: #ffffff;
+            transition: all 0.15s ease;
+        }
+
+        .btn-mode.active-vuln { background: #fef2f2; border-color: var(--brand-rose); color: var(--brand-rose); font-weight: 600; }
+        .btn-mode.active-secure { background: #ecfdf5; border-color: var(--brand-emerald); color: var(--brand-emerald); font-weight: 600; }
+
+        .output-box {
+            background: #0f172a;
+            color: #f8fafc;
+            border: 1px solid var(--border-strong);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13px;
+            line-height: 1.65;
+            overflow-x: auto;
+            white-space: pre;
+            box-shadow: var(--shadow-card);
+        }
+
+        .result-banner {
+            padding: 16px;
+            border-radius: var(--radius-md);
+            margin-top: 16px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13.5px;
+        }
+
+        .banner-danger { background: #fef2f2; border: 1px solid #fecdd3; color: var(--brand-rose); }
+        .banner-success { background: #ecfdf5; border: 1px solid #a7f3d0; color: var(--brand-emerald); }
+    </style>
+</head>
+<body>
+
+    <header class="hero">
+        <div class="hero-inner">
+            <div class="kicker">
+                <span class="dot"></span> APPLICATION SECURITY · DATABASE DEFENSE
+            </div>
+            <h1>SQL Injection (SQLi) <em>Anatomy & Fix</em></h1>
+            <p class="dek">
+                SQL Injection occurs when untrusted user input is directly concatenated into database query strings. Attackers manipulate the query structure to bypass login authentication, extract customer data, or drop entire database tables.
+            </p>
+            <div class="source-note">
+                Context: <strong>FoodOrderingSystem Repository</strong> (Java JDBC vs Spring Data JPA `UserRepository`).
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Navigation Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('anatomy')"><i class="fa-solid fa-bug"></i> Attack Anatomy & Mechanism</button>
+            <button class="tab" onclick="switchTab('simulator')"><i class="fa-solid fa-terminal"></i> Live SQLi Attack Simulator</button>
+            <button class="tab" onclick="switchTab('code')"><i class="fa-solid fa-code"></i> Vulnerable vs. Prepared Fix</button>
+            <button class="tab" onclick="switchTab('prevention')"><i class="fa-solid fa-shield-cat"></i> Prevention Checklist</button>
+        </div>
+
+        <!-- TAB 1: ATTACK ANATOMY -->
+        <div id="anatomy" class="panel active">
+            <div class="card">
+                <h2>How Unsafe String Concatenation Breaks SQL Structure</h2>
+                <p>
+                    When developers construct SQL queries by stitching strings together (e.g. <code>"SELECT * FROM users WHERE email='" + email + "'"</code>), the database SQL parser cannot distinguish between developer code and attacker data!
+                </p>
+
+                <div class="comparison-grid">
+                    <div class="code-card vulnerable">
+                        <span class="card-badge badge-vuln">Malicious Input Example</span>
+                        <h3 style="font-family: 'Fraunces'; font-size: 18px; margin-bottom: 8px;">Auth Bypass Payload</h3>
+                        <p style="font-size: 14px; color: var(--ink-muted);">
+                            Attacker enters <code>admin' OR '1'='1</code> into the email login input field.
+                        </p>
+                        <div class="code-display">
+<span class="cm">// Java Backend String Concatenation:</span>
+String sql = <span class="str">"SELECT * FROM users WHERE "</span> +
+             <span class="str">"email='"</span> + userInput + <span class="str">"'"</span>;
+
+<span class="cm">// Resulting SQL Executed on DB Engine:</span>
+<span class="sql-kw">SELECT</span> * <span class="sql-kw">FROM</span> users 
+<span class="sql-kw">WHERE</span> email='admin' <span class="sql-kw">OR</span> <span class="str">'1'='1'</span>;
+                        </div>
+                        <p style="font-size: 13.5px; color: var(--brand-rose); font-weight: 600;">
+                            Result: '1'='1' is ALWAYS true! The WHERE clause matches the admin record and logs the attacker in without a password.
+                        </p>
+                    </div>
+
+                    <div class="code-card secure">
+                        <span class="card-badge badge-secure">Parameterized Query Solution</span>
+                        <h3 style="font-family: 'Fraunces'; font-size: 18px; margin-bottom: 8px;">PreparedStatement Binding</h3>
+                        <p style="font-size: 14px; color: var(--ink-muted);">
+                            Using <code>PreparedStatement</code> placeholders (<code>?</code>) sends SQL query structure and parameter values separately.
+                        </p>
+                        <div class="code-display">
+<span class="cm">// PreparedStatement Compiler Template:</span>
+String sql = <span class="str">"SELECT * FROM users WHERE email=?"</span>;
+PreparedStatement pstmt = conn.prepareStatement(sql);
+
+<span class="cm">// Parameter bound as literal text:</span>
+pstmt.setString(1, userInput);
+                        </div>
+                        <p style="font-size: 13.5px; color: var(--brand-emerald); font-weight: 600;">
+                            Result: Database treats <code>admin' OR '1'='1</code> strictly as a literal string. Looks for email literally equal to that text. Returns 0 rows safely!
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: LIVE ATTACK SIMULATOR -->
+        <div id="simulator" class="panel">
+            <div class="card">
+                <h2>Interactive SQL Injection Attack Simulator</h2>
+                <p>
+                    Test different malicious payloads against a simulated FoodOrderingSystem backend query engine. Toggle between <strong>Vulnerable (String Concatenation)</strong> and <strong>Protected (PreparedStatement)</strong> modes to inspect the executed query logic!
+                </p>
+
+                <div style="display: flex; gap: 12px; margin-bottom: 20px;">
+                    <button id="btnVuln" class="btn-mode active-vuln" onclick="setDefenseMode(false)">🔴 Vulnerable Mode (Concatenation)</button>
+                    <button id="btnSecure" class="btn-mode" onclick="setDefenseMode(true)">🟢 Protected Mode (PreparedStatement)</button>
+                </div>
+
+                <div class="sim-container">
+                    <div>
+                        <div class="control-group">
+                            <label class="form-label">1. Select Attack Payload:</label>
+                            <select id="payloadSelect" class="form-select" onchange="customPayloadUpdate()">
+                                <option value="bypass">Authentication Bypass: admin' OR '1'='1</option>
+                                <option value="union">Data Exfiltration: ' UNION SELECT id, email, password_hash FROM users --</option>
+                                <option value="drop">Destructive Attack: admin'; DROP TABLE orders; --</option>
+                                <option value="legit">Legitimate User: customer@foodapp.com</option>
+                            </select>
+
+                            <label class="form-label" style="margin-top: 8px;">2. Or Type Custom Input:</label>
+                            <input type="text" id="customInput" class="form-input" value="admin' OR '1'='1" oninput="runSimulation()">
+
+                            <button class="btn-attack" onclick="runSimulation()"><i class="fa-solid fa-bolt"></i> Execute Query on Database</button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="output-box" id="sqlOutputDisplay">
+// Query Execution Log...
+                        </div>
+                    </div>
+                </div>
+
+                <div id="bannerOutput" class="result-banner banner-danger">
+                    Executing in Vulnerable Mode...
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: CODE FIX COMPARISON -->
+        <div id="code" class="panel">
+            <div class="card">
+                <h2>Java JDBC & Spring Data JPA Code Patterns</h2>
+                <p>How to eliminate SQL Injection across raw JDBC code, Spring JdbcTemplate, and Spring Data JPA Repositories:</p>
+
+                <div class="comparison-grid">
+                    <div class="code-card vulnerable">
+                        <span class="card-badge badge-vuln">❌ Vulnerable JDBC Code</span>
+                        <div class="code-display">
+<span class="kw">public</span> User <span class="ty">findUser</span>(String email, String password) {
+    <span class="cm">// DANGEROUS: Concatenation allows query altering!</span>
+    String sql = <span class="str">"SELECT * FROM users WHERE email='"</span> 
+        + email + <span class="str">"' AND password='"</span> + password + <span class="str">"'"</span>;
+
+    Statement stmt = connection.createStatement();
+    ResultSet rs = stmt.executeQuery(sql);
+    <span class="kw">return</span> extractUser(rs);
+}
+                        </div>
+                    </div>
+
+                    <div class="code-card secure">
+                        <span class="card-badge badge-secure">✅ Secure PreparedStatement (JDBC)</span>
+                        <div class="code-display">
+<span class="kw">public</span> User <span class="ty">findUser</span>(String email, String password) {
+    <span class="cm">// SAFE: Placeholders ? compile query template first</span>
+    String sql = <span class="str">"SELECT * FROM users WHERE email=? AND password=?"</span>;
+    
+    PreparedStatement pstmt = connection.prepareStatement(sql);
+    pstmt.setString(1, email);
+    pstmt.setString(2, password);
+    
+    ResultSet rs = pstmt.executeQuery();
+    <span class="kw">return</span> extractUser(rs);
+}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="code-card secure" style="margin-top: 10px;">
+                    <span class="card-badge badge-secure">✅ Secure Spring Data JPA Repository (FoodOrderingSystem)</span>
+                    <p style="font-size: 14.5px; color: var(--ink-muted);">
+                        Spring Data JPA automatically parameterizes derived finder methods and JPQL <code>@Query</code> parameters:
+                    </p>
+                    <div class="code-display">
+<span class="kw">public interface</span> <span class="ty">UserRepository</span> <span class="kw">extends</span> JpaRepository&lt;User, Long&gt; {
+
+    <span class="cm">// SAFE: Automatically generated parameterized SQL query</span>
+    Optional&lt;User&gt; <span class="ty">findByEmailAndPassword</span>(String email, String password);
+
+    <span class="cm">// SAFE: JPQL with named parameter binding</span>
+    <span class="kw">@Query</span>(<span class="str">"SELECT u FROM User u WHERE u.email = :email"</span>)
+    Optional&lt;User&gt; <span class="ty">findCustomByEmail</span>(<span class="kw">@Param</span>(<span class="str">"email"</span>) String email);
+}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: PREVENTION CHECKLIST -->
+        <div id="prevention" class="panel">
+            <div class="card">
+                <h2>SQL Injection Prevention Best Practices</h2>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div style="background: var(--surface-subtle); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border-soft);">
+                        <h3 style="color: var(--brand-emerald); font-family: 'Fraunces', serif; font-size: 18px; margin-bottom: 8px;">1. Parameterized Queries</h3>
+                        <p style="font-size: 14.5px; color: var(--ink-muted); margin: 0;">
+                            Always use <code>PreparedStatement</code> or ORM frameworks like Hibernate / Spring Data JPA. Never build SQL queries using raw string concatenation.
+                        </p>
+                    </div>
+
+                    <div style="background: var(--surface-subtle); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border-soft);">
+                        <h3 style="color: var(--brand-indigo); font-family: 'Fraunces', serif; font-size: 18px; margin-bottom: 8px;">2. Principle of Least Privilege</h3>
+                        <p style="font-size: 14.5px; color: var(--ink-muted); margin: 0;">
+                            Configure backend database connection credentials with restricted permissions. The app DB user should NOT have <code>DROP TABLE</code> or administrative DBA rights.
+                        </p>
+                    </div>
+
+                    <div style="background: var(--surface-subtle); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border-soft);">
+                        <h3 style="color: var(--brand-amber); font-family: 'Fraunces', serif; font-size: 18px; margin-bottom: 8px;">3. Input Validation & Allowlisting</h3>
+                        <p style="font-size: 14.5px; color: var(--ink-muted); margin: 0;">
+                            Validate input format, pattern, length, and character set using Bean Validation annotations (e.g. <code>@Email</code>, <code>@Pattern</code>). Reject invalid characters before querying.
+                        </p>
+                    </div>
+
+                    <div style="background: var(--surface-subtle); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border-soft);">
+                        <h3 style="color: var(--brand-violet); font-family: 'Fraunces', serif; font-size: 18px; margin-bottom: 8px;">4. Stored Procedures</h3>
+                        <p style="font-size: 14.5px; color: var(--ink-muted); margin: 0;">
+                            Where legacy relational DB operations are required, wrap logic in Stored Procedures which enforce parameter type safety natively.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let isProtectedMode = false;
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+
+            if (tabId === 'simulator') runSimulation();
+        }
+
+        function setDefenseMode(isSecure) {
+            isProtectedMode = isSecure;
+            const btnVuln = document.getElementById('btnVuln');
+            const btnSecure = document.getElementById('btnSecure');
+
+            if (isSecure) {
+                btnVuln.className = 'btn-mode';
+                btnSecure.className = 'btn-mode active-secure';
+            } else {
+                btnVuln.className = 'btn-mode active-vuln';
+                btnSecure.className = 'btn-mode';
+            }
+            runSimulation();
+        }
+
+        function customPayloadUpdate() {
+            const selectVal = document.getElementById('payloadSelect').value;
+            const customInput = document.getElementById('customInput');
+
+            if (selectVal === 'bypass') customInput.value = "admin' OR '1'='1";
+            else if (selectVal === 'union') customInput.value = "' UNION SELECT id, email, password_hash FROM users --";
+            else if (selectVal === 'drop') customInput.value = "admin'; DROP TABLE orders; --";
+            else if (selectVal === 'legit') customInput.value = "customer@foodapp.com";
+
+            runSimulation();
+        }
+
+        function runSimulation() {
+            const inputVal = document.getElementById('customInput').value;
+            const display = document.getElementById('sqlOutputDisplay');
+            const banner = document.getElementById('bannerOutput');
+
+            if (!isProtectedMode) {
+                // Vulnerable String Concatenation Mode
+                const constructedSQL = `SELECT * FROM users WHERE email = '${inputVal}' AND password = 'password123';`;
+                
+                display.innerHTML = `<span class="cm">// [UNSAFE STRING CONCATENATION MODE]</span>\n<span class="sql-kw">EXECUTING SQL ON DATABASE ENGINE:</span>\n${constructedSQL}\n\n<span class="cm">// AST PARSER DIAGNOSTIC:</span>\nQuery structure modified by unescaped input quotes!`;
+
+                if (inputVal.includes("OR '1'='1") || inputVal.includes("OR 1=1")) {
+                    banner.className = "result-banner banner-danger";
+                    banner.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> <strong>AUTH BYPASS ATTACK SUCCESSFUL!</strong><br>The WHERE clause evaluated to TRUE. Attacker logged in as Administrator without password!`;
+                } else if (inputVal.includes("UNION SELECT")) {
+                    banner.className = "result-banner banner-danger";
+                    banner.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> <strong>DATA EXFILTRATION ATTACK SUCCESSFUL!</strong><br>UNION query executed. Sensitive password hashes leaked from database!`;
+                } else if (inputVal.includes("DROP TABLE")) {
+                    banner.className = "result-banner banner-danger";
+                    banner.innerHTML = `<i class="fa-solid fa-radiation"></i> <strong>CATASTROPHIC DATA LOSS!</strong><br>Query executed 'DROP TABLE orders'. Entire orders table dropped from production database!`;
+                } else {
+                    banner.className = "result-banner banner-success";
+                    banner.innerHTML = `Standard query execution. (Vulnerable to injection if malicious input is entered)`;
+                }
+            } else {
+                // Protected PreparedStatement Mode
+                const compiledSQL = `SELECT * FROM users WHERE email = ? AND password = ?;\nParameters: [1: "${inputVal}", 2: "password123"]`;
+
+                display.innerHTML = `<span class="cm">// [PROTECTED PREPAREDSTATEMENT MODE]</span>\n<span class="sql-kw">EXECUTING PARAMETERIZED QUERY:</span>\n${compiledSQL}\n\n<span class="cm">// AST PARSER DIAGNOSTIC:</span>\nQuery template pre-compiled. Input value treated strictly as a literal string.`;
+
+                banner.className = "result-banner banner-success";
+                banner.innerHTML = `<i class="fa-solid fa-shield-check"></i> <strong>ATTACK NEUTRALIZED!</strong><br>PreparedStatement treated the entire input string literally. Database looked for email matching "${inputVal}". 0 rows returned safely without altering query logic!`;
+            }
+        }
+
+        // Init simulator on load
+        runSimulation();
+    </script>
+</body>
+</html>
