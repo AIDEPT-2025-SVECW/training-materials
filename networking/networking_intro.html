@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Networking Fundamentals | SE &amp; FSD Crash Course</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg-main: #fcfbf7;
+      --bg-card: #ffffff;
+      --bg-card-subtle: #f8fafc;
+      --text-heading: #0f172a;
+      --text-body: #334155;
+      --text-muted: #64748b;
+
+      --brand-blue: #2563eb;
+      --brand-blue-light: #eff6ff;
+      --brand-indigo: #4f46e5;
+      --brand-indigo-light: #eef2ff;
+      --brand-emerald: #059669;
+      --brand-emerald-light: #ecfdf5;
+      --brand-amber: #d97706;
+      --brand-amber-light: #fffbeb;
+      --brand-rose: #dc2626;
+      --brand-rose-light: #fef2f2;
+      --brand-purple: #9333ea;
+      --brand-purple-light: #faf5ff;
+      --brand-teal: #0d9488;
+      --brand-teal-light: #f0fdfa;
+
+      --border-light: #e2e8f0;
+      --border-hover: #cbd5e1;
+      --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+      --shadow-card: 0 10px 25px -5px rgba(15, 23, 42, 0.05), 0 8px 10px -6px rgba(15, 23, 42, 0.03);
+      --shadow-hover: 0 20px 35px -10px rgba(15, 23, 42, 0.1);
+
+      --font-primary: 'Plus Jakarta Sans', sans-serif;
+      --font-heading: 'Outfit', sans-serif;
+      --font-hand: 'Caveat', cursive;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: var(--font-primary);
+      background-color: var(--bg-main);
+      background-image:
+        radial-gradient(at 10% 10%, rgba(238, 242, 255, 0.6) 0px, transparent 50%),
+        radial-gradient(at 90% 10%, rgba(236, 253, 245, 0.6) 0px, transparent 50%),
+        radial-gradient(at 50% 90%, rgba(254, 243, 199, 0.5) 0px, transparent 50%);
+      background-attachment: fixed;
+      color: var(--text-body);
+      min-height: 100vh;
+      padding-bottom: 80px;
+      line-height: 1.6;
+    }
+
+    /* Navbar */
+    .navbar {
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-light);
+      padding: 1rem 2rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      text-decoration: none;
+      color: var(--text-heading);
+    }
+
+    .brand-logo {
+      width: 42px;
+      height: 42px;
+      background: linear-gradient(135deg, var(--brand-blue), var(--brand-purple));
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-family: var(--font-heading);
+      font-weight: 800;
+      font-size: 1.3rem;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+    }
+
+    .brand-title {
+      font-family: var(--font-heading);
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--text-heading);
+    }
+
+    .back-btn {
+      background: #ffffff;
+      border: 1px solid var(--border-light);
+      color: var(--text-heading);
+      padding: 0.55rem 1.1rem;
+      border-radius: 10px;
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+
+    .back-btn:hover {
+      background: var(--brand-blue-light);
+      color: var(--brand-blue);
+      border-color: var(--brand-blue);
+      transform: translateY(-1px);
+    }
+
+    /* Container */
+    .container {
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem;
+    }
+
+    /* Hero */
+    .hero {
+      text-align: center;
+      padding: 3rem 2rem;
+      background: #ffffff;
+      border: 1px solid var(--border-light);
+      border-radius: 28px;
+      box-shadow: var(--shadow-card);
+      margin-bottom: 2.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 5px;
+      background: linear-gradient(90deg, var(--brand-blue), var(--brand-purple), var(--brand-emerald), var(--brand-amber));
+    }
+
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--brand-blue-light);
+      border: 1px solid rgba(37, 99, 235, 0.2);
+      color: var(--brand-blue);
+      padding: 0.45rem 1.1rem;
+      border-radius: 30px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 1.25rem;
+    }
+
+    .hero-title {
+      font-family: var(--font-heading);
+      font-size: 2.6rem;
+      font-weight: 800;
+      color: var(--text-heading);
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+      margin-bottom: 1rem;
+    }
+
+    .hero-subtitle {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      max-width: 820px;
+      margin: 0 auto 1.5rem;
+      line-height: 1.6;
+    }
+
+    .hand-note {
+      font-family: var(--font-hand);
+      font-size: 1.55rem;
+      color: var(--brand-indigo);
+      font-weight: 700;
+      display: inline-block;
+      transform: rotate(-2deg);
+    }
+
+    /* Section Cards */
+    .section-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-light);
+      border-radius: 24px;
+      padding: 2.25rem;
+      box-shadow: var(--shadow-card);
+      margin-bottom: 2.5rem;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .section-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+    }
+
+    .section-title {
+      font-family: var(--font-heading);
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--text-heading);
+    }
+
+    /* Concept Cards Grid */
+    .grid-2col {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+
+    .concept-card {
+      background: #ffffff;
+      border: 1.5px solid var(--border-light);
+      border-radius: 20px;
+      padding: 1.5rem;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.25s ease;
+    }
+
+    .concept-card:hover {
+      border-color: var(--brand-blue);
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-card);
+    }
+
+    .concept-card h4 {
+      font-family: var(--font-heading);
+      font-size: 1.25rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-heading);
+    }
+
+    .concept-card p {
+      font-size: 0.92rem;
+      color: var(--text-body);
+      line-height: 1.55;
+    }
+
+    /* Master Analogy Banner */
+    .analogy-box {
+      background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+      border: 1.5px solid #bfdbfe;
+      border-radius: 20px;
+      padding: 1.75rem;
+      margin-top: 1.5rem;
+      display: flex;
+      gap: 1.25rem;
+      align-items: flex-start;
+    }
+
+    .analogy-icon {
+      font-size: 2.8rem;
+      line-height: 1;
+    }
+
+    .analogy-content h4 {
+      font-family: var(--font-heading);
+      font-size: 1.3rem;
+      color: var(--brand-blue);
+      font-weight: 800;
+      margin-bottom: 0.4rem;
+    }
+
+    /* Table Component */
+    .table-container {
+      overflow-x: auto;
+      margin-top: 1.5rem;
+      border-radius: 16px;
+      border: 1px solid var(--border-light);
+    }
+
+    .custom-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #ffffff;
+      font-size: 0.92rem;
+      text-align: left;
+    }
+
+    .custom-table th {
+      background: var(--bg-card-subtle);
+      font-family: var(--font-heading);
+      font-weight: 700;
+      color: var(--text-heading);
+      padding: 0.85rem 1.1rem;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .custom-table td {
+      padding: 0.85rem 1.1rem;
+      border-bottom: 1px solid var(--border-light);
+      color: var(--text-body);
+    }
+
+    .custom-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .port-badge {
+      font-family: monospace;
+      font-weight: 700;
+      background: var(--brand-indigo-light);
+      color: var(--brand-indigo);
+      padding: 0.2rem 0.55rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+    }
+
+    /* Interactive Simulators */
+    .sim-box {
+      background: #ffffff;
+      border: 1.5px solid var(--border-light);
+      border-radius: 20px;
+      padding: 2rem;
+      margin-top: 1.5rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .sim-inputs {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+    }
+
+    .sim-input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .sim-input-group label {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .sim-select,
+    .sim-input {
+      padding: 0.65rem 1rem;
+      border-radius: 12px;
+      border: 1.5px solid var(--border-light);
+      font-family: var(--font-primary);
+      font-size: 0.92rem;
+      outline: none;
+      background: var(--bg-main);
+    }
+
+    .sim-select:focus,
+    .sim-input:focus {
+      border-color: var(--brand-blue);
+    }
+
+    .sim-btn {
+      background: linear-gradient(135deg, var(--brand-blue), var(--brand-purple));
+      color: #ffffff;
+      border: none;
+      padding: 0.75rem 1.75rem;
+      border-radius: 12px;
+      font-family: var(--font-heading);
+      font-weight: 800;
+      font-size: 0.95rem;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+      transition: all 0.2s ease;
+      align-self: flex-end;
+    }
+
+    .sim-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 18px rgba(37, 99, 235, 0.35);
+    }
+
+    .sim-display {
+      background: #0f172a;
+      color: #38bdf8;
+      font-family: monospace;
+      font-size: 0.88rem;
+      padding: 1.25rem;
+      border-radius: 14px;
+      min-height: 90px;
+      line-height: 1.6;
+    }
+
+    /* Handshake Visual Track */
+    .handshake-track {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+
+    .hs-node {
+      background: var(--bg-card-subtle);
+      border: 1.5px solid var(--border-light);
+      border-radius: 16px;
+      padding: 1rem 1.5rem;
+      text-align: center;
+    }
+
+    .hs-step {
+      flex: 1;
+      background: #ffffff;
+      border: 1.5px dashed var(--border-light);
+      border-radius: 12px;
+      padding: 0.75rem;
+      text-align: center;
+      font-size: 0.85rem;
+      font-weight: 700;
+      transition: all 0.3s ease;
+    }
+
+    .hs-step.active {
+      border-color: var(--brand-emerald);
+      background: var(--brand-emerald-light);
+      color: var(--brand-emerald);
+      transform: scale(1.05);
+    }
+
+    /* Quiz Box */
+    .quiz-container {
+      background: var(--bg-card-subtle);
+      border: 1.5px solid var(--border-light);
+      border-radius: 20px;
+      padding: 1.75rem;
+      margin-top: 1.5rem;
+    }
+
+    .quiz-q {
+      background: #ffffff;
+      border: 1px solid var(--border-light);
+      border-radius: 16px;
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+    }
+
+    .quiz-q h5 {
+      font-family: var(--font-heading);
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+    }
+
+    .quiz-options {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .quiz-opt {
+      padding: 0.65rem 1rem;
+      border-radius: 10px;
+      border: 1px solid var(--border-light);
+      background: var(--bg-main);
+      font-size: 0.9rem;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s ease;
+    }
+
+    .quiz-opt:hover {
+      background: var(--brand-blue-light);
+      border-color: var(--brand-blue);
+      color: var(--brand-blue);
+    }
+
+    .quiz-opt.correct {
+      background: var(--brand-emerald-light) !important;
+      border-color: var(--brand-emerald) !important;
+      color: var(--brand-emerald) !important;
+      font-weight: 700;
+    }
+
+    .quiz-opt.wrong {
+      background: var(--brand-rose-light) !important;
+      border-color: var(--brand-rose) !important;
+      color: var(--brand-rose) !important;
+    }
+
+    .quiz-exp {
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
+      padding: 0.5rem 0.75rem;
+      border-radius: 8px;
+      display: none;
+    }
+
+    .assessment-box {
+      margin-top: 1.5rem;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.25rem;
+      background: linear-gradient(135deg, #fffdf9, #f3f8ff);
+    }
+
+    .assessment-box h3 {
+      margin: 0 0 .45rem;
+      font-family: var(--font-heading);
+      font-size: 1.35rem;
+    }
+
+    .assessment-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: .8rem;
+      margin-top: 1rem;
+    }
+
+    .assessment-item {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fff;
+      padding: .9rem;
+    }
+
+    .assessment-item strong {
+      display: block;
+      margin-bottom: .25rem;
+    }
+
+    .assessment-item span {
+      color: var(--text-muted);
+      font-size: .88rem;
+    }
+
+    .request-map {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: .5rem;
+      align-items: center;
+      margin-top: 1rem;
+    }
+
+    .request-node {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: .7rem .4rem;
+      text-align: center;
+      background: #fff;
+      font-size: .8rem;
+      font-weight: 700;
+    }
+
+    .request-arrow {
+      text-align: center;
+      color: var(--brand-blue);
+      font-weight: 800;
+    }
+
+    .scenario-card {
+      margin-top: 1rem;
+      padding: 1rem;
+      border: 1px dashed var(--border);
+      border-radius: 12px;
+      background: #fffaf0;
+    }
+
+    .scenario-card select {
+      width: 100%;
+      max-width: 100%;
+      margin-top: .65rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: .65rem;
+      background: white;
+    }
+
+    .scenario-result {
+      margin-top: .75rem;
+      padding: .75rem;
+      border-radius: 8px;
+      background: #eef8f1;
+      color: #245d3d;
+      font-size: .9rem;
+    }
+
+    @media (max-width: 800px) {
+
+      .assessment-grid,
+      .request-map {
+        grid-template-columns: 1fr;
+      }
+
+      .request-arrow {
+        transform: rotate(90deg);
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <a href="../fsd_crashcourse.html" class="brand">
+      <div class="brand-logo">🌐</div>
+      <span class="brand-title">Networking Fundamentals</span>
+    </a>
+    <a href="../fsd_crashcourse.html" class="back-btn">← Back to Course Hub</a>
+  </nav>
+
+  <div class="container">
+
+    <!-- Hero Section -->
+    <header class="hero">
+      <div class="hero-tag">
+        <span>📡</span> SE &amp; Cloud Fundamentals — Day 3 Session 13
+      </div>
+      <h1 class="hero-title">Networking Basics &amp; End-to-End Request Path</h1>
+      <p class="hero-subtitle">
+        How a food-ordering web application communicates from a user's phone to the backend and database. This lesson
+        covers <strong>IP Addresses</strong>, <strong>DNS</strong>, <strong>Ports</strong>, <strong>TCP vs UDP</strong>,
+        <strong>HTTPS</strong>, <strong>Firewalls</strong>, <strong>Load Balancers</strong>, and the complete request
+        path using simple fresher-level examples.
+      </p>
+      <span class="hand-note">~ "How your browser actually talks to backend servers!" 🚀</span>
+    </header>
+
+    <!-- Section 1: IP Addresses, DNS & Ports -->
+    <section class="section-card">
+      <div class="section-header">
+        <div class="section-icon" style="background: var(--brand-blue-light); color: var(--brand-blue);">📍</div>
+        <h2 class="section-title">1. IP Addresses, DNS &amp; Network Ports</h2>
+      </div>
+
+      <p>
+        Just like sending a physical letter to a friend requires a street address and an apartment door number, sending
+        data across the internet relies on three fundamental concepts:
+      </p>
+
+      <div class="grid-2col">
+        <div class="concept-card">
+          <h4>📮 1. IP Address (The Street Address)</h4>
+          <p>
+            Every device connected to the internet receives a unique numerical identifier called an <strong>IP
+              Address</strong>.
+            <br><br>
+            • <strong>IPv4:</strong> 4 numbers separated by dots (e.g. <code>172.217.14.206</code>).<br>
+            • <strong>IPv6:</strong> 128-bit hexadecimal address created to solve IPv4 address exhaustion.
+          </p>
+        </div>
+
+        <div class="concept-card">
+          <h4>📖 2. DNS (The Internet's Phonebook)</h4>
+          <p>
+            Humans remember names like <code>foodordering.com</code>, but servers only understand numbers like
+            <code>142.250.190.46</code>.
+            <br><br>
+            <strong>Domain Name System (DNS)</strong> translates human-friendly URLs into machine-readable IP addresses
+            in milliseconds!
+          </p>
+        </div>
+      </div>
+
+      <!-- Master Analogy Banner -->
+      <div class="analogy-box">
+        <div class="analogy-icon">🏢</div>
+        <div class="analogy-content">
+          <h4>Master Analogy for Freshers: Apartment Building &amp; Door Numbers</h4>
+          <p style="font-size: 0.93rem; color: var(--text-body); line-height: 1.55;">
+            Imagine a huge apartment building located at <strong>100 Tech Park Way (IP Address)</strong>. Inside the
+            building, there are different departments:
+            <br><br>
+            • <strong>Door #80 / #443 (HTTP/HTTPS):</strong> The Reception Counter for public website visitors.<br>
+            • <strong>Door #3306 (MySQL Database):</strong> The Secure Vault storing user passwords &amp; orders.<br>
+            • <strong>Door #8080 (Spring Boot API):</strong> The Kitchen preparing order data.
+            <br><br>
+            <strong>Network Ports</strong> are these specific apartment door numbers on a server!
+          </p>
+        </div>
+      </div>
+
+      <!-- Ports Reference Table -->
+      <h3 style="font-family: var(--font-heading); font-size: 1.25rem; margin-top: 1.75rem; margin-bottom: 0.5rem;">
+        Standard Well-Known Network Ports:</h3>
+      <div class="table-container">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>Port Number</th>
+              <th>Protocol / Service</th>
+              <th>Common Usage</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="port-badge">80</span></td>
+              <td><strong>HTTP</strong></td>
+              <td>Unencrypted web traffic (plaintext)</td>
+            </tr>
+            <tr>
+              <td><span class="port-badge">443</span></td>
+              <td><strong>HTTPS</strong></td>
+              <td>Secure TLS/SSL encrypted web traffic</td>
+            </tr>
+            <tr>
+              <td><span class="port-badge">22</span></td>
+              <td><strong>SSH</strong></td>
+              <td>Secure remote terminal access to Linux servers</td>
+            </tr>
+            <tr>
+              <td><span class="port-badge">3306</span></td>
+              <td><strong>MySQL / MariaDB</strong></td>
+              <td>Database server connections</td>
+            </tr>
+            <tr>
+              <td><span class="port-badge">5432</span></td>
+              <td><strong>PostgreSQL</strong></td>
+              <td>Relational database endpoint</td>
+            </tr>
+            <tr>
+              <td><span class="port-badge">8080 / 3000</span></td>
+              <td><strong>Application Backend</strong></td>
+              <td>Spring Boot Java API / Node.js Express server</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Section 2: TCP vs UDP (The Delivery Protocols) -->
+    <section class="section-card">
+      <div class="section-header">
+        <div class="section-icon" style="background: var(--brand-purple-light); color: var(--brand-purple);">⚡</div>
+        <h2 class="section-title">2. Transport Layer: TCP vs UDP</h2>
+      </div>
+
+      <p>
+        Data sent over the internet is broken down into small <strong>packets</strong>. How those packets are delivered
+        depends on the transport protocol chosen:
+      </p>
+
+      <div class="grid-2col">
+        <div class="concept-card">
+          <h4>📦 TCP (Transmission Control Protocol)</h4>
+          <p>
+            <strong>Reliable &amp; Connection-Oriented.</strong> Guarantees that every single packet arrives in exact
+            order without loss. Uses a <strong>3-Way Handshake</strong> to establish connection first.
+            <br><br>
+            <strong>Best For:</strong> Web Browsing (HTTP), REST APIs, Email, Database queries, File Transfers (where
+            losing 1 byte corrupts the data).
+          </p>
+        </div>
+
+        <div class="concept-card">
+          <h4>🚀 UDP (User Datagram Protocol)</h4>
+          <p>
+            <strong>Ultra-Fast &amp; Connectionless.</strong> Sends packets immediately without a handshake or
+            acknowledgment. If a packet gets lost in transit, it is simply dropped.
+            <br><br>
+            <strong>Best For:</strong> Live Video Streaming (Zoom, YouTube Live), Online Multiplayer Gaming, Voice over
+            IP (VoIP), DNS queries.
+          </p>
+        </div>
+      </div>
+
+      <!-- Interactive 3-Way Handshake Simulator -->
+      <div class="sim-box">
+        <h3 style="font-family: var(--font-heading); text-align: center; margin-bottom: 0.5rem;">🎮 Interactive TCP
+          3-Way Handshake Simulator</h3>
+        <p style="text-align: center; font-size: 0.92rem; color: var(--text-muted); margin-bottom: 1.5rem;">
+          Click <strong>"Establish TCP Connection"</strong> to observe how Client and Server synchronize before
+          exchanging HTTP data!
+        </p>
+
+        <div class="handshake-track">
+          <div class="hs-node">💻 Client Browser</div>
+          <div id="hs1" class="hs-step">1. SYN ➔ (Synchronize?)</div>
+          <div id="hs2" class="hs-step">2. ⚡ SYN-ACK (Acknowledged!)</div>
+          <div id="hs3" class="hs-step">3. ACK ➔ (Connection Ready!)</div>
+          <div class="hs-node">🖥️ App Server</div>
+        </div>
+
+        <div style="text-align: center; margin-bottom: 1.25rem;">
+          <button id="hsBtn" class="sim-btn" onclick="runHandshake()">▶️ Establish TCP Connection</button>
+        </div>
+
+        <div id="hsConsole" class="sim-display">
+          Status: Idle. Click button to initiate TCP 3-Way Handshake.
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 3: Firewalls, Security Groups & Request Path -->
+    <section class="section-card">
+      <div class="section-header">
+        <div class="section-icon" style="background: var(--brand-emerald-light); color: var(--brand-emerald);">🧱</div>
+        <h2 class="section-title">3. Firewalls, Security Groups &amp; End-to-End Request Path</h2>
+      </div>
+
+      <div class="grid-2col">
+        <div class="concept-card">
+          <h4>🛡️ Firewalls &amp; Cloud Security Groups</h4>
+          <p>
+            Acts as a digital bouncer at the server entrance. Configured with <strong>Ingress (Incoming)</strong> and
+            <strong>Egress (Outgoing)</strong> rules:
+            <br><br>
+            • <strong>ALLOW:</strong> Port 443 (HTTPS) from any IP (<code>0.0.0.0/0</code>).<br>
+            • <strong>BLOCK:</strong> Port 3306 (Database) from the public internet (only allow internal App Server
+            IPs!).
+          </p>
+        </div>
+
+        <div class="concept-card">
+          <h4>🗺️ The End-to-End Request Journey</h4>
+          <p>
+            When a user orders food on their phone app, the HTTP request follows a precise sequence:
+            <br><br>
+            <code>User App ➔ DNS Lookup ➔ Firewall Gate ➔ Load Balancer ➔ Backend App (Port 8080) ➔ Database (Port 3306)</code>.
+          </p>
+        </div>
+      </div>
+
+      <!-- Interactive DNS & Request Path Explorer -->
+      <div class="sim-box">
+        <h3 style="font-family: var(--font-heading); text-align: center; margin-bottom: 0.5rem;">🎮 Interactive
+          End-to-End Request Journey Simulator</h3>
+        <p style="text-align: center; font-size: 0.92rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+          Select a domain and target service, then click <strong>"Send HTTP Request"</strong> to watch the request
+          travel across the network!
+        </p>
+
+        <div class="sim-inputs">
+          <div class="sim-input-group">
+            <label>Domain Name:</label>
+            <select id="simDomain" class="sim-select">
+              <option value="foodordering.com">https://foodordering.com</option>
+              <option value="api.swiggy.com">https://api.swiggy.com</option>
+            </select>
+          </div>
+
+          <div class="sim-input-group">
+            <label>Target Service / Port:</label>
+            <select id="simPort" class="sim-select">
+              <option value="443">HTTPS Web App (Port 443)</option>
+              <option value="8080">Backend REST API (Port 8080)</option>
+              <option value="3306">MySQL Database (Port 3306)</option>
+            </select>
+          </div>
+
+          <button class="sim-btn" onclick="runRequestPath()">🚀 Send HTTP Request</button>
+        </div>
+
+        <div id="reqConsole" class="sim-display">
+          Status: Ready. Select domain and click "Send HTTP Request".
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 4: Quiz -->
+
+    <section class="section-card">
+      <div class="section-header">
+        <div class="section-icon" style="background: var(--brand-blue-light); color: var(--brand-blue);">🧭</div>
+        <h2 class="section-title">4. The Complete Request Path</h2>
+      </div>
+
+      <p>
+        When a student opens a food-ordering application, the request usually moves through several
+        networking steps. The exact infrastructure may differ, but this is a useful mental model.
+      </p>
+
+      <div class="request-map" aria-label="End-to-end request path">
+        <div class="request-node">User<br>Phone</div>
+        <div class="request-arrow">→</div>
+        <div class="request-node">DNS<br>Lookup</div>
+        <div class="request-arrow">→</div>
+        <div class="request-node">HTTPS<br>Port 443</div>
+        <div class="request-arrow">→</div>
+        <div class="request-node">Firewall</div>
+        <div class="request-arrow">→</div>
+        <div class="request-node">Load<br>Balancer</div>
+        <div class="request-arrow">→</div>
+        <div class="request-node">Backend<br>API</div>
+      </div>
+
+      <div class="assessment-box">
+        <h3>What should a fresher be able to explain?</h3>
+        <div class="assessment-grid">
+          <div class="assessment-item">
+            <strong>DNS</strong>
+            <span>Converts a domain name into an IP address.</span>
+          </div>
+          <div class="assessment-item">
+            <strong>IP address</strong>
+            <span>Identifies a device or network interface.</span>
+          </div>
+          <div class="assessment-item">
+            <strong>Port</strong>
+            <span>Identifies the service receiving network traffic.</span>
+          </div>
+          <div class="assessment-item">
+            <strong>TCP</strong>
+            <span>Reliable, ordered delivery for many web and API operations.</span>
+          </div>
+          <div class="assessment-item">
+            <strong>UDP</strong>
+            <span>Lightweight delivery without TCP-style reliability guarantees.</span>
+          </div>
+          <div class="assessment-item">
+            <strong>HTTPS</strong>
+            <span>HTTP protected using TLS encryption and authentication.</span>
+          </div>
+          <div class="assessment-item">
+            <strong>Firewall</strong>
+            <span>Allows or blocks traffic using rules such as source, destination and port.</span>
+          </div>
+          <div class="assessment-item">
+            <strong>Load balancer</strong>
+            <span>Distributes requests across healthy application instances.</span>
+          </div>
+          <div class="assessment-item">
+            <strong>Request path</strong>
+            <span>Explains how all the components cooperate in one application.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="scenario-card">
+        <strong>Scenario practice</strong>
+        <p>
+          A student enters <code>https://foodordering.example</code>. Which component should translate
+          the domain name before the browser connects to the web service?
+        </p>
+        <select id="dnsScenarioAnswer" aria-label="Choose the correct networking component">
+          <option value="">Choose an answer</option>
+          <option value="firewall">Firewall</option>
+          <option value="dns">DNS</option>
+          <option value="database">Database</option>
+          <option value="loadbalancer">Load balancer</option>
+        </select>
+        <div id="dnsScenarioResult" class="scenario-result" hidden aria-live="polite"></div>
+      </div>
+    </section>
+
+    <section class="section-card">
+      <div class="section-header">
+        <div class="section-icon" style="background: var(--brand-purple-light); color: var(--brand-purple);">🧠</div>
+        <h2 class="section-title">5. Fresher Assessment Scenarios</h2>
+      </div>
+
+      <p>
+        In technical assessments, students are often asked to choose the best engineering decision
+        rather than repeat a definition. Try these examples.
+      </p>
+
+      <div class="assessment-grid">
+        <div class="assessment-item">
+          <strong>Scenario 1: One server fails</strong>
+          <span>Use a load balancer with health checks and route traffic to healthy instances.</span>
+        </div>
+        <div class="assessment-item">
+          <strong>Scenario 2: Website is slow</strong>
+          <span>Check DNS, network latency, server load, database performance and application logs.</span>
+        </div>
+        <div class="assessment-item">
+          <strong>Scenario 3: Secure login</strong>
+          <span>Use HTTPS on port 443 and protect sensitive data in transit.</span>
+        </div>
+        <div class="assessment-item">
+          <strong>Scenario 4: Only trusted traffic</strong>
+          <span>Configure firewall or security-group rules using least privilege.</span>
+        </div>
+        <div class="assessment-item">
+          <strong>Scenario 5: Reliable API request</strong>
+          <span>TCP is generally suitable when ordered and reliable delivery is important.</span>
+        </div>
+        <div class="assessment-item">
+          <strong>Scenario 6: Live voice or gaming</strong>
+          <span>UDP may be preferred when low delay matters more than retransmitting every packet.</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-card">
+      <div class="section-header">
+        <div class="section-icon" style="background: var(--brand-emerald-light); color: var(--brand-emerald);">📝</div>
+        <h2 class="section-title">6. Networking Revision Checklist</h2>
+      </div>
+
+      <p>Before the assessment, a student should be able to answer “what, why and when” for each item.</p>
+      <ul>
+        <li>What is an IP address? Difference between public and private IP addresses.</li>
+        <li>What does DNS do? What happens when DNS resolution fails?</li>
+        <li>What is a port? Know common examples: 80, 443, 22 and 3306.</li>
+        <li>Why is TCP used for many web and API requests?</li>
+        <li>When might UDP be useful?</li>
+        <li>What is the difference between HTTP and HTTPS?</li>
+        <li>What does a firewall or security group allow or block?</li>
+        <li>Why do we use a load balancer?</li>
+        <li>Can you explain the complete path from browser to backend and database?</li>
+      </ul>
+    </section>
+
+    <section class="section-card">
+      <div class="section-header">
+        <div class="section-icon" style="background: var(--brand-amber-light); color: var(--brand-amber);">🎯</div>
+        <h2 class="section-title">7. Quick Check — Test Your Networking Knowledge</h2>
+      </div>
+
+      <div class="quiz-container">
+        <!-- Q1 -->
+        <div class="quiz-q">
+          <h5>Q1: What is the primary role of DNS (Domain Name System)?</h5>
+          <div class="quiz-options">
+            <button class="quiz-opt" onclick="checkQuiz(this, false, 'q1')">A) To encrypt database passwords.</button>
+            <button class="quiz-opt" onclick="checkQuiz(this, true, 'q1')">B) To translate human-friendly domain names
+              (e.g. foodordering.com) into numerical IP addresses.</button>
+            <button class="quiz-opt" onclick="checkQuiz(this, false, 'q1')">C) To restart crashed Docker
+              containers.</button>
+          </div>
+          <div id="q1-exp" class="quiz-exp"></div>
+        </div>
+
+        <!-- Q2 -->
+        <div class="quiz-q">
+          <h5>Q2: Why do Web APIs and Banks use TCP instead of UDP?</h5>
+          <div class="quiz-options">
+            <button class="quiz-opt" onclick="checkQuiz(this, true, 'q2')">A) Because TCP guarantees 100% reliable
+              packet delivery in exact order without data loss.</button>
+            <button class="quiz-opt" onclick="checkQuiz(this, false, 'q2')">B) Because TCP is faster for live video
+              streaming.</button>
+            <button class="quiz-opt" onclick="checkQuiz(this, false, 'q2')">C) Because UDP doesn't work over
+              Wi-Fi.</button>
+          </div>
+          <div id="q2-exp" class="quiz-exp"></div>
+        </div>
+
+        <!-- Q3 -->
+        <div class="quiz-q">
+          <h5>Q3: What port is standard for secure encrypted HTTPS web traffic?</h5>
+          <div class="quiz-options">
+            <button class="quiz-opt" onclick="checkQuiz(this, false, 'q3')">A) Port 80</button>
+            <button class="quiz-opt" onclick="checkQuiz(this, true, 'q3')">B) Port 443</button>
+            <button class="quiz-opt" onclick="checkQuiz(this, false, 'q3')">C) Port 3306</button>
+          </div>
+          <div id="q3-exp" class="quiz-exp"></div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+
+  <script>
+    (function () {
+      const answer = document.getElementById("dnsScenarioAnswer");
+      const result = document.getElementById("dnsScenarioResult");
+      if (!answer || !result) return;
+
+      answer.addEventListener("change", function () {
+        result.hidden = false;
+
+        if (answer.value === "dns") {
+          result.textContent = "Correct. DNS translates the domain name into an IP address. The browser can then connect to the destination service.";
+        } else if (answer.value === "") {
+          result.textContent = "";
+          result.hidden = true;
+        } else {
+          result.textContent = "Not quite. DNS performs the domain-name lookup. A firewall filters traffic, a load balancer distributes traffic, and a database stores application data.";
+        }
+      });
+    })();
+  </script>
+
+  <script>
+    // TCP 3-Way Handshake Simulator
+    let hsRunning = false;
+
+    function runHandshake() {
+      if (hsRunning) return;
+      hsRunning = true;
+
+      const step1 = document.getElementById('hs1');
+      const step2 = document.getElementById('hs2');
+      const step3 = document.getElementById('hs3');
+      const consoleLog = document.getElementById('hsConsole');
+
+      step1.className = 'hs-step';
+      step2.className = 'hs-step';
+      step3.className = 'hs-step';
+
+      consoleLog.innerText = 'Step 1/3: Client sending [SYN] packet to Server (Requesting TCP Connection)...';
+      step1.className = 'hs-step active';
+
+      setTimeout(() => {
+        consoleLog.innerText = 'Step 2/3: Server replies with [SYN-ACK] (Acknowledging request + sending Server SYN)...';
+        step2.className = 'hs-step active';
+
+        setTimeout(() => {
+          consoleLog.innerText = 'Step 3/3: Client sends [ACK] packet (Connection Established!)...';
+          step3.className = 'hs-step active';
+
+          setTimeout(() => {
+            consoleLog.innerText = '🎉 TCP CONNECTION ESTABLISHED! HTTP GET /api/v1/menu data transfer can now begin safely.';
+            hsRunning = false;
+          }, 1000);
+        }, 1200);
+      }, 1200);
+    }
+
+    // End-to-End Request Path Simulator
+    function runRequestPath() {
+      const domain = document.getElementById('simDomain').value;
+      const port = document.getElementById('simPort').value;
+      const log = document.getElementById('reqConsole');
+
+      log.innerText = `Step 1: Querying DNS server for ${domain}...`;
+
+      setTimeout(() => {
+        const fakeIp = domain === 'foodordering.com' ? '142.250.190.46' : '172.217.14.206';
+        log.innerText = `Step 2: DNS resolved ${domain} ➔ IP: ${fakeIp}.\nStep 3: Checking Firewall / Security Group rules for Port ${port}...`;
+
+        setTimeout(() => {
+          if (port === '3306') {
+            log.innerText = `Step 2: DNS resolved ${domain} ➔ IP: ${fakeIp}.\nStep 3: Firewall Check: ❌ BLOCKED! Port 3306 (MySQL) is restricted to internal AWS Security Group. Public access denied!`;
+          } else {
+            log.innerText = `Step 2: DNS resolved ${domain} ➔ IP: ${fakeIp}.\nStep 3: Firewall Check: ✅ ALLOWED! Port ${port} is open.\nStep 4: Load Balancer routed request to healthy App Replica (Instance #2).\n🎉 HTTP 200 OK Response returned in 42ms!`;
+          }
+        }, 1200);
+      }, 1000);
+    }
+
+    // Quiz Checker
+    function checkQuiz(btn, isCorrect, qId) {
+      const exp = document.getElementById(`${qId}-exp`);
+      const opts = btn.parentElement.querySelectorAll('.quiz-opt');
+      opts.forEach(o => o.classList.remove('correct', 'wrong'));
+
+      if (isCorrect) {
+        btn.classList.add('correct');
+        exp.style.display = 'block';
+        exp.style.background = 'var(--brand-emerald-light)';
+        exp.style.color = 'var(--brand-emerald)';
+        exp.innerHTML = '<strong>Correct!</strong> 🎉 Excellent understanding of networking fundamentals.';
+      } else {
+        btn.classList.add('wrong');
+        exp.style.display = 'block';
+        exp.style.background = 'var(--brand-rose-light)';
+        exp.style.color = 'var(--brand-rose)';
+        exp.innerHTML = '<strong>Not quite!</strong> Re-read the section above and try again.';
+      }
+    }
+  </script>
+</body>
+
+</html>

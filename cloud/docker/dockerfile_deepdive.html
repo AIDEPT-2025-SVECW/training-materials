@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deep Dive into Dockerfile | Fresher's Interactive Guide</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Outfit:wght@500;600;700;800&family=Patrick+Hand&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-page: #f8fafc;
+            --surface-card: #ffffff;
+            --surface-subtle: #f1f5f9;
+            
+            --border-soft: #e2e8f0;
+            --border-strong: #cbd5e1;
+            
+            --ink-main: #0f172a;
+            --ink-muted: #334155;
+            --ink-subtle: #64748b;
+
+            --brand-docker: #0969da;
+            --brand-docker-light: #ddf4ff;
+            --brand-sky: #0284c7;
+            --brand-sky-light: #e0f2fe;
+            --brand-indigo: #4338ca;
+            --brand-indigo-light: #e0e7ff;
+            --brand-emerald: #059669;
+            --brand-emerald-light: #d1fae5;
+            --brand-amber: #d97706;
+            --brand-amber-light: #fef3c7;
+            --brand-rose: #e11d48;
+            --brand-rose-light: #ffe4e6;
+            --brand-violet: #7c3aed;
+
+            --hand-note-bg: #fef9c3;
+            --hand-note-border: #fde047;
+            --hand-note-text: #713f12;
+
+            --font-sans: 'Plus Jakarta Sans', sans-serif;
+            --font-heading: 'Outfit', sans-serif;
+            --font-hand: 'Caveat', cursive;
+            --font-sketch: 'Patrick Hand', cursive;
+            --font-mono: 'IBM Plex Mono', monospace;
+
+            --radius-sm: 8px;
+            --radius-md: 14px;
+            --radius-lg: 20px;
+            --shadow-subtle: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
+            --shadow-card: 0 10px 30px -4px rgba(15, 23, 42, 0.08);
+            --shadow-float: 0 20px 40px -10px rgba(15, 23, 42, 0.12);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-page);
+            background-image: 
+                radial-gradient(#cbd5e1 1px, transparent 1px),
+                radial-gradient(at 10% 10%, rgba(221, 244, 255, 0.5) 0px, transparent 50%),
+                radial-gradient(at 90% 90%, rgba(237, 233, 254, 0.4) 0px, transparent 50%);
+            background-size: 24px 24px, 100% 100%, 100% 100%;
+            background-attachment: fixed;
+            color: var(--ink-main);
+            font-family: var(--font-sans);
+            line-height: 1.6;
+            padding-bottom: 90px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        ::selection {
+            background: #bae6fd;
+            color: #0369a1;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Header / Navbar */
+        .header {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-soft);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 16px 0;
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .header-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .brand-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: var(--ink-main);
+            font-family: var(--font-heading);
+            font-weight: 700;
+            font-size: 1.25rem;
+        }
+
+        .brand-icon {
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, #0969da, #7c3aed);
+            color: white;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 12px rgba(9, 105, 218, 0.3);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 8px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--ink-muted);
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 8px 14px;
+            border-radius: var(--radius-sm);
+            transition: all 0.2s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--brand-docker);
+            background: var(--brand-docker-light);
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 50px 0 30px 0;
+            text-align: center;
+            position: relative;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--brand-docker-light);
+            color: var(--brand-docker);
+            border: 1px solid #a5d8ff;
+            padding: 6px 16px;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+        }
+
+        .hero h1 {
+            font-family: var(--font-heading);
+            font-size: 2.75rem;
+            font-weight: 800;
+            color: var(--ink-main);
+            line-height: 1.25;
+            margin-bottom: 16px;
+            letter-spacing: -0.02em;
+        }
+
+        .hero h1 span.highlight {
+            background: linear-gradient(120deg, #0969da, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p.subtitle {
+            font-size: 1.15rem;
+            color: var(--ink-muted);
+            max-width: 780px;
+            margin: 0 auto 24px auto;
+        }
+
+        /* Handwritten Note Component */
+        .handwritten-note {
+            background: var(--hand-note-bg);
+            border: 2px dashed var(--hand-note-border);
+            color: var(--hand-note-text);
+            padding: 16px 20px;
+            border-radius: var(--radius-md);
+            font-family: var(--font-hand);
+            font-size: 1.4rem;
+            line-height: 1.3;
+            box-shadow: 2px 4px 12px rgba(0, 0, 0, 0.04);
+            transform: rotate(-1deg);
+            display: inline-block;
+            margin: 12px 0 24px 0;
+            position: relative;
+        }
+
+        .handwritten-note::before {
+            content: "📜 Master Recipe Analogy:";
+            font-family: var(--font-sketch);
+            font-weight: bold;
+            display: block;
+            font-size: 1.1rem;
+            color: #854d0e;
+            margin-bottom: 4px;
+        }
+
+        /* Section Layout */
+        .section {
+            margin-top: 40px;
+            padding-top: 20px;
+        }
+
+        .section-header {
+            margin-bottom: 24px;
+        }
+
+        .section-tag {
+            font-family: var(--font-sketch);
+            font-size: 1.2rem;
+            color: var(--brand-docker);
+            font-weight: bold;
+        }
+
+        .section-title {
+            font-family: var(--font-heading);
+            font-size: 1.85rem;
+            font-weight: 700;
+            color: var(--ink-main);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-desc {
+            color: var(--ink-muted);
+            font-size: 1rem;
+            margin-top: 6px;
+        }
+
+        /* Directives Inspector */
+        .directive-card {
+            background: var(--surface-card);
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            box-shadow: var(--shadow-card);
+        }
+
+        .directive-tabs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+
+        .btn-dir {
+            background: var(--surface-subtle);
+            border: 1px solid var(--border-strong);
+            color: var(--ink-main);
+            font-family: var(--font-mono);
+            font-size: 0.88rem;
+            font-weight: 700;
+            padding: 10px 16px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-dir:hover {
+            border-color: var(--brand-docker);
+            color: var(--brand-docker);
+        }
+
+        .btn-dir.active {
+            background: var(--brand-docker);
+            color: white;
+            border-color: var(--brand-docker);
+            box-shadow: 0 4px 12px rgba(9, 105, 218, 0.3);
+        }
+
+        .dir-display {
+            background: #f8fafc;
+            border: 1px solid var(--border-soft);
+            border-left: 4px solid var(--brand-docker);
+            padding: 20px;
+            border-radius: var(--radius-sm);
+        }
+
+        .dir-display h4 {
+            font-family: var(--font-heading);
+            font-size: 1.25rem;
+            color: var(--brand-docker);
+            margin-bottom: 8px;
+        }
+
+        /* Gotchas Grid */
+        .gotchas-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .gotcha-card {
+            background: var(--surface-card);
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            box-shadow: var(--shadow-card);
+        }
+
+        /* Layer Caching Box */
+        .cache-box {
+            background: var(--surface-card);
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            box-shadow: var(--shadow-card);
+        }
+
+        .code-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .code-comparison {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .code-box {
+            background: #0f172a;
+            color: #f8fafc;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            padding: 16px;
+            border-radius: var(--radius-sm);
+            line-height: 1.6;
+        }
+
+        .code-bad { border-top: 4px solid var(--brand-rose); }
+        .code-good { border-top: 4px solid var(--brand-emerald); }
+
+        /* Interactive Builder Box */
+        .builder-box {
+            background: var(--surface-card);
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            box-shadow: var(--shadow-card);
+        }
+
+        .builder-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .builder-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .builder-form {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--ink-main);
+        }
+
+        .form-control {
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            padding: 10px 14px;
+            border: 1px solid var(--border-strong);
+            border-radius: var(--radius-sm);
+            outline: none;
+        }
+
+        .form-control:focus {
+            border-color: var(--brand-docker);
+            box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.15);
+        }
+
+        /* Footer */
+        .footer-bar {
+            margin-top: 60px;
+            text-align: center;
+            padding: 30px;
+            background: var(--surface-card);
+            border-top: 1px solid var(--border-soft);
+            border-radius: var(--radius-lg);
+        }
+
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: linear-gradient(135deg, #0969da, #7c3aed);
+            color: white;
+            text-decoration: none;
+            font-weight: 700;
+            padding: 12px 28px;
+            border-radius: 999px;
+            box-shadow: 0 4px 14px rgba(9, 105, 218, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        .btn-back:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(9, 105, 218, 0.4);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Header Navigation -->
+    <header class="header">
+        <div class="container header-inner">
+            <a href="../../fsd_crashcourse.html#day3" class="brand-pill">
+                <div class="brand-icon"><i class="fa-solid fa-file-code"></i></div>
+                <span>FSD Course | Day 3 Session 10</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="#directives"><i class="fa-solid fa-list-check"></i> Directives</a></li>
+                <li><a href="#gotchas"><i class="fa-solid fa-triangle-exclamation"></i> RUN vs CMD</a></li>
+                <li><a href="#layer-cache"><i class="fa-solid fa-bolt"></i> Layer Caching</a></li>
+                <li><a href="#multi-stage"><i class="fa-solid fa-layer-group"></i> Multi-Stage</a></li>
+                <li><a href="#builder"><i class="fa-solid fa-wrench"></i> Live Builder</a></li>
+            </ul>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="container">
+
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-badge">
+                <i class="fa-solid fa-graduation-cap"></i> Fresher-Friendly Interactive Module
+            </div>
+            <h1>
+                Deep Dive into <span class="highlight">Dockerfile Directives</span>
+            </h1>
+            <p class="subtitle">
+                Master how to craft lightweight, high-performance, and cached Docker images for Node.js, Spring Boot Java, and Python applications!
+            </p>
+
+            <div class="handwritten-note">
+                "A Dockerfile is an assembly line script: Each line creates an immutable layer. If you organize your instructions smartly, your image builds in 2 seconds instead of 5 minutes!"
+            </div>
+        </section>
+
+        <!-- SECTION 1: DIRECTIVES INSPECTOR -->
+        <section id="directives" class="section">
+            <div class="section-header">
+                <span class="section-tag">📜 Step 1 — The Dockerfile Keyword Vocabulary</span>
+                <h2 class="section-title">
+                    <i class="fa-solid fa-code" style="color: var(--brand-docker);"></i>
+                    Core Dockerfile Directives Inspector
+                </h2>
+                <p class="section-desc">
+                    Click each directive button below to inspect its syntax, real-world code example, and master analogy!
+                </p>
+            </div>
+
+            <div class="directive-card">
+                <div class="directive-tabs">
+                    <button class="btn-dir active" onclick="switchDir('from')">FROM</button>
+                    <button class="btn-dir" onclick="switchDir('workdir')">WORKDIR</button>
+                    <button class="btn-dir" onclick="switchDir('copy')">COPY</button>
+                    <button class="btn-dir" onclick="switchDir('run')">RUN</button>
+                    <button class="btn-dir" onclick="switchDir('env')">ENV</button>
+                    <button class="btn-dir" onclick="switchDir('expose')">EXPOSE</button>
+                    <button class="btn-dir" onclick="switchDir('cmd')">CMD</button>
+                    <button class="btn-dir" onclick="switchDir('entry')">ENTRYPOINT</button>
+                </div>
+
+                <div class="dir-display" id="dirDisplayBox">
+                    <h4><code>FROM &lt;image&gt;:&lt;tag&gt;</code> — Base Image Foundation</h4>
+                    <p style="font-size: 0.95rem; color: var(--ink-muted);">
+                        MUST be the very first directive in any Dockerfile. Specifies the base operating system & runtime environment to start from (e.g. Node, Java, Alpine Linux).
+                    </p>
+                    <div style="background: #0f172a; color: #38bdf8; font-family: var(--font-mono); padding: 12px; border-radius: 6px; margin: 10px 0; font-size: 0.85rem;">
+                        FROM node:18-alpine
+                    </div>
+                    <div style="font-family: var(--font-sketch); color: #854d0e; font-size: 1.15rem; background: var(--hand-note-bg); padding: 8px 12px; border-radius: 6px; border: 1px dashed var(--hand-note-border);">
+                        🍕 <strong>Pizza Kitchen Analogy:</strong> Choosing the starting pre-made dough base from the store (e.g. Thin Crust or Whole Wheat).
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: GOTCHAS & COMPARISONS -->
+        <section id="gotchas" class="section">
+            <div class="section-header">
+                <span class="section-tag">🚨 Step 2 — Fresher Traps & Gotchas</span>
+                <h2 class="section-title">
+                    <i class="fa-solid fa-triangle-exclamation" style="color: var(--brand-amber);"></i>
+                    Directives Comparison: Avoid Common Mistakes
+                </h2>
+            </div>
+
+            <div class="gotchas-grid">
+                <!-- RUN vs CMD -->
+                <div class="gotcha-card" style="border-left: 4px solid var(--brand-rose);">
+                    <h3 style="color: var(--brand-rose); font-family: var(--font-heading);"><i class="fa-solid fa-bolt"></i> RUN vs. CMD (The Most Common Exam Question!)</h3>
+                    <p style="font-size: 0.9rem; color: var(--ink-muted); margin-top: 6px;">
+                        • <strong><code>RUN</code> (Build-Time):</strong> Executed while <em>building</em> the Docker Image (e.g. <code>RUN npm install</code> or <code>RUN apt-get update</code>). Commits a new image layer.<br>
+                        • <strong><code>CMD</code> (Runtime):</strong> Executed when the container <em>boots up</em> (e.g. <code>CMD ["node", "app.js"]</code>). Sets the default process to run inside the container.
+                    </p>
+                </div>
+
+                <!-- COPY vs ADD -->
+                <div class="gotcha-card" style="border-left: 4px solid var(--brand-sky);">
+                    <h3 style="color: var(--brand-sky); font-family: var(--font-heading);"><i class="fa-solid fa-copy"></i> COPY vs. ADD</h3>
+                    <p style="font-size: 0.9rem; color: var(--ink-muted); margin-top: 6px;">
+                        • <strong><code>COPY</code> (Recommended):</strong> Simple, transparent copying of local files/folders into container.<br>
+                        • <strong><code>ADD</code> (Advanced):</strong> Copies files AND can automatically extract local <code>.tar.gz</code> archives or fetch remote HTTP URLs. Use <code>COPY</code> unless tar extraction is required!
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: LAYER CACHING -->
+        <section id="layer-cache" class="section">
+            <div class="section-header">
+                <span class="section-tag">⚡ Step 3 — Build Performance Optimization</span>
+                <h2 class="section-title">
+                    <i class="fa-solid fa-bolt-lightning" style="color: var(--brand-emerald);"></i>
+                    Docker Build Layer Caching (5 Mins ➔ 2 Secs!)
+                </h2>
+                <p class="section-desc">
+                    Every instruction in a Dockerfile creates an immutable layer. If a layer changes, ALL subsequent layers must be rebuilt from scratch!
+                </p>
+            </div>
+
+            <div class="cache-box">
+                <div class="code-comparison">
+                    <!-- Bad Dockerfile -->
+                    <div>
+                        <h4 style="color: var(--brand-rose); font-family: var(--font-heading); margin-bottom: 8px;">
+                            ❌ Bad Dockerfile (Invalidates Cache Every Edit)
+                        </h4>
+                        <div class="code-box code-bad">
+                            FROM node:18-alpine<br>
+                            WORKDIR /app<br>
+                            <span style="color: #f43f5e; font-weight: bold;">COPY . .  # Copies entire source code first!</span><br>
+                            RUN npm install # Takes 3 minutes every edit! 😭<br>
+                            CMD ["node", "server.js"]
+                        </div>
+                        <p style="font-size: 0.85rem; color: var(--ink-muted); margin-top: 8px;">
+                            ⚠️ Every time you edit a 1-line JS file, `COPY . .` changes, invalidating cache. Docker re-runs `npm install` from scratch every build!
+                        </p>
+                    </div>
+
+                    <!-- Good Dockerfile -->
+                    <div>
+                        <h4 style="color: var(--brand-emerald); font-family: var(--font-heading); margin-bottom: 8px;">
+                            ✅ Optimized Dockerfile (Blazing Fast Caching)
+                        </h4>
+                        <div class="code-box code-good">
+                            FROM node:18-alpine<br>
+                            WORKDIR /app<br>
+                            <span style="color: #34d399; font-weight: bold;">COPY package*.json . # Copy manifest only!</span><br>
+                            RUN npm install # CACHED unless dependencies change! 🎉<br>
+                            COPY . . # Copy source code after!<br>
+                            CMD ["node", "server.js"]
+                        </div>
+                        <p style="font-size: 0.85rem; color: var(--ink-muted); margin-top: 8px;">
+                            🚀 Code edits only invalidate the final `COPY . .` step. `npm install` is fetched instantly from Docker cache in <strong>1.5 seconds</strong>!
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: MULTI-STAGE BUILDS -->
+        <section id="multi-stage" class="section">
+            <div class="section-header">
+                <span class="section-tag">🏗️ Step 4 — Enterprise Production Best Practice</span>
+                <h2 class="section-title">
+                    <i class="fa-solid fa-layer-group" style="color: var(--brand-violet);"></i>
+                    Multi-Stage Builds (Shrink Image from 800MB to 100MB)
+                </h2>
+            </div>
+
+            <div style="background: var(--surface-card); border: 1px solid var(--border-soft); border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow-card);">
+                <p style="font-size: 0.95rem; color: var(--ink-muted); margin-bottom: 16px;">
+                    In Java (Maven) or React apps, you need heavy build tools (JDK, Maven, Node) to compile your code. But in Production, you ONLY need the compiled JAR or static HTML! <strong>Multi-Stage Builds</strong> let you compile in Stage 1 and copy ONLY the compiled artifact into a tiny Stage 2 image!
+                </p>
+
+                <div class="code-box" style="border-left: 4px solid var(--brand-violet);">
+                    <span style="color: #c084fc; font-weight: bold;"># STAGE 1: Build Java Application with Heavy Maven (~800MB)</span><br>
+                    FROM maven:3.8.6-openjdk-17 AS builder<br>
+                    WORKDIR /build<br>
+                    COPY . .<br>
+                    RUN mvn clean package -DskipTests<br><br>
+                    <span style="color: #34d399; font-weight: bold;"># STAGE 2: Lightweight Production JRE Image (~120MB)</span><br>
+                    FROM openjdk:17-jdk-slim<br>
+                    WORKDIR /app<br>
+                    <span style="color: #fbbf24;">COPY --from=builder /build/target/app.jar app.jar</span><br>
+                    EXPOSE 8080<br>
+                    ENTRYPOINT ["java", "-jar", "app.jar"]
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 5: LIVE INTERACTIVE BUILDER -->
+        <section id="builder" class="section">
+            <div class="section-header">
+                <span class="section-tag">🛠️ Step 5 — Interactive Dockerfile Generator</span>
+                <h2 class="section-title">
+                    <i class="fa-solid fa-wrench" style="color: var(--brand-docker);"></i>
+                    Live Dockerfile Builder & Build Simulator
+                </h2>
+                <p class="section-desc">
+                    Customize the options below to generate a production-ready Dockerfile for your project in real-time!
+                </p>
+            </div>
+
+            <div class="builder-box">
+                <div class="builder-grid">
+                    <!-- Options Form -->
+                    <div class="builder-form">
+                        <div class="form-group">
+                            <label>Application Tech Stack:</label>
+                            <select class="form-control" id="stackSelect" onchange="generateDockerfile()">
+                                <option value="node">Node.js (Express REST API)</option>
+                                <option value="java">Java (Spring Boot Maven)</option>
+                                <option value="python">Python (Flask / FastAPI)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Container Target Port:</label>
+                            <input type="text" class="form-control" id="portInput" value="8080" oninput="generateDockerfile()">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Base OS Flavor:</label>
+                            <select class="form-control" id="osSelect" onchange="generateDockerfile()">
+                                <option value="alpine">Alpine Linux (Ultra Lightweight ~5MB)</option>
+                                <option value="slim">Slim Debian (~50MB)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Output Code -->
+                    <div>
+                        <h4 style="font-family: var(--font-heading); font-size: 1.1rem; margin-bottom: 8px; color: var(--brand-docker);">
+                            Generated Dockerfile:
+                        </h4>
+                        <div class="code-box" id="dockerfileOutput" style="min-height: 200px;">
+                            <!-- Dynamically generated -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer / Return Link -->
+        <footer class="footer-bar">
+            <h3 style="font-family: var(--font-heading); font-size: 1.3rem; margin-bottom: 8px;">
+                Ready to Continue Day 3?
+            </h3>
+            <p style="color: var(--ink-muted); margin-bottom: 20px;">
+                You've mastered Dockerfile Directives and Image Optimization!
+            </p>
+            <a href="../../fsd_crashcourse.html#day3" class="btn-back">
+                <i class="fa-solid fa-arrow-left"></i> Return to Day 3 Session 10 Slot in Crash Course
+            </a>
+        </footer>
+
+    </main>
+
+    <!-- JavaScript Logic -->
+    <script>
+        const directivesData = {
+            from: {
+                title: "FROM <image>:<tag> — Base Image Foundation",
+                desc: "MUST be the very first directive in any Dockerfile. Specifies the base operating system & runtime environment to start from (e.g. Node, Java, Alpine Linux).",
+                code: "FROM node:18-alpine",
+                analogy: "🍕 Pizza Kitchen Analogy: Choosing the starting pre-made dough base from the store (e.g. Thin Crust or Whole Wheat)."
+            },
+            workdir: {
+                title: "WORKDIR /path — Set Working Directory",
+                desc: "Sets the working directory inside the container for any subsequent COPY, RUN, or CMD instructions.",
+                code: "WORKDIR /app",
+                analogy: "🍕 Pizza Kitchen Analogy: Entering the specific countertop inside the kitchen where all prep work happens."
+            },
+            copy: {
+                title: "COPY <src> <dest> — Copy Files from Host to Container",
+                desc: "Copies files or directories from your host computer into the container's filesystem.",
+                code: "COPY package*.json ./",
+                analogy: "🍕 Pizza Kitchen Analogy: Bringing fresh toppings & sauce from your store room onto the prep table."
+            },
+            run: {
+                title: "RUN <command> — Build-Time Execution",
+                desc: "Executes shell commands DURING the image build process (e.g. installing npm packages, compiling Maven code). Creates a new image layer.",
+                code: "RUN npm install --production",
+                analogy: "🍕 Pizza Kitchen Analogy: Mixing the flour batter, spreading the sauce, and shredding cheese during preparation."
+            },
+            env: {
+                title: "ENV <key>=<value> — Environment Variables",
+                desc: "Sets persistent environment variables that remain accessible inside the container at runtime.",
+                code: "ENV NODE_ENV=production\nENV PORT=8080",
+                analogy: "🍕 Pizza Kitchen Analogy: Setting the kitchen room temperature and oven timer settings."
+            },
+            expose: {
+                title: "EXPOSE <port> — Document Network Port",
+                desc: "Documents which network port the container listens on at runtime (Does NOT automatically publish the port; acts as documentation).",
+                code: "EXPOSE 8080",
+                analogy: "🍕 Pizza Kitchen Analogy: Putting a sign on the window: 'Order pickup available at Counter #8080'."
+            },
+            cmd: {
+                title: "CMD [\"executable\", \"param\"] — Runtime Default Command",
+                desc: "Provides default command to execute WHEN the container boots up. Can be overridden when running 'docker run'.",
+                code: "CMD [\"node\", \"server.js\"]",
+                analogy: "🍕 Pizza Kitchen Analogy: Turning ON the oven when the customer actually orders!"
+            },
+            entry: {
+                title: "ENTRYPOINT [\"executable\"] — Unoverrideable Executable",
+                desc: "Configures a container that will run as an executable. Unlike CMD, ENTRYPOINT commands cannot be easily overridden.",
+                code: "ENTRYPOINT [\"java\", \"-jar\", \"app.jar\"]",
+                analogy: "🍕 Pizza Kitchen Analogy: The master automated conveyor belt oven that ALWAYS runs automatically."
+            }
+        };
+
+        function switchDir(key) {
+            document.querySelectorAll('.directive-tabs .btn-dir').forEach(btn => btn.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+
+            const data = directivesData[key];
+            const box = document.getElementById('dirDisplayBox');
+            box.innerHTML = `
+                <h4><code>${data.title}</code></h4>
+                <p style="font-size: 0.95rem; color: var(--ink-muted);">${data.desc}</p>
+                <div style="background: #0f172a; color: #38bdf8; font-family: var(--font-mono); padding: 12px; border-radius: 6px; margin: 10px 0; font-size: 0.85rem;">
+                    ${data.code}
+                </div>
+                <div style="font-family: var(--font-sketch); color: #854d0e; font-size: 1.15rem; background: var(--hand-note-bg); padding: 8px 12px; border-radius: 6px; border: 1px dashed var(--hand-note-border);">
+                    ${data.analogy}
+                </div>
+            `;
+        }
+
+        function generateDockerfile() {
+            const stack = document.getElementById('stackSelect').value;
+            const port = document.getElementById('portInput').value || '8080';
+            const os = document.getElementById('osSelect').value;
+            const out = document.getElementById('dockerfileOutput');
+
+            let code = "";
+            if (stack === 'node') {
+                const baseTag = os === 'alpine' ? 'node:18-alpine' : 'node:18-slim';
+                code = `<span style="color: #60a5fa;"># Base Image</span><br>FROM ${baseTag}<br><br><span style="color: #60a5fa;"># Working Directory</span><br>WORKDIR /app<br><br><span style="color: #34d399;"># Layer Caching Optimization</span><br>COPY package*.json ./<br>RUN npm install --production<br><br><span style="color: #60a5fa;"># Copy Application Code</span><br>COPY . .<br><br><span style="color: #fbbf24;"># Expose Port & Runtime CMD</span><br>EXPOSE ${port}<br>CMD ["node", "server.js"]`;
+            } else if (stack === 'java') {
+                const baseTag = os === 'alpine' ? 'eclipse-temurin:17-jre-alpine' : 'openjdk:17-jdk-slim';
+                code = `<span style="color: #c084fc;"># Multi-Stage Build: Stage 1 Compile</span><br>FROM maven:3.8-openjdk-17 AS builder<br>WORKDIR /build<br>COPY pom.xml .<br>RUN mvn dependency:go-offline<br>COPY src ./src<br>RUN mvn package -DskipTests<br><br><span style="color: #34d399;"># Stage 2 Runtime</span><br>FROM ${baseTag}<br>WORKDIR /app<br>COPY --from=builder /build/target/*.jar app.jar<br>EXPOSE ${port}<br>ENTRYPOINT ["java", "-jar", "app.jar"]`;
+            } else if (stack === 'python') {
+                const baseTag = os === 'alpine' ? 'python:3.11-alpine' : 'python:3.11-slim';
+                code = `<span style="color: #60a5fa;"># Base Image</span><br>FROM ${baseTag}<br><br>WORKDIR /app<br><br><span style="color: #34d399;"># Install Dependencies</span><br>COPY requirements.txt .<br>RUN pip install --no-cache-dir -r requirements.txt<br><br>COPY . .<br><br>EXPOSE ${port}<br>CMD ["python", "app.py"]`;
+            }
+
+            out.innerHTML = code;
+        }
+
+        // Init builder
+        generateDockerfile();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Load Balancers & Application Replicas | Fresher's Interactive Guide</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Outfit:wght@500;600;700;800&family=Patrick+Hand&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-page: #f8fafc;
+            --surface-card: #ffffff;
+            --surface-subtle: #f1f5f9;
+
+            --border-soft: #e2e8f0;
+            --border-strong: #cbd5e1;
+
+            --ink-main: #0f172a;
+            --ink-muted: #334155;
+            --ink-subtle: #64748b;
+
+            --brand-sky: #0284c7;
+            --brand-sky-light: #e0f2fe;
+            --brand-indigo: #4338ca;
+            --brand-indigo-light: #e0e7ff;
+            --brand-emerald: #059669;
+            --brand-emerald-light: #d1fae5;
+            --brand-amber: #d97706;
+            --brand-amber-light: #fef3c7;
+            --brand-rose: #e11d48;
+            --brand-rose-light: #ffe4e6;
+            --brand-violet: #7c3aed;
+
+            --hand-note-bg: #fef9c3;
+            --hand-note-border: #fde047;
+            --hand-note-text: #713f12;
+
+            --font-sans: 'Plus Jakarta Sans', sans-serif;
+            --font-heading: 'Outfit', sans-serif;
+            --font-hand: 'Caveat', cursive;
+            --font-sketch: 'Patrick Hand', cursive;
+            --font-mono: 'IBM Plex Mono', monospace;
+
+            --radius-sm: 8px;
+            --radius-md: 14px;
+            --radius-lg: 20px;
+            --shadow-subtle: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
+            --shadow-card: 0 10px 30px -4px rgba(15, 23, 42, 0.08);
+            --shadow-float: 0 20px 40px -10px rgba(15, 23, 42, 0.12);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-page);
+            background-image:
+                radial-gradient(#cbd5e1 1px, transparent 1px),
+                radial-gradient(at 10% 10%, rgba(224, 242, 254, 0.4) 0px, transparent 50%),
+                radial-gradient(at 90% 90%, rgba(237, 233, 254, 0.4) 0px, transparent 50%);
+            background-size: 24px 24px, 100% 100%, 100% 100%;
+            background-attachment: fixed;
+            color: var(--ink-main);
+            font-family: var(--font-sans);
+            line-height: 1.6;
+            padding-bottom: 90px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        ::selection {
+            background: #bae6fd;
+            color: #0369a1;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Header / Navbar */
+        .header {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-soft);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 16px 0;
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .header-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .brand-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: var(--ink-main);
+            font-family: var(--font-heading);
+            font-weight: 700;
+            font-size: 1.25rem;
+        }
+
+        .brand-icon {
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, var(--brand-sky), var(--brand-indigo));
+            color: white;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 8px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--ink-muted);
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 8px 14px;
+            border-radius: var(--radius-sm);
+            transition: all 0.2s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--brand-sky);
+            background: var(--brand-sky-light);
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 50px 0 30px 0;
+            text-align: center;
+            position: relative;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--brand-sky-light);
+            color: var(--brand-sky);
+            border: 1px solid #93c5fd;
+            padding: 6px 16px;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+        }
+
+        .hero h1 {
+            font-family: var(--font-heading);
+            font-size: 2.75rem;
+            font-weight: 800;
+            color: var(--ink-main);
+            line-height: 1.25;
+            margin-bottom: 16px;
+            letter-spacing: -0.02em;
+        }
+
+        .hero h1 span.highlight {
+            background: linear-gradient(120deg, #0284c7, #059669);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p.subtitle {
+            font-size: 1.15rem;
+            color: var(--ink-muted);
+            max-width: 780px;
+            margin: 0 auto 24px auto;
+        }
+
+        /* Handwritten Note Component */
+        .handwritten-note {
+            background: var(--hand-note-bg);
+            border: 2px dashed var(--hand-note-border);
+            color: var(--hand-note-text);
+            padding: 16px 20px;
+            border-radius: var(--radius-md);
+            font-family: var(--font-hand);
+            font-size: 1.4rem;
+            line-height: 1.3;
+            box-shadow: 2px 4px 12px rgba(0, 0, 0, 0.04);
+            transform: rotate(-1deg);
+            display: inline-block;
+            margin: 12px 0 24px 0;
+            position: relative;
+        }
+
+        .handwritten-note::before {
+            content: "💡 Fresher Analogy:";
+            font-family: var(--font-sketch);
+            font-weight: bold;
+            display: block;
+            font-size: 1.1rem;
+            color: #854d0e;
+            margin-bottom: 4px;
+        }
+
+        /* Section Styling */
+        .section {
+            margin-top: 40px;
+            padding-top: 20px;
+        }
+
+        .section-header {
+            margin-bottom: 24px;
+        }
+
+        .section-tag {
+            font-family: var(--font-sketch);
+            font-size: 1.2rem;
+            color: var(--brand-indigo);
+            font-weight: bold;
+        }
+
+        .section-title {
+            font-family: var(--font-heading);
+            font-size: 1.85rem;
+            font-weight: 700;
+            color: var(--ink-main);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-desc {
+            color: var(--ink-muted);
+            font-size: 1rem;
+            margin-top: 6px;
+        }
+
+        /* Comparison Cards: Single Server vs LB + Replicas */
+        .versus-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+        }
+
+        .versus-card {
+            background: var(--surface-card);
+            border: 2px solid var(--border-soft);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            box-shadow: var(--shadow-card);
+            position: relative;
+        }
+
+        .versus-card.single-server {
+            border-color: #fca5a5;
+            background: linear-gradient(135deg, #ffffff, #fff1f2);
+        }
+
+        .versus-card.multi-replica {
+            border-color: #6ee7b7;
+            background: linear-gradient(135deg, #ffffff, #f0fdf4);
+        }
+
+        .versus-badge {
+            display: inline-block;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 999px;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+        }
+
+        .single-server .versus-badge {
+            background: var(--brand-rose-light);
+            color: var(--brand-rose);
+        }
+
+        .multi-replica .versus-badge {
+            background: var(--brand-emerald-light);
+            color: var(--brand-emerald);
+        }
+
+        .versus-card h3 {
+            font-family: var(--font-heading);
+            font-size: 1.35rem;
+            margin-bottom: 10px;
+            color: var(--ink-main);
+        }
+
+        .versus-card ul {
+            list-style: none;
+            font-size: 0.92rem;
+            color: var(--ink-muted);
+            margin-top: 12px;
+        }
+
+        .versus-card ul li {
+            margin-bottom: 10px;
+            padding-left: 24px;
+            position: relative;
+        }
+
+        .single-server ul li::before {
+            content: "❌";
+            position: absolute;
+            left: 0;
+        }
+
+        .multi-replica ul li::before {
+            content: "✅";
+            position: absolute;
+            left: 0;
+        }
+
+        /* Algorithm Visualizer Section */
+        .algo-card {
+            background: var(--surface-card);
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            box-shadow: var(--shadow-card);
+        }
+
+        .algo-tabs {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+            justify-content: center;
+        }
+
+        .btn-algo {
+            background: var(--surface-subtle);
+            border: 1px solid var(--border-soft);
+            color: var(--ink-muted);
+            font-family: var(--font-sans);
+            font-weight: 600;
+            font-size: 0.95rem;
+            padding: 10px 18px;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-algo:hover {
+            border-color: var(--brand-sky);
+            color: var(--brand-sky);
+        }
+
+        .btn-algo.active {
+            background: var(--brand-sky);
+            color: white;
+            border-color: var(--brand-sky);
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+        }
+
+        .algo-detail {
+            background: #f8fafc;
+            border: 1px solid var(--border-soft);
+            border-left: 4px solid var(--brand-sky);
+            padding: 20px;
+            border-radius: var(--radius-sm);
+            margin-top: 16px;
+        }
+
+        .algo-detail h4 {
+            font-family: var(--font-heading);
+            font-size: 1.2rem;
+            color: var(--brand-sky);
+            margin-bottom: 6px;
+        }
+
+        /* Layer 4 vs Layer 7 Grid */
+        .layer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .layer-card {
+            background: var(--surface-card);
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            box-shadow: var(--shadow-card);
+        }
+
+        .layer-card h3 {
+            font-family: var(--font-heading);
+            font-size: 1.25rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Health Check Animated Diagram */
+        .health-card {
+            background: var(--surface-card);
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            box-shadow: var(--shadow-card);
+        }
+
+        .ping-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            background: var(--surface-subtle);
+            border: 2px dashed var(--border-strong);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .ping-node {
+            background: white;
+            border: 2px solid var(--brand-emerald);
+            padding: 16px 20px;
+            border-radius: var(--radius-md);
+            text-align: center;
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .ping-node.unhealthy {
+            border-color: var(--brand-rose);
+            background: var(--brand-rose-light);
+        }
+
+        /* Simulator Interactive Box */
+        .simulator-box {
+            background: var(--surface-card);
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            box-shadow: var(--shadow-card);
+        }
+
+        .sim-stage {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            margin: 24px 0;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 768px) {
+            .sim-stage {
+                flex-direction: column;
+            }
+        }
+
+        .lb-center-node {
+            background: linear-gradient(135deg, var(--brand-sky), var(--brand-indigo));
+            color: white;
+            padding: 24px;
+            border-radius: var(--radius-md);
+            text-align: center;
+            min-width: 220px;
+            box-shadow: 0 10px 25px rgba(2, 132, 199, 0.3);
+        }
+
+        .replicas-container {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            flex-grow: 1;
+            width: 100%;
+        }
+
+        .replica-row {
+            background: #ffffff;
+            border: 2px solid var(--border-soft);
+            border-radius: var(--radius-md);
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .replica-row.healthy-replica {
+            border-color: #a7f3d0;
+            background: #ecfdf5;
+        }
+
+        .replica-row.unhealthy-replica {
+            border-color: #fecdd3;
+            background: #fff1f2;
+            opacity: 0.7;
+        }
+
+        .replica-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .replica-name {
+            font-family: var(--font-heading);
+            font-weight: 700;
+            font-size: 1.05rem;
+        }
+
+        .request-count-badge {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            background: var(--brand-sky-light);
+            color: var(--brand-sky);
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-weight: 700;
+        }
+
+        .sim-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 24px;
+        }
+
+        .btn-action {
+            font-family: var(--font-sans);
+            font-weight: 700;
+            padding: 12px 20px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-send {
+            background: var(--brand-sky);
+            color: white;
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+        }
+
+        .btn-send:hover {
+            background: #0369a1;
+            transform: translateY(-2px);
+        }
+
+        .btn-burst {
+            background: var(--brand-indigo);
+            color: white;
+            box-shadow: 0 4px 12px rgba(67, 56, 202, 0.3);
+        }
+
+        .btn-burst:hover {
+            background: #3730a3;
+            transform: translateY(-2px);
+        }
+
+        .btn-kill {
+            background: var(--brand-rose);
+            color: white;
+            box-shadow: 0 4px 12px rgba(225, 29, 72, 0.3);
+        }
+
+        .btn-kill:hover {
+            background: #be123c;
+            transform: translateY(-2px);
+        }
+
+        .btn-revive {
+            background: var(--brand-emerald);
+            color: white;
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+        }
+
+        .btn-revive:hover {
+            background: #047857;
+            transform: translateY(-2px);
+        }
+
+        .btn-add {
+            background: var(--surface-subtle);
+            color: var(--ink-main);
+            border: 1px solid var(--border-strong);
+        }
+
+        .btn-add:hover {
+            background: #e2e8f0;
+        }
+
+        /* Log Terminal Box */
+        .log-terminal {
+            background: #0f172a;
+            color: #38bdf8;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            padding: 16px;
+            border-radius: var(--radius-sm);
+            height: 150px;
+            overflow-y: auto;
+            margin-top: 20px;
+            line-height: 1.5;
+        }
+
+        .log-line {
+            margin-bottom: 4px;
+        }
+
+        .log-line.err {
+            color: #f43f5e;
+        }
+
+        .log-line.ok {
+            color: #34d399;
+        }
+
+        .log-line.warn {
+            color: #fbbf24;
+        }
+
+        /* Footer */
+        .footer-bar {
+            margin-top: 60px;
+            text-align: center;
+            padding: 30px;
+            background: var(--surface-card);
+            border-top: 1px solid var(--border-soft);
+            border-radius: var(--radius-lg);
+        }
+
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: linear-gradient(135deg, var(--brand-sky), var(--brand-indigo));
+            color: white;
+            text-decoration: none;
+            font-weight: 700;
+            padding: 12px 28px;
+            border-radius: 999px;
+            box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        .btn-back:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(2, 132, 199, 0.4);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Header Navigation -->
+    <header class="header">
+        <div class="container header-inner">
+            <a href="../fsd_crashcourse.html#day3" class="brand-pill">
+                <div class="brand-icon"><i class="fa-solid fa-scale-balanced"></i></div>
+                <span>FSD Course | Day 3 Session 9</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="#why-lb"><i class="fa-solid fa-circle-question"></i> Why LB?</a></li>
+                <li><a href="#algorithms"><i class="fa-solid fa-diagram-project"></i> Algorithms</a></li>
+                <li><a href="#l4-vs-l7"><i class="fa-solid fa-network-wired"></i> L4 vs L7</a></li>
+                <li><a href="#health-checks"><i class="fa-solid fa-heart-pulse"></i> Health Checks</a></li>
+                <li><a href="#simulator"><i class="fa-solid fa-play"></i> Live Simulator</a></li>
+            </ul>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="container">
+
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-badge">
+                <i class="fa-solid fa-graduation-cap"></i> Fresher-Friendly Interactive Module
+            </div>
+            <h1>
+                Load Balancers <span class="highlight">+</span> Multiple Application Replicas
+            </h1>
+            <p class="subtitle">
+                Learn how high-traffic web apps scale seamlessly to millions of users without crashing, lagging, or
+                dropping a single order!
+            </p>
+
+            <div class="handwritten-note">
+                "Think of a Load Balancer as a smart Store Manager standing at the entrance of a busy supermarket:
+                Instead of letting all 500 shoppers crowd into Register #1, the manager directs 10 shoppers to Register
+                1, 10 to Register 2, and 10 to Register 3!"
+            </div>
+        </section>
+
+        <!-- SECTION 1: WHY LOAD BALANCERS & MULTIPLE REPLICAS? -->
+        <section id="why-lb" class="section">
+            <div class="section-header">
+                <span class="section-tag">⚖️ Step 1 — The Architecture Shift</span>
+                <h2 class="section-title">
+                    <i class="fa-solid fa-server" style="color: var(--brand-sky);"></i>
+                    Single Server vs. Load Balancer + Multiple Replicas
+                </h2>
+                <p class="section-desc">
+                    Why modern web applications never rely on a single backend server instance.
+                </p>
+            </div>
+
+            <div class="versus-grid">
+                <!-- Single Server Card -->
+                <div class="versus-card single-server">
+                    <span class="versus-badge">Old Way — Single Instance</span>
+                    <h3>Single Point of Failure (SPOF)</h3>
+                    <p style="font-size: 0.92rem; color: var(--ink-muted);">
+                        All user traffic flows to 1 single backend server instance.
+                    </p>
+                    <ul>
+                        <li>If traffic spikes, CPU hits 100% and crashes the app for ALL users.</li>
+                        <li>If server hardware fails or reboots, 100% downtime occurs.</li>
+                        <li>Deploying new code updates requires stopping the server (downtime).</li>
+                    </ul>
+                </div>
+
+                <!-- Multi-Replica Card -->
+                <div class="versus-card multi-replica">
+                    <span class="versus-badge">Modern Way — LB + Pool of Replicas</span>
+                    <h3>High Availability & Horizontal Scale</h3>
+                    <p style="font-size: 0.92rem; color: var(--ink-muted);">
+                        A Load Balancer distributes traffic evenly across N identical server replicas.
+                    </p>
+                    <ul>
+                        <li>Traffic is evenly split so no single replica gets overloaded.</li>
+                        <li>If Server A crashes, Load Balancer immediately redirects traffic to Server B & C.</li>
+                        <li>Enables Zero-Downtime Deployments (Rolling updates one replica at a time).</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: LOAD BALANCING ALGORITHMS -->
+        <section id="algorithms" class="section">
+            <div class="section-header">
+                <span class="section-tag">🔄 Step 2 — Load Balancing Algorithms</span>
+                <h2 class="section-title">
+                    <i class="fa-solid fa-sliders" style="color: var(--brand-indigo);"></i>
+                    How Does the Load Balancer Decide Where to Send Traffic?
+                </h2>
+                <p class="section-desc">
+                    Click through the 4 core routing algorithms commonly asked in tech interview questions!
+                </p>
+            </div>
+
+            <div class="algo-card">
+                <div class="algo-tabs">
+                    <button class="btn-algo active" onclick="switchAlgo('rr')">
+                        <i class="fa-solid fa-arrows-rotate"></i> 1. Round Robin
+                    </button>
+                    <button class="btn-algo" onclick="switchAlgo('wrr')">
+                        <i class="fa-solid fa-weight-hanging"></i> 2. Weighted Round Robin
+                    </button>
+                    <button class="btn-algo" onclick="switchAlgo('lc')">
+                        <i class="fa-solid fa-chart-line"></i> 3. Least Connections
+                    </button>
+                    <button class="btn-algo" onclick="switchAlgo('hash')">
+                        <i class="fa-solid fa-hashtag"></i> 4. IP Hash (Sticky Session)
+                    </button>
+                </div>
+
+                <div class="algo-detail" id="algoDetailBox">
+                    <h4><i class="fa-solid fa-arrows-rotate"></i> 1. Round Robin (Default & Simplest)</h4>
+                    <p style="font-size: 0.95rem; color: var(--ink-muted);">
+                        Requests are distributed sequentially in a strict circle: <strong>Request 1 ➔ Server A</strong>,
+                        <strong>Request 2 ➔ Server B</strong>, <strong>Request 3 ➔ Server C</strong>, <strong>Request 4
+                            ➔ Server A</strong>.
+                    </p>
+                    <p style="font-size: 0.85rem; color: var(--ink-subtle); margin-top: 8px;">
+                        💡 <em>Best used when all backend server replicas have identical CPU/RAM capacities.</em>
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: LAYER 4 vs LAYER 7 -->
+        <section id="l4-vs-l7" class="section">
+            <div class="section-header">
+                <span class="section-tag">🌐 Step 3 — OSI Layer Types</span>
+                <h2 class="section-title">
+                    <i class="fa-solid fa-layer-group" style="color: var(--brand-emerald);"></i>
+                    Layer 4 (L4) vs. Layer 7 (L7) Load Balancers
+                </h2>
+            </div>
+
+            <!-- Freshers Analogy Callout Box -->
+            <div
+                style="margin-top: 20px; background: var(--hand-note-bg); border: 2px dashed var(--hand-note-border); padding: 18px 22px; border-radius: var(--radius-md); box-shadow: 2px 4px 12px rgba(0, 0, 0, 0.04);">
+                <div
+                    style="font-family: var(--font-sketch); font-size: 1.3rem; font-weight: bold; color: #854d0e; margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-lightbulb"></i> Non-Tech Analogy for Freshers (No Networking Knowledge
+                    Required!)
+                </div>
+                <div
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 10px;">
+                    <div
+                        style="background: rgba(255, 255, 255, 0.7); padding: 14px; border-radius: var(--radius-sm); border: 1px solid #fef08a;">
+                        <h4
+                            style="font-family: var(--font-heading); font-size: 1.05rem; color: #713f12; margin-bottom: 4px;">
+                            ✉️ Layer 4 (L4) = Sealed Envelope Mail Clerk
+                        </h4>
+                        <p style="font-size: 0.88rem; color: #854d0e; line-height: 1.5;">
+                            The clerk <strong>only looks at the address written on the outside of the envelope</strong>
+                            (IP Address & Port Number). They NEVER open the letter. They quickly pass the envelope to
+                            Counter 1 or Counter 2. <em>Lightning fast, but blind to what's inside the message!</em>
+                        </p>
+                    </div>
+
+                    <div
+                        style="background: rgba(255, 255, 255, 0.7); padding: 14px; border-radius: var(--radius-sm); border: 1px solid #fef08a;">
+                        <h4
+                            style="font-family: var(--font-heading); font-size: 1.05rem; color: #713f12; margin-bottom: 4px;">
+                            🧠 Layer 7 (L7) = Smart Department Store Receptionist
+                        </h4>
+                        <p style="font-size: 0.88rem; color: #854d0e; line-height: 1.5;">
+                            The receptionist <strong>opens the request and reads what the customer actually
+                                wants</strong>. Asking for <code>/shoes</code>? Sent to Floor 2. Asking for
+                            <code>/food</code>? Sent to Floor 1. Holding a VIP Coupon (Cookie)? Sent to the VIP Counter!
+                            <em>Smart, context-aware routing!</em>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="layer-grid">
+                <!-- L4 Card -->
+                <div class="layer-card" style="border-left: 4px solid var(--brand-sky);">
+                    <h3><i class="fa-solid fa-network-wired" style="color: var(--brand-sky);"></i> Layer 4 Load Balancer
+                        (Network Level)</h3>
+                    <p style="font-size: 0.9rem; color: var(--ink-muted); margin-bottom: 10px;">
+                        Operates at the <strong>Transport Layer (TCP/UDP)</strong>. Routes packets purely based on IP
+                        addresses and Port numbers without inspecting HTTP contents.
+                    </p>
+                    <ul style="font-size: 0.88rem; color: var(--ink-muted); margin-left: 18px;">
+                        <li>⚡ Ultra-fast & high throughput (low CPU overhead).</li>
+                        <li>Cannot route based on URL path or HTTP cookies.</li>
+                        <li>Example: AWS Network Load Balancer (NLB), HAProxy L4 mode.</li>
+                    </ul>
+                </div>
+
+                <!-- L7 Card -->
+                <div class="layer-card" style="border-left: 4px solid var(--brand-indigo);">
+                    <h3><i class="fa-solid fa-code" style="color: var(--brand-indigo);"></i> Layer 7 Load Balancer
+                        (Application Level)</h3>
+                    <p style="font-size: 0.9rem; color: var(--ink-muted); margin-bottom: 10px;">
+                        Operates at the <strong>Application Layer (HTTP/HTTPS)</strong>. Inspects HTTP headers, cookies,
+                        and URL paths to route traffic intelligently.
+                    </p>
+                    <ul style="font-size: 0.88rem; color: var(--ink-muted); margin-left: 18px;">
+                        <li>🧠 Smart URL routing: <code>/api/orders</code> ➔ Order Pool, <code>/images</code> ➔ Media
+                            Pool.</li>
+                        <li>Supports SSL/TLS termination & HTTP Cookie stickiness.</li>
+                        <li>Example: AWS Application Load Balancer (ALB), NGINX.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Architectural Diagram Card -->
+            <div
+                style="margin-top: 24px; background: var(--surface-card); padding: 24px; border-radius: var(--radius-lg); border: 1px solid var(--border-soft); box-shadow: var(--shadow-card);">
+                <h3
+                    style="font-family: var(--font-heading); font-size: 1.25rem; margin-bottom: 8px; color: var(--ink-main); display: flex; align-items: center; gap: 10px;">
+                    <i class="fa-solid fa-diagram-project" style="color: var(--brand-emerald);"></i> Architectural
+                    Diagram: Layer 4 vs Layer 7 Load Balancing
+                </h3>
+                <p style="color: var(--ink-muted); font-size: 0.92rem; margin-bottom: 16px; line-height: 1.6;">
+                    Visual breakdown comparing Layer 4 (Network Level packet routing) vs. Layer 7 (Application Level
+                    HTTP content routing).
+                </p>
+                <div
+                    style="text-align: center; background: #ffffff; padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-soft); box-shadow: var(--shadow-subtle);">
+                    <img src="layer4vslayer7.png" alt="Layer 4 vs Layer 7 Load Balancer Architecture Diagram"
+                        style="max-width: 100%; height: auto; border-radius: var(--radius-sm);">
+                </div>
+            </div>
+
+
+        </section>
+
+        <!-- SECTION 4: HEALTH CHECKS -->
+        <section id="health-checks" class="section">
+            <div class="section-header">
+                <span class="section-tag">💓 Step 4 — Active Monitoring</span>
+                <h2 class="section-title">
+                    <i class="fa-solid fa-heart-pulse" style="color: var(--brand-rose);"></i>
+                    Health Checks & Automatic Failover
+                </h2>
+                <p class="section-desc">
+                    How the Load Balancer knows which server replicas are healthy and which ones are dead!
+                </p>
+            </div>
+
+            <div class="health-card">
+                <p style="font-size: 0.95rem; color: var(--ink-muted);">
+                    The Load Balancer continuously pings a heartbeat endpoint (e.g. <code>GET /healthz</code>) on every
+                    replica every <strong>5 seconds</strong>. If a replica responds with <code>HTTP 200 OK</code>, it
+                    stays in the target group. If it fails 3 consecutive pings, it gets automatically evicted!
+                </p>
+
+                <div class="ping-diagram">
+                    <div class="ping-node">
+                        <div style="font-family: var(--font-heading); font-weight: 700;">Server Replica 1</div>
+                        <div style="font-size: 0.8rem; color: var(--brand-emerald); font-weight: 700; margin-top: 4px;">
+                            🟢 GET /healthz ➔ 200 OK
+                        </div>
+                    </div>
+
+                    <div class="ping-node">
+                        <div style="font-family: var(--font-heading); font-weight: 700;">Server Replica 2</div>
+                        <div style="font-size: 0.8rem; color: var(--brand-emerald); font-weight: 700; margin-top: 4px;">
+                            🟢 GET /healthz ➔ 200 OK
+                        </div>
+                    </div>
+
+                    <div class="ping-node unhealthy">
+                        <div style="font-family: var(--font-heading); font-weight: 700;">Server Replica 3</div>
+                        <div style="font-size: 0.8rem; color: var(--brand-rose); font-weight: 700; margin-top: 4px;">
+                            🔴 GET /healthz ➔ 500 / TIMEOUT!
+                        </div>
+                    </div>
+                </div>
+
+                <div
+                    style="background: var(--brand-rose-light); border: 1px solid #fecdd3; padding: 12px 16px; border-radius: var(--radius-sm); color: #9f1239; font-size: 0.9rem;">
+                    ⚠️ <strong>Auto-Eviction Action:</strong> Replica 3 failed 3 consecutive health checks! Load
+                    Balancer immediately stops sending user requests to Replica 3 and redirects 100% traffic to Replica
+                    1 & 2.
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 5: LIVE SIMULATOR -->
+        <section id="simulator" class="section">
+            <div class="section-header">
+                <span class="section-tag">🎮 Step 5 — Interactive Hands-On Playground</span>
+                <h2 class="section-title">
+                    <i class="fa-solid fa-gamepad" style="color: var(--brand-sky);"></i>
+                    Live Load Balancer & Replica Pool Simulator
+                </h2>
+                <p class="section-desc">
+                    Send requests, trigger flash sale bursts, crash a server node, and watch automatic failover in
+                    real-time!
+                </p>
+            </div>
+
+            <div class="simulator-box">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                    <h3 style="font-family: var(--font-heading); font-size: 1.25rem;">
+                        <i class="fa-solid fa-microchip" style="color: var(--brand-sky);"></i> Active Pool Stage
+                    </h3>
+                    <div style="font-size: 0.85rem; font-family: var(--font-mono); color: var(--ink-muted);"
+                        id="simStatsText">
+                        Active Replicas: <strong>3/3 Healthy</strong> | Total Handled: <strong
+                            id="totalReqCount">0</strong>
+                    </div>
+                </div>
+
+                <div class="sim-stage">
+                    <!-- Central Load Balancer -->
+                    <div class="lb-center-node">
+                        <i class="fa-solid fa-scale-balanced" style="font-size: 2rem; margin-bottom: 8px;"></i>
+                        <h4 style="font-family: var(--font-heading); font-size: 1.2rem;">Load Balancer</h4>
+                        <span
+                            style="font-size: 0.75rem; background: rgba(255, 255, 255, 0.2); padding: 2px 8px; border-radius: 4px; font-family: var(--font-mono);">
+                            Algorithm: Round Robin
+                        </span>
+                    </div>
+
+                    <!-- Replicas Pool Container -->
+                    <div class="replicas-container" id="replicasPool">
+                        <!-- Server A -->
+                        <div class="replica-row healthy-replica" id="row-server-A">
+                            <div class="replica-info">
+                                <i class="fa-solid fa-server"
+                                    style="color: var(--brand-emerald); font-size: 1.2rem;"></i>
+                                <div>
+                                    <div class="replica-name">Server Replica A (port: 8081)</div>
+                                    <div style="font-size: 0.75rem; color: var(--ink-subtle);" id="status-server-A">
+                                        Status: HEALTHY 🟢</div>
+                                </div>
+                            </div>
+                            <span class="request-count-badge" id="count-server-A">0 reqs</span>
+                        </div>
+
+                        <!-- Server B -->
+                        <div class="replica-row healthy-replica" id="row-server-B">
+                            <div class="replica-info">
+                                <i class="fa-solid fa-server"
+                                    style="color: var(--brand-emerald); font-size: 1.2rem;"></i>
+                                <div>
+                                    <div class="replica-name">Server Replica B (port: 8082)</div>
+                                    <div style="font-size: 0.75rem; color: var(--ink-subtle);" id="status-server-B">
+                                        Status: HEALTHY 🟢</div>
+                                </div>
+                            </div>
+                            <span class="request-count-badge" id="count-server-B">0 reqs</span>
+                        </div>
+
+                        <!-- Server C -->
+                        <div class="replica-row healthy-replica" id="row-server-C">
+                            <div class="replica-info">
+                                <i class="fa-solid fa-server"
+                                    style="color: var(--brand-emerald); font-size: 1.2rem;"></i>
+                                <div>
+                                    <div class="replica-name">Server Replica C (port: 8083)</div>
+                                    <div style="font-size: 0.75rem; color: var(--ink-subtle);" id="status-server-C">
+                                        Status: HEALTHY 🟢</div>
+                                </div>
+                            </div>
+                            <span class="request-count-badge" id="count-server-C">0 reqs</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Simulator Action Controls -->
+                <div class="sim-actions">
+                    <button class="btn-action btn-send" onclick="sendSingleRequest()">
+                        <i class="fa-solid fa-paper-plane"></i> Send 1 Request
+                    </button>
+                    <button class="btn-action btn-burst" onclick="sendBurstRequests()">
+                        <i class="fa-solid fa-bolt"></i> Burst 10 Requests
+                    </button>
+                    <button class="btn-action btn-kill" onclick="toggleCrashServer('B')">
+                        <i class="fa-solid fa-skull"></i> Crash Server B
+                    </button>
+                    <button class="btn-action btn-revive" onclick="toggleReviveServer('B')">
+                        <i class="fa-solid fa-kit-medical"></i> Revive Server B
+                    </button>
+                    <button class="btn-action btn-add" onclick="resetSimStats()">
+                        <i class="fa-solid fa-rotate-left"></i> Reset Stats
+                    </button>
+                </div>
+
+                <!-- Log Terminal Box -->
+                <div class="log-terminal" id="simLog">
+                    <div class="log-line ok">[08:30:00] Load Balancer online. 3 Server Replicas registered in Target
+                        Group.</div>
+                    <div class="log-line">[08:30:00] Health Checks passing 3/3. Ready to balance traffic!</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer / Return Link -->
+        <footer class="footer-bar">
+            <h3 style="font-family: var(--font-heading); font-size: 1.3rem; margin-bottom: 8px;">
+                Ready to Continue Day 3?
+            </h3>
+            <p style="color: var(--ink-muted); margin-bottom: 20px;">
+                You've mastered Load Balancers and Application Replicas!
+            </p>
+            <a href="../fsd_crashcourse.html#day3" class="btn-back">
+                <i class="fa-solid fa-arrow-left"></i> Return to Day 3 Session 9 Slot in Crash Course
+            </a>
+        </footer>
+
+    </main>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // Algorithm Tab Switching
+        function switchAlgo(algoType) {
+            document.querySelectorAll('.algo-tabs .btn-algo').forEach(btn => btn.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+
+            const box = document.getElementById('algoDetailBox');
+            if (algoType === 'rr') {
+                box.innerHTML = `
+                    <h4><i class="fa-solid fa-arrows-rotate"></i> 1. Round Robin (Default & Simplest)</h4>
+                    <p style="font-size: 0.95rem; color: var(--ink-muted);">
+                        Requests are distributed sequentially in a strict circle: <strong>Request 1 ➔ Server A</strong>, <strong>Request 2 ➔ Server B</strong>, <strong>Request 3 ➔ Server C</strong>, <strong>Request 4 ➔ Server A</strong>.
+                    </p>
+                    <p style="font-size: 0.85rem; color: var(--ink-subtle); margin-top: 8px;">
+                        💡 <em>Best used when all backend server replicas have identical CPU/RAM capacities.</em>
+                    </p>
+                `;
+            } else if (algoType === 'wrr') {
+                box.innerHTML = `
+                    <h4><i class="fa-solid fa-weight-hanging"></i> 2. Weighted Round Robin</h4>
+                    <p style="font-size: 0.95rem; color: var(--ink-muted);">
+                        Servers are assigned weights based on capacity. A powerful 16-core server (Weight = 3) gets 3 requests for every 1 request sent to a smaller 4-core server (Weight = 1).
+                    </p>
+                `;
+            } else if (algoType === 'lc') {
+                box.innerHTML = `
+                    <h4><i class="fa-solid fa-chart-line"></i> 3. Least Connections</h4>
+                    <p style="font-size: 0.95rem; color: var(--ink-muted);">
+                        Routes new incoming requests to whichever server currently has the <strong>fewest active open TCP connections</strong>.
+                    </p>
+                    <p style="font-size: 0.85rem; color: var(--ink-subtle); margin-top: 8px;">
+                        💡 <em>Ideal for long-lived transactions (e.g. video streaming, file uploads, WebSocket chats).</em>
+                    </p>
+                `;
+            } else if (algoType === 'hash') {
+                box.innerHTML = `
+                    <h4><i class="fa-solid fa-hashtag"></i> 4. IP Hash (Sticky Sessions)</h4>
+                    <p style="font-size: 0.95rem; color: var(--ink-muted);">
+                        Hashes the client's IP address (e.g., <code>192.168.1.45</code>) to consistently route that specific user to the exact same server replica every time.
+                    </p>
+                `;
+            }
+        }
+
+        // Live Simulator State & Logic
+        const replicasState = {
+            A: { name: "Server A", healthy: true, count: 0 },
+            B: { name: "Server B", healthy: true, count: 0 },
+            C: { name: "Server C", healthy: true, count: 0 }
+        };
+
+        const keys = ['A', 'B', 'C'];
+        let rrPointer = 0;
+        let totalCount = 0;
+
+        function getNextHealthyReplica() {
+            const healthyKeys = keys.filter(k => replicasState[k].healthy);
+            if (healthyKeys.length === 0) return null;
+
+            const targetKey = healthyKeys[rrPointer % healthyKeys.length];
+            rrPointer++;
+            return targetKey;
+        }
+
+        function sendSingleRequest() {
+            const targetKey = getNextHealthyReplica();
+            if (!targetKey) {
+                addLog("💥 ERROR 503 Service Unavailable: All backend server replicas are DOWN!", "err");
+                return;
+            }
+
+            replicasState[targetKey].count++;
+            totalCount++;
+
+            document.getElementById(`count-server-${targetKey}`).innerText = `${replicasState[targetKey].count} reqs`;
+            document.getElementById('totalReqCount').innerText = totalCount;
+
+            addLog(`HTTP GET /api/orders ➔ Load Balancer ➔ Routed to Replica ${targetKey} (200 OK)`, "ok");
+        }
+
+        function sendBurstRequests() {
+            addLog("⚡ Flash Sale Burst initiated! Dispatching 10 concurrent requests...", "warn");
+            let index = 0;
+            const interval = setInterval(() => {
+                sendSingleRequest();
+                index++;
+                if (index >= 10) clearInterval(interval);
+            }, 120);
+        }
+
+        function toggleCrashServer(key) {
+            if (!replicasState[key].healthy) {
+                addLog(`Server ${key} is already crashed!`, "warn");
+                return;
+            }
+
+            replicasState[key].healthy = false;
+            const row = document.getElementById(`row-server-${key}`);
+            row.className = 'replica-row unhealthy-replica';
+            document.getElementById(`status-server-${key}`).innerText = 'Status: CRASHED (500 Error) 🔴';
+
+            addLog(`⚡ CRITICAL: Replica ${key} process crashed! Health check failed 3/3 times.`, "err");
+            addLog(`🛡️ Load Balancer auto-evicted Replica ${key} from active routing pool.`, "warn");
+            updateStatsText();
+        }
+
+        function toggleReviveServer(key) {
+            if (replicasState[key].healthy) {
+                addLog(`Server ${key} is already healthy!`, "warn");
+                return;
+            }
+
+            replicasState[key].healthy = true;
+            const row = document.getElementById(`row-server-${key}`);
+            row.className = 'replica-row healthy-replica';
+            document.getElementById(`status-server-${key}`).innerText = 'Status: HEALTHY 🟢';
+
+            addLog(`🟢 RECOVERY: Replica ${key} restarted. Health check /healthz responded 200 OK!`, "ok");
+            addLog(`✅ Load Balancer re-added Replica ${key} back into active routing pool.`, "ok");
+            updateStatsText();
+        }
+
+        function resetSimStats() {
+            keys.forEach(k => {
+                replicasState[k].count = 0;
+                document.getElementById(`count-server-${k}`).innerText = `0 reqs`;
+            });
+            totalCount = 0;
+            document.getElementById('totalReqCount').innerText = 0;
+            addLog("🔄 Request counters reset to 0.", "ok");
+        }
+
+        function updateStatsText() {
+            const healthyCount = keys.filter(k => replicasState[k].healthy).length;
+            document.getElementById('simStatsText').innerHTML = `
+                Active Replicas: <strong>${healthyCount}/3 Healthy</strong> | Total Handled: <strong id="totalReqCount">${totalCount}</strong>
+            `;
+        }
+
+        function addLog(msg, type = "") {
+            const simLog = document.getElementById('simLog');
+            const time = new Date().toLocaleTimeString();
+            const logLine = document.createElement('div');
+            logLine.className = `log-line ${type}`;
+            logLine.innerText = `[${time}] ${msg}`;
+            simLog.appendChild(logLine);
+            simLog.scrollTop = simLog.scrollHeight;
+        }
+    </script>
+</body>
+
+</html>

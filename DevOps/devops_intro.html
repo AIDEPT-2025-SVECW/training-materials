@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DevOps &amp; CI/CD Fundamentals | SE &amp; FSD Crash Course</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg-main: #fcfbf7;
+      --bg-card: #ffffff;
+      --bg-card-subtle: #f8fafc;
+      --text-heading: #0f172a;
+      --text-body: #334155;
+      --text-muted: #64748b;
+
+      --brand-blue: #2563eb;
+      --brand-blue-light: #eff6ff;
+      --brand-indigo: #4f46e5;
+      --brand-indigo-light: #eef2ff;
+      --brand-emerald: #059669;
+      --brand-emerald-light: #ecfdf5;
+      --brand-amber: #d97706;
+      --brand-amber-light: #fffbeb;
+      --brand-rose: #dc2626;
+      --brand-rose-light: #fef2f2;
+      --brand-purple: #9333ea;
+      --brand-purple-light: #faf5ff;
+
+      --border-light: #e2e8f0;
+      --border-hover: #cbd5e1;
+      --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+      --shadow-card: 0 10px 25px -5px rgba(15, 23, 42, 0.05), 0 8px 10px -6px rgba(15, 23, 42, 0.03);
+      --shadow-hover: 0 20px 35px -10px rgba(15, 23, 42, 0.1);
+
+      --font-primary: 'Plus Jakarta Sans', sans-serif;
+      --font-heading: 'Outfit', sans-serif;
+      --font-hand: 'Caveat', cursive;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: var(--font-primary);
+      background-color: var(--bg-main);
+      background-image:
+        radial-gradient(at 10% 10%, rgba(238, 242, 255, 0.6) 0px, transparent 50%),
+        radial-gradient(at 90% 10%, rgba(236, 253, 245, 0.6) 0px, transparent 50%),
+        radial-gradient(at 50% 90%, rgba(254, 243, 199, 0.5) 0px, transparent 50%);
+      background-attachment: fixed;
+      color: var(--text-body);
+      min-height: 100vh;
+      padding-bottom: 80px;
+      line-height: 1.6;
+    }
+
+    /* Navbar */
+    .navbar {
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-light);
+      padding: 1rem 2rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      text-decoration: none;
+      color: var(--text-heading);
+    }
+
+    .brand-logo {
+      width: 42px;
+      height: 42px;
+      background: linear-gradient(135deg, var(--brand-indigo), var(--brand-blue));
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-family: var(--font-heading);
+      font-weight: 800;
+      font-size: 1.3rem;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+    }
+
+    .brand-title {
+      font-family: var(--font-heading);
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--text-heading);
+    }
+
+    .back-btn {
+      background: #ffffff;
+      border: 1px solid var(--border-light);
+      color: var(--text-heading);
+      padding: 0.55rem 1.1rem;
+      border-radius: 10px;
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+
+    .back-btn:hover {
+      background: var(--brand-blue-light);
+      color: var(--brand-blue);
+      border-color: var(--brand-blue);
+      transform: translateY(-1px);
+    }
+
+    /* Container */
+    .container {
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem;
+    }
+
+    /* Hero */
+    .hero {
+      text-align: center;
+      padding: 3rem 2rem;
+      background: #ffffff;
+      border: 1px solid var(--border-light);
+      border-radius: 28px;
+      box-shadow: var(--shadow-card);
+      margin-bottom: 2.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 5px;
+      background: linear-gradient(90deg, var(--brand-rose), var(--brand-amber), var(--brand-blue), var(--brand-emerald));
+    }
+
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--brand-indigo-light);
+      border: 1px solid rgba(79, 70, 229, 0.2);
+      color: var(--brand-indigo);
+      padding: 0.45rem 1.1rem;
+      border-radius: 30px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 1.25rem;
+    }
+
+    .hero-title {
+      font-family: var(--font-heading);
+      font-size: 2.6rem;
+      font-weight: 800;
+      color: var(--text-heading);
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+      margin-bottom: 1rem;
+    }
+
+    .hero-subtitle {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      max-width: 820px;
+      margin: 0 auto 1.5rem;
+      line-height: 1.6;
+    }
+
+    .hand-note {
+      font-family: var(--font-hand);
+      font-size: 1.5rem;
+      color: var(--brand-rose);
+      font-weight: 700;
+      display: inline-block;
+      transform: rotate(-2deg);
+    }
+
+    /* Section Cards */
+    .section-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-light);
+      border-radius: 24px;
+      padding: 2.25rem;
+      box-shadow: var(--shadow-card);
+      margin-bottom: 2.5rem;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .section-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+    }
+
+    .section-title {
+      font-family: var(--font-heading);
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--text-heading);
+    }
+
+    /* Interactive Wall of Confusion */
+    .wall-simulator {
+      background: var(--bg-card-subtle);
+      border: 1.5px solid var(--border-light);
+      border-radius: 20px;
+      padding: 1.75rem;
+      margin-top: 1.5rem;
+    }
+
+    .wall-controls {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 1.75rem;
+      flex-wrap: wrap;
+    }
+
+    .mode-btn {
+      padding: 0.75rem 1.5rem;
+      border-radius: 14px;
+      font-family: var(--font-heading);
+      font-weight: 700;
+      font-size: 0.95rem;
+      border: 1.5px solid var(--border-light);
+      background: #ffffff;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+
+    .mode-btn.active-trad {
+      background: var(--brand-rose-light);
+      color: var(--brand-rose);
+      border-color: var(--brand-rose);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .mode-btn.active-devops {
+      background: var(--brand-emerald-light);
+      color: var(--brand-emerald);
+      border-color: var(--brand-emerald);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .wall-display {
+      display: grid;
+      grid-template-columns: 1fr 140px 1fr;
+      gap: 1rem;
+      align-items: center;
+      min-height: 220px;
+    }
+
+    @media (max-width: 768px) {
+      .wall-display {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .silo-box {
+      background: #ffffff;
+      border: 1px solid var(--border-light);
+      border-radius: 16px;
+      padding: 1.5rem;
+      text-align: center;
+    }
+
+    .silo-box h4 {
+      font-family: var(--font-heading);
+      font-size: 1.2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .wall-barrier {
+      text-align: center;
+      padding: 1rem;
+      border-radius: 14px;
+      font-family: var(--font-heading);
+      font-weight: 800;
+      font-size: 0.88rem;
+      transition: all 0.3s ease;
+    }
+
+    .wall-barrier.blocked {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 2px dashed #f87171;
+    }
+
+    .wall-barrier.collaborative {
+      background: #d1fae5;
+      color: #065f46;
+      border: 2px solid #34d399;
+    }
+
+    /* Comparison Table Cards */
+    .compare-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+
+    .compare-card {
+      border-radius: 18px;
+      padding: 1.5rem;
+      border: 1px solid var(--border-light);
+    }
+
+    .compare-card.bad {
+      background: var(--brand-rose-light);
+      border-color: rgba(220, 38, 38, 0.2);
+    }
+
+    .compare-card.good {
+      background: var(--brand-emerald-light);
+      border-color: rgba(5, 150, 105, 0.2);
+    }
+
+    .compare-card h4 {
+      font-family: var(--font-heading);
+      font-size: 1.25rem;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .compare-card.bad h4 {
+      color: var(--brand-rose);
+    }
+
+    .compare-card.good h4 {
+      color: var(--brand-emerald);
+    }
+
+    .compare-list {
+      list-style: none;
+    }
+
+    .compare-list li {
+      margin-bottom: 0.6rem;
+      font-size: 0.92rem;
+      position: relative;
+      padding-left: 1.3rem;
+    }
+
+    .compare-card.bad .compare-list li::before {
+      content: '❌';
+      position: absolute;
+      left: 0;
+      font-size: 0.8rem;
+    }
+
+    .compare-card.good .compare-list li::before {
+      content: '✅';
+      position: absolute;
+      left: 0;
+      font-size: 0.8rem;
+    }
+
+    /* Master Analogy Banner */
+    .analogy-box {
+      background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+      border: 1.5px solid #fde68a;
+      border-radius: 20px;
+      padding: 1.75rem;
+      margin-top: 1.5rem;
+      display: flex;
+      gap: 1.25rem;
+      align-items: flex-start;
+    }
+
+    .analogy-icon {
+      font-size: 2.8rem;
+      line-height: 1;
+    }
+
+    .analogy-content h4 {
+      font-family: var(--font-heading);
+      font-size: 1.3rem;
+      color: var(--brand-amber);
+      font-weight: 800;
+      margin-bottom: 0.4rem;
+    }
+
+    /* Interactive Pipeline Visualizer */
+    .pipeline-container {
+      background: #ffffff;
+      border: 1.5px solid var(--border-light);
+      border-radius: 20px;
+      padding: 2rem;
+      margin-top: 1.5rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .pipeline-type-toggle {
+      display: flex;
+      justify-content: center;
+      gap: 0.75rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .pipeline-toggle-btn {
+      padding: 0.7rem 1.25rem;
+      border-radius: 12px;
+      font-family: var(--font-heading);
+      font-weight: 700;
+      font-size: 0.9rem;
+      border: 1.5px solid var(--border-light);
+      background: var(--bg-main);
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+
+    .pipeline-toggle-btn.active-delivery {
+      background: var(--brand-blue-light);
+      color: var(--brand-blue);
+      border-color: var(--brand-blue);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .pipeline-toggle-btn.active-deployment {
+      background: var(--brand-purple-light);
+      color: var(--brand-purple);
+      border-color: var(--brand-purple);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .pipeline-track {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      position: relative;
+      margin-bottom: 2rem;
+      overflow-x: auto;
+      padding: 1rem 0;
+    }
+
+    .pipe-step {
+      flex: 1;
+      min-width: 130px;
+      background: var(--bg-card-subtle);
+      border: 1.5px solid var(--border-light);
+      border-radius: 16px;
+      padding: 1.1rem 0.75rem;
+      text-align: center;
+      position: relative;
+      transition: all 0.3s ease;
+    }
+
+    .pipe-step.active {
+      border-color: var(--brand-blue);
+      background: var(--brand-blue-light);
+      transform: scale(1.03);
+    }
+
+    .pipe-step.success {
+      border-color: var(--brand-emerald);
+      background: var(--brand-emerald-light);
+      color: var(--brand-emerald);
+    }
+
+    .pipe-step.paused {
+      border-color: var(--brand-amber);
+      background: var(--brand-amber-light);
+      color: var(--brand-amber);
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(217, 119, 6, 0.4);
+      }
+
+      70% {
+        box-shadow: 0 0 0 10px rgba(217, 119, 6, 0);
+      }
+
+      100% {
+        box-shadow: 0 0 0 0 rgba(217, 119, 6, 0);
+      }
+    }
+
+    .pipe-step-num {
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      opacity: 0.7;
+      margin-bottom: 0.2rem;
+    }
+
+    .pipe-step-title {
+      font-family: var(--font-heading);
+      font-size: 0.92rem;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .pipe-arrow {
+      font-size: 1.2rem;
+      color: var(--text-muted);
+    }
+
+    .pipeline-controls-panel {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      background: var(--bg-main);
+      border: 1px solid var(--border-light);
+      border-radius: 16px;
+      padding: 1.5rem;
+    }
+
+    .run-pipeline-btn {
+      background: linear-gradient(135deg, var(--brand-blue), var(--brand-indigo));
+      color: #ffffff;
+      border: none;
+      padding: 0.85rem 2rem;
+      border-radius: 14px;
+      font-family: var(--font-heading);
+      font-weight: 800;
+      font-size: 1rem;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .run-pipeline-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4);
+    }
+
+    .approve-prod-btn {
+      background: linear-gradient(135deg, var(--brand-amber), #f59e0b);
+      color: #ffffff;
+      border: none;
+      padding: 0.75rem 1.75rem;
+      border-radius: 14px;
+      font-family: var(--font-heading);
+      font-weight: 800;
+      font-size: 0.95rem;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3);
+      transition: all 0.2s ease;
+      display: none;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .approve-prod-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 18px rgba(217, 119, 6, 0.4);
+    }
+
+    .pipeline-log-box {
+      font-family: monospace;
+      font-size: 0.88rem;
+      background: #0f172a;
+      color: #38bdf8;
+      padding: 1rem 1.25rem;
+      border-radius: 12px;
+      width: 100%;
+      min-height: 50px;
+      display: flex;
+      align-items: center;
+    }
+
+    /* Terms Cards Grid */
+    .terms-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.25rem;
+      margin-top: 1.5rem;
+    }
+
+    .term-card {
+      background: #ffffff;
+      border: 1px solid var(--border-light);
+      border-radius: 18px;
+      padding: 1.5rem;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.25s ease;
+    }
+
+    .term-card:hover {
+      border-color: var(--brand-blue);
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-card);
+    }
+
+    .term-badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      font-family: var(--font-heading);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.75rem;
+    }
+
+    .term-badge.ci {
+      background: var(--brand-blue-light);
+      color: var(--brand-blue);
+    }
+
+    .term-badge.cd-del {
+      background: var(--brand-amber-light);
+      color: var(--brand-amber);
+    }
+
+    .term-badge.cd-dep {
+      background: var(--brand-purple-light);
+      color: var(--brand-purple);
+    }
+
+    .term-card h4 {
+      font-family: var(--font-heading);
+      font-size: 1.2rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+      color: var(--text-heading);
+    }
+
+    .term-card p {
+      font-size: 0.92rem;
+      color: var(--text-body);
+      line-height: 1.5;
+    }
+
+    /* Quiz Box */
+    .quiz-container {
+      background: var(--bg-card-subtle);
+      border: 1.5px solid var(--border-light);
+      border-radius: 20px;
+      padding: 1.75rem;
+      margin-top: 1.5rem;
+    }
+
+    .quiz-q {
+      background: #ffffff;
+      border: 1px solid var(--border-light);
+      border-radius: 16px;
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+    }
+
+    .quiz-q h5 {
+      font-family: var(--font-heading);
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+    }
+
+    .quiz-options {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .quiz-opt {
+      padding: 0.65rem 1rem;
+      border-radius: 10px;
+      border: 1px solid var(--border-light);
+      background: var(--bg-main);
+      font-size: 0.9rem;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s ease;
+    }
+
+    .quiz-opt:hover {
+      background: var(--brand-blue-light);
+      border-color: var(--brand-blue);
+      color: var(--brand-blue);
+    }
+
+    .quiz-opt.correct {
+      background: var(--brand-emerald-light) !important;
+      border-color: var(--brand-emerald) !important;
+      color: var(--brand-emerald) !important;
+      font-weight: 700;
+    }
+
+    .quiz-opt.wrong {
+      background: var(--brand-rose-light) !important;
+      border-color: var(--brand-rose) !important;
+      color: var(--brand-rose) !important;
+    }
+
+    .quiz-exp {
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
+      padding: 0.5rem 0.75rem;
+      border-radius: 8px;
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <a href="../fsd_crashcourse.html" class="brand">
+      <div class="brand-logo">⚙️</div>
+      <span class="brand-title">DevOps &amp; CI/CD Fundamentals</span>
+    </a>
+    <a href="../fsd_crashcourse.html" class="back-btn">← Back to Course Hub</a>
+  </nav>
+
+  <div class="container">
+
+    <!-- Hero Section -->
+    <header class="hero">
+      <div class="hero-tag">
+        <span>🚀</span> SE &amp; Cloud Fundamentals — Day 3 Session 12
+      </div>
+      <h1 class="hero-title">Understanding DevOps &amp; CI/CD Pipelines</h1>
+      <p class="hero-subtitle">
+        Why traditional manual deployments caused midnight failures, how DevOps broke down the "Wall of Confusion",
+        and the crucial difference between <strong>Continuous Delivery</strong> and <strong>Continuous
+          Deployment</strong>.
+      </p>
+      <span class="hand-note">~ No more "Works on my machine!" 🍕</span>
+    </header>
+
+    <!-- Section 1: The Problem with Traditional Work -->
+    <section class="section-card">
+      <div class="section-header">
+        <div class="section-icon" style="background: var(--brand-rose-light); color: var(--brand-rose);">🧱</div>
+        <h2 class="section-title">1. The Problem with Traditional Software Development</h2>
+      </div>
+
+      <p>
+        In traditional software teams (Waterfall / legacy setups), <strong>Developers</strong> and <strong>Operations
+          (Ops)</strong> worked in completely separate isolated departments with opposing goals:
+      </p>
+
+      <div class="compare-grid">
+        <div class="compare-card bad">
+          <h4>💻 Developers (Dev)</h4>
+          <ul class="compare-list">
+            <li><strong>Goal:</strong> Build new features as quickly as possible.</li>
+            <li><strong>Motto:</strong> "My code works fine on my laptop!"</li>
+            <li><strong>Mindset:</strong> Pushes massive code updates once every 3 to 6 months.</li>
+          </ul>
+        </div>
+
+        <div class="compare-card bad">
+          <h4>🛠️ Operations (Ops / SysAdmins)</h4>
+          <ul class="compare-list">
+            <li><strong>Goal:</strong> Keep production servers stable, reliable, and online.</li>
+            <li><strong>Motto:</strong> "Change is dangerous! Avoid changing live servers!"</li>
+            <li><strong>Mindset:</strong> Frustrated by unexpected bugs when deploying Dev's code at 2 AM.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Interactive Wall of Confusion Simulator -->
+      <div class="wall-simulator">
+        <h3 style="font-family: var(--font-heading); margin-bottom: 0.5rem; text-align: center;">Interactive: "The Wall
+          of Confusion" Simulator</h3>
+        <p style="text-align: center; font-size: 0.92rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+          Toggle between Traditional Silos vs The DevOps Way to see how software reaches production.
+        </p>
+
+        <div class="wall-controls">
+          <button id="btnTrad" class="mode-btn active-trad" onclick="switchWallMode('trad')">🧱 Traditional Silos
+            (Wall of Confusion)</button>
+          <button id="btnDevOps" class="mode-btn" onclick="switchWallMode('devops')">🤝 DevOps Collaborative
+            Culture</button>
+        </div>
+
+        <div class="wall-display">
+          <div class="silo-box">
+            <h4>👨‍💻 Developers</h4>
+            <p id="devText" style="font-size: 0.88rem; color: var(--text-body);">Writes 6 months of code, zips the `.war`/`.jar` file, and throws it over the wall!</p>
+          </div>
+
+          <div id="wallBarrier" class="wall-barrier blocked">
+            THE WALL OF CONFUSION 🧱
+          </div>
+
+          <div class="silo-box">
+            <h4>🖥️ Operations</h4>
+            <p id="opsText" style="font-size: 0.88rem; color: var(--text-body);">Tries to manually install app at 2 AM. Server crashes due to missing DB configuration!</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 2: What is DevOps & How It Solves the Problem -->
+    <section class="section-card">
+      <div class="section-header">
+        <div class="section-icon" style="background: var(--brand-emerald-light); color: var(--brand-emerald);">♾️</div>
+        <h2 class="section-title">2. What is DevOps &amp; How Does It Solve This?</h2>
+      </div>
+
+      <p>
+        <strong>DevOps</strong> (Development + Operations) is <strong>NOT a tool or a single job title</strong>—it is a
+        <strong>culture and methodology</strong> that bridges the gap between software developers and system administrators.
+      </p>
+
+      <!-- Master Analogy Banner -->
+      <div class="analogy-box">
+        <div class="analogy-icon">🍕</div>
+        <div class="analogy-content">
+          <h4>Master Analogy for Freshers: The Automated Pizza Bakery</h4>
+          <p style="font-size: 0.93rem; color: var(--text-body); line-height: 1.55;">
+            Imagine a restaurant where <strong>Chefs (Dev)</strong> make new pizza recipes in isolation, while <strong>Delivery Drivers (Ops)</strong> get blamed when pizzas arrive cold or with missing toppings.
+            <br><br>
+            <strong>The DevOps Solution:</strong> Instead of manual handoffs, they install an <em>automated conveyor oven with ingredient sensors (CI/CD)</em>. The Chef places the pizza dough on the conveyor, sensors test dough quality automatically, and the oven delivers hot, boxed pizzas directly to delivery riders instantly!
+          </p>
+        </div>
+      </div>
+
+      <div class="compare-grid" style="margin-top: 1.75rem;">
+        <div class="compare-card good">
+          <h4>🚀 Key Pillars of DevOps</h4>
+          <ul class="compare-list">
+            <li><strong>Shared Responsibility:</strong> Devs help monitor production; Ops helps design deployment scripts.</li>
+            <li><strong>Automation First:</strong> Replace manual 40-step deployment checklists with automated CI/CD scripts.</li>
+            <li><strong>Small, Frequent Releases:</strong> Deploy small changes daily instead of massive, risky 6-month updates.</li>
+            <li><strong>Fast Feedback Loops:</strong> Automated unit tests notify developers of bugs within 2 minutes of code commit.</li>
+          </ul>
+        </div>
+
+        <div class="compare-card good">
+          <h4>📈 Real-World Business Impact</h4>
+          <ul class="compare-list">
+            <li><strong>Speed to Market:</strong> Feature releases go from months → minutes.</li>
+            <li><strong>Higher Reliability:</strong> Automated tests prevent bad code from ever touching live users.</li>
+            <li><strong>Instant Recovery:</strong> If a bug slips through, automated rollback restores the working version in 30 seconds.</li>
+            <li><strong>Zero Blame Culture:</strong> Focus on fixing broken pipelines rather than pointing fingers.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- DevOps in a Nutshell Visual Diagram -->
+      <div style="margin-top: 2rem; text-align: center; background: #ffffff; border: 1.5px solid var(--border-light); border-radius: 20px; padding: 1.5rem; box-shadow: var(--shadow-sm);">
+        <h4 style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 800; color: var(--text-heading); margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+          <span>🗺️</span> Visualizing DevOps in a Nutshell
+        </h4>
+        <p style="font-size: 0.92rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+          Comprehensive architecture breakdown of the DevOps feedback loop, continuous delivery culture, and toolchain.
+        </p>
+        <div style="overflow-x: auto; display: flex; justify-content: center;">
+          <img src="DevOpsNutShell.png" alt="DevOps in a Nutshell Diagram" style="max-width: 100%; height: auto; border-radius: 16px; border: 1px solid var(--border-light); box-shadow: var(--shadow-card);">
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 3: High-Level Overview of Key Terms (CI vs CD) -->
+    <section class="section-card">
+      <div class="section-header">
+        <div class="section-icon" style="background: var(--brand-indigo-light); color: var(--brand-indigo);">🔄</div>
+        <h2 class="section-title">3. Core DevOps Key Terms Explained Simply</h2>
+      </div>
+
+      <p>
+        Freshers often confuse <strong>CI</strong>, <strong>Continuous Delivery</strong>, and <strong>Continuous Deployment</strong>. Here is the exact breakdown:
+      </p>
+
+      <div class="terms-grid">
+        <div class="term-card">
+          <span class="term-badge ci">1. Continuous Integration (CI)</span>
+          <h4>Continuous Integration (CI)</h4>
+          <p>
+            Developers frequently commit code to Git. Every single push automatically triggers an <strong>Automated Build &amp; Test Suite</strong> (e.g. Maven compile + JUnit tests + Docker build). If any test fails, the build breaks immediately!
+          </p>
+        </div>
+
+        <div class="term-card">
+          <span class="term-badge cd-del">2. Continuous Delivery (CD)</span>
+          <h4>Continuous Delivery</h4>
+          <p>
+            Building on top of CI, code is automatically built, tested, and deployed to a <strong>Staging / Pre-Production environment</strong>. However, pushing code to <strong>Live Production</strong> requires a <em>manual button click / human approval</em> by a manager.
+          </p>
+        </div>
+
+        <div class="term-card">
+          <span class="term-badge cd-dep">3. Continuous Deployment (CD)</span>
+          <h4>Continuous Deployment</h4>
+          <p>
+            Fully automated end-to-end! If code passes all automated tests in the pipeline, it goes <strong>straight into Live Production servers automatically with ZERO human intervention</strong> (used by Netflix, Amazon, Spotify).
+          </p>
+        </div>
+      </div>
+
+      <!-- Interactive Pipeline Visualizer -->
+      <div class="pipeline-container">
+        <h3 style="font-family: var(--font-heading); text-align: center; margin-bottom: 0.5rem;">🎮 Interactive CI/CD Pipeline Simulator</h3>
+        <p style="text-align: center; font-size: 0.92rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+          Select a mode below and click <strong>"Push Code Change"</strong> to watch the pipeline execute stage by stage!
+        </p>
+
+        <div class="pipeline-type-toggle">
+          <button id="btnPipeDelivery" class="pipeline-toggle-btn active-delivery" onclick="setPipelineMode('delivery')">
+            📦 Continuous Delivery (Manual Production Approval)
+          </button>
+          <button id="btnPipeDeployment" class="pipeline-toggle-btn" onclick="setPipelineMode('deployment')">
+            ⚡ Continuous Deployment (Fully Automated)
+          </button>
+        </div>
+
+        <div class="pipeline-track">
+          <div id="step1" class="pipe-step">
+            <div class="pipe-step-num">Step 1</div>
+            <div class="pipe-step-title">Git Commit 📝</div>
+          </div>
+          <span class="pipe-arrow">➔</span>
+          <div id="step2" class="pipe-step">
+            <div class="pipe-step-num">Step 2</div>
+            <div class="pipe-step-title">Build &amp; Package ⚙️</div>
+          </div>
+          <span class="pipe-arrow">➔</span>
+          <div id="step3" class="pipe-step">
+            <div class="pipe-step-num">Step 3</div>
+            <div class="pipe-step-title">Automated Tests 🧪</div>
+          </div>
+          <span class="pipe-arrow">➔</span>
+          <div id="step4" class="pipe-step">
+            <div class="pipe-step-num">Step 4</div>
+            <div class="pipe-step-title">Staging Deploy 🚀</div>
+          </div>
+          <span class="pipe-arrow">➔</span>
+          <div id="step5" class="pipe-step">
+            <div class="pipe-step-num">Step 5</div>
+            <div class="pipe-step-title">Live Production 🌐</div>
+          </div>
+        </div>
+
+        <div class="pipeline-controls-panel">
+          <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; justify-content: center;">
+            <button id="runPipeBtn" class="run-pipeline-btn" onclick="triggerPipeline()">
+              ▶️ Push Code Change (git push)
+            </button>
+            <button id="approveBtn" class="approve-prod-btn" onclick="approveProduction()">
+              👍 Approve Release to Production
+            </button>
+          </div>
+          <div id="pipeLog" class="pipeline-log-box">
+            Status: Ready. Click "Push Code Change" to start the pipeline.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 4: Summary & Fresher Knowledge Check -->
+    <section class="section-card">
+      <div class="section-header">
+        <div class="section-icon" style="background: var(--brand-amber-light); color: var(--brand-amber);">🎯</div>
+        <h2 class="section-title">4. Quick Check — Test Your DevOps Knowledge</h2>
+      </div>
+
+      <div class="quiz-container">
+        <!-- Question 1 -->
+        <div class="quiz-q">
+          <h5>Q1: What is the main purpose of Continuous Integration (CI)?</h5>
+          <div class="quiz-options">
+            <button class="quiz-opt" onclick="checkQuiz(this, false, 'q1')">A) To manually review code once a month before release.</button>
+            <button class="quiz-opt" onclick="checkQuiz(this, true, 'q1')">B) To automatically build and run tests whenever new code is pushed to Git.</button>
+            <button class="quiz-opt" onclick="checkQuiz(this, false, 'q1')">C) To host database servers in the cloud.</button>
+          </div>
+          <div id="q1-exp" class="quiz-exp"></div>
+        </div>
+
+        <!-- Question 2 -->
+        <div class="quiz-q">
+          <h5>Q2: What is the key difference between Continuous Delivery and Continuous Deployment?</h5>
+          <div class="quiz-options">
+            <button class="quiz-opt" onclick="checkQuiz(this, true, 'q2')">A) Delivery requires manual approval to go to production; Deployment auto-pushes to production automatically.</button>
+            <button class="quiz-opt" onclick="checkQuiz(this, false, 'q2')">B) Delivery uses Docker containers; Deployment uses Virtual Machines.</button>
+            <button class="quiz-opt" onclick="checkQuiz(this, false, 'q3')">C) Delivery only works on Windows; Deployment works on Linux.</button>
+          </div>
+          <div id="q2-exp" class="quiz-exp"></div>
+        </div>
+
+        <!-- Question 3 -->
+        <div class="quiz-q">
+          <h5>Q3: What was "The Wall of Confusion" in traditional software development?</h5>
+          <div class="quiz-options">
+            <button class="quiz-opt" onclick="checkQuiz(this, false, 'q3')">A) A hardware firewall blocking internet ports.</button>
+            <button class="quiz-opt" onclick="checkQuiz(this, true, 'q3')">B) The lack of communication &amp; conflicting goals between Dev (who want rapid changes) and Ops (who want server stability).</button>
+            <button class="quiz-opt" onclick="checkQuiz(this, false, 'q3')">C) A physical security wall around data centers.</button>
+          </div>
+          <div id="q3-exp" class="quiz-exp"></div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <script>
+    // Wall of Confusion Simulator Toggle
+    function switchWallMode(mode) {
+      const btnTrad = document.getElementById('btnTrad');
+      const btnDevOps = document.getElementById('btnDevOps');
+      const wall = document.getElementById('wallBarrier');
+      const devText = document.getElementById('devText');
+      const opsText = document.getElementById('opsText');
+
+      if (mode === 'trad') {
+        btnTrad.className = 'mode-btn active-trad';
+        btnDevOps.className = 'mode-btn';
+        wall.className = 'wall-barrier blocked';
+        wall.innerHTML = 'THE WALL OF CONFUSION 🧱';
+        devText.innerHTML = 'Writes 6 months of code, zips the `.war`/`.jar` file, and throws it over the wall!';
+        opsText.innerHTML = 'Tries to manually install app at 2 AM. Server crashes due to missing DB configuration!';
+      } else {
+        btnTrad.className = 'mode-btn';
+        btnDevOps.className = 'mode-btn active-devops';
+        wall.className = 'wall-barrier collaborative';
+        wall.innerHTML = 'AUTOMATED CI/CD PIPELINE 🤝';
+        devText.innerHTML = 'Commits code daily. Automated tests verify everything in 2 minutes.';
+        opsText.innerHTML = 'Monitors dashboard. Infrastructure as Code automatically deploys green builds!';
+      }
+    }
+
+    // Pipeline Simulator Logic
+    let currentPipeMode = 'delivery';
+    let pipelineRunning = false;
+
+    function setPipelineMode(mode) {
+      if (pipelineRunning) return;
+      currentPipeMode = mode;
+      document.getElementById('btnPipeDelivery').className = mode === 'delivery' ? 'pipeline-toggle-btn active-delivery' : 'pipeline-toggle-btn';
+      document.getElementById('btnPipeDeployment').className = mode === 'deployment' ? 'pipeline-toggle-btn active-deployment' : 'pipeline-toggle-btn';
+      resetPipelineTrack();
+      document.getElementById('pipeLog').innerText = `Switched mode to Continuous ${mode === 'delivery' ? 'Delivery (Manual Prod Approval)' : 'Deployment (Automated Prod Release)'}. Click "Push Code Change".`;
+    }
+
+    function resetPipelineTrack() {
+      for (let i = 1; i <= 5; i++) {
+        document.getElementById(`step${i}`).className = 'pipe-step';
+      }
+      document.getElementById('approveBtn').style.display = 'none';
+      document.getElementById('runPipeBtn').disabled = false;
+    }
+
+    function triggerPipeline() {
+      if (pipelineRunning) return;
+      pipelineRunning = true;
+      resetPipelineTrack();
+      document.getElementById('runPipeBtn').disabled = true;
+      const log = document.getElementById('pipeLog');
+
+      // Step 1: Git Push
+      log.innerText = 'Step 1/5: Developer pushed code to GitHub (git push origin main)... 📝';
+      document.getElementById('step1').className = 'pipe-step success';
+
+      setTimeout(() => {
+        // Step 2: Build
+        log.innerText = 'Step 2/5: Jenkins/GitHub Actions compiling Java Maven build & Docker image... ⚙️';
+        document.getElementById('step2').className = 'pipe-step active';
+        
+        setTimeout(() => {
+          document.getElementById('step2').className = 'pipe-step success';
+          // Step 3: Tests
+          log.innerText = 'Step 3/5: Running 142 Automated Unit & Integration Tests... 🧪';
+          document.getElementById('step3').className = 'pipe-step active';
+
+          setTimeout(() => {
+            document.getElementById('step3').className = 'pipe-step success';
+            // Step 4: Staging
+            log.innerText = 'Step 4/5: Deploying Docker container to Staging environment... 🚀';
+            document.getElementById('step4').className = 'pipe-step success';
+
+            setTimeout(() => {
+              if (currentPipeMode === 'delivery') {
+                // Continuous Delivery -> Pause for manual approval
+                log.innerText = '⏸️ Continuous Delivery: All tests passed! Staging is green. Waiting for Manager to approve Production Release...';
+                document.getElementById('step5').className = 'pipe-step paused';
+                document.getElementById('approveBtn').style.display = 'inline-flex';
+                pipelineRunning = false;
+              } else {
+                // Continuous Deployment -> Auto push to production
+                log.innerText = '⚡ Continuous Deployment: Automated check passed! Pushing build directly to Live Production! 🌐';
+                document.getElementById('step5').className = 'pipe-step success';
+                log.innerText = '🎉 SUCCESS: Feature is live in Production for users! Pipeline complete in 8 seconds.';
+                document.getElementById('runPipeBtn').disabled = false;
+                pipelineRunning = false;
+              }
+            }, 1200);
+          }, 1200);
+        }, 1200);
+      }, 1000);
+    }
+
+    function approveProduction() {
+      document.getElementById('approveBtn').style.display = 'none';
+      const log = document.getElementById('pipeLog');
+      log.innerText = '👍 Release Approved by Manager! Deploying to Live Production K8s Cluster...';
+      setTimeout(() => {
+        document.getElementById('step5').className = 'pipe-step success';
+        log.innerText = '🎉 SUCCESS: Feature approved & live in Production! Pipeline completed safely.';
+        document.getElementById('runPipeBtn').disabled = false;
+      }, 1000);
+    }
+
+    // Quiz Checker
+    function checkQuiz(btn, isCorrect, qId) {
+      const exp = document.getElementById(`${qId}-exp`);
+      const opts = btn.parentElement.querySelectorAll('.quiz-opt');
+      opts.forEach(o => o.classList.remove('correct', 'wrong'));
+
+      if (isCorrect) {
+        btn.classList.add('correct');
+        exp.style.display = 'block';
+        exp.style.background = 'var(--brand-emerald-light)';
+        exp.style.color = 'var(--brand-emerald)';
+        exp.innerHTML = '<strong>Correct!</strong> 🎉 Great job understanding this core concept.';
+      } else {
+        btn.classList.add('wrong');
+        exp.style.display = 'block';
+        exp.style.background = 'var(--brand-rose-light)';
+        exp.style.color = 'var(--brand-rose)';
+        exp.innerHTML = '<strong>Not quite!</strong> Try again or re-read the section above.';
+      }
+    }
+  </script>
+</body>
+
+</html>

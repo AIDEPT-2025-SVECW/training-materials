@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Docker Lifecycle & Docker Compose Overview | Fresher's Guide</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Outfit:wght@500;600;700;800&family=Patrick+Hand&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-page: #f8fafc;
+            --surface-card: #ffffff;
+            --surface-subtle: #f1f5f9;
+            
+            --border-soft: #e2e8f0;
+            --border-strong: #cbd5e1;
+            
+            --ink-main: #0f172a;
+            --ink-muted: #334155;
+            --ink-subtle: #64748b;
+
+            --brand-docker: #0969da;
+            --brand-docker-light: #ddf4ff;
+            --brand-sky: #0284c7;
+            --brand-sky-light: #e0f2fe;
+            --brand-indigo: #4338ca;
+            --brand-indigo-light: #e0e7ff;
+            --brand-emerald: #059669;
+            --brand-emerald-light: #d1fae5;
+            --brand-amber: #d97706;
+            --brand-amber-light: #fef3c7;
+            --brand-rose: #e11d48;
+            --brand-rose-light: #ffe4e6;
+            --brand-violet: #7c3aed;
+
+            --hand-note-bg: #fef9c3;
+            --hand-note-border: #fde047;
+            --hand-note-text: #713f12;
+
+            --font-sans: 'Plus Jakarta Sans', sans-serif;
+            --font-heading: 'Outfit', sans-serif;
+            --font-hand: 'Caveat', cursive;
+            --font-sketch: 'Patrick Hand', cursive;
+            --font-mono: 'IBM Plex Mono', monospace;
+
+            --radius-sm: 8px;
+            --radius-md: 14px;
+            --radius-lg: 20px;
+            --shadow-subtle: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
+            --shadow-card: 0 10px 30px -4px rgba(15, 23, 42, 0.08);
+            --shadow-float: 0 20px 40px -10px rgba(15, 23, 42, 0.12);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-page);
+            background-image: 
+                radial-gradient(#cbd5e1 1px, transparent 1px),
+                radial-gradient(at 10% 10%, rgba(221, 244, 255, 0.5) 0px, transparent 50%),
+                radial-gradient(at 90% 90%, rgba(237, 233, 254, 0.4) 0px, transparent 50%);
+            background-size: 24px 24px, 100% 100%, 100% 100%;
+            background-attachment: fixed;
+            color: var(--ink-main);
+            font-family: var(--font-sans);
+            line-height: 1.6;
+            padding-bottom: 90px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        ::selection {
+            background: #bae6fd;
+            color: #0369a1;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Header / Navbar */
+        .header {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-soft);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 16px 0;
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .header-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .brand-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: var(--ink-main);
+            font-family: var(--font-heading);
+            font-weight: 700;
+            font-size: 1.25rem;
+        }
+
+        .brand-icon {
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, #0969da, #059669);
+            color: white;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 12px rgba(9, 105, 218, 0.3);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 8px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--ink-muted);
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 8px 14px;
+            border-radius: var(--radius-sm);
+            transition: all 0.2s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--brand-docker);
+            background: var(--brand-docker-light);
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 50px 0 30px 0;
+            text-align: center;
+            position: relative;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--brand-docker-light);
+            color: var(--brand-docker);
+            border: 1px solid #a5d8ff;
+            padding: 6px 16px;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+        }
+
+        .hero h1 {
+            font-family: var(--font-heading);
+            font-size: 2.75rem;
+            font-weight: 800;
+            color: var(--ink-main);
+            line-height: 1.25;
+            margin-bottom: 16px;
+            letter-spacing: -0.02em;
+        }
+
+        .hero h1 span.highlight {
+            background: linear-gradient(120deg, #0969da, #059669);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p.subtitle {
+            font-size: 1.15rem;
+            color: var(--ink-muted);
+            max-width: 780px;
+            margin: 0 auto 24px auto;
+        }
+
+        /* Handwritten Note Component */
+        .handwritten-note {
+            background: var(--hand-note-bg);
+            border: 2px dashed var(--hand-note-border);
+            color: var(--hand-note-text);
+            padding: 16px 20px;
+            border-radius: var(--radius-md);
+            font-family: var(--font-hand);
+            font-size: 1.4rem;
+            line-height: 1.3;
+            box-shadow: 2px 4px 12px rgba(0, 0, 0, 0.04);
+            transform: rotate(-1deg);
+            display: inline-block;
+            margin: 12px 0 24px 0;
+            position: relative;
+        }
+
+        .handwritten-note::before {
+            content: "🔄 The End-to-End Flow:";
+            font-family: var(--font-sketch);
+            font-weight: bold;
+            display: block;
+            font-size: 1.1rem;
+            color: #854d0e;
+            margin-bottom: 4px;
+        }
+
+        /* Section Layout */
+        .section {
+            margin-top: 40px;
+            padding-top: 20px;
+        }
+
+        .section-header {
+            margin-bottom: 24px;
+        }
+
+        .section-tag {
+            font-family: var(--font-sketch);
+            font-size: 1.2rem;
+            color: var(--brand-docker);
+            font-weight: bold;
+        }
+
+        .section-title {
+            font-family: var(--font-heading);
+            font-size: 1.85rem;
+            font-weight: 700;
+            color: var(--ink-main);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-desc {
+            color: var(--ink-muted);
+            font-size: 1rem;
+            margin-top: 6px;
+        }
+
+        /* Lifecycle Pipeline Flow Box */
+        .pipeline-card {
+            background: var(--surface-card);
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            box-shadow: var(--shadow-card);
+        }
+
+        .pipeline-steps {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin: 24px 0;
+            flex-wrap: wrap;
+        }
+
+        .pipe-step {
+            flex: 1;
+            min-width: 140px;
+            background: var(--surface-subtle);
+            border: 2px solid var(--border-soft);
+            border-radius: var(--radius-md);
+            padding: 16px 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .pipe-step:hover {
+            border-color: var(--brand-docker);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .pipe-step.active {
+            background: var(--brand-docker-light);
+            border-color: var(--brand-docker);
+            box-shadow: 0 4px 12px rgba(9, 105, 218, 0.2);
+        }
+
+        .pipe-icon {
+            font-size: 1.5rem;
+            margin-bottom: 6px;
+            color: var(--brand-docker);
+        }
+
+        .pipe-arrow {
+            color: var(--border-strong);
+            font-size: 1.2rem;
+        }
+
+        .pipe-detail-box {
+            background: #0f172a;
+            color: #f8fafc;
+            font-family: var(--font-mono);
+            padding: 20px;
+            border-radius: var(--radius-sm);
+            font-size: 0.88rem;
+            line-height: 1.6;
+        }
+
+        /* Container State Machine Grid */
+        .states-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .state-card {
+            background: var(--surface-card);
+            border: 2px solid var(--border-soft);
+            border-radius: var(--radius-md);
+            padding: 18px;
+            text-align: center;
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .state-card.created { border-color: var(--brand-sky); }
+        .state-card.running { border-color: var(--brand-emerald); background: #ecfdf5; }
+        .state-card.paused { border-color: var(--brand-amber); }
+        .state-card.stopped { border-color: var(--brand-rose); }
+
+        /* Compose Section */
+        .compose-card {
+            background: var(--surface-card);
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            box-shadow: var(--shadow-card);
+        }
+
+        .compose-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .compose-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .yaml-box {
+            background: #0f172a;
+            color: #f8fafc;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            padding: 18px;
+            border-radius: var(--radius-sm);
+            line-height: 1.6;
+        }
+
+        .compose-arch-box {
+            background: var(--surface-subtle);
+            border: 2px dashed var(--border-strong);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .comp-node {
+            background: white;
+            border: 2px solid var(--brand-docker);
+            border-radius: var(--radius-sm);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.88rem;
+            box-shadow: var(--shadow-subtle);
+        }
+
+        /* Footer */
+        .footer-bar {
+            margin-top: 60px;
+            text-align: center;
+            padding: 30px;
+            background: var(--surface-card);
+            border-top: 1px solid var(--border-soft);
+            border-radius: var(--radius-lg);
+        }
+
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: linear-gradient(135deg, #0969da, #059669);
+            color: white;
+            text-decoration: none;
+            font-weight: 700;
+            padding: 12px 28px;
+            border-radius: 999px;
+            box-shadow: 0 4px 14px rgba(9, 105, 218, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        .btn-back:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(9, 105, 218, 0.4);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Header Navigation -->
+    <header class="header">
+        <div class="container header-inner">
+            <a href="../../fsd_crashcourse.html#day3" class="brand-pill">
+                <div class="brand-icon"><i class="fa-solid fa-arrows-spin"></i></div>
+                <span>FSD Course | Day 3 Session 10</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="#pipeline"><i class="fa-solid fa-timeline"></i> Lifecycle Flow</a></li>
+                <li><a href="#states"><i class="fa-solid fa-circle-play"></i> Container States</a></li>
+                <li><a href="#compose-overview"><i class="fa-solid fa-cubes"></i> Docker Compose</a></li>
+                <li><a href="#analogy"><i class="fa-solid fa-lightbulb"></i> Analogies</a></li>
+            </ul>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="container">
+
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-badge">
+                <i class="fa-solid fa-graduation-cap"></i> Fresher-Friendly Interactive Module
+            </div>
+            <h1>
+                Docker Lifecycle <span class="highlight">& Docker Compose</span> Overview
+            </h1>
+            <p class="subtitle">
+                Master the complete journey of a Docker application—from code recipe to cloud registry to live container—and discover how Docker Compose manages multi-container apps in 1 command!
+            </p>
+
+            <div class="handwritten-note">
+                "The Docker Lifecycle is like baking & serving pizza: 📜 Write Recipe (Dockerfile) ➔ 📦 Bake & Pack Box (Image) ➔ 🏪 Upload to Supermarket (Docker Hub) ➔ 🍕 Serve Hot Meal on Table (Container)!"
+            </div>
+        </section>
+
+        <!-- SECTION 1: LIFECYCLE PIPELINE FLOW -->
+        <section id="pipeline" class="section">
+            <div class="section-header">
+                <span class="section-tag">🔄 Step 1 — The End-to-End Pipeline</span>
+                <h2 class="section-title">
+                    <i class="fa-solid fa-timeline" style="color: var(--brand-docker);"></i>
+                    The 5-Stage Docker Lifecycle Pipeline
+                </h2>
+                <p class="section-desc">
+                    Click through each stage below to inspect the corresponding CLI command, action, and output!
+                </p>
+            </div>
+
+            <div class="pipeline-card">
+                <div class="pipeline-steps">
+                    <div class="pipe-step active" onclick="switchPipe(1)">
+                        <div class="pipe-icon"><i class="fa-solid fa-file-code"></i></div>
+                        <strong>1. Dockerfile</strong>
+                    </div>
+                    <div class="pipe-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+
+                    <div class="pipe-step" onclick="switchPipe(2)">
+                        <div class="pipe-icon"><i class="fa-solid fa-box-archive"></i></div>
+                        <strong>2. Image</strong>
+                    </div>
+                    <div class="pipe-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+
+                    <div class="pipe-step" onclick="switchPipe(3)">
+                        <div class="pipe-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+                        <strong>3. Hub / Registry</strong>
+                    </div>
+                    <div class="pipe-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+
+                    <div class="pipe-step" onclick="switchPipe(4)">
+                        <div class="pipe-icon"><i class="fa-solid fa-play"></i></div>
+                        <strong>4. Container</strong>
+                    </div>
+                    <div class="pipe-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+
+                    <div class="pipe-step" onclick="switchPipe(5)">
+                        <div class="pipe-icon"><i class="fa-solid fa-hard-drive"></i></div>
+                        <strong>5. Volume / Data</strong>
+                    </div>
+                </div>
+
+                <div class="pipe-detail-box" id="pipeDetailDisplay">
+                    <span style="color: #38bdf8; font-weight: bold;">Stage 1: Dockerfile (The Recipe)</span><br>
+                    • <strong>Command:</strong> <code>nano Dockerfile</code><br>
+                    • <strong>What Happens:</strong> Developer writes a step-by-step blueprint text file specifying base OS image, dependencies to install, code to copy, and startup commands.<br>
+                    • <strong>Pizza Kitchen Analogy:</strong> Writing down the secret pizza recipe on a card!
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: CONTAINER STATE MACHINE -->
+        <section id="states" class="section">
+            <div class="section-header">
+                <span class="section-tag">⚡ Step 2 — Container Lifecycle States</span>
+                <h2 class="section-title">
+                    <i class="fa-solid fa-rotate" style="color: var(--brand-emerald);"></i>
+                    Container Runtime State Machine
+                </h2>
+                <p class="section-desc">
+                    Understand the 4 key runtime states a container transitions through during its life.
+                </p>
+            </div>
+
+            <div class="states-grid">
+                <div class="state-card created">
+                    <div style="font-size: 1.5rem; color: var(--brand-sky); margin-bottom: 6px;"><i class="fa-solid fa-circle-plus"></i></div>
+                    <h4 style="font-family: var(--font-heading);">1. Created</h4>
+                    <p style="font-size: 0.8rem; color: var(--ink-muted); margin-top: 4px;">
+                        Container created via <code>docker create</code>, but process is not yet started.
+                    </p>
+                </div>
+
+                <div class="state-card running">
+                    <div style="font-size: 1.5rem; color: var(--brand-emerald); margin-bottom: 6px;"><i class="fa-solid fa-circle-play"></i></div>
+                    <h4 style="font-family: var(--font-heading); color: var(--brand-emerald);">2. Running</h4>
+                    <p style="font-size: 0.8rem; color: var(--ink-muted); margin-top: 4px;">
+                        Process active & executing in RAM via <code>docker run</code> or <code>docker start</code>.
+                    </p>
+                </div>
+
+                <div class="state-card paused">
+                    <div style="font-size: 1.5rem; color: var(--brand-amber); margin-bottom: 6px;"><i class="fa-solid fa-circle-pause"></i></div>
+                    <h4 style="font-family: var(--font-heading);">3. Paused</h4>
+                    <p style="font-size: 0.8rem; color: var(--ink-muted); margin-top: 4px;">
+                        Container processes frozen in place via <code>docker pause</code> (Zero CPU usage).
+                    </p>
+                </div>
+
+                <div class="state-card stopped">
+                    <div style="font-size: 1.5rem; color: var(--brand-rose); margin-bottom: 6px;"><i class="fa-solid fa-circle-stop"></i></div>
+                    <h4 style="font-family: var(--font-heading);">4. Stopped / Exited</h4>
+                    <p style="font-size: 0.8rem; color: var(--ink-muted); margin-top: 4px;">
+                        Process terminated via <code>docker stop</code>. Can be restarted or destroyed (`docker rm`).
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: DOCKER COMPOSE OVERVIEW -->
+        <section id="compose-overview" class="section">
+            <div class="section-header">
+                <span class="section-tag">🐙 Step 3 — Multi-Container Orchestration</span>
+                <h2 class="section-title">
+                    <i class="fa-solid fa-cubes" style="color: var(--brand-violet);"></i>
+                    Docker Compose Brief Overview
+                </h2>
+                <p class="section-desc">
+                    Why run 5 messy terminal commands when you can launch your ENTIRE full-stack app with 1 command?
+                </p>
+            </div>
+
+            <div class="compose-card">
+                <div style="background: var(--brand-indigo-light); border: 1px solid #c7d2fe; padding: 16px 20px; border-radius: var(--radius-md); color: #3730a3; margin-bottom: 20px;">
+                    💡 <strong>What Problem does Docker Compose Solve?</strong><br>
+                    Running 1 single container with <code>docker run</code> is easy. But a real Full-Stack Food Ordering app requires 3 connected containers: <strong>React Frontend + Spring Boot Backend + PostgreSQL Database</strong>. Docker Compose lets you define all 3 containers in a single <code>docker-compose.yml</code> file and launch them together using <code>docker compose up -d</code>!
+                </div>
+
+                <div class="compose-grid">
+                    <!-- YAML Box -->
+                    <div>
+                        <h4 style="font-family: var(--font-heading); color: var(--brand-docker); margin-bottom: 8px;">
+                            📄 docker-compose.yml File Structure
+                        </h4>
+                        <div class="yaml-box">
+                            <span style="color: #60a5fa;">version:</span> <span style="color: #34d399;">'3.8'</span><br>
+                            <span style="color: #60a5fa;">services:</span><br>
+                            &nbsp;&nbsp;<span style="color: #fbbf24;">backend:</span><br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;build: ./backend<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;ports: ["8080:8080"]<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;environment:<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- DB_HOST=postgres<br><br>
+                            &nbsp;&nbsp;<span style="color: #fbbf24;">postgres:</span><br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;image: postgres:15<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;volumes: [db-data:/var/lib/postgresql/data]<br><br>
+                            <span style="color: #60a5fa;">volumes:</span><br>
+                            &nbsp;&nbsp;<span style="color: #fbbf24;">db-data:</span>
+                        </div>
+                    </div>
+
+                    <!-- Arch Box -->
+                    <div>
+                        <h4 style="font-family: var(--font-heading); color: var(--brand-emerald); margin-bottom: 8px;">
+                            🕸️ Resulting Multi-Container Network
+                        </h4>
+                        <div class="compose-arch-box">
+                            <div class="comp-node">
+                                <div>
+                                    <strong>React Frontend Container</strong><br>
+                                    <span style="font-size: 0.75rem; color: var(--ink-subtle);">Port 3000 (Host) ➔ 80 (Nginx)</span>
+                                </div>
+                                <span style="background: var(--brand-sky-light); color: var(--brand-sky); font-weight: bold; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem;">Web UI</span>
+                            </div>
+
+                            <div class="comp-node">
+                                <div>
+                                    <strong>Spring Boot Backend Container</strong><br>
+                                    <span style="font-size: 0.75rem; color: var(--ink-subtle);">Port 8080 ➔ 8080</span>
+                                </div>
+                                <span style="background: var(--brand-indigo-light); color: var(--brand-indigo); font-weight: bold; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem;">REST API</span>
+                            </div>
+
+                            <div class="comp-node">
+                                <div>
+                                    <strong>PostgreSQL DB Container</strong><br>
+                                    <span style="font-size: 0.75rem; color: var(--ink-subtle);">Port 5432 ➔ Linked to Persistent Volume</span>
+                                </div>
+                                <span style="background: var(--brand-emerald-light); color: var(--brand-emerald); font-weight: bold; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem;">Database</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: REAL-WORLD FRESHER ANALOGY -->
+        <section id="analogy" class="section">
+            <div class="section-header">
+                <span class="section-tag">🎼 Step 4 — Master Analogy for Docker Compose</span>
+                <h2 class="section-title">
+                    <i class="fa-solid fa-music" style="color: var(--brand-amber);"></i>
+                    The Orchestra Conductor Analogy
+                </h2>
+            </div>
+
+            <div style="background: var(--hand-note-bg); border: 2px dashed var(--hand-note-border); padding: 22px; border-radius: var(--radius-lg); box-shadow: 2px 4px 12px rgba(0, 0, 0, 0.04);">
+                <h4 style="font-family: var(--font-heading); font-size: 1.2rem; color: #713f12; margin-bottom: 8px;">
+                    🎼 Docker Compose = The Orchestra Conductor / Band Leader
+                </h4>
+                <p style="font-size: 0.95rem; color: #854d0e; line-height: 1.6;">
+                    • <strong>Individual Containers</strong> are like individual musicians: 🎹 Pianist (Backend API), 🥁 Drummer (Database), and 🎻 Violinist (Frontend UI). If everyone plays randomly without coordination, it's total chaos!<br>
+                    • <strong>Docker Compose</strong> is the <strong>Conductor</strong> holding the sheet music (<code>docker-compose.yml</code>). With 1 wave of the baton (<code>docker compose up</code>), the conductor starts all musicians together in perfect tempo & harmony!
+                </p>
+            </div>
+        </section>
+
+        <!-- Footer / Return Link -->
+        <footer class="footer-bar">
+            <h3 style="font-family: var(--font-heading); font-size: 1.3rem; margin-bottom: 8px;">
+                Ready to Return to Day 3?
+            </h3>
+            <p style="color: var(--ink-muted); margin-bottom: 20px;">
+                You've mastered Docker Lifecycle & Docker Compose!
+            </p>
+            <a href="../../fsd_crashcourse.html#day3" class="btn-back">
+                <i class="fa-solid fa-arrow-left"></i> Return to Day 3 Session 10 Slot in Crash Course
+            </a>
+        </footer>
+
+    </main>
+
+    <!-- JavaScript Logic -->
+    <script>
+        const pipeData = {
+            1: {
+                title: "Stage 1: Dockerfile (The Recipe)",
+                cmd: "nano Dockerfile",
+                desc: "Developer writes a step-by-step blueprint text file specifying base OS image, dependencies to install, code to copy, and startup commands.",
+                analogy: "📜 Pizza Kitchen Analogy: Writing down the secret pizza recipe on a paper card!"
+            },
+            2: {
+                title: "Stage 2: Docker Image (The Frozen Box)",
+                cmd: "docker build -t my-app:v1 .",
+                desc: "Docker Engine executes Dockerfile steps and packages code + dependencies into a frozen, read-only immutable Image stored on host disk.",
+                analogy: "📦 Pizza Kitchen Analogy: Baking the pre-made frozen pizza box and storing it in freezer!"
+            },
+            3: {
+                title: "Stage 3: Docker Hub / Registry (The App Store)",
+                cmd: "docker push my-username/my-app:v1",
+                desc: "Image is uploaded to cloud registry (Docker Hub / AWS ECR) so teammates or automated CI/CD pipelines can pull and deploy it anywhere.",
+                analogy: "🏪 Pizza Kitchen Analogy: Delivering premade boxes to the supermarket shelf!"
+            },
+            4: {
+                title: "Stage 4: Docker Container (The Live Hot Meal)",
+                cmd: "docker run -d -p 8080:80 my-username/my-app:v1",
+                desc: "Docker pulls the image from Hub and starts a live, running container process in RAM. Users can now access the application!",
+                analogy: "🍕 Pizza Kitchen Analogy: Baking the frozen pizza in the oven and serving hot slices on customer's table!"
+            },
+            5: {
+                title: "Stage 5: Docker Volume (Persistent Data)",
+                cmd: "docker run -v db-data:/var/lib/postgresql/data postgres",
+                desc: "Links container storage to host disk directory so database records remain 100% safe even when container is stopped or removed.",
+                analogy: "🍱 Pizza Kitchen Analogy: Storing leftover pizza slices & extra toppings in a reusable takeaway box!"
+            }
+        };
+
+        function switchPipe(stepNum) {
+            document.querySelectorAll('.pipeline-steps .pipe-step').forEach((step, idx) => {
+                if (idx + 1 === stepNum) step.classList.add('active');
+                else step.classList.remove('active');
+            });
+
+            const data = pipeData[stepNum];
+            const box = document.getElementById('pipeDetailDisplay');
+            box.innerHTML = `
+                <span style="color: #38bdf8; font-weight: bold;">${data.title}</span><br>
+                • <strong>Command:</strong> <code>${data.cmd}</code><br>
+                • <strong>What Happens:</strong> ${data.desc}<br>
+                • <strong>Analogy:</strong> ${data.analogy}
+            `;
+        }
+    </script>
+</body>
+
+</html>

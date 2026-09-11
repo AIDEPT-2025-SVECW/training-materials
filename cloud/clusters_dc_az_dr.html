@@ -1,0 +1,1641 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloud Clusters vs Data Centers vs AZs & DR Strategies | Fresher's Guide</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Outfit:wght@500;600;700;800&family=Patrick+Hand&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-page: #f8fafc;
+            --surface: #ffffff;
+            --surface-subtle: #f1f5f9;
+            --surface-card: #ffffff;
+            
+            --border-soft: #e2e8f0;
+            --border-strong: #cbd5e1;
+            
+            --ink-main: #0f172a;
+            --ink-muted: #334155;
+            --ink-subtle: #64748b;
+
+            --brand-sky: #0284c7;
+            --brand-sky-light: #e0f2fe;
+            --brand-indigo: #4338ca;
+            --brand-indigo-light: #e0e7ff;
+            --brand-emerald: #059669;
+            --brand-emerald-light: #d1fae5;
+            --brand-amber: #d97706;
+            --brand-amber-light: #fef3c7;
+            --brand-rose: #e11d48;
+            --brand-rose-light: #ffe4e6;
+            --brand-violet: #7c3aed;
+            --brand-violet-light: #ede9fe;
+
+            --hand-note-bg: #fef9c3;
+            --hand-note-border: #fde047;
+            --hand-note-text: #713f12;
+
+            --font-sans: 'Plus Jakarta Sans', sans-serif;
+            --font-heading: 'Outfit', sans-serif;
+            --font-hand: 'Caveat', cursive;
+            --font-sketch: 'Patrick Hand', cursive;
+            --font-mono: 'IBM Plex Mono', monospace;
+
+            --radius-sm: 8px;
+            --radius-md: 14px;
+            --radius-lg: 20px;
+            --shadow-subtle: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
+            --shadow-card: 0 10px 30px -4px rgba(15, 23, 42, 0.08);
+            --shadow-float: 0 20px 40px -10px rgba(15, 23, 42, 0.12);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-page);
+            background-image: 
+                radial-gradient(#cbd5e1 1px, transparent 1px),
+                radial-gradient(at 10% 10%, rgba(224, 242, 254, 0.4) 0px, transparent 50%),
+                radial-gradient(at 90% 90%, rgba(237, 233, 254, 0.4) 0px, transparent 50%);
+            background-size: 24px 24px, 100% 100%, 100% 100%;
+            background-attachment: fixed;
+            color: var(--ink-main);
+            font-family: var(--font-sans);
+            line-height: 1.6;
+            padding-bottom: 90px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        ::selection {
+            background: #bae6fd;
+            color: #0369a1;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Header / Navbar */
+        .header {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-soft);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 16px 0;
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .header-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .brand-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: var(--ink-main);
+            font-family: var(--font-heading);
+            font-weight: 700;
+            font-size: 1.25rem;
+        }
+
+        .brand-icon {
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, var(--brand-sky), var(--brand-indigo));
+            color: white;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 8px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--ink-muted);
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 8px 14px;
+            border-radius: var(--radius-sm);
+            transition: all 0.2s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--brand-sky);
+            background: var(--brand-sky-light);
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 50px 0 30px 0;
+            text-align: center;
+            position: relative;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--brand-sky-light);
+            color: var(--brand-sky);
+            border: 1px solid #93c5fd;
+            padding: 6px 16px;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+        }
+
+        .hero h1 {
+            font-family: var(--font-heading);
+            font-size: 2.75rem;
+            font-weight: 800;
+            color: var(--ink-main);
+            line-height: 1.25;
+            margin-bottom: 16px;
+            letter-spacing: -0.02em;
+        }
+
+        .hero h1 span.highlight {
+            background: linear-gradient(120deg, #0284c7, #4f46e5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p.subtitle {
+            font-size: 1.15rem;
+            color: var(--ink-muted);
+            max-width: 780px;
+            margin: 0 auto 24px auto;
+        }
+
+        /* Handwritten Note Component */
+        .handwritten-note {
+            background: var(--hand-note-bg);
+            border: 2px dashed var(--hand-note-border);
+            color: var(--hand-note-text);
+            padding: 16px 20px;
+            border-radius: var(--radius-md);
+            font-family: var(--font-hand);
+            font-size: 1.4rem;
+            line-height: 1.3;
+            box-shadow: 2px 4px 12px rgba(0, 0, 0, 0.04);
+            transform: rotate(-1deg);
+            display: inline-block;
+            margin: 12px 0 24px 0;
+            position: relative;
+        }
+
+        .handwritten-note::before {
+            content: "📌 Fresher Tip:";
+            font-family: var(--font-sketch);
+            font-weight: bold;
+            display: block;
+            font-size: 1.1rem;
+            color: #854d0e;
+            margin-bottom: 4px;
+        }
+
+        /* Section Layout */
+        .section {
+            margin-top: 40px;
+            padding-top: 20px;
+        }
+
+        .section-header {
+            margin-bottom: 24px;
+        }
+
+        .section-tag {
+            font-family: var(--font-sketch);
+            font-size: 1.2rem;
+            color: var(--brand-indigo);
+            font-weight: bold;
+        }
+
+        .section-title {
+            font-family: var(--font-heading);
+            font-size: 1.85rem;
+            font-weight: 700;
+            color: var(--ink-main);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-desc {
+            color: var(--ink-muted);
+            font-size: 1rem;
+            margin-top: 6px;
+        }
+
+        /* Interactive Nested Hierarchy Explorer */
+        .hierarchy-card {
+            background: var(--surface-card);
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            box-shadow: var(--shadow-card);
+        }
+
+        .hierarchy-controls {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+            justify-content: center;
+        }
+
+        .btn-tab {
+            background: var(--surface-subtle);
+            border: 1px solid var(--border-soft);
+            color: var(--ink-muted);
+            font-family: var(--font-sans);
+            font-weight: 600;
+            font-size: 0.95rem;
+            padding: 10px 20px;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-tab:hover {
+            border-color: var(--brand-sky);
+            color: var(--brand-sky);
+        }
+
+        .btn-tab.active {
+            background: var(--brand-sky);
+            color: white;
+            border-color: var(--brand-sky);
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+        }
+
+        /* Visual Nested Box Representation */
+        .nested-visual {
+            background: #f1f5f9;
+            border: 2px dashed #cbd5e1;
+            border-radius: var(--radius-md);
+            padding: 24px;
+            min-height: 380px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .visual-region {
+            border: 2.5px dashed var(--brand-sky);
+            background: rgba(220, 242, 254, 0.4);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            margin-bottom: 16px;
+            position: relative;
+        }
+
+        .label-region {
+            position: absolute;
+            top: -14px;
+            left: 20px;
+            background: var(--brand-sky);
+            color: white;
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 2px 12px;
+            border-radius: 999px;
+            font-family: var(--font-mono);
+        }
+
+        .az-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin-top: 12px;
+        }
+
+        .visual-az {
+            border: 2px dashed var(--brand-indigo);
+            background: #ffffff;
+            border-radius: var(--radius-sm);
+            padding: 16px;
+            position: relative;
+            box-shadow: var(--shadow-subtle);
+            transition: all 0.25s ease;
+            cursor: pointer;
+        }
+
+        .visual-az:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-card);
+            border-color: var(--brand-indigo);
+        }
+
+        .label-az {
+            display: inline-block;
+            background: var(--brand-indigo-light);
+            color: var(--brand-indigo);
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 2px 10px;
+            border-radius: 6px;
+            font-family: var(--font-mono);
+            margin-bottom: 10px;
+        }
+
+        .dc-box {
+            border: 1px solid var(--border-strong);
+            background: var(--surface-subtle);
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 8px;
+        }
+
+        .dc-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--ink-main);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+
+            margin-bottom: 6px;
+        }
+
+        .cluster-rack {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .server-node {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-family: var(--font-mono);
+            color: var(--brand-emerald);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .server-node.active-node {
+            background: #ecfdf5;
+            border-color: #a7f3d0;
+        }
+
+        /* Detail Callout Box */
+        .info-detail-box {
+            margin-top: 20px;
+            background: #ffffff;
+            border-left: 4px solid var(--brand-sky);
+            border-radius: 0 var(--radius-md) var(--radius-md) 0;
+            padding: 16px 20px;
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .info-detail-box h4 {
+            font-family: var(--font-heading);
+            font-size: 1.15rem;
+            color: var(--brand-sky);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-detail-box p {
+            font-size: 0.95rem;
+            color: var(--ink-muted);
+        }
+
+        /* Comparison Cards Grid */
+        .comp-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .comp-card {
+            background: var(--surface-card);
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            box-shadow: var(--shadow-card);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .comp-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-float);
+        }
+
+        .comp-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+        }
+
+        .comp-card.card-dc::before { background: var(--brand-amber); }
+        .comp-card.card-az::before { background: var(--brand-sky); }
+        .comp-card.card-cluster::before { background: var(--brand-emerald); }
+        .comp-card.card-region::before { background: var(--brand-violet); }
+
+        .comp-icon-badge {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            margin-bottom: 16px;
+        }
+
+        .card-dc .comp-icon-badge { background: var(--brand-amber-light); color: var(--brand-amber); }
+        .card-az .comp-icon-badge { background: var(--brand-sky-light); color: var(--brand-sky); }
+        .card-cluster .comp-icon-badge { background: var(--brand-emerald-light); color: var(--brand-emerald); }
+        .card-region .comp-icon-badge { background: var(--brand-violet-light); color: var(--brand-violet); }
+
+        .comp-card h3 {
+            font-family: var(--font-heading);
+            font-size: 1.25rem;
+            margin-bottom: 8px;
+            color: var(--ink-main);
+        }
+
+        .analogy-chip {
+            display: inline-block;
+            font-family: var(--font-sketch);
+            font-size: 1.1rem;
+            color: #854d0e;
+            background: var(--hand-note-bg);
+            padding: 2px 10px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            border: 1px dashed var(--hand-note-border);
+        }
+
+        .comp-card ul {
+            list-style: none;
+            font-size: 0.9rem;
+            color: var(--ink-muted);
+        }
+
+        .comp-card ul li {
+            margin-bottom: 8px;
+            position: relative;
+            padding-left: 20px;
+        }
+
+        .comp-card ul li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--brand-emerald);
+            font-weight: bold;
+        }
+
+        /* Matrix Table */
+        .matrix-container {
+            background: var(--surface-card);
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            box-shadow: var(--shadow-card);
+            margin-top: 24px;
+            overflow-x: auto;
+        }
+
+        table.matrix-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.92rem;
+        }
+
+        table.matrix-table th {
+            background: var(--surface-subtle);
+            color: var(--ink-main);
+            font-family: var(--font-heading);
+            font-weight: 700;
+            padding: 14px 18px;
+            border-bottom: 2px solid var(--border-soft);
+        }
+
+        table.matrix-table td {
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--border-soft);
+            color: var(--ink-muted);
+            vertical-align: top;
+        }
+
+        table.matrix-table tr:hover td {
+            background: #f8fafc;
+        }
+
+        /* RPO vs RTO Explanation */
+        .rpo-rto-box {
+            background: linear-gradient(135deg, #ffffff, #f8fafc);
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            box-shadow: var(--shadow-card);
+        }
+
+        .timeline-visual {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #ffffff;
+            border: 2px solid var(--border-soft);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            margin: 24px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .timeline-bar {
+            position: absolute;
+            top: 50%;
+            left: 10%;
+            right: 10%;
+            height: 6px;
+            background: var(--border-soft);
+            transform: translateY(-50%);
+            z-index: 1;
+        }
+
+        .timeline-point {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            background: white;
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            box-shadow: var(--shadow-subtle);
+            border: 1px solid var(--border-soft);
+        }
+
+        .point-disaster {
+            border-color: var(--brand-rose);
+            background: var(--brand-rose-light);
+        }
+
+        .point-disaster .point-title {
+            color: var(--brand-rose);
+            font-weight: 800;
+        }
+
+        .rpo-span {
+            position: absolute;
+            top: 15px;
+            left: 20%;
+            width: 30%;
+            height: 24px;
+            background: rgba(225, 29, 72, 0.15);
+            border: 1px dashed var(--brand-rose);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--brand-rose);
+            z-index: 3;
+        }
+
+        .rto-span {
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            width: 30%;
+            height: 24px;
+            background: rgba(2, 132, 199, 0.15);
+            border: 1px dashed var(--brand-sky);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--brand-sky);
+            z-index: 3;
+        }
+
+        /* DR Strategies Cards Grid */
+        .dr-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .dr-card {
+            background: var(--surface-card);
+            border: 2px solid var(--border-soft);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .dr-card:hover {
+            border-color: var(--brand-sky);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-card);
+        }
+
+        .dr-card.active-dr {
+            border-color: var(--brand-sky);
+            background: var(--brand-sky-light);
+            box-shadow: var(--shadow-card);
+        }
+
+        .dr-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .dr-num {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            font-weight: 700;
+            background: var(--surface-subtle);
+            padding: 4px 10px;
+            border-radius: 999px;
+            color: var(--ink-subtle);
+        }
+
+        .dr-card.active-dr .dr-num {
+            background: var(--brand-sky);
+            color: white;
+        }
+
+        .dr-card h4 {
+            font-family: var(--font-heading);
+            font-size: 1.2rem;
+            color: var(--ink-main);
+            margin-bottom: 8px;
+        }
+
+        .dr-metrics {
+            display: flex;
+            gap: 10px;
+            margin-top: 14px;
+            font-size: 0.78rem;
+            font-family: var(--font-mono);
+        }
+
+        .metric-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+        }
+
+        /* Simulator Interactive Box */
+        .simulator-box {
+            background: var(--surface-card);
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            box-shadow: var(--shadow-card);
+            margin-top: 24px;
+        }
+
+        .sim-stage {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        @media (max-width: 768px) {
+            .sim-stage {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .sim-region {
+            border: 2px dashed var(--border-strong);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            background: var(--surface-subtle);
+            text-align: center;
+            position: relative;
+        }
+
+        .sim-region.primary {
+            border-color: var(--brand-sky);
+            background: rgba(224, 242, 254, 0.3);
+        }
+
+        .sim-region.secondary {
+            border-color: var(--brand-indigo);
+            background: rgba(224, 231, 255, 0.3);
+        }
+
+        .sim-status {
+            font-size: 0.85rem;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 999px;
+            display: inline-block;
+            margin-bottom: 12px;
+        }
+
+        .status-healthy { background: var(--brand-emerald-light); color: var(--brand-emerald); }
+        .status-down { background: var(--brand-rose-light); color: var(--brand-rose); }
+        .status-standby { background: var(--brand-amber-light); color: var(--brand-amber); }
+
+        .sim-controls {
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .btn-strike {
+            background: var(--brand-rose);
+            color: white;
+            border: none;
+            font-family: var(--font-sans);
+            font-weight: 700;
+            padding: 12px 24px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(225, 29, 72, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        .btn-strike:hover {
+            background: #be123c;
+            transform: translateY(-2px);
+        }
+
+        .btn-reset {
+            background: var(--surface-subtle);
+            color: var(--ink-muted);
+            border: 1px solid var(--border-soft);
+            font-family: var(--font-sans);
+            font-weight: 600;
+            padding: 12px 24px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+        }
+
+        .btn-reset:hover {
+            background: #e2e8f0;
+        }
+
+        /* Log Terminal Box */
+        .log-terminal {
+            background: #0f172a;
+            color: #38bdf8;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            padding: 16px;
+            border-radius: var(--radius-sm);
+            height: 140px;
+            overflow-y: auto;
+            margin-top: 16px;
+            line-height: 1.5;
+        }
+
+        .log-line {
+            margin-bottom: 4px;
+        }
+
+        .log-line.err { color: #f43f5e; }
+        .log-line.ok { color: #34d399; }
+        .log-line.warn { color: #fbbf24; }
+
+        /* Real World Case Study */
+        .case-study-card {
+            background: linear-gradient(135deg, #ffffff, #f1f5f9);
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            box-shadow: var(--shadow-card);
+            position: relative;
+        }
+
+        .food-app-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #fff7ed;
+            color: #c2410c;
+            border: 1px solid #ffedd5;
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        /* Quiz / Flashcards Section */
+        .quiz-card {
+            background: var(--surface-card);
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            box-shadow: var(--shadow-card);
+        }
+
+        .quiz-option {
+            background: var(--surface-subtle);
+            border: 1px solid var(--border-soft);
+            padding: 14px 18px;
+            border-radius: var(--radius-sm);
+            margin-bottom: 10px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .quiz-option:hover {
+            border-color: var(--brand-sky);
+            background: var(--brand-sky-light);
+        }
+
+        .quiz-option.correct {
+            background: var(--brand-emerald-light);
+            border-color: var(--brand-emerald);
+            color: #065f46;
+            font-weight: 700;
+        }
+
+        .quiz-option.wrong {
+            background: var(--brand-rose-light);
+            border-color: var(--brand-rose);
+            color: #9f1239;
+        }
+
+        .quiz-feedback {
+            margin-top: 14px;
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
+            font-size: 0.95rem;
+            display: none;
+        }
+
+        /* Back to Course Button Footer */
+        .footer-bar {
+            margin-top: 60px;
+            text-align: center;
+            padding: 30px;
+            background: var(--surface-card);
+            border-top: 1px solid var(--border-soft);
+            border-radius: var(--radius-lg);
+        }
+
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: linear-gradient(135deg, var(--brand-blue, #2563eb), var(--brand-indigo));
+            color: white;
+            text-decoration: none;
+            font-weight: 700;
+            padding: 12px 28px;
+            border-radius: 999px;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        .btn-back:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Header Navigation -->
+    <header class="header">
+        <div class="container header-inner">
+            <a href="../fsd_crashcourse.html#day3" class="brand-pill">
+                <div class="brand-icon"><i class="fa-solid fa-cloud"></i></div>
+                <span>FSD Course | Day 3 Session 9</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="#hierarchy"><i class="fa-solid fa-sitemap"></i> Hierarchy</a></li>
+                <li><a href="#matrix"><i class="fa-solid fa-table-cells"></i> Matrix</a></li>
+                <li><a href="#rpo-rto"><i class="fa-solid fa-stopwatch"></i> RPO & RTO</a></li>
+                <li><a href="#dr-simulator"><i class="fa-solid fa-bolt"></i> DR Simulator</a></li>
+                <li><a href="#case-study"><i class="fa-solid fa-utensils"></i> Case Study</a></li>
+            </ul>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="container">
+
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-badge">
+                <i class="fa-solid fa-graduation-cap"></i> Fresher-Friendly Interactive Module
+            </div>
+            <h1>
+                Cloud Clusters <span class="highlight">vs</span> Data Centers <span class="highlight">vs</span> AZs<br>& Disaster Recovery Strategies
+            </h1>
+            <p class="subtitle">
+                Master how modern internet applications (like Swiggy, Netflix, or Instagram) stay online 24/7—even when fiber optic cables get cut or entire cities lose power!
+            </p>
+
+            <div class="handwritten-note">
+                "Think of Cloud as an ultra-reliable pizza delivery company: If one oven fails, another oven takes over. If one building burns down, another kitchen in another part of town bakes your pizza!"
+            </div>
+        </section>
+
+        <!-- SECTION 1: THE HIERARCHY -->
+        <section id="hierarchy" class="section">
+            <div class="section-header">
+                <span class="section-tag">✏️ Step 1 — Understanding the Infrastructure Hierarchy</span>
+                <h2 class="section-title">
+                    <i class="fa-solid fa-layer-group" style="color: var(--brand-sky);"></i>
+                    Region ➔ Availability Zone (AZ) ➔ Data Center (DC) ➔ Cluster
+                </h2>
+                <p class="section-desc">
+                    Click the buttons below to zoom into each level of cloud infrastructure architecture!
+                </p>
+            </div>
+
+            <div class="hierarchy-card">
+                <div class="hierarchy-controls">
+                    <button class="btn-tab active" onclick="switchHierarchyView('all')">
+                        <i class="fa-solid fa-globe"></i> 1. Full View
+                    </button>
+                    <button class="btn-tab" onclick="switchHierarchyView('region')">
+                        <i class="fa-solid fa-map-location-dot"></i> 2. Region View
+                    </button>
+                    <button class="btn-tab" onclick="switchHierarchyView('az')">
+                        <i class="fa-solid fa-building-user"></i> 3. Availability Zone (AZ)
+                    </button>
+                    <button class="btn-tab" onclick="switchHierarchyView('cluster')">
+                        <i class="fa-solid fa-cubes"></i> 4. Cloud Cluster
+                    </button>
+                </div>
+
+                <!-- Visual Nested Container -->
+                <div class="nested-visual" id="hierarchyVisual">
+                    <div class="visual-region">
+                        <span class="label-region"><i class="fa-solid fa-earth-asia"></i> AWS Region: ap-south-1 (Mumbai)</span>
+                        <p style="font-size: 0.85rem; color: var(--ink-muted); margin-top: 6px; margin-bottom: 12px;">
+                            🌍 A geographic location containing 3 isolated Availability Zones connected by high-speed fiber.
+                        </p>
+
+                        <div class="az-grid">
+                            <!-- AZ 1 -->
+                            <div class="visual-az" onclick="selectAZ('AZ-1')">
+                                <span class="label-az">AZ 1 (ap-south-1a)</span>
+                                <div class="dc-box">
+                                    <div class="dc-title"><i class="fa-solid fa-building"></i> Data Center 1A</div>
+                                    <div class="cluster-rack">
+                                        <span class="server-node active-node"><i class="fa-solid fa-server"></i> Web Node 1</span>
+                                        <span class="server-node active-node"><i class="fa-solid fa-database"></i> DB Master</span>
+                                    </div>
+                                </div>
+                                <div class="dc-box">
+                                    <div class="dc-title"><i class="fa-solid fa-building"></i> Data Center 1B</div>
+                                    <div class="cluster-rack">
+                                        <span class="server-node active-node"><i class="fa-solid fa-server"></i> Web Node 2</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- AZ 2 -->
+                            <div class="visual-az" onclick="selectAZ('AZ-2')">
+                                <span class="label-az">AZ 2 (ap-south-1b)</span>
+                                <div class="dc-box">
+                                    <div class="dc-title"><i class="fa-solid fa-building"></i> Data Center 2A</div>
+                                    <div class="cluster-rack">
+                                        <span class="server-node active-node"><i class="fa-solid fa-server"></i> Web Node 3</span>
+                                        <span class="server-node active-node"><i class="fa-solid fa-database"></i> DB Replica</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- AZ 3 -->
+                            <div class="visual-az" onclick="selectAZ('AZ-3')">
+                                <span class="label-az">AZ 3 (ap-south-1c)</span>
+                                <div class="dc-box">
+                                    <div class="dc-title"><i class="fa-solid fa-building"></i> Data Center 3A</div>
+                                    <div class="cluster-rack">
+                                        <span class="server-node active-node"><i class="fa-solid fa-server"></i> Web Node 4</span>
+                                        <span class="server-node active-node"><i class="fa-solid fa-database"></i> DB Replica</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Info detail output -->
+                <div class="info-detail-box" id="hierarchyInfo">
+                    <h4><i class="fa-solid fa-circle-info"></i> Interactive Overview</h4>
+                    <p>
+                        A <strong>Region</strong> houses multiple <strong>Availability Zones (AZs)</strong> separated by miles (so a flood or blackout in AZ-1 won't affect AZ-2). Each AZ has one or more physical <strong>Data Centers</strong>. A <strong>Cluster</strong> is a software group of server nodes running together across these AZs!
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: COMPARISON MATRIX -->
+        <section id="matrix" class="section">
+            <div class="section-header">
+                <span class="section-tag">📊 Step 2 — Quick Side-by-Side Comparison</span>
+                <h2 class="section-title">
+                    <i class="fa-solid fa-scale-balanced" style="color: var(--brand-indigo);"></i>
+                    Key Differences Made Easy
+                </h2>
+                <p class="section-desc">
+                    Clear breakdown with real-life analogies to lock in the concepts for interview questions!
+                </p>
+            </div>
+
+            <div class="comp-grid">
+                <!-- Data Center Card -->
+                <div class="comp-card card-dc">
+                    <div class="comp-icon-badge"><i class="fa-solid fa-building"></i></div>
+                    <h3>Data Center (DC)</h3>
+                    <div class="analogy-chip">🏢 Analogy: 1 Physical Office Building</div>
+                    <ul>
+                        <li>Physical building filled with server racks, cooling, and power generators.</li>
+                        <li>Single point of physical hardware failure if power cuts or water leaks.</li>
+                        <li>Part of an Availability Zone.</li>
+                    </ul>
+                </div>
+
+                <!-- Availability Zone Card -->
+                <div class="comp-card card-az">
+                    <div class="comp-icon-badge"><i class="fa-solid fa-building-user"></i></div>
+                    <h3>Availability Zone (AZ)</h3>
+                    <div class="analogy-chip">🏘️ Analogy: 1 Separate Neighborhood</div>
+                    <ul>
+                        <li>One or more isolated Data Centers located ~10–100 km apart.</li>
+                        <li>Has independent electricity grid, flood protection, & cooling.</li>
+                        <li>Low latency (&lt;2ms) fiber connection between AZs in the same Region.</li>
+                    </ul>
+                </div>
+
+                <!-- Cluster Card -->
+                <div class="comp-card card-cluster">
+                    <div class="comp-icon-badge"><i class="fa-solid fa-cubes"></i></div>
+                    <h3>Cloud Cluster</h3>
+                    <div class="analogy-chip">🤝 Analogy: 1 Synchronized Team of Chefs</div>
+                    <ul>
+                        <li>Logical collection of servers/containers (e.g. Kubernetes, Redis Cluster).</li>
+                        <li>Spans across multiple AZs to deliver High Availability (HA).</li>
+                        <li>Acts as a single powerful virtual supercomputer to users.</li>
+                    </ul>
+                </div>
+
+                <!-- Region Card -->
+                <div class="comp-card card-region">
+                    <div class="comp-icon-badge"><i class="fa-solid fa-globe"></i></div>
+                    <h3>Cloud Region</h3>
+                    <div class="analogy-chip">🌐 Analogy: 1 Whole City (e.g., Mumbai, Tokyo)</div>
+                    <ul>
+                        <li>Geographical area containing 3+ isolated Availability Zones.</li>
+                        <li>Ensures compliance with local data privacy laws (e.g. GDPR in EU).</li>
+                        <li>Used as target for cross-region Disaster Recovery.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Detailed Comparison Table -->
+            <div class="matrix-container">
+                <h3 style="font-family: var(--font-heading); font-size: 1.2rem; margin-bottom: 16px;">
+                    📋 Quick Summary Table for Freshers
+                </h3>
+                <table class="matrix-table">
+                    <thead>
+                        <tr>
+                            <th>Concept</th>
+                            <th>What is it?</th>
+                            <th>Distance / Scope</th>
+                            <th>Primary Purpose</th>
+                            <th>If it Fails?</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Data Center</strong></td>
+                            <td>Physical building with servers & power</td>
+                            <td>Single building location</td>
+                            <td>Hosts physical hardware</td>
+                            <td>Traffic shifts to another DC in same AZ</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Availability Zone</strong></td>
+                            <td>1+ Isolated Data Centers</td>
+                            <td>10 – 100 km apart in same city</td>
+                            <td>Provides High Availability (HA) against local disasters</td>
+                            <td>Traffic shifts instantly to another AZ</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Cloud Cluster</strong></td>
+                            <td>Software group of servers working together</td>
+                            <td>Spans multiple servers / AZs</td>
+                            <td>Distributes workload & scales app seamlessly</td>
+                            <td>Healthy nodes automatically pick up failed tasks</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Cloud Region</strong></td>
+                            <td>Entire geographical territory (3+ AZs)</td>
+                            <td>Hundreds/Thousands of km apart</td>
+                            <td>Low latency to local users & Disaster Recovery</td>
+                            <td>Disaster Recovery (DR) switches traffic to secondary Region</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- SECTION 3: RPO vs RTO -->
+        <section id="rpo-rto" class="section">
+            <div class="section-header">
+                <span class="section-tag">⏱️ Step 3 — Disaster Recovery Metrics</span>
+                <h2 class="section-title">
+                    <i class="fa-solid fa-clock-rotate-left" style="color: var(--brand-rose);"></i>
+                    RPO vs RTO Explained Simply
+                </h2>
+                <p class="section-desc">
+                    Every cloud architect measures Disaster Recovery using these two golden metrics!
+                </p>
+            </div>
+
+            <div class="rpo-rto-box">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
+                    <!-- RPO Box -->
+                    <div style="background: var(--brand-rose-light); border: 2px solid #fca5a5; padding: 20px; border-radius: var(--radius-md);">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                            <h3 style="color: #9f1239; font-family: var(--font-heading);">RPO (Recovery Point Objective)</h3>
+                            <span style="background: #e11d48; color: white; font-weight: bold; font-size: 0.75rem; padding: 2px 8px; border-radius: 4px;">DATA LOSS</span>
+                        </div>
+                        <p style="font-size: 0.95rem; color: #881337; margin-bottom: 12px;">
+                            <strong>"How much data can we afford to lose?"</strong>
+                        </p>
+                        <p style="font-size: 0.9rem; color: #4c0519;">
+                            If disaster strikes at 2:00 PM and your last backup was at 1:55 PM, your <strong>RPO is 5 minutes</strong> of lost orders/data.
+                        </p>
+                    </div>
+
+                    <!-- RTO Box -->
+                    <div style="background: var(--brand-sky-light); border: 2px solid #93c5fd; padding: 20px; border-radius: var(--radius-md);">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                            <h3 style="color: #0369a1; font-family: var(--font-heading);">RTO (Recovery Time Objective)</h3>
+                            <span style="background: #0284c7; color: white; font-weight: bold; font-size: 0.75rem; padding: 2px 8px; border-radius: 4px;">DOWNTIME</span>
+                        </div>
+                        <p style="font-size: 0.95rem; color: #075985; margin-bottom: 12px;">
+                            <strong>"How long can the application remain down?"</strong>
+                        </p>
+                        <p style="font-size: 0.9rem; color: #0c4a6e;">
+                            If disaster strikes at 2:00 PM and your backup system gets fully restored by 2:15 PM, your <strong>RTO is 15 minutes</strong> of downtime.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Timeline Diagram -->
+                <div class="timeline-visual">
+                    <div class="rpo-span">⏪ RPO: Data Loss Window</div>
+                    <div class="rto-span">⏩ RTO: Downtime Window</div>
+
+                    <div class="timeline-point">
+                        <div class="point-title" style="color: var(--brand-emerald);">1:00 PM</div>
+                        <div style="font-size: 0.75rem; color: var(--ink-subtle);">Last DB Backup</div>
+                    </div>
+
+                    <div class="timeline-point point-disaster">
+                        <div class="point-title">⚡ 2:00 PM</div>
+                        <div style="font-size: 0.75rem;">Disaster Strikes!</div>
+                    </div>
+
+                    <div class="timeline-point">
+                        <div class="point-title" style="color: var(--brand-indigo);">2:30 PM</div>
+                        <div style="font-size: 0.75rem; color: var(--ink-subtle);">App Back Online</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: DR STRATEGIES & INTERACTIVE SIMULATOR -->
+        <section id="dr-simulator" class="section">
+            <div class="section-header">
+                <span class="section-tag">🎮 Step 4 — Interactive Disaster Recovery Simulator</span>
+                <h2 class="section-title">
+                    <i class="fa-solid fa-bolt-lightning" style="color: var(--brand-amber);"></i>
+                    The 4 Disaster Recovery Strategies
+                </h2>
+                <p class="section-desc">
+                    Select a strategy below, then trigger a simulated natural disaster to see how traffic reroutes in real-time!
+                </p>
+            </div>
+
+            <!-- Strategy Selection Cards -->
+            <div class="dr-grid">
+                <div class="dr-card active-dr" id="drCard1" onclick="selectDRStrategy(1)">
+                    <div class="dr-header">
+                        <span class="dr-num">Strategy 1</span>
+                        <i class="fa-solid fa-box-archive" style="color: var(--brand-sky);"></i>
+                    </div>
+                    <h4>1. Backup & Restore</h4>
+                    <p style="font-size: 0.85rem; color: var(--ink-muted);">
+                        Keep periodic backups in cloud storage (S3). Rebuild servers from scratch when disaster strikes.
+                    </p>
+                    <div class="dr-metrics">
+                        <span class="metric-badge" style="color: var(--brand-rose);">RTO: Hours</span>
+                        <span class="metric-badge" style="color: var(--brand-amber);">RPO: Hours</span>
+                        <span class="metric-badge" style="color: var(--brand-emerald);">Cost: $</span>
+                    </div>
+                </div>
+
+                <div class="dr-card" id="drCard2" onclick="selectDRStrategy(2)">
+                    <div class="dr-header">
+                        <span class="dr-num">Strategy 2</span>
+                        <i class="fa-solid fa-fire-burner" style="color: var(--brand-amber);"></i>
+                    </div>
+                    <h4>2. Pilot Light</h4>
+                    <p style="font-size: 0.85rem; color: var(--ink-muted);">
+                        Core database is live & replicated in secondary region. Compute servers are OFF until needed.
+                    </p>
+                    <div class="dr-metrics">
+                        <span class="metric-badge" style="color: var(--brand-amber);">RTO: ~10-30m</span>
+                        <span class="metric-badge" style="color: var(--brand-emerald);">RPO: Seconds</span>
+                        <span class="metric-badge" style="color: var(--brand-sky);">Cost: $$</span>
+                    </div>
+                </div>
+
+                <div class="dr-card" id="drCard3" onclick="selectDRStrategy(3)">
+                    <div class="dr-header">
+                        <span class="dr-num">Strategy 3</span>
+                        <i class="fa-solid fa-temperature-half" style="color: var(--brand-indigo);"></i>
+                    </div>
+                    <h4>3. Warm Standby</h4>
+                    <p style="font-size: 0.85rem; color: var(--ink-muted);">
+                        A scaled-down version of full system runs 24/7 in 2nd region. Auto-scales up during disaster.
+                    </p>
+                    <div class="dr-metrics">
+                        <span class="metric-badge" style="color: var(--brand-emerald);">RTO: ~1-5m</span>
+                        <span class="metric-badge" style="color: var(--brand-emerald);">RPO: Near 0</span>
+                        <span class="metric-badge" style="color: var(--brand-violet);">Cost: $$$</span>
+                    </div>
+                </div>
+
+                <div class="dr-card" id="drCard4" onclick="selectDRStrategy(4)">
+                    <div class="dr-header">
+                        <span class="dr-num">Strategy 4</span>
+                        <i class="fa-solid fa-fire" style="color: var(--brand-rose);"></i>
+                    </div>
+                    <h4>4. Active - Active (Hot)</h4>
+                    <p style="font-size: 0.85rem; color: var(--ink-muted);">
+                        Full application runs 24/7 in 2+ regions simultaneously. Live user traffic splits between both.
+                    </p>
+                    <div class="dr-metrics">
+                        <span class="metric-badge" style="color: var(--brand-emerald);">RTO: 0 Sec</span>
+                        <span class="metric-badge" style="color: var(--brand-emerald);">RPO: 0 Sec</span>
+                        <span class="metric-badge" style="color: var(--brand-rose);">Cost: $$$$</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Simulator Interactive Stage -->
+            <div class="simulator-box">
+                <h3 style="font-family: var(--font-heading); font-size: 1.25rem; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-desktop" style="color: var(--brand-sky);"></i> Live Regional Simulation Stage
+                </h3>
+                <p style="font-size: 0.9rem; color: var(--ink-muted); margin-bottom: 16px;" id="simDescText">
+                    Currently Selected Strategy: <strong>1. Backup & Restore</strong>
+                </p>
+
+                <div class="sim-stage">
+                    <!-- Primary Region -->
+                    <div class="sim-region primary" id="regionA">
+                        <div class="sim-status status-healthy" id="statusA">Region A (Mumbai): HEALTHY 🟢</div>
+                        <h4 style="font-family: var(--font-heading); margin-bottom: 8px;">Primary Region</h4>
+                        <div style="font-size: 0.85rem; color: var(--ink-muted);" id="nodesA">
+                            🟢 4x Web Servers Active<br>
+                            🟢 Primary Master Database Active<br>
+                            👥 Live User Traffic: 100%
+                        </div>
+                    </div>
+
+                    <!-- Secondary Region -->
+                    <div class="sim-region secondary" id="regionB">
+                        <div class="sim-status status-standby" id="statusB">Region B (Singapore): STANDBY 🟡</div>
+                        <h4 style="font-family: var(--font-heading); margin-bottom: 8px;">Secondary DR Region</h4>
+                        <div style="font-size: 0.85rem; color: var(--ink-muted);" id="nodesB">
+                            ⚪ Web Servers: 0 (Off)<br>
+                            ⚪ Database: Daily Backups in S3<br>
+                            👥 Live User Traffic: 0%
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sim-controls">
+                    <button class="btn-strike" onclick="triggerDisaster()">
+                        ⚡ STRIKE EARTHQUAKE IN REGION A
+                    </button>
+                    <button class="btn-reset" onclick="resetSim()">
+                        🔄 Reset Simulator
+                    </button>
+                </div>
+
+                <!-- Simulation Terminal Log -->
+                <div class="log-terminal" id="simLog">
+                    <div class="log-line ok">[08:30:00] System Initialized. All systems operating normally.</div>
+                    <div class="log-line">[08:30:00] Active DR Strategy: Backup & Restore selected.</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 5: REAL WORLD CASE STUDY -->
+        <section id="case-study" class="section">
+            <div class="section-header">
+                <span class="section-tag">🍔 Step 5 — Real World Architecture Case Study</span>
+                <h2 class="section-title">
+                    <i class="fa-solid fa-utensils" style="color: var(--brand-amber);"></i>
+                    How Swiggy / Zomato Handles NYE Peak Traffic & Fiber Cuts
+                </h2>
+            </div>
+
+            <div class="case-study-card">
+                <div class="food-app-badge"><i class="fa-solid fa-fire"></i> New Year's Eve 100,000 Orders / Minute</div>
+                <h3 style="font-family: var(--font-heading); font-size: 1.4rem; margin-bottom: 12px;">
+                    The 3-Tier Multi-AZ & Multi-Region Setup
+                </h3>
+                <p style="font-size: 0.95rem; color: var(--ink-muted); margin-bottom: 16px;">
+                    During peak events like IPL Finals or New Year's Eve, food delivery platforms cannot afford even 10 seconds of downtime. Here is how they structure their cloud infrastructure:
+                </p>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+                    <div style="background: white; border: 1px solid var(--border-soft); padding: 16px; border-radius: var(--radius-sm);">
+                        <h4 style="color: var(--brand-sky); font-family: var(--font-heading);"><i class="fa-solid fa-filter"></i> 1. Smart Load Balancers</h4>
+                        <p style="font-size: 0.85rem; color: var(--ink-muted); margin-top: 4px;">
+                            AWS Route53 DNS + Application Load Balancer (ALB) checks health every 5 seconds. If AZ-1 crashes, traffic automatically shifts to AZ-2 instantly.
+                        </p>
+                    </div>
+
+                    <div style="background: white; border: 1px solid var(--border-soft); padding: 16px; border-radius: var(--radius-sm);">
+                        <h4 style="color: var(--brand-indigo); font-family: var(--font-heading);"><i class="fa-solid fa-database"></i> 2. Multi-AZ DB Read Replicas</h4>
+                        <p style="font-size: 0.85rem; color: var(--ink-muted); margin-top: 4px;">
+                            Restaurant browsing & menu views go to Read Replicas across 3 AZs. Order placement goes to Multi-AZ Synchronous Primary DB.
+                        </p>
+                    </div>
+
+                    <div style="background: white; border: 1px solid var(--border-soft); padding: 16px; border-radius: var(--radius-sm);">
+                        <h4 style="color: var(--brand-emerald); font-family: var(--font-heading);"><i class="fa-solid fa-shield-cat"></i> 3. Cross-Region Warm Standby</h4>
+                        <p style="font-size: 0.85rem; color: var(--ink-muted); margin-top: 4px;">
+                            If Mumbai Region experiences a total blackout, DNS switches traffic to Singapore / Hyderabad DR region within 2 minutes!
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer / Return Link -->
+        <footer class="footer-bar">
+            <h3 style="font-family: var(--font-heading); font-size: 1.3rem; margin-bottom: 8px;">
+                Ready for the Next Step in Day 3?
+            </h3>
+            <p style="color: var(--ink-muted); margin-bottom: 20px;">
+                You've mastered Cloud Clusters, Data Centers, AZs, and DR Strategies!
+            </p>
+            <a href="../fsd_crashcourse.html#day3" class="btn-back">
+                <i class="fa-solid fa-arrow-left"></i> Return to Day 3 Session 9 Slot in Crash Course
+            </a>
+        </footer>
+
+    </main>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // Hierarchy View Switching
+        function switchHierarchyView(view) {
+            const tabs = document.querySelectorAll('.hierarchy-controls .btn-tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+
+            const infoBox = document.getElementById('hierarchyInfo');
+            if (view === 'all') {
+                infoBox.innerHTML = `
+                    <h4><i class="fa-solid fa-circle-info"></i> Full Hierarchy Overview</h4>
+                    <p>A <strong>Region</strong> (e.g. Mumbai) contains multiple <strong>Availability Zones</strong> (AZs). Each AZ contains isolated <strong>Data Centers</strong>, which host server nodes combined into logical <strong>Clusters</strong>.</p>
+                `;
+            } else if (view === 'region') {
+                infoBox.innerHTML = `
+                    <h4><i class="fa-solid fa-map-location-dot"></i> Region View Focus</h4>
+                    <p><strong>Cloud Region:</strong> A major geographical area (e.g., ap-south-1 Mumbai, us-east-1 N. Virginia). Regions are completely isolated from each other for data privacy and disaster resilience.</p>
+                `;
+            } else if (view === 'az') {
+                infoBox.innerHTML = `
+                    <h4><i class="fa-solid fa-building-user"></i> Availability Zone Focus</h4>
+                    <p><strong>Availability Zone (AZ):</strong> Distinct physical locations ~10-100 km apart within a region. They have independent power grids, cooling, and flood barriers to prevent single points of failure.</p>
+                `;
+            } else if (view === 'cluster') {
+                infoBox.innerHTML = `
+                    <h4><i class="fa-solid fa-cubes"></i> Cloud Cluster Focus</h4>
+                    <p><strong>Cloud Cluster:</strong> Software orchestration (like Kubernetes or ElasticSearch cluster) that binds multiple virtual servers across AZs so your app never goes down if a single machine dies.</p>
+                `;
+            }
+        }
+
+        function selectAZ(azName) {
+            const infoBox = document.getElementById('hierarchyInfo');
+            infoBox.innerHTML = `
+                <h4><i class="fa-solid fa-check-circle" style="color: var(--brand-emerald);"></i> Selected ${azName}</h4>
+                <p>This AZ is connected to sibling AZs via ultra-fast fiber optics (&lt;2 millisecond latency). If this AZ encounters a power failure, traffic seamlessly shifts to another AZ without users noticing!</p>
+            `;
+        }
+
+        // DR Strategy Simulator Logic
+        let currentStrategy = 1;
+
+        const strategyInfo = {
+            1: {
+                name: "1. Backup & Restore",
+                desc: "Currently Selected Strategy: <strong>1. Backup & Restore</strong> (Lowest Cost, Highest Downtime)",
+                nodesB: "⚪ Web Servers: 0 (Off)<br>⚪ Database: Daily Backups in S3<br>👥 Live User Traffic: 0%",
+                statusBClass: "status-standby",
+                statusBText: "Region B: OFF (S3 Backups Only)"
+            },
+            2: {
+                name: "2. Pilot Light",
+                desc: "Currently Selected Strategy: <strong>2. Pilot Light</strong> (Database is continuous live replica, compute is off)",
+                nodesB: "⚪ Web Servers: 0 (Off)<br>🟢 DB: Live Replication Active<br>👥 Live User Traffic: 0%",
+                statusBClass: "status-standby",
+                statusBText: "Region B: PILOT LIGHT 🕯️"
+            },
+            3: {
+                name: "3. Warm Standby",
+                desc: "Currently Selected Strategy: <strong>3. Warm Standby</strong> (Scaled-down app running 24/7 in Region B)",
+                nodesB: "🟢 Web Servers: 1 (Small Instance)<br>🟢 DB: Live Replication Active<br>👥 Live User Traffic: 0% (Standby)",
+                statusBClass: "status-healthy",
+                statusBText: "Region B: WARM STANDBY ♨️"
+            },
+            4: {
+                name: "4. Active - Active (Hot)",
+                desc: "Currently Selected Strategy: <strong>4. Active - Active (Hot)</strong> (Full system running in both regions 24/7!)",
+                nodesB: "🟢 Web Servers: 4x Active<br>🟢 DB: Master-Master Replication<br>👥 Live User Traffic: 50%",
+                statusBClass: "status-healthy",
+                statusBText: "Region B: ACTIVE (50% Traffic) 🔥"
+            }
+        };
+
+        function selectDRStrategy(stratNum) {
+            currentStrategy = stratNum;
+            document.querySelectorAll('.dr-card').forEach((card, idx) => {
+                if (idx + 1 === stratNum) card.classList.add('active-dr');
+                else card.classList.remove('active-dr');
+            });
+
+            const data = strategyInfo[stratNum];
+            document.getElementById('simDescText').innerHTML = data.desc;
+            document.getElementById('nodesB').innerHTML = data.nodesB;
+            
+            const statusB = document.getElementById('statusB');
+            statusB.className = `sim-status ${data.statusBClass}`;
+            statusB.innerText = data.statusBText;
+
+            resetSim();
+            addLog(`Selected DR Strategy: ${data.name}`, "ok");
+        }
+
+        function triggerDisaster() {
+            const statusA = document.getElementById('statusA');
+            const nodesA = document.getElementById('nodesA');
+            const regionA = document.getElementById('regionA');
+
+            statusA.className = 'sim-status status-down';
+            statusA.innerText = 'Region A (Mumbai): CRASHED 🔴';
+            regionA.style.borderColor = 'var(--brand-rose)';
+
+            nodesA.innerHTML = `
+                🔴 All Servers: OFFLINE (Power Grid Cut)<br>
+                🔴 Primary DB: UNREACHABLE<br>
+                💥 Live User Traffic: FAILING
+            `;
+
+            addLog("⚡ EMERGENCY: Earthquake detected in Region A (Mumbai)! Infrastructure offline!", "err");
+
+            setTimeout(() => {
+                const statusB = document.getElementById('statusB');
+                const nodesB = document.getElementById('nodesB');
+                const regionB = document.getElementById('regionB');
+
+                if (currentStrategy === 1) {
+                    addLog("⏳ [Backup & Restore] Spinning up new CloudFormation servers from S3 backup...", "warn");
+                    setTimeout(() => {
+                        nodesB.innerHTML = `🟢 New Web Servers: Provisioned (4/4)<br>🟢 DB Restored from S3<br>👥 Traffic: 100% Rerouted`;
+                        statusB.className = 'sim-status status-healthy';
+                        statusB.innerText = 'Region B: RESTORED AFTER 3 HOURS';
+                        addLog("✅ [Backup & Restore Complete] RTO = 3 Hours, RPO = 1 Hour of lost data.", "ok");
+                    }, 2000);
+                } else if (currentStrategy === 2) {
+                    addLog("🕯️ [Pilot Light] Promoting DB Replica to Master & Auto-scaling Web instances...", "warn");
+                    setTimeout(() => {
+                        nodesB.innerHTML = `🟢 Web Servers: Auto-scaled to 4x<br>🟢 DB: Promoted to Master<br>👥 Traffic: 100% Rerouted`;
+                        statusB.className = 'sim-status status-healthy';
+                        statusB.innerText = 'Region B: ONLINE (RTO: 15 Mins)';
+                        addLog("✅ [Pilot Light Failover Complete] RTO = 15 Mins, RPO = 0 Seconds!", "ok");
+                    }, 1500);
+                } else if (currentStrategy === 3) {
+                    addLog("♨️ [Warm Standby] Auto-scaling existing Warm instances from 1 to 4...", "warn");
+                    setTimeout(() => {
+                        nodesB.innerHTML = `🟢 Web Servers: Scaled 1 ➔ 4<br>🟢 DB: Promoted Master<br>👥 Traffic: 100% Rerouted`;
+                        statusB.className = 'sim-status status-healthy';
+                        statusB.innerText = 'Region B: ONLINE (RTO: 2 Mins)';
+                        addLog("✅ [Warm Standby Failover Complete] RTO = 2 Mins, RPO = 0 Seconds!", "ok");
+                    }, 1000);
+                } else if (currentStrategy === 4) {
+                    addLog("🔥 [Active-Active] DNS Route53 Healthcheck failed for Region A. Instant Failover!", "warn");
+                    nodesB.innerHTML = `🟢 Web Servers: 4x Active (Handling 100% Load)<br>🟢 DB: Active Master<br>👥 Traffic: 100% Rerouted`;
+                    statusB.className = 'sim-status status-healthy';
+                    statusB.innerText = 'Region B: ACTIVE (100% Traffic)';
+                    addLog("⚡ [Active-Active Failover Complete] RTO = ZERO SECONDS! No user noticed!", "ok");
+                }
+            }, 800);
+        }
+
+        function resetSim() {
+            const statusA = document.getElementById('statusA');
+            const nodesA = document.getElementById('nodesA');
+            const regionA = document.getElementById('regionA');
+
+            statusA.className = 'sim-status status-healthy';
+            statusA.innerText = 'Region A (Mumbai): HEALTHY 🟢';
+            regionA.style.borderColor = 'var(--brand-sky)';
+
+            nodesA.innerHTML = `
+                🟢 4x Web Servers Active<br>
+                🟢 Primary Master Database Active<br>
+                👥 Live User Traffic: ${currentStrategy === 4 ? '50%' : '100%'}
+            `;
+
+            const data = strategyInfo[currentStrategy];
+            document.getElementById('nodesB').innerHTML = data.nodesB;
+            const statusB = document.getElementById('statusB');
+            statusB.className = `sim-status ${data.statusBClass}`;
+            statusB.innerText = data.statusBText;
+
+            addLog("🔄 Simulator reset to initial healthy state.", "ok");
+        }
+
+        function addLog(msg, type = "") {
+            const simLog = document.getElementById('simLog');
+            const time = new Date().toLocaleTimeString();
+            const logLine = document.createElement('div');
+            logLine.className = `log-line ${type}`;
+            logLine.innerText = `[${time}] ${msg}`;
+            simLog.appendChild(logLine);
+            simLog.scrollTop = simLog.scrollHeight;
+        }
+    </script>
+</body>
+
+</html>

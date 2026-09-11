@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Automated Checks in a CI/CD Pipeline | SE &amp; FSD Crash Course</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg-main: #fcfbf7;
+      --bg-card: #ffffff;
+      --bg-card-subtle: #f8fafc;
+      --text-heading: #0f172a;
+      --text-body: #334155;
+      --text-muted: #64748b;
+
+      --brand-blue: #2563eb;
+      --brand-blue-light: #eff6ff;
+      --brand-indigo: #4f46e5;
+      --brand-indigo-light: #eef2ff;
+      --brand-emerald: #059669;
+      --brand-emerald-light: #ecfdf5;
+      --brand-amber: #d97706;
+      --brand-amber-light: #fffbeb;
+      --brand-rose: #dc2626;
+      --brand-rose-light: #fef2f2;
+      --brand-purple: #9333ea;
+      --brand-purple-light: #faf5ff;
+      --brand-teal: #0d9488;
+      --brand-teal-light: #f0fdfa;
+
+      --border-light: #e2e8f0;
+      --border-hover: #cbd5e1;
+      --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+      --shadow-card: 0 10px 25px -5px rgba(15, 23, 42, 0.05), 0 8px 10px -6px rgba(15, 23, 42, 0.03);
+      --shadow-hover: 0 20px 35px -10px rgba(15, 23, 42, 0.1);
+
+      --font-primary: 'Plus Jakarta Sans', sans-serif;
+      --font-heading: 'Outfit', sans-serif;
+      --font-hand: 'Caveat', cursive;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: var(--font-primary);
+      background-color: var(--bg-main);
+      background-image:
+        radial-gradient(at 10% 10%, rgba(238, 242, 255, 0.6) 0px, transparent 50%),
+        radial-gradient(at 90% 10%, rgba(236, 253, 245, 0.6) 0px, transparent 50%),
+        radial-gradient(at 50% 90%, rgba(254, 243, 199, 0.5) 0px, transparent 50%);
+      background-attachment: fixed;
+      color: var(--text-body);
+      min-height: 100vh;
+      padding-bottom: 80px;
+      line-height: 1.6;
+    }
+
+    /* Navbar */
+    .navbar {
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-light);
+      padding: 1rem 2rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      text-decoration: none;
+      color: var(--text-heading);
+    }
+
+    .brand-logo {
+      width: 42px;
+      height: 42px;
+      background: linear-gradient(135deg, var(--brand-blue), var(--brand-emerald));
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-family: var(--font-heading);
+      font-weight: 800;
+      font-size: 1.3rem;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+    }
+
+    .brand-title {
+      font-family: var(--font-heading);
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--text-heading);
+    }
+
+    .back-btn {
+      background: #ffffff;
+      border: 1px solid var(--border-light);
+      color: var(--text-heading);
+      padding: 0.55rem 1.1rem;
+      border-radius: 10px;
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+
+    .back-btn:hover {
+      background: var(--brand-blue-light);
+      color: var(--brand-blue);
+      border-color: var(--brand-blue);
+      transform: translateY(-1px);
+    }
+
+    /* Container */
+    .container {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem;
+    }
+
+    /* Hero Header */
+    .hero {
+      text-align: center;
+      padding: 3rem 2rem;
+      background: #ffffff;
+      border: 1px solid var(--border-light);
+      border-radius: 28px;
+      box-shadow: var(--shadow-card);
+      margin-bottom: 2.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 5px;
+      background: linear-gradient(90deg, var(--brand-blue), var(--brand-indigo), var(--brand-emerald), var(--brand-amber), var(--brand-purple));
+    }
+
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--brand-emerald-light);
+      border: 1px solid rgba(5, 150, 105, 0.2);
+      color: var(--brand-emerald);
+      padding: 0.45rem 1.1rem;
+      border-radius: 30px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 1.25rem;
+    }
+
+    .hero-title {
+      font-family: var(--font-heading);
+      font-size: 2.6rem;
+      font-weight: 800;
+      color: var(--text-heading);
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+      margin-bottom: 1rem;
+    }
+
+    .hero-subtitle {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      max-width: 840px;
+      margin: 0 auto 1.5rem;
+      line-height: 1.6;
+    }
+
+    .hand-note {
+      font-family: var(--font-hand);
+      font-size: 1.55rem;
+      color: var(--brand-rose);
+      font-weight: 700;
+      display: inline-block;
+      transform: rotate(-2deg);
+    }
+
+    /* Section Cards */
+    .section-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-light);
+      border-radius: 24px;
+      padding: 2.25rem;
+      box-shadow: var(--shadow-card);
+      margin-bottom: 2.5rem;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .section-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+    }
+
+    .section-title {
+      font-family: var(--font-heading);
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--text-heading);
+    }
+
+    /* Infographic Card */
+    .image-showcase-card {
+      background: #ffffff;
+      border: 1.5px solid var(--border-light);
+      border-radius: 24px;
+      padding: 1.75rem;
+      text-align: center;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 2.5rem;
+    }
+
+    .image-showcase-title {
+      font-family: var(--font-heading);
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--text-heading);
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+    }
+
+    .image-wrapper {
+      margin-top: 1.25rem;
+      overflow-x: auto;
+      display: flex;
+      justify-content: center;
+    }
+
+    .image-wrapper img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 18px;
+      border: 1px solid var(--border-light);
+      box-shadow: var(--shadow-card);
+    }
+
+    /* 7 Pipeline Stages Grid */
+    .stages-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+
+    .stage-card {
+      background: #ffffff;
+      border: 1.5px solid var(--border-light);
+      border-radius: 20px;
+      padding: 1.5rem;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.25s ease;
+    }
+
+    .stage-card:hover {
+      border-color: var(--brand-blue);
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-card);
+    }
+
+    .stage-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .stage-badge {
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-heading);
+      font-weight: 800;
+      font-size: 1.1rem;
+      color: #ffffff;
+    }
+
+    .stage-title-group h4 {
+      font-family: var(--font-heading);
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--text-heading);
+      line-height: 1.2;
+    }
+
+    .stage-title-group span {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .check-list {
+      list-style: none;
+    }
+
+    .check-list li {
+      position: relative;
+      padding-left: 1.4rem;
+      margin-bottom: 0.5rem;
+      font-size: 0.88rem;
+      color: var(--text-body);
+      line-height: 1.45;
+    }
+
+    .check-list li::before {
+      content: '✔';
+      position: absolute;
+      left: 0;
+      color: var(--brand-emerald);
+      font-weight: bold;
+      font-size: 0.85rem;
+    }
+
+    .tool-chip {
+      background: var(--bg-card-subtle);
+      border: 1px solid var(--border-light);
+      color: var(--brand-indigo);
+      padding: 0.15rem 0.5rem;
+      border-radius: 6px;
+      font-family: monospace;
+      font-size: 0.78rem;
+    }
+
+    /* Benefits & Tools Grid */
+    .bottom-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+
+    .bottom-card {
+      background: var(--bg-card-subtle);
+      border: 1.5px solid var(--border-light);
+      border-radius: 20px;
+      padding: 1.5rem;
+    }
+
+    .bottom-card h4 {
+      font-family: var(--font-heading);
+      font-size: 1.25rem;
+      font-weight: 800;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* Simulator */
+    .sim-container {
+      background: #ffffff;
+      border: 1.5px solid var(--border-light);
+      border-radius: 20px;
+      padding: 2rem;
+      margin-top: 1.5rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .sim-controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 1.75rem;
+    }
+
+    .sim-btn {
+      padding: 0.75rem 1.4rem;
+      border-radius: 14px;
+      font-family: var(--font-heading);
+      font-weight: 700;
+      font-size: 0.92rem;
+      border: 1.5px solid var(--border-light);
+      background: var(--bg-main);
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+
+    .sim-btn.active-clean {
+      background: var(--brand-emerald-light);
+      color: var(--brand-emerald);
+      border-color: var(--brand-emerald);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .sim-btn.active-buggy {
+      background: var(--brand-rose-light);
+      color: var(--brand-rose);
+      border-color: var(--brand-rose);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .sim-pipeline {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 0.6rem;
+      margin-bottom: 1.75rem;
+      overflow-x: auto;
+    }
+
+    .sim-step {
+      background: var(--bg-card-subtle);
+      border: 1.5px solid var(--border-light);
+      border-radius: 14px;
+      padding: 0.9rem 0.5rem;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .sim-step.pass {
+      background: var(--brand-emerald-light);
+      border-color: var(--brand-emerald);
+      color: var(--brand-emerald);
+    }
+
+    .sim-step.fail {
+      background: var(--brand-rose-light);
+      border-color: var(--brand-rose);
+      color: var(--brand-rose);
+    }
+
+    .sim-step-icon {
+      font-size: 1.3rem;
+      margin-bottom: 0.2rem;
+    }
+
+    .sim-step-name {
+      font-family: var(--font-heading);
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    .sim-console {
+      font-family: monospace;
+      font-size: 0.88rem;
+      background: #0f172a;
+      color: #38bdf8;
+      padding: 1.1rem 1.35rem;
+      border-radius: 14px;
+      min-height: 70px;
+      display: flex;
+      align-items: center;
+    }
+
+    /* Quiz Box */
+    .quiz-container {
+      background: var(--bg-card-subtle);
+      border: 1.5px solid var(--border-light);
+      border-radius: 20px;
+      padding: 1.75rem;
+      margin-top: 1.5rem;
+    }
+
+    .quiz-q {
+      background: #ffffff;
+      border: 1px solid var(--border-light);
+      border-radius: 16px;
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+    }
+
+    .quiz-q h5 {
+      font-family: var(--font-heading);
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+    }
+
+    .quiz-options {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .quiz-opt {
+      padding: 0.65rem 1rem;
+      border-radius: 10px;
+      border: 1px solid var(--border-light);
+      background: var(--bg-main);
+      font-size: 0.9rem;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s ease;
+    }
+
+    .quiz-opt:hover {
+      background: var(--brand-blue-light);
+      border-color: var(--brand-blue);
+      color: var(--brand-blue);
+    }
+
+    .quiz-opt.correct {
+      background: var(--brand-emerald-light) !important;
+      border-color: var(--brand-emerald) !important;
+      color: var(--brand-emerald) !important;
+      font-weight: 700;
+    }
+
+    .quiz-opt.wrong {
+      background: var(--brand-rose-light) !important;
+      border-color: var(--brand-rose) !important;
+      color: var(--brand-rose) !important;
+    }
+
+    .quiz-exp {
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
+      padding: 0.5rem 0.75rem;
+      border-radius: 8px;
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <a href="../fsd_crashcourse.html" class="brand">
+      <div class="brand-logo">🛡️</div>
+      <span class="brand-title">Automated Checks in a CI/CD Pipeline</span>
+    </a>
+    <a href="../fsd_crashcourse.html" class="back-btn">← Back to Course Hub</a>
+  </nav>
+
+  <div class="container">
+
+    <!-- Hero Section -->
+    <header class="hero">
+      <div class="hero-tag">
+        <span>⚙️</span> SE &amp; DevOps Fundamentals — Day 3 Session 12
+      </div>
+      <h1 class="hero-title">Automated Checks in a CI/CD Pipeline</h1>
+      <p class="hero-subtitle">
+        Right checks, at the right stage, for a better product! Discover how modern software pipelines catch bugs early, eliminate manual testing bottlenecks, and enforce automated quality gates from code commit to live monitoring.
+      </p>
+      <span class="hand-note">~ "Fail fast, Fix early, Release confidently!" 🚀</span>
+    </header>
+
+    <!-- Visual Architecture Diagram Showcase -->
+    <section class="image-showcase-card">
+      <h3 class="image-showcase-title">
+        <span>🗺️</span> Master Architecture Visualizer: Automated Checks in CI/CD
+      </h3>
+      <p style="font-size: 0.93rem; color: var(--text-muted); max-width: 780px; margin: 0 auto;">
+        The end-to-end 7-stage software quality pipeline: from developer commit to post-deployment monitoring.
+      </p>
+      <div class="image-wrapper">
+        <img src="sdlc_automated_checks.png" alt="Automated Checks in a CI/CD Pipeline Architecture Diagram" title="Automated Checks in a CI/CD Pipeline">
+      </div>
+    </section>
+
+    <!-- Section 1: The 7 Pipeline Stages & Their Automated Checks -->
+    <section class="section-card">
+      <div class="section-header">
+        <div class="section-icon" style="background: var(--brand-blue-light); color: var(--brand-blue);">🔍</div>
+        <h2 class="section-title">1. The 7 Stages of Automated SDLC Pipeline Checks</h2>
+      </div>
+
+      <p>
+        Every modern CI/CD pipeline executes specific automated checks at each progressive stage of the release lifecycle:
+      </p>
+
+      <div class="stages-grid">
+        <!-- Stage 1 -->
+        <div class="stage-card">
+          <div class="stage-header">
+            <div class="stage-badge" style="background: var(--brand-indigo);">1</div>
+            <div class="stage-title-group">
+              <h4>Code Quality Checks</h4>
+              <span>Developer commits code</span>
+            </div>
+          </div>
+          <ul class="check-list">
+            <li>Code style &amp; formatting <span class="tool-chip">Prettier</span></li>
+            <li>Linting <span class="tool-chip">ESLint</span> <span class="tool-chip">Pylint</span></li>
+            <li>Commit message rules <span class="tool-chip">Conventional Commits</span></li>
+            <li>Secret scanning <span class="tool-chip">Detect API keys</span></li>
+            <li>Check for large or unwanted files</li>
+          </ul>
+        </div>
+
+        <!-- Stage 2 -->
+        <div class="stage-card">
+          <div class="stage-header">
+            <div class="stage-badge" style="background: var(--brand-blue);">2</div>
+            <div class="stage-title-group">
+              <h4>Build Checks</h4>
+              <span>Compile &amp; build application</span>
+            </div>
+          </div>
+          <ul class="check-list">
+            <li>Successful compilation &amp; build</li>
+            <li>Dependency resolution <span class="tool-chip">Maven</span> <span class="tool-chip">npm</span></li>
+            <li>Build time duration checks</li>
+            <li>Check for warnings &amp; deprecated libraries</li>
+            <li>Verify build artifacts are created</li>
+          </ul>
+        </div>
+
+        <!-- Stage 3 -->
+        <div class="stage-card">
+          <div class="stage-header">
+            <div class="stage-badge" style="background: var(--brand-emerald);">3</div>
+            <div class="stage-title-group">
+              <h4>Testing Checks (CI)</h4>
+              <span>Run automated test suites</span>
+            </div>
+          </div>
+          <ul class="check-list">
+            <li>Unit tests <span class="tool-chip">JUnit</span> <span class="tool-chip">PyTest</span></li>
+            <li>Integration tests</li>
+            <li>Code coverage <span class="tool-chip">JaCoCo</span></li>
+            <li>Test reports (must pass min threshold)</li>
+            <li>API contract tests <span class="tool-chip">Postman</span> <span class="tool-chip">Pact</span></li>
+            <li>UI tests <span class="tool-chip">Selenium</span> <span class="tool-chip">Cypress</span></li>
+          </ul>
+        </div>
+
+        <!-- Stage 4 -->
+        <div class="stage-card">
+          <div class="stage-header">
+            <div class="stage-badge" style="background: var(--brand-rose);">4</div>
+            <div class="stage-title-group">
+              <h4>Security Checks</h4>
+              <span>Find &amp; fix vulnerabilities</span>
+            </div>
+          </div>
+          <ul class="check-list">
+            <li>Dependency vulnerability scan <span class="tool-chip">Snyk</span> <span class="tool-chip">OWASP</span></li>
+            <li>Static Application Security Testing (SAST) <span class="tool-chip">SonarQube</span> <span class="tool-chip">Semgrep</span></li>
+            <li>Secret scanning <span class="tool-chip">GitLeaks</span></li>
+            <li>Container image scanning <span class="tool-chip">Trivy</span> <span class="tool-chip">Clair</span></li>
+            <li>License compliance <span class="tool-chip">OSS Review</span></li>
+          </ul>
+        </div>
+
+        <!-- Stage 5 -->
+        <div class="stage-card">
+          <div class="stage-header">
+            <div class="stage-badge" style="background: var(--brand-amber);">5</div>
+            <div class="stage-title-group">
+              <h4>Artifact &amp; Package Checks</h4>
+              <span>Create deployable artifact</span>
+            </div>
+          </div>
+          <ul class="check-list">
+            <li>Create artifact (JAR, WAR, Docker image)</li>
+            <li>Verify artifact integrity <span class="tool-chip">Checksum</span></li>
+            <li>Scan container image for vulnerabilities</li>
+            <li>Tag version correctly <span class="tool-chip">Git Commit ID</span></li>
+            <li>Push to registry <span class="tool-chip">Nexus</span> <span class="tool-chip">ECR</span> <span class="tool-chip">ACR</span></li>
+          </ul>
+        </div>
+
+        <!-- Stage 6 -->
+        <div class="stage-card">
+          <div class="stage-header">
+            <div class="stage-badge" style="background: var(--brand-teal);">6</div>
+            <div class="stage-title-group">
+              <h4>Deployment Checks (CD)</h4>
+              <span>Deploy to environments</span>
+            </div>
+          </div>
+          <ul class="check-list">
+            <li>Infrastructure checks (cluster/VM availability)</li>
+            <li>Configuration validation</li>
+            <li>Health checks post-deployment</li>
+            <li>Smoke tests (app is running)</li>
+            <li>Automated rollback on failure</li>
+            <li>Environment-specific database connection checks</li>
+          </ul>
+        </div>
+
+        <!-- Stage 7 -->
+        <div class="stage-card">
+          <div class="stage-header">
+            <div class="stage-badge" style="background: var(--brand-purple);">7</div>
+            <div class="stage-title-group">
+              <h4>Post-Deployment Checks</h4>
+              <span>Ensure application is healthy</span>
+            </div>
+          </div>
+          <ul class="check-list">
+            <li>Application health monitoring <span class="tool-chip">/health</span></li>
+            <li>Performance checks (response time)</li>
+            <li>Error rate monitoring</li>
+            <li>Log and alert validation</li>
+            <li>Synthetic &amp; real user checks</li>
+            <li>Auto-rollback if critical issues detected</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- One-Time Setup Callout -->
+      <div style="margin-top: 2rem; background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border: 1.5px solid #fde68a; border-radius: 20px; padding: 1.5rem; display: flex; gap: 1.1rem; align-items: flex-start;">
+        <div style="font-size: 2.2rem; line-height: 1;">⚡</div>
+        <div>
+          <h4 style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 800; color: var(--brand-amber); margin-bottom: 0.35rem;">
+            One-Time Setup vs Continuous Protection ("Write Once, Enforce Forever!")
+          </h4>
+          <p style="font-size: 0.93rem; color: var(--text-body); line-height: 1.55;">
+            Configuring these 7 automated checks is a <strong>one-time setup task</strong> (writing the pipeline configuration script <code>.github/workflows/ci.yml</code> and branch protection rules). Once setup:
+            <br>
+            • Developers simply <code>git push</code>—the CI/CD pipeline runs all 7 check stages automatically!
+            <br>
+            • No repetitive manual testing effort is required for every single release.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 2: Key Takeaway & Benefits -->
+    <section class="section-card">
+      <div class="section-header">
+        <div class="section-icon" style="background: var(--brand-emerald-light); color: var(--brand-emerald);">💡</div>
+        <h2 class="section-title">2. Key Benefits &amp; Industry Tooling</h2>
+      </div>
+
+      <div class="bottom-grid">
+        <div class="bottom-card">
+          <h4 style="color: var(--brand-emerald);">📊 Benefits of Automated Checks</h4>
+          <ul class="check-list">
+            <li><strong>Catch issues early:</strong> Fix bugs when they are cheap and easy to solve.</li>
+            <li><strong>Improve code quality &amp; security:</strong> Enforce 100% consistent standards across teams.</li>
+            <li><strong>Faster &amp; reliable releases:</strong> Reduce deployment lead time from weeks to minutes.</li>
+            <li><strong>Less manual effort:</strong> Automate repetitive manual testing tasks.</li>
+            <li><strong>Greater confidence in production:</strong> Zero midnight deployment panic!</li>
+          </ul>
+        </div>
+
+        <div class="bottom-card">
+          <h4 style="color: var(--brand-indigo);">🛠️ Popular Industry CI/CD Tools</h4>
+          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem;">
+            <span class="tool-chip" style="font-size: 0.9rem; padding: 0.3rem 0.75rem;">🤖 Jenkins</span>
+            <span class="tool-chip" style="font-size: 0.9rem; padding: 0.3rem 0.75rem;">🐙 GitHub Actions</span>
+            <span class="tool-chip" style="font-size: 0.9rem; padding: 0.3rem 0.75rem;">🦊 GitLab CI</span>
+            <span class="tool-chip" style="font-size: 0.9rem; padding: 0.3rem 0.75rem;">🔍 SonarQube</span>
+            <span class="tool-chip" style="font-size: 0.9rem; padding: 0.3rem 0.75rem;">🛡️ Snyk</span>
+            <span class="tool-chip" style="font-size: 0.9rem; padding: 0.3rem 0.75rem;">🐳 Docker</span>
+            <span class="tool-chip" style="font-size: 0.9rem; padding: 0.3rem 0.75rem;">🧪 Selenium</span>
+          </div>
+          <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.5;">
+            <em>"Automate the boring stuff, so you can focus on building great products!"</em>
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 3: Interactive Pipeline Simulator -->
+    <section class="section-card">
+      <div class="section-header">
+        <div class="section-icon" style="background: var(--brand-purple-light); color: var(--brand-purple);">🎮</div>
+        <h2 class="section-title">3. Interactive 7-Stage Pipeline Simulator</h2>
+      </div>
+
+      <p>
+        Simulate pushing code through all 7 stages to see how automated quality gates protect production:
+      </p>
+
+      <div class="sim-container">
+        <div class="sim-controls">
+          <button id="btnClean" class="sim-btn active-clean" onclick="runSim('clean')">
+            ✅ PR #104: Clean Payment Feature (Passes All 7 Stages)
+          </button>
+          <button id="btnBuggy" class="sim-btn" onclick="runSim('buggy')">
+            ❌ PR #105: Code with Vulnerable Dependency (Fails at Stage 4 Security)
+          </button>
+        </div>
+
+        <div class="sim-pipeline">
+          <div id="sim1" class="sim-step">
+            <div class="sim-step-icon">💻</div>
+            <div class="sim-step-name">1. Code</div>
+          </div>
+          <div id="sim2" class="sim-step">
+            <div class="sim-step-icon">⚙️</div>
+            <div class="sim-step-name">2. Build</div>
+          </div>
+          <div id="sim3" class="sim-step">
+            <div class="sim-step-icon">🧪</div>
+            <div class="sim-step-name">3. Test</div>
+          </div>
+          <div id="sim4" class="sim-step">
+            <div class="sim-step-icon">🛡️</div>
+            <div class="sim-step-name">4. Security</div>
+          </div>
+          <div id="sim5" class="sim-step">
+            <div class="sim-step-icon">📦</div>
+            <div class="sim-step-name">5. Package</div>
+          </div>
+          <div id="sim6" class="sim-step">
+            <div class="sim-step-icon">🚀</div>
+            <div class="sim-step-name">6. Deploy</div>
+          </div>
+          <div id="sim7" class="sim-step">
+            <div class="sim-step-icon">📈</div>
+            <div class="sim-step-name">7. Monitor</div>
+          </div>
+        </div>
+
+        <div id="simConsole" class="sim-console">
+          Status: Ready. Click a PR scenario above to run all 7 pipeline stage checks.
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 4: Quiz -->
+    <section class="section-card">
+      <div class="section-header">
+        <div class="section-icon" style="background: var(--brand-amber-light); color: var(--brand-amber);">🎯</div>
+        <h2 class="section-title">4. Quick Check — Test Your Pipeline Knowledge</h2>
+      </div>
+
+      <div class="quiz-container">
+        <!-- Q1 -->
+        <div class="quiz-q">
+          <h5>Q1: At which stage of the CI/CD pipeline are tools like Prettier, ESLint, and secret scanning executed?</h5>
+          <div class="quiz-options">
+            <button class="quiz-opt" onclick="checkQuiz(this, true, 'q1')">A) Stage 1: Code Quality Checks (right when developer commits code).</button>
+            <button class="quiz-opt" onclick="checkQuiz(this, false, 'q1')">B) Stage 6: Deployment Checks.</button>
+            <button class="quiz-opt" onclick="checkQuiz(this, false, 'q1')">C) Stage 7: Post-Deployment Monitoring.</button>
+          </div>
+          <div id="q1-exp" class="quiz-exp"></div>
+        </div>
+
+        <!-- Q2 -->
+        <div class="quiz-q">
+          <h5>Q2: What happens if an automated Trivy or Snyk vulnerability scan fails in Stage 4 (Security)?</h5>
+          <div class="quiz-options">
+            <button class="quiz-opt" onclick="checkQuiz(this, false, 'q2')">A) The container is packaged and deployed to live production anyway.</button>
+            <button class="quiz-opt" onclick="checkQuiz(this, true, 'q2')">B) The pipeline breaks, preventing packaging/deployment and notifying developers to patch the library.</button>
+            <button class="quiz-opt" onclick="checkQuiz(this, false, 'q2')">C) The developer must manually delete the server log files.</button>
+          </div>
+          <div id="q2-exp" class="quiz-exp"></div>
+        </div>
+
+        <!-- Q3 -->
+        <div class="quiz-q">
+          <h5>Q3: Is setting up automated checks in CI/CD an ongoing daily manual task for every release?</h5>
+          <div class="quiz-options">
+            <button class="quiz-opt" onclick="checkQuiz(this, false, 'q3')">A) Yes, developers must manually re-create test scripts every day.</button>
+            <button class="quiz-opt" onclick="checkQuiz(this, true, 'q3')">B) No! It is a ONE-TIME pipeline setup ("Write Once, Enforce Forever"). All future pushes trigger automatically.</button>
+            <button class="quiz-opt" onclick="checkQuiz(this, false, 'q3')">C) Yes, Ops engineers must type commands for every single commit.</button>
+          </div>
+          <div id="q3-exp" class="quiz-exp"></div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <script>
+    let isRunning = false;
+
+    function resetSim() {
+      for (let i = 1; i <= 7; i++) {
+        document.getElementById(`sim${i}`).className = 'sim-step';
+      }
+    }
+
+    function runSim(type) {
+      if (isRunning) return;
+      isRunning = true;
+      resetSim();
+
+      const btnClean = document.getElementById('btnClean');
+      const btnBuggy = document.getElementById('btnBuggy');
+      const consoleLog = document.getElementById('simConsole');
+
+      if (type === 'clean') {
+        btnClean.className = 'sim-btn active-clean';
+        btnBuggy.className = 'sim-btn';
+      } else {
+        btnClean.className = 'sim-btn';
+        btnBuggy.className = 'sim-btn active-buggy';
+      }
+
+      consoleLog.innerText = `[CI/CD PIPELINE] Triggered PR build... Running 7 automated check stages.`;
+
+      setTimeout(() => {
+        // Stage 1 Code
+        document.getElementById('sim1').className = 'sim-step pass';
+        consoleLog.innerText = `[Stage 1/7 Code Quality]: Pass! ESLint, Prettier & Secret Scanner green.`;
+
+        setTimeout(() => {
+          // Stage 2 Build
+          document.getElementById('sim2').className = 'sim-step pass';
+          consoleLog.innerText = `[Stage 2/7 Build]: Pass! Maven compiled Java code & resolved dependencies.`;
+
+          setTimeout(() => {
+            // Stage 3 Test
+            document.getElementById('sim3').className = 'sim-step pass';
+            consoleLog.innerText = `[Stage 3/7 Test]: Pass! 142/142 JUnit tests green (JaCoCo 86% coverage).`;
+
+            setTimeout(() => {
+              if (type === 'clean') {
+                // Stage 4 Security
+                document.getElementById('sim4').className = 'sim-step pass';
+                consoleLog.innerText = `[Stage 4/7 Security]: Pass! SonarQube SAST & Snyk CVE scan clean.`;
+
+                setTimeout(() => {
+                  // Stage 5 Package
+                  document.getElementById('sim5').className = 'sim-step pass';
+                  consoleLog.innerText = `[Stage 5/7 Package]: Pass! Built Docker image & pushed to ECR.`;
+
+                  setTimeout(() => {
+                    // Stage 6 Deploy
+                    document.getElementById('sim6').className = 'sim-step pass';
+                    consoleLog.innerText = `[Stage 6/7 Deploy]: Pass! Deployed container to K8s & verified health check.`;
+
+                    setTimeout(() => {
+                      // Stage 7 Monitor
+                      document.getElementById('sim7').className = 'sim-step pass';
+                      consoleLog.innerText = `🎉 PIPELINE SUCCESS! Feature live & monitored in Production (/health HTTP 200).`;
+                      isRunning = false;
+                    }, 800);
+                  }, 800);
+                }, 800);
+              } else {
+                // Stage 4 Fails!
+                document.getElementById('sim4').className = 'sim-step fail';
+                consoleLog.innerText = `[Stage 4/7 Security]: ❌ FAILED! Snyk detected High Vulnerability (CVE-2026-1082) in log library!`;
+
+                setTimeout(() => {
+                  consoleLog.innerText = `🚫 PIPELINE HALTED AT STAGE 4! Build blocked. No Docker package created & zero risk to production.`;
+                  isRunning = false;
+                }, 1000);
+              }
+            }, 800);
+          }, 800);
+        }, 800);
+      }, 800);
+    }
+
+    // Quiz Checker
+    function checkQuiz(btn, isCorrect, qId) {
+      const exp = document.getElementById(`${qId}-exp`);
+      const opts = btn.parentElement.querySelectorAll('.quiz-opt');
+      opts.forEach(o => o.classList.remove('correct', 'wrong'));
+
+      if (isCorrect) {
+        btn.classList.add('correct');
+        exp.style.display = 'block';
+        exp.style.background = 'var(--brand-emerald-light)';
+        exp.style.color = 'var(--brand-emerald)';
+        exp.innerHTML = '<strong>Correct!</strong> 🎉 Excellent understanding of automated pipeline checks.';
+      } else {
+        btn.classList.add('wrong');
+        exp.style.display = 'block';
+        exp.style.background = 'var(--brand-rose-light)';
+        exp.style.color = 'var(--brand-rose)';
+        exp.innerHTML = '<strong>Not quite!</strong> Re-read the diagram or section above and try again.';
+      }
+    }
+  </script>
+</body>
+
+</html>
