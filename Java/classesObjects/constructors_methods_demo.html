@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Constructors & Methods Deep Dive in Java | Java Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --primary-light: #818cf8;
+      --secondary: #0284c7;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --accent-purple: #8b5cf6;
+      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f1f5f9 100%);
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 8px 20px rgba(79, 70, 229, 0.07);
+      --shadow-lg: 0 16px 32px rgba(15, 23, 42, 0.08);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      color: var(--text-main);
+      padding: 16px 12px;
+      line-height: 1.5;
+    }
+
+    .container { max-width: 1140px; margin: 0 auto; }
+
+    /* Top Nav */
+    .top-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #ffffff;
+      color: var(--primary-dark);
+      text-decoration: none;
+      padding: 8px 16px;
+      border-radius: 30px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      border: 1px solid var(--card-border);
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s ease;
+    }
+
+    .back-btn:hover {
+      background: var(--primary);
+      color: #ffffff;
+      transform: translateX(-3px);
+    }
+
+    .nav-tag {
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.85rem;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 5px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--card-border);
+    }
+
+    /* Hero Header */
+    .hero {
+      background: linear-gradient(135deg, #0284c7 0%, #4f46e5 50%, #7c3aed 100%);
+      color: #ffffff;
+      border-radius: 16px;
+      padding: 24px 28px;
+      box-shadow: var(--shadow-md);
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .hero-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .hero h1 { font-size: 2rem; font-weight: 800; letter-spacing: -0.5px; }
+    .hero p { font-size: 1rem; opacity: 0.95; max-width: 860px; }
+
+    .hero-stats {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .hero-stat-pill {
+      background: rgba(255, 255, 255, 0.18);
+      backdrop-filter: blur(8px);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+
+    /* Tab Bar */
+    .main-tab-bar {
+      display: flex;
+      gap: 6px;
+      background: transparent;
+      padding: 0 4px;
+      border-bottom: 2px solid #cbd5e1;
+      margin-bottom: 24px;
+      overflow-x: auto;
+      scrollbar-width: thin;
+    }
+
+    .main-tab-btn {
+      flex: 1;
+      min-width: 150px;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-bottom: none;
+      padding: 12px 14px;
+      border-radius: 12px 12px 0 0;
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      position: relative;
+      bottom: -2px;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      box-shadow: inset 0 -3px 6px rgba(0, 0, 0, 0.03);
+    }
+
+    .main-tab-btn:hover {
+      background: #ffffff;
+      color: var(--primary);
+      border-color: #94a3b8;
+    }
+
+    .main-tab-btn.active {
+      background: #ffffff;
+      color: var(--primary-dark);
+      font-weight: 700;
+      border: 2px solid var(--primary);
+      border-bottom: 2px solid #ffffff;
+      box-shadow: 0 -4px 14px rgba(79, 70, 229, 0.12);
+      z-index: 2;
+    }
+
+    .main-tab-btn.active::before {
+      content: '';
+      position: absolute;
+      top: -2px;
+      left: -2px;
+      right: -2px;
+      height: 4px;
+      background: linear-gradient(90deg, var(--secondary), var(--primary));
+      border-radius: 12px 12px 0 0;
+    }
+
+    /* Tab Panes */
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
+    /* General Card Container */
+    .card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--card-border);
+    }
+
+    .card-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-title .icon {
+      font-size: 1.3rem;
+      background: #eef2ff;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+    }
+
+    /* Grid Layouts */
+    .two-col-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 868px) {
+      .two-col-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Code Box Styling */
+    .code-box {
+      background: #0f172a;
+      color: #f8fafc;
+      font-family: 'Fira Code', monospace;
+      padding: 16px 18px;
+      border-radius: 12px;
+      font-size: 0.88rem;
+      line-height: 1.65;
+      overflow-x: auto;
+      border: 1px solid #334155;
+    }
+    .kw { color: #f43f5e; font-weight: 600; }
+    .cls { color: #38bdf8; font-weight: 600; }
+    .str { color: #4ade80; }
+    .cmt { color: #94a3b8; font-style: italic; }
+    .num { color: #c084fc; }
+    .op { color: #fbbf24; font-weight: 600; }
+    .fn { color: #60a5fa; font-weight: 600; }
+    .hl { background: rgba(56, 189, 248, 0.2); border-radius: 4px; padding: 0 4px; }
+
+    /* Topic Grid & Cards */
+    .topic-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+      gap: 16px;
+    }
+    .topic-card {
+      background: #ffffff;
+      border-radius: 14px;
+      border: 1px solid var(--card-border);
+      padding: 18px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .topic-card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .topic-card-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .topic-badge {
+      font-size: 0.75rem;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-weight: 700;
+      background: #eef2ff;
+      color: var(--primary);
+    }
+
+    /* Alert / Rule Boxes */
+    .alert-box {
+      border-left: 5px solid var(--accent-rose);
+      background: #fff1f2;
+      padding: 14px 18px;
+      border-radius: 0 12px 12px 0;
+      margin: 14px 0;
+    }
+    .alert-box.info {
+      border-left-color: var(--secondary);
+      background: #f0f9ff;
+    }
+    .alert-box.success {
+      border-left-color: var(--accent-green);
+      background: #ecfdf5;
+    }
+    .alert-title { font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+
+    /* Interactive Stepper Visualizer */
+    .stepper-container {
+      background: #0f172a;
+      border-radius: 14px;
+      padding: 20px;
+      color: #f8fafc;
+      border: 1px solid #334155;
+    }
+    .stepper-controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      align-items: center;
+    }
+    .step-pill {
+      background: #1e293b;
+      color: #94a3b8;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      border: 1px solid #334155;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .step-pill.active {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary-light);
+    }
+    .step-content-box {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* Interactive Memory Cards */
+    .memory-diagram {
+      display: grid;
+      grid-template-columns: 1fr 1.5fr;
+      gap: 16px;
+      margin-top: 12px;
+    }
+    @media (max-width: 768px) {
+      .memory-diagram { grid-template-columns: 1fr; }
+    }
+    .mem-box {
+      background: #0f172a;
+      border-radius: 12px;
+      padding: 14px;
+      border: 1px solid #334155;
+    }
+    .mem-title { font-weight: 700; font-size: 0.9rem; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+    .stack-title { color: #4ade80; }
+    .heap-title { color: #38bdf8; }
+    
+    .stack-slot {
+      background: #1e293b;
+      border: 1px dashed #4ade80;
+      padding: 10px;
+      border-radius: 8px;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+    }
+    .heap-object {
+      background: #1e293b;
+      border: 2px solid #38bdf8;
+      padding: 12px;
+      border-radius: 10px;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+    }
+
+    /* Interactive Action Buttons */
+    .sim-btn {
+      background: var(--primary);
+      color: #ffffff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .sim-btn:hover { background: var(--primary-dark); }
+    .sim-btn.green { background: var(--accent-green); }
+    .sim-btn.purple { background: var(--accent-purple); }
+    .sim-btn.amber { background: var(--accent-amber); color: #000; }
+    .sim-btn.danger { background: var(--accent-rose); }
+
+    /* Interactive Inputs */
+    .tweak-input-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.88rem;
+      font-weight: 600;
+    }
+    .tweak-input {
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      font-family: 'Fira Code', monospace;
+      font-weight: 600;
+      font-size: 0.88rem;
+    }
+
+    /* Terminal Console */
+    .terminal-box {
+      background: #090d16;
+      color: #38bdf8;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+      padding: 14px;
+      border-radius: 10px;
+      border: 1px solid #1e293b;
+      min-height: 80px;
+      max-height: 160px;
+      overflow-y: auto;
+    }
+
+    /* Quizzes */
+    .quiz-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 16px;
+    }
+    .quiz-card {
+      background: #0f172a;
+      color: #ffffff;
+      border-radius: 14px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      border: 1px solid #334155;
+    }
+    .quiz-q { font-size: 0.98rem; font-weight: 600; color: #38bdf8; line-height: 1.5; }
+    .quiz-options { display: flex; flex-direction: column; gap: 8px; }
+    .quiz-opt {
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 10px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.88rem;
+      transition: all 0.2s ease;
+    }
+    .quiz-opt:hover { background: rgba(255, 255, 255, 0.14); }
+    .quiz-opt.correct { background: #059669 !important; border-color: #10b981 !important; color: #fff; }
+    .quiz-opt.incorrect { background: #dc2626 !important; border-color: #f87171 !important; color: #fff; }
+    .quiz-explanation {
+      font-size: 0.83rem;
+      color: #cbd5e1;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 10px;
+      border-radius: 6px;
+      border-left: 3px solid #38bdf8;
+      display: none;
+    }
+
+    footer { text-align: center; color: var(--text-muted); font-size: 0.88rem; padding: 24px 0; }
+    footer a { color: var(--primary); text-decoration: none; font-weight: 600; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Top Nav -->
+    <div class="top-nav">
+      <a href="../index.html" class="back-btn">
+        ⬅ Back to Java Index
+      </a>
+      <span class="nav-tag">Classes & Objects Module #2</span>
+    </div>
+
+    <!-- Hero Header -->
+    <div class="hero">
+      <div class="hero-top">
+        <h1>Constructors, `this`, & Method Overloading</h1>
+        <div class="hero-stats">
+          <span class="hero-stat-pill">`new` Keyword Deep Dive</span>
+          <span class="hero-stat-pill">Constructor Overloading</span>
+          <span class="hero-stat-pill">`this(...)` Chaining</span>
+          <span class="hero-stat-pill">Primitive Parameters</span>
+          <span class="hero-stat-pill">Method Overloading</span>
+        </div>
+      </div>
+      <p>Master how objects are initialized in memory using the <code>new</code> operator and constructors. Explore constructor overloading, constructor chaining with <code>this(...)</code>, defining methods with primitive parameters, and compile-time method overloading.</p>
+    </div>
+
+    <!-- Main Navigation Tab Bar -->
+    <div class="main-tab-bar">
+      <button class="main-tab-btn active" onclick="switchMainTab(event, 'pane-new')">
+        ⚡ 1. `new` Keyword & Memory
+      </button>
+      <button class="main-tab-btn" onclick="switchMainTab(event, 'pane-constructors')">
+        🏗️ 2. Constructors & Overloading
+      </button>
+      <button class="main-tab-btn" onclick="switchMainTab(event, 'pane-this')">
+        🔗 3. `this` & `this(...)` Chaining
+      </button>
+      <button class="main-tab-btn" onclick="switchMainTab(event, 'pane-methods')">
+        ⚙️ 4. Methods & Overloading
+      </button>
+      <button class="main-tab-btn" onclick="switchMainTab(event, 'pane-sandbox')">
+        🧪 5. Live Memory Sandbox
+      </button>
+      <button class="main-tab-btn" onclick="switchMainTab(event, 'pane-quiz')">
+        🎯 6. Self-Assessment Quiz
+      </button>
+    </div>
+
+    <!-- TAB 1: THE NEW KEYWORD & MEMORY DEEP DIVE -->
+    <div id="pane-new" class="tab-pane active">
+      <div class="card">
+        <div class="card-title">
+          <span class="icon">⚡</span>
+          <span>Deep Dive: The `new` Keyword & Object Creation Lifecycle</span>
+        </div>
+        <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 16px;">
+          When you write <code>BankAccount acc = new BankAccount("ACC101", 5000.0);</code>, Java performs a 4-phase lifecycle behind the scenes in Stack and Heap memory:
+        </p>
+
+        <!-- Interactive Stepper -->
+        <div class="stepper-container">
+          <div class="stepper-controls">
+            <span style="font-weight:700; color:#38bdf8; font-size:0.9rem;">Lifecycle Phase:</span>
+            <button class="step-pill active" onclick="setNewStep(1)">1. Declaration</button>
+            <button class="step-pill" onclick="setNewStep(2)">2. Heap Allocation (`new`)</button>
+            <button class="step-pill" onclick="setNewStep(3)">3. Default Init</button>
+            <button class="step-pill" onclick="setNewStep(4)">4. Constructor Execution</button>
+          </div>
+
+          <div class="step-content-box" id="stepBox">
+            <!-- Dynamically updated by JS -->
+          </div>
+
+          <div class="memory-diagram">
+            <div class="mem-box">
+              <div class="mem-title stack-title">📦 Stack Memory (Reference Variable)</div>
+              <div class="stack-slot" id="stackVisual">
+                <!-- Stack visual -->
+              </div>
+            </div>
+
+            <div class="mem-box">
+              <div class="mem-title heap-title">🏢 Heap Memory (Object Instance)</div>
+              <div class="heap-object" id="heapVisual">
+                <!-- Heap visual -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="topic-grid" style="margin-top: 20px;">
+          <div class="topic-card">
+            <div class="topic-card-head">
+              <div class="topic-card-title">1. Reference Variable</div>
+              <span class="topic-badge">Stack Memory</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              <code>BankAccount acc</code> creates a variable slot in Stack memory that holds an 8-byte reference address pointer (e.g. <code>0x4A10</code>). It does <strong>NOT</strong> hold the actual object data!
+            </p>
+          </div>
+
+          <div class="topic-card">
+            <div class="topic-card-head">
+              <div class="topic-card-title">2. Memory Allocator</div>
+              <span class="topic-badge">`new` Keyword</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              The <code>new</code> operator requests JVM Heap memory space large enough to hold all instance variables of the class and returns its unique memory address pointer.
+            </p>
+          </div>
+
+          <div class="topic-card">
+            <div class="topic-card-head">
+              <div class="topic-card-title">3. State Initialization</div>
+              <span class="topic-badge">Constructor Call</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              Immediately after memory allocation, JVM invokes the class constructor to initialize the instance variables with provided arguments.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: CONSTRUCTORS & CONSTRUCTOR OVERLOADING -->
+    <div id="pane-constructors" class="tab-pane">
+      <div class="card">
+        <div class="card-title">
+          <span class="icon">🏗️</span>
+          <span>Constructor Concepts & Constructor Overloading</span>
+        </div>
+
+        <div class="two-col-grid">
+          <div>
+            <h3 style="font-size: 1.05rem; color: var(--primary-dark); margin-bottom: 10px;">What is a Constructor?</h3>
+            <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 12px;">
+              A <strong>Constructor</strong> is a special block of code that is automatically called when an object is instantiated using the <code>new</code> keyword.
+            </p>
+            <ul style="font-size: 0.85rem; color: var(--text-muted); margin-left: 18px; line-height: 1.7; margin-bottom: 14px;">
+              <li>Must have the <strong>EXACT same name</strong> as the class.</li>
+              <li>Must <strong>NOT have any return type</strong> (not even <code>void</code>).</li>
+              <li>If you define <strong>no constructors</strong>, Java provides an implicit <em>Default No-Arg Constructor</em>.</li>
+              <li>If you define <strong>any constructor</strong>, the compiler no longer provides the default no-arg constructor!</li>
+            </ul>
+
+            <div class="alert-box info">
+              <div class="alert-title">💡 Constructor Overloading Principle</div>
+              <span style="font-size: 0.85rem; color: var(--text-muted);">
+                Defining multiple constructors in the same class with different parameter lists (different number, types, or order of parameters).
+              </span>
+            </div>
+          </div>
+
+          <div>
+            <div class="code-box">
+<span class="cmt">// BankAccount.java — Overloaded Constructors</span><br/>
+<span class="kw">public class</span> <span class="cls">BankAccount</span> {<br/>
+&nbsp;&nbsp;<span class="cls">String</span> accountNumber;<br/>
+&nbsp;&nbsp;<span class="kw">double</span> balance;<br/>
+&nbsp;&nbsp;<span class="cls">String</span> ownerName;<br/>
+&nbsp;&nbsp;<span class="kw">boolean</span> isActive;<br/><br/>
+
+&nbsp;&nbsp;<span class="cmt">// 1. No-Arg Constructor</span><br/>
+&nbsp;&nbsp;<span class="kw">public</span> <span class="fn">BankAccount</span>() {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">this</span>.accountNumber = <span class="str">"UNASSIGNED"</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">this</span>.balance = <span class="num">0.0</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">this</span>.ownerName = <span class="str">"Guest"</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">this</span>.isActive = <span class="kw">false</span>;<br/>
+&nbsp;&nbsp;}<br/><br/>
+
+&nbsp;&nbsp;<span class="cmt">// 2. Two-Parameter Constructor</span><br/>
+&nbsp;&nbsp;<span class="kw">public</span> <span class="fn">BankAccount</span>(<span class="cls">String</span> accNo, <span class="kw">double</span> bal) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">this</span>.accountNumber = accNo;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">this</span>.balance = bal;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">this</span>.ownerName = <span class="str">"Customer"</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">this</span>.isActive = <span class="kw">true</span>;<br/>
+&nbsp;&nbsp;}<br/><br/>
+
+&nbsp;&nbsp;<span class="cmt">// 3. Four-Parameter Constructor</span><br/>
+&nbsp;&nbsp;<span class="kw">public</span> <span class="fn">BankAccount</span>(<span class="cls">String</span> accNo, <span class="kw">double</span> bal, <span class="cls">String</span> owner, <span class="kw">boolean</span> active) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">this</span>.accountNumber = accNo;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">this</span>.balance = bal;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">this</span>.ownerName = owner;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">this</span>.isActive = active;<br/>
+&nbsp;&nbsp;}<br/>
+}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: THIS KEYWORD & THIS(...) CONSTRUCTOR CHAINING -->
+    <div id="pane-this" class="tab-pane">
+      <div class="card">
+        <div class="card-title">
+          <span class="icon">🔗</span>
+          <span>`this` Keyword & `this(...)` Constructor Chaining</span>
+        </div>
+
+        <div class="two-col-grid">
+          <div>
+            <h3 style="font-size: 1.05rem; color: var(--primary-dark); margin-bottom: 10px;">1. `this` Keyword for Field Shadowing</h3>
+            <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 12px;">
+              When constructor or method parameter names match instance field names, the parameter <strong>shadows</strong> the field. Use <code>this.fieldName</code> to explicitly refer to the current object's field.
+            </p>
+
+            <h3 style="font-size: 1.05rem; color: var(--primary-dark); margin-top: 18px; margin-bottom: 10px;">2. Constructor Chaining with `this(...)`</h3>
+            <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 12px;">
+              <strong>Constructor Chaining</strong> allows one constructor to call another overloaded constructor in the same class using <code>this(...)</code>.
+            </p>
+
+            <div class="alert-box">
+              <div class="alert-title">⚠️ CRITICAL JAVA RULE: The 1st Statement Requirement</div>
+              <span style="font-size: 0.85rem; color: #991b1b; font-weight: 600;">
+                The call to <code>this(...)</code> MUST strictly be the VERY FIRST STATEMENT inside the constructor body! Placed anywhere else, Java will throw a compile error: <code>call to this must be first statement in constructor</code>.
+              </span>
+            </div>
+          </div>
+
+          <div>
+            <div class="code-box">
+<span class="cmt">// Elegant Constructor Chaining via this(...)</span><br/>
+<span class="kw">public class</span> <span class="cls">BankAccount</span> {<br/>
+&nbsp;&nbsp;<span class="cls">String</span> accountNumber;<br/>
+&nbsp;&nbsp;<span class="kw">double</span> balance;<br/>
+&nbsp;&nbsp;<span class="cls">String</span> ownerName;<br/>
+&nbsp;&nbsp;<span class="kw">boolean</span> isActive;<br/><br/>
+
+&nbsp;&nbsp;<span class="cmt">// Main Master Constructor</span><br/>
+&nbsp;&nbsp;<span class="kw">public</span> <span class="fn">BankAccount</span>(<span class="cls">String</span> accountNumber, <span class="kw">double</span> balance, <span class="cls">String</span> ownerName, <span class="kw">boolean</span> isActive) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">this</span>.accountNumber = accountNumber; <span class="cmt">// Shadow resolution</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">this</span>.balance = balance;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">this</span>.ownerName = ownerName;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">this</span>.isActive = isActive;<br/>
+&nbsp;&nbsp;}<br/><br/>
+
+&nbsp;&nbsp;<span class="cmt">// Chained Constructor 1 (Delegates to Master)</span><br/>
+&nbsp;&nbsp;<span class="kw">public</span> <span class="fn">BankAccount</span>(<span class="cls">String</span> accountNumber, <span class="kw">double</span> balance) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="hl"><span class="kw">this</span>(accountNumber, balance, <span class="str">"Standard Client"</span>, <span class="kw">true</span>);</span> <span class="cmt">// MUST BE LINE 1!</span><br/>
+&nbsp;&nbsp;}<br/><br/>
+
+&nbsp;&nbsp;<span class="cmt">// Chained Constructor 2 (Delegates to 2-Arg)</span><br/>
+&nbsp;&nbsp;<span class="kw">public</span> <span class="fn">BankAccount</span>() {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="hl"><span class="kw">this</span>(<span class="str">"ACC-DEFAULT"</span>, <span class="num">1000.0</span>);</span> <span class="cmt">// Delegates up chain!</span><br/>
+&nbsp;&nbsp;}<br/>
+}
+            </div>
+          </div>
+        </div>
+
+        <!-- Interactive Call Chain Animation Tracer -->
+        <div class="stepper-container" style="margin-top: 20px;">
+          <div style="font-weight: 700; color: #38bdf8; font-size: 0.95rem; margin-bottom: 10px;">
+            🧪 Interactive Constructor Call Chain Tracer
+          </div>
+          <p style="font-size: 0.85rem; color: #cbd5e1; margin-bottom: 12px;">
+            Click below to simulate calling <code>new BankAccount()</code> and watch how <code>this(...)</code> delegates execution step-by-step:
+          </p>
+
+          <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px;">
+            <button class="sim-btn green" onclick="runCallChainTrace()">Run `new BankAccount()` Chain Trace ⚡</button>
+            <button class="sim-btn" onclick="resetCallChainTrace()">Reset Trace 🔄</button>
+          </div>
+
+          <div class="terminal-box" id="chainTraceConsole">
+            Press 'Run new BankAccount() Chain Trace' to watch execution flow...
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: METHODS & METHOD OVERLOADING -->
+    <div id="pane-methods" class="tab-pane">
+      <div class="card">
+        <div class="card-title">
+          <span class="icon">⚙️</span>
+          <span>Methods Definition & Method Overloading with Primitive Parameters</span>
+        </div>
+
+        <div class="two-col-grid">
+          <div>
+            <h3 style="font-size: 1.05rem; color: var(--primary-dark); margin-bottom: 10px;">1. Anatomy of Method Definition</h3>
+            <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 12px;">
+              Methods define the <strong>behavior</strong> of objects. They accept parameters (primitive data types like <code>int</code>, <code>double</code>, <code>boolean</code>) and return results.
+            </p>
+
+            <h3 style="font-size: 1.05rem; color: var(--primary-dark); margin-top: 16px; margin-bottom: 10px;">2. Method Overloading (Compile-Time Polymorphism)</h3>
+            <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 12px;">
+              Two or more methods in the same class can have the <strong>SAME name</strong> as long as their <strong>parameter lists are different</strong> (different number or types of parameters).
+            </p>
+
+            <div class="alert-box info">
+              <div class="alert-title">📌 Primitive Parameter Widening Rule</div>
+              <span style="font-size: 0.85rem; color: var(--text-muted);">
+                If you pass an <code>int</code> argument (e.g. <code>500</code>) to a method expecting a <code>double</code> parameter (<code>double amount</code>), Java automatically performs <strong>implicit primitive widening conversion</strong> from <code>int</code> to <code>double</code> (<code>500.0</code>).
+              </span>
+            </div>
+          </div>
+
+          <div>
+            <div class="code-box">
+<span class="cmt">// Method Overloading with Primitive Parameters</span><br/>
+<span class="kw">public class</span> <span class="cls">BankAccount</span> {<br/>
+&nbsp;&nbsp;<span class="kw">double</span> balance;<br/><br/>
+
+&nbsp;&nbsp;<span class="cmt">// Method 1: Deposit single primitive double</span><br/>
+&nbsp;&nbsp;<span class="kw">public void</span> <span class="fn">deposit</span>(<span class="kw">double</span> amount) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">this</span>.balance += amount;<br/>
+&nbsp;&nbsp;}<br/><br/>
+
+&nbsp;&nbsp;<span class="cmt">// Method 2: Deposit with transaction fee check</span><br/>
+&nbsp;&nbsp;<span class="kw">public void</span> <span class="fn">deposit</span>(<span class="kw">double</span> amount, <span class="kw">boolean</span> applyFee) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">double</span> fee = applyFee ? <span class="num">2.50</span> : <span class="num">0.0</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">this</span>.balance += (amount - fee);<br/>
+&nbsp;&nbsp;}<br/><br/>
+
+&nbsp;&nbsp;<span class="cmt">// Method 3: Calculate interest with primitive int months</span><br/>
+&nbsp;&nbsp;<span class="kw">public double</span> <span class="fn">calculateInterest</span>(<span class="kw">int</span> months) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> <span class="kw">this</span>.balance * <span class="num">0.05</span> * (months / <span class="num">12.0</span>);<br/>
+&nbsp;&nbsp;}<br/><br/>
+
+&nbsp;&nbsp;<span class="cmt">// Method 4: Overloaded interest with custom double rate & int months</span><br/>
+&nbsp;&nbsp;<span class="kw">public double</span> <span class="fn">calculateInterest</span>(<span class="kw">int</span> months, <span class="kw">double</span> customRate) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> <span class="kw">this</span>.balance * (customRate / <span class="num">100.0</span>) * (months / <span class="num">12.0</span>);<br/>
+&nbsp;&nbsp;}<br/>
+}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 5: LIVE INTERACTIVE SANDBOX -->
+    <div id="pane-sandbox" class="tab-pane">
+      <div class="card">
+        <div class="card-title">
+          <span class="icon">🧪</span>
+          <span>Live Interactive Object, Constructor, & Method Sandbox</span>
+        </div>
+        <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 14px;">
+          Select a constructor configuration below to instantiate a new <code>BankAccount</code> object in Heap Memory. Then execute overloaded methods on your live objects!
+        </p>
+
+        <!-- Sandbox Inputs -->
+        <div style="background: #0f172a; border-radius: 14px; padding: 18px; border: 1px solid #334155; color: #fff; margin-bottom: 20px;">
+          <div style="font-weight: 700; color: #38bdf8; margin-bottom: 12px; font-size: 0.95rem;">
+            1. Create Object Instance (`new BankAccount(...)`)
+          </div>
+
+          <div style="display: flex; gap: 14px; flex-wrap: wrap; align-items: center; margin-bottom: 14px;">
+            <div class="tweak-input-group">
+              <label style="color:#cbd5e1;">Constructor Choice:</label>
+              <select id="sbCtorType" class="tweak-input" onchange="toggleCtorInputs()">
+                <option value="default">1. BankAccount() [Default Chained]</option>
+                <option value="twoParam">2. BankAccount(accNo, balance) [2-Param]</option>
+                <option value="fourParam">3. BankAccount(accNo, balance, owner, active) [4-Param Full]</option>
+              </select>
+            </div>
+
+            <div class="tweak-input-group" id="groupAccNo">
+              <label style="color:#cbd5e1;">accNo:</label>
+              <input type="text" id="sbAccNo" class="tweak-input" value="ACC-101" style="width: 110px;">
+            </div>
+
+            <div class="tweak-input-group" id="groupBalance">
+              <label style="color:#cbd5e1;">balance ($):</label>
+              <input type="number" id="sbBalance" class="tweak-input" value="2500" style="width: 90px;">
+            </div>
+
+            <div class="tweak-input-group" id="groupOwner" style="display:none;">
+              <label style="color:#cbd5e1;">owner:</label>
+              <input type="text" id="sbOwner" class="tweak-input" value="Alice Smith" style="width: 120px;">
+            </div>
+
+            <div class="tweak-input-group" id="groupActive" style="display:none;">
+              <label style="color:#cbd5e1;">active:</label>
+              <select id="sbActive" class="tweak-input">
+                <option value="true">true</option>
+                <option value="false">false</option>
+              </select>
+            </div>
+
+            <button class="sim-btn green" onclick="instantiateSandboxObject()">Instantiate Object ⚡</button>
+          </div>
+
+          <div style="border-top: 1px solid #334155; padding-top: 14px; margin-top: 14px;">
+            <div style="font-weight: 700; color: #fbbf24; margin-bottom: 10px; font-size: 0.95rem;">
+              2. Execute Overloaded Methods on Instantiated Object
+            </div>
+
+            <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+              <div class="tweak-input-group">
+                <label style="color:#cbd5e1;">Target Object:</label>
+                <select id="sbTargetObj" class="tweak-input" style="min-width: 140px;">
+                  <option value="">(No Objects Created Yet)</option>
+                </select>
+              </div>
+
+              <div class="tweak-input-group">
+                <label style="color:#cbd5e1;">Method:</label>
+                <select id="sbMethodChoice" class="tweak-input" onchange="toggleMethodInputs()">
+                  <option value="deposit1">deposit(double amount)</option>
+                  <option value="deposit2">deposit(double amount, boolean applyFee)</option>
+                  <option value="interest">calculateInterest(int months, double rate)</option>
+                </select>
+              </div>
+
+              <div class="tweak-input-group" id="groupParamAmt">
+                <label style="color:#cbd5e1;">amount ($):</label>
+                <input type="number" id="sbParamAmt" class="tweak-input" value="500" style="width: 80px;">
+              </div>
+
+              <div class="tweak-input-group" id="groupParamFee" style="display:none;">
+                <label style="color:#cbd5e1;">applyFee:</label>
+                <select id="sbParamFee" class="tweak-input">
+                  <option value="true">true ($2.50 fee)</option>
+                  <option value="false">false (no fee)</option>
+                </select>
+              </div>
+
+              <div class="tweak-input-group" id="groupParamMonths" style="display:none;">
+                <label style="color:#cbd5e1;">months:</label>
+                <input type="number" id="sbParamMonths" class="tweak-input" value="12" style="width: 70px;">
+              </div>
+
+              <div class="tweak-input-group" id="groupParamRate" style="display:none;">
+                <label style="color:#cbd5e1;">rate (%):</label>
+                <input type="number" id="sbParamRate" class="tweak-input" value="6.5" style="width: 70px;">
+              </div>
+
+              <button class="sim-btn purple" onclick="executeSandboxMethod()">Execute Method () 🚀</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Heap Memory Visualizer -->
+        <div style="font-weight: 700; color: var(--primary-dark); margin-bottom: 8px;">
+          🏢 HEAP MEMORY OBJECT INSTANCES (Live State)
+        </div>
+        <div class="topic-grid" id="sandboxHeapGrid" style="margin-bottom: 20px;">
+          <!-- Dynamically populated heap objects -->
+        </div>
+
+        <!-- Live Terminal Output -->
+        <div style="font-weight: 700; color: var(--primary-dark); margin-bottom: 6px;">
+          💻 SIMULATED JAVA TERMINAL LOG OUTPUT
+        </div>
+        <div class="terminal-box" id="sandboxConsole">
+          Ready. Instantiate objects or call methods above to see execution logs...
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 6: SELF-ASSESSMENT QUIZ -->
+    <div id="pane-quiz" class="tab-pane">
+      <div class="card">
+        <div class="card-title">
+          <span class="icon">🎯</span>
+          <span>Constructors & Methods Self-Assessment Quizzes</span>
+        </div>
+
+        <div class="quiz-grid">
+          <!-- Question 1 -->
+          <div class="quiz-card">
+            <div class="quiz-q">1. What is the return type of a Java Constructor?</div>
+            <div class="quiz-options">
+              <div class="quiz-opt" onclick="checkQuiz(this, false, 'q1')">A) void</div>
+              <div class="quiz-opt" onclick="checkQuiz(this, false, 'q1')">B) Object reference type</div>
+              <div class="quiz-opt" onclick="checkQuiz(this, true, 'q1')">C) Constructors have NO return type</div>
+            </div>
+            <div id="q1-exp" class="quiz-explanation">
+              🎉 <strong>Correct!</strong> Constructors must NOT have any return type specified (not even <code>void</code>).
+            </div>
+          </div>
+
+          <!-- Question 2 -->
+          <div class="quiz-card">
+            <div class="quiz-q">2. Where MUST a `this(...)` constructor call be located inside a constructor body?</div>
+            <div class="quiz-options">
+              <div class="quiz-opt" onclick="checkQuiz(this, true, 'q2')">A) Strictly the VERY FIRST statement</div>
+              <div class="quiz-opt" onclick="checkQuiz(this, false, 'q2')">B) The last statement before return</div>
+              <div class="quiz-opt" onclick="checkQuiz(this, false, 'q2')">C) Anywhere inside the constructor body</div>
+            </div>
+            <div id="q2-exp" class="quiz-explanation">
+              🎉 <strong>Correct!</strong> Java strictly requires <code>this(...)</code> constructor chaining calls to be on the <strong>first line</strong> of the constructor.
+            </div>
+          </div>
+
+          <!-- Question 3 -->
+          <div class="quiz-card">
+            <div class="quiz-q">3. What is Method Overloading in Java?</div>
+            <div class="quiz-options">
+              <div class="quiz-opt" onclick="checkQuiz(this, true, 'q3')">A) Multiple methods in the same class with the SAME name but DIFFERENT parameter lists</div>
+              <div class="quiz-opt" onclick="checkQuiz(this, false, 'q3')">B) Redefining a method in a subclass with exact same signature</div>
+              <div class="quiz-opt" onclick="checkQuiz(this, false, 'q3')">C) Creating multiple objects from the same class</div>
+            </div>
+            <div id="q3-exp" class="quiz-explanation">
+              🎉 <strong>Correct!</strong> Method overloading allows multiple methods to share a name as long as their parameter counts or types differ.
+            </div>
+          </div>
+
+          <!-- Question 4 -->
+          <div class="quiz-card">
+            <div class="quiz-q">4. If you define a 3-parameter constructor in your class, what happens to the default no-arg constructor?</div>
+            <div class="quiz-options">
+              <div class="quiz-opt" onclick="checkQuiz(this, false, 'q4')">A) Java still provides it automatically</div>
+              <div class="quiz-opt" onclick="checkQuiz(this, true, 'q4')">B) The compiler NO LONGER provides it automatically</div>
+              <div class="quiz-opt" onclick="checkQuiz(this, false, 'q4')">C) It causes a compilation error</div>
+            </div>
+            <div id="q4-exp" class="quiz-explanation">
+              🎉 <strong>Correct!</strong> Once you explicitly write ANY constructor, Java stops generating the default implicit no-arg constructor.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      Java Learning Module — Objects, Constructors & Methods | <a href="../index.html">Return to Home Index</a>
+    </footer>
+
+  </div>
+
+  <script>
+    // Tab Switching
+    function switchMainTab(evt, paneId) {
+      document.querySelectorAll('.main-tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+      evt.currentTarget.classList.add('active');
+      document.getElementById(paneId).classList.add('active');
+    }
+
+    // Step 1: new Keyword Stepper
+    const NEW_STEPS = {
+      1: {
+        title: "Phase 1: Declaration (Reference Variable)",
+        desc: "<code>BankAccount acc;</code> creates a reference variable slot in Stack memory. At this instant, <code>acc</code> contains <code>null</code>.",
+        stack: "acc: null",
+        heap: "(No memory allocated in Heap yet)"
+      },
+      2: {
+        title: "Phase 2: Heap Memory Allocation (`new`)",
+        desc: "<code>new</code> requests JVM Heap memory. A fresh block is allocated at address <code>0x4A10</code>.",
+        stack: "acc: 0x4A10 (pointer)",
+        heap: "Address: 0x4A10<br/>Type: BankAccount"
+      },
+      3: {
+        title: "Phase 3: Default Field Initialization",
+        desc: "JVM automatically fills fields with default primitive values: <code>accountNumber = null</code>, <code>balance = 0.0</code>, <code>ownerName = null</code>, <code>isActive = false</code>.",
+        stack: "acc: 0x4A10",
+        heap: "Address: 0x4A10<br/>accountNumber: null<br/>balance: 0.0<br/>ownerName: null<br/>isActive: false"
+      },
+      4: {
+        title: "Phase 4: Constructor Execution & Initialization",
+        desc: "Constructor runs: <code>BankAccount('ACC101', 5000.0)</code> sets actual state values! Address <code>0x4A10</code> is returned to <code>acc</code>.",
+        stack: "acc: 0x4A10 (Ready)",
+        heap: "Address: 0x4A10<br/>accountNumber: 'ACC101'<br/>balance: 5000.0<br/>ownerName: 'Standard Client'<br/>isActive: true"
+      }
+    };
+
+    function setNewStep(stepNum) {
+      document.querySelectorAll('.stepper-controls .step-pill').forEach((p, idx) => {
+        p.classList.toggle('active', idx + 1 === stepNum);
+      });
+      const data = NEW_STEPS[stepNum];
+      document.getElementById('stepBox').innerHTML = `
+        <div style="font-weight:700; color:#38bdf8; font-size:1rem;">${data.title}</div>
+        <div style="font-size:0.88rem; color:#cbd5e1; line-height:1.5;">${data.desc}</div>
+      `;
+      document.getElementById('stackVisual').innerHTML = data.stack;
+      document.getElementById('heapVisual').innerHTML = data.heap;
+    }
+
+    // Call Chain Tracer Animation
+    function runCallChainTrace() {
+      const consoleBox = document.getElementById('chainTraceConsole');
+      consoleBox.innerHTML = "";
+      
+      const logs = [
+        "⏩ Step 1: User invokes `new BankAccount()`",
+        "➡️ Step 2: Enters No-Arg Constructor: BankAccount()",
+        "  └─ Call to `this(\"ACC-DEFAULT\", 1000.0)` triggered at Line 1!",
+        "➡️ Step 3: Enters 2-Arg Constructor: BankAccount(\"ACC-DEFAULT\", 1000.0)",
+        "  └─ Call to `this(\"ACC-DEFAULT\", 1000.0, \"Standard Client\", true)` triggered at Line 1!",
+        "➡️ Step 4: Enters Master 4-Arg Constructor: BankAccount(\"ACC-DEFAULT\", 1000.0, \"Standard Client\", true)",
+        "  ├─ Executing: this.accountNumber = \"ACC-DEFAULT\";",
+        "  ├─ Executing: this.balance = 1000.0;",
+        "  ├─ Executing: this.ownerName = \"Standard Client\";",
+        "  └─ Executing: this.isActive = true;",
+        "✅ Step 5: Master Constructor completes execution.",
+        "🎉 Step 6: Chained constructors complete. Object fully initialized at Heap memory address 0x88F1!"
+      ];
+
+      logs.forEach((log, idx) => {
+        setTimeout(() => {
+          consoleBox.innerHTML += log + "<br/>";
+          consoleBox.scrollTop = consoleBox.scrollHeight;
+        }, idx * 450);
+      });
+    }
+
+    function resetCallChainTrace() {
+      document.getElementById('chainTraceConsole').innerHTML = "Press 'Run new BankAccount() Chain Trace' to watch execution flow...";
+    }
+
+    // Live Sandbox State
+    let sbObjects = [];
+    let sbCounter = 0;
+
+    function toggleCtorInputs() {
+      const val = document.getElementById('sbCtorType').value;
+      document.getElementById('groupAccNo').style.display = (val === 'default') ? 'none' : 'flex';
+      document.getElementById('groupBalance').style.display = (val === 'default') ? 'none' : 'flex';
+      document.getElementById('groupOwner').style.display = (val === 'fourParam') ? 'flex' : 'none';
+      document.getElementById('groupActive').style.display = (val === 'fourParam') ? 'flex' : 'none';
+    }
+
+    function toggleMethodInputs() {
+      const m = document.getElementById('sbMethodChoice').value;
+      document.getElementById('groupParamAmt').style.display = (m.startsWith('deposit')) ? 'flex' : 'none';
+      document.getElementById('groupParamFee').style.display = (m === 'deposit2') ? 'flex' : 'none';
+      document.getElementById('groupParamMonths').style.display = (m === 'interest') ? 'flex' : 'none';
+      document.getElementById('groupParamRate').style.display = (m === 'interest') ? 'flex' : 'none';
+    }
+
+    function instantiateSandboxObject() {
+      const type = document.getElementById('sbCtorType').value;
+      sbCounter++;
+      const refName = "acc" + sbCounter;
+      const hexAddr = "0x" + (2000 + sbCounter * 16).toString(16).toUpperCase();
+
+      let accountNumber = "ACC-DEFAULT";
+      let balance = 1000.0;
+      let ownerName = "Standard Client";
+      let isActive = true;
+
+      if (type === 'twoParam') {
+        accountNumber = document.getElementById('sbAccNo').value.trim() || "ACC-101";
+        balance = parseFloat(document.getElementById('sbBalance').value) || 0.0;
+        ownerName = "Customer";
+        isActive = true;
+      } else if (type === 'fourParam') {
+        accountNumber = document.getElementById('sbAccNo').value.trim() || "ACC-101";
+        balance = parseFloat(document.getElementById('sbBalance').value) || 0.0;
+        ownerName = document.getElementById('sbOwner').value.trim() || "Alice Smith";
+        isActive = (document.getElementById('sbActive').value === 'true');
+      }
+
+      const obj = { id: sbCounter, refName, hexAddr, accountNumber, balance, ownerName, isActive };
+      sbObjects.push(obj);
+
+      renderSandboxHeap();
+      logSandbox(`⚡ Instantiated new BankAccount object via constructor [${type}] at ${hexAddr} (ref: ${refName})`);
+    }
+
+    function executeSandboxMethod() {
+      const objId = parseInt(document.getElementById('sbTargetObj').value);
+      if (!objId) {
+        alert("Please select a target object instance!");
+        return;
+      }
+      const obj = sbObjects.find(o => o.id === objId);
+      if (!obj) return;
+
+      const method = document.getElementById('sbMethodChoice').value;
+      if (method === 'deposit1') {
+        const amt = parseFloat(document.getElementById('sbParamAmt').value) || 0.0;
+        obj.balance += amt;
+        logSandbox(`🚀 Executed: ${obj.refName}.deposit(${amt}) -> New Balance: $${obj.balance.toFixed(2)}`);
+      } else if (method === 'deposit2') {
+        const amt = parseFloat(document.getElementById('sbParamAmt').value) || 0.0;
+        const fee = (document.getElementById('sbParamFee').value === 'true') ? 2.50 : 0.0;
+        obj.balance += (amt - fee);
+        logSandbox(`🚀 Executed: ${obj.refName}.deposit(${amt}, applyFee=${fee > 0}) [Fee: $${fee.toFixed(2)}] -> New Balance: $${obj.balance.toFixed(2)}`);
+      } else if (method === 'interest') {
+        const months = parseInt(document.getElementById('sbParamMonths').value) || 12;
+        const rate = parseFloat(document.getElementById('sbParamRate').value) || 5.0;
+        const interest = obj.balance * (rate / 100.0) * (months / 12.0);
+        logSandbox(`🚀 Executed: ${obj.refName}.calculateInterest(months=${months}, rate=${rate}%) -> Interest Earned: $${interest.toFixed(2)}`);
+      }
+
+      renderSandboxHeap();
+    }
+
+    function renderSandboxHeap() {
+      const grid = document.getElementById('sandboxHeapGrid');
+      const select = document.getElementById('sbTargetObj');
+
+      if (sbObjects.length === 0) {
+        grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: #94a3b8; padding: 20px; background:#fff; border-radius:12px; border:1px solid #e2e8f0;">Heap Memory is empty. Configure constructor parameters above and click 'Instantiate Object'!</div>`;
+        select.innerHTML = `<option value="">(No Objects Created Yet)</option>`;
+        return;
+      }
+
+      select.innerHTML = sbObjects.map(o => `<option value="${o.id}">${o.refName} (${o.hexAddr} - $${o.balance.toFixed(2)})</option>`).join('');
+
+      grid.innerHTML = sbObjects.map(o => `
+        <div class="topic-card" style="border-top: 4px solid var(--secondary);">
+          <div class="topic-card-head">
+            <span style="font-family:'Fira Code',monospace; font-weight:700; color:var(--primary-dark);">${o.refName}</span>
+            <span class="topic-badge" style="background:#e0f2fe; color:#0284c7;">Addr: ${o.hexAddr}</span>
+          </div>
+          <div style="font-family:'Fira Code',monospace; font-size:0.83rem; color:var(--text-muted); line-height:1.6;">
+            <div>accountNumber: <strong style="color:var(--primary);">"${o.accountNumber}"</strong></div>
+            <div>balance: <strong style="color:var(--accent-green);">$${o.balance.toFixed(2)}</strong></div>
+            <div>ownerName: <strong style="color:var(--accent-purple);">"${o.ownerName}"</strong></div>
+            <div>isActive: <strong style="color:${o.isActive ? '#059669':'#dc2626'};">${o.isActive}</strong></div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function logSandbox(msg) {
+      const consoleBox = document.getElementById('sandboxConsole');
+      consoleBox.innerHTML += msg + "<br/>";
+      consoleBox.scrollTop = consoleBox.scrollHeight;
+    }
+
+    // Quiz Verification
+    function checkQuiz(opt, isCorrect, qId) {
+      const parent = opt.parentElement;
+      parent.querySelectorAll('.quiz-opt').forEach(o => o.classList.remove('correct', 'incorrect'));
+      const exp = document.getElementById(qId + '-exp');
+      exp.style.display = 'block';
+
+      if (isCorrect) {
+        opt.classList.add('correct');
+      } else {
+        opt.classList.add('incorrect');
+        exp.innerHTML = `❌ <strong>Incorrect.</strong> Try again! Review the concepts in tabs above.`;
+      }
+    }
+
+    // Init Defaults
+    window.addEventListener('DOMContentLoaded', () => {
+      setNewStep(1);
+      toggleCtorInputs();
+      toggleMethodInputs();
+      renderSandboxHeap();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JVM Object Memory Model & Startup Tuning | Java Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --primary-light: #818cf8;
+      --secondary: #0284c7;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --accent-purple: #8b5cf6;
+      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f1f5f9 100%);
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 8px 20px rgba(79, 70, 229, 0.07);
+      --shadow-lg: 0 16px 32px rgba(15, 23, 42, 0.08);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      color: var(--text-main);
+      padding: 16px 12px;
+      line-height: 1.5;
+    }
+
+    .container { max-width: 1140px; margin: 0 auto; }
+
+    /* Top Nav */
+    .top-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #ffffff;
+      color: var(--primary-dark);
+      text-decoration: none;
+      padding: 8px 16px;
+      border-radius: 30px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      border: 1px solid var(--card-border);
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s ease;
+    }
+
+    .back-btn:hover {
+      background: var(--primary);
+      color: #ffffff;
+      transform: translateX(-3px);
+    }
+
+    .nav-tag {
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.85rem;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 5px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--card-border);
+    }
+
+    /* Hero Header */
+    .hero {
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
+      color: #ffffff;
+      border-radius: 16px;
+      padding: 24px 28px;
+      box-shadow: var(--shadow-md);
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .hero-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .hero h1 { font-size: 2rem; font-weight: 800; letter-spacing: -0.5px; }
+    .hero p { font-size: 1rem; opacity: 0.95; max-width: 860px; }
+
+    .hero-stats {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .hero-stat-pill {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(8px);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    /* Tab Bar */
+    .main-tab-bar {
+      display: flex;
+      gap: 6px;
+      background: transparent;
+      padding: 0 4px;
+      border-bottom: 2px solid #cbd5e1;
+      margin-bottom: 24px;
+      overflow-x: auto;
+      scrollbar-width: thin;
+    }
+
+    .main-tab-btn {
+      flex: 1;
+      min-width: 150px;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-bottom: none;
+      padding: 12px 14px;
+      border-radius: 12px 12px 0 0;
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      position: relative;
+      bottom: -2px;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      box-shadow: inset 0 -3px 6px rgba(0, 0, 0, 0.03);
+    }
+
+    .main-tab-btn:hover {
+      background: #ffffff;
+      color: var(--primary);
+      border-color: #94a3b8;
+    }
+
+    .main-tab-btn.active {
+      background: #ffffff;
+      color: var(--primary-dark);
+      font-weight: 700;
+      border: 2px solid var(--primary);
+      border-bottom: 2px solid #ffffff;
+      box-shadow: 0 -4px 14px rgba(79, 70, 229, 0.12);
+      z-index: 2;
+    }
+
+    .main-tab-btn.active::before {
+      content: '';
+      position: absolute;
+      top: -2px;
+      left: -2px;
+      right: -2px;
+      height: 4px;
+      background: linear-gradient(90deg, #38bdf8, var(--primary));
+      border-radius: 12px 12px 0 0;
+    }
+
+    /* Tab Panes */
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
+    /* General Card Container */
+    .card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--card-border);
+    }
+
+    .card-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-title .icon {
+      font-size: 1.3rem;
+      background: #eef2ff;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+    }
+
+    /* Grid Layouts */
+    .two-col-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 868px) {
+      .two-col-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Poster Lightbox Styling */
+    .img-preview-container {
+      position: relative;
+      border-radius: 14px;
+      overflow: hidden;
+      cursor: pointer;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--card-border);
+      background: #fff;
+    }
+    .img-preview-container:hover {
+      transform: scale(1.005);
+      box-shadow: var(--shadow-lg);
+    }
+    .preview-img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .img-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.45);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      font-weight: 700;
+      font-size: 1.05rem;
+      gap: 8px;
+    }
+    .img-preview-container:hover .img-overlay { opacity: 1; }
+
+    /* Modal Lightbox */
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: rgba(15, 23, 42, 0.88);
+      backdrop-filter: blur(6px);
+      padding: 20px;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+    .modal.active { display: flex; opacity: 1; }
+    .modal-content {
+      position: relative;
+      max-width: 94vw;
+      max-height: 94vh;
+      background: #fff;
+      border-radius: 16px;
+      padding: 12px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      overflow: auto;
+    }
+    .modal-close {
+      position: absolute;
+      top: 16px;
+      right: 20px;
+      background: rgba(15, 23, 42, 0.7);
+      color: #fff;
+      border: none;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      font-size: 22px;
+      line-height: 36px;
+      text-align: center;
+      cursor: pointer;
+      z-index: 10;
+    }
+    .modal-close:hover { background: #ef4444; }
+    .modal-img {
+      max-width: 100%;
+      max-height: 86vh;
+      object-fit: contain;
+      display: block;
+      border-radius: 8px;
+      margin: 0 auto;
+    }
+
+    /* Code Box Styling */
+    .code-box {
+      background: #0f172a;
+      color: #f8fafc;
+      font-family: 'Fira Code', monospace;
+      padding: 16px 18px;
+      border-radius: 12px;
+      font-size: 0.88rem;
+      line-height: 1.65;
+      overflow-x: auto;
+      border: 1px solid #334155;
+    }
+    .kw { color: #f43f5e; font-weight: 600; }
+    .cls { color: #38bdf8; font-weight: 600; }
+    .str { color: #4ade80; }
+    .cmt { color: #94a3b8; font-style: italic; }
+    .num { color: #c084fc; }
+    .op { color: #fbbf24; font-weight: 600; }
+    .fn { color: #60a5fa; font-weight: 600; }
+    .hl { background: rgba(56, 189, 248, 0.2); border-radius: 4px; padding: 0 4px; }
+
+    /* Topic Grid & Cards */
+    .topic-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+      gap: 16px;
+    }
+    .topic-card {
+      background: #ffffff;
+      border-radius: 14px;
+      border: 1px solid var(--card-border);
+      padding: 18px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .topic-card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .topic-card-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .topic-badge {
+      font-size: 0.75rem;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-weight: 700;
+      background: #eef2ff;
+      color: var(--primary);
+    }
+
+    /* Comparison Table */
+    .comp-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0;
+      font-size: 0.88rem;
+    }
+    .comp-table th, .comp-table td {
+      border: 1px solid #e2e8f0;
+      padding: 10px 14px;
+      text-align: left;
+    }
+    .comp-table th {
+      background: #f8fafc;
+      color: var(--primary-dark);
+      font-weight: 700;
+    }
+    .comp-table tr:nth-child(even) { background: #f8fafc; }
+
+    /* Alert / Rule Boxes */
+    .alert-box {
+      border-left: 5px solid var(--accent-rose);
+      background: #fff1f2;
+      padding: 14px 18px;
+      border-radius: 0 12px 12px 0;
+      margin: 14px 0;
+    }
+    .alert-box.info {
+      border-left-color: var(--secondary);
+      background: #f0f9ff;
+    }
+    .alert-box.success {
+      border-left-color: var(--accent-green);
+      background: #ecfdf5;
+    }
+    .alert-title { font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+
+    /* Interactive Stepper Visualizer */
+    .stepper-container {
+      background: #0f172a;
+      border-radius: 14px;
+      padding: 20px;
+      color: #f8fafc;
+      border: 1px solid #334155;
+    }
+    .stepper-controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .step-pill {
+      background: #1e293b;
+      color: #94a3b8;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      border: 1px solid #334155;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .step-pill.active {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary-light);
+    }
+    .step-content-box {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* Memory Diagram Box */
+    .memory-diagram {
+      display: grid;
+      grid-template-columns: 1fr 1.5fr;
+      gap: 16px;
+      margin-top: 14px;
+    }
+    @media (max-width: 768px) {
+      .memory-diagram { grid-template-columns: 1fr; }
+    }
+    .mem-box {
+      background: #0f172a;
+      border-radius: 12px;
+      padding: 14px;
+      border: 1px solid #334155;
+    }
+    .mem-title { font-weight: 700; font-size: 0.9rem; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+    .stack-title { color: #4ade80; }
+    .heap-title { color: #38bdf8; }
+    
+    .stack-slot {
+      background: #1e293b;
+      border: 1px dashed #4ade80;
+      padding: 10px;
+      border-radius: 8px;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+      margin-bottom: 8px;
+    }
+    .heap-object {
+      background: #1e293b;
+      border: 2px solid #38bdf8;
+      padding: 12px;
+      border-radius: 10px;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+    }
+
+    /* Action Buttons */
+    .sim-btn {
+      background: var(--primary);
+      color: #ffffff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .sim-btn:hover { background: var(--primary-dark); }
+    .sim-btn.green { background: var(--accent-green); }
+    .sim-btn.purple { background: var(--accent-purple); }
+    .sim-btn.amber { background: var(--accent-amber); color: #000; }
+    .sim-btn.danger { background: var(--accent-rose); }
+
+    /* Interactive Inputs */
+    .tweak-input-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.88rem;
+      font-weight: 600;
+    }
+    .tweak-input {
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      font-family: 'Fira Code', monospace;
+      font-weight: 600;
+      font-size: 0.88rem;
+    }
+
+    /* Terminal Console */
+    .terminal-box {
+      background: #090d16;
+      color: #38bdf8;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.88rem;
+      padding: 16px;
+      border-radius: 10px;
+      border: 1px solid #1e293b;
+      min-height: 90px;
+      word-break: break-all;
+    }
+
+    /* Quizzes */
+    .quiz-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 16px;
+    }
+    .quiz-card {
+      background: #0f172a;
+      color: #ffffff;
+      border-radius: 14px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      border: 1px solid #334155;
+    }
+    .quiz-q { font-size: 0.98rem; font-weight: 600; color: #38bdf8; line-height: 1.5; }
+    .quiz-options { display: flex; flex-direction: column; gap: 8px; }
+    .quiz-opt {
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 10px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.88rem;
+      transition: all 0.2s ease;
+    }
+    .quiz-opt:hover { background: rgba(255, 255, 255, 0.14); }
+    .quiz-opt.correct { background: #059669 !important; border-color: #10b981 !important; color: #fff; }
+    .quiz-opt.incorrect { background: #dc2626 !important; border-color: #f87171 !important; color: #fff; }
+    .quiz-explanation {
+      font-size: 0.83rem;
+      color: #cbd5e1;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 10px;
+      border-radius: 6px;
+      border-left: 3px solid #38bdf8;
+      display: none;
+    }
+
+    footer { text-align: center; color: var(--text-muted); font-size: 0.88rem; padding: 24px 0; }
+    footer a { color: var(--primary); text-decoration: none; font-weight: 600; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Top Nav -->
+    <div class="top-nav">
+      <a href="../index.html" class="back-btn">
+        ⬅ Back to Java Index
+      </a>
+      <span class="nav-tag">JVM Architecture & Memory Module</span>
+    </div>
+
+    <!-- Hero Header -->
+    <div class="hero">
+      <div class="hero-top">
+        <h1>JVM Memory Model & Startup Tuning</h1>
+        <div class="hero-stats">
+          <span class="hero-stat-pill">Stack vs Heap</span>
+          <span class="hero-stat-pill">Metaspace</span>
+          <span class="hero-stat-pill">-Xms & -Xmx Flags</span>
+          <span class="hero-stat-pill">StackFrame Stepper</span>
+          <span class="hero-stat-pill">CLI Generator</span>
+        </div>
+      </div>
+      <p>Master how Java manages memory during object creation. Understand the fundamental differences between Stack Memory, Heap Memory, and Metaspace, trace stack frame execution step-by-step, and learn how to configure production JVM memory parameters at startup.</p>
+    </div>
+
+    <!-- Main Navigation Tab Bar -->
+    <div class="main-tab-bar">
+      <button class="main-tab-btn active" onclick="switchMainTab(event, 'pane-poster')">
+        📷 Poster Diagram Overview
+      </button>
+      <button class="main-tab-btn" onclick="switchMainTab(event, 'pane-regions')">
+        🧠 Stack vs Heap vs Metaspace
+      </button>
+      <button class="main-tab-btn" onclick="switchMainTab(event, 'pane-stepper')">
+        ⚙️ Interactive Memory Tracer
+      </button>
+      <button class="main-tab-btn" onclick="switchMainTab(event, 'pane-flags')">
+        🛠️ Startup Memory Flags (-Xmx)
+      </button>
+      <button class="main-tab-btn" onclick="switchMainTab(event, 'pane-builder')">
+        🚀 Interactive CLI Flag Generator
+      </button>
+      <button class="main-tab-btn" onclick="switchMainTab(event, 'pane-quiz')">
+        🎯 Self-Assessment Quiz
+      </button>
+    </div>
+
+    <!-- TAB 1: POSTER DIAGRAM OVERVIEW -->
+    <div id="pane-poster" class="tab-pane active">
+      <div class="card">
+        <div class="card-title">
+          <span class="icon">📷</span>
+          <span>Java Memory Model Concept Architecture Poster</span>
+        </div>
+        <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 14px;">
+          Click the diagram poster below to enlarge it into high-definition lightbox mode!
+        </p>
+
+        <!-- Image Container with Modal Lightbox trigger -->
+        <div class="img-preview-container" onclick="openImageModal()" title="Click to enlarge diagram poster">
+          <img src="java_stack_vs_heap.png" alt="Java Stack vs Heap Memory Architecture Diagram" class="preview-img" />
+          <div class="img-overlay">
+            🔍 Click to enlarge high-definition poster
+          </div>
+        </div>
+
+        <div class="topic-grid" style="margin-top: 20px;">
+          <div class="topic-card" style="border-left: 4px solid var(--accent-green);">
+            <div class="topic-card-head">
+              <div class="topic-card-title">📦 Stack Memory</div>
+              <span class="topic-badge" style="background:#ecfdf5; color:#059669;">Thread-Private</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              Holds method call frames, local primitive variables, and object reference address pointers (e.g. <code>0x4A10</code>). Operates LIFO (Last-In-First-Out). Fast execution & automatic deallocation.
+            </p>
+          </div>
+
+          <div class="topic-card" style="border-left: 4px solid var(--secondary);">
+            <div class="topic-card-head">
+              <div class="topic-card-title">🏢 Heap Memory</div>
+              <span class="topic-badge" style="background:#e0f2fe; color:#0284c7;">Shared (All Threads)</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              Holds actual physical Object instances and instance variables. Divided into Young Generation (Eden, Survivor) & Old Generation. Automatically managed by Garbage Collection.
+            </p>
+          </div>
+
+          <div class="topic-card" style="border-left: 4px solid var(--accent-purple);">
+            <div class="topic-card-head">
+              <div class="topic-card-title">📁 Metaspace</div>
+              <span class="topic-badge" style="background:#f3e8ff; color:#7e22ce;">Native OS Memory</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              Stores class definitions, method bytecode, static variables, and runtime constant pool. Allocated out of off-heap native OS memory (Replaced PermGen in Java 8+).
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: STACK VS HEAP VS METASPACE DEEP-DIVE -->
+    <div id="pane-regions" class="tab-pane">
+      <div class="card">
+        <div class="card-title">
+          <span class="icon">🧠</span>
+          <span>JVM Memory Regions Breakdown & Comparison</span>
+        </div>
+
+        <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 14px;">
+          Understanding how JVM allocates memory across Stack, Heap, and Metaspace is essential for writing high-performance Java applications and troubleshooting memory leaks.
+        </p>
+
+        <table class="comp-table">
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th>📦 Stack Memory</th>
+              <th>🏢 Heap Memory</th>
+              <th>📁 Metaspace (Native)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Access Scope</strong></td>
+              <td>Thread-Private (per thread)</td>
+              <td>Shared across all threads</td>
+              <td>Shared across all threads</td>
+            </tr>
+            <tr>
+              <td><strong>What is Stored?</strong></td>
+              <td>Method frames, local primitives, ref pointers (<code>0x...</code>)</td>
+              <td>Actual Object instances & instance variables</td>
+              <td>Class metadata, bytecodes, static members</td>
+            </tr>
+            <tr>
+              <td><strong>Life Cycle</strong></td>
+              <td>Short-lived (deallocated on method exit)</td>
+              <td>Long-lived (until Garbage Collection)</td>
+              <td>Application runtime duration</td>
+            </tr>
+            <tr>
+              <td><strong>Allocation Speed</strong></td>
+              <td>Extremely Fast (LIFO pointer shift)</td>
+              <td>Slower (Dynamic Heap allocation)</td>
+              <td>Native OS allocation speed</td>
+            </tr>
+            <tr>
+              <td><strong>Error when Full</strong></td>
+              <td><code>java.lang.StackOverflowError</code></td>
+              <td><code>java.lang.OutOfMemoryError: Java heap space</code></td>
+              <td><code>java.lang.OutOfMemoryError: Metaspace</code></td>
+            </tr>
+            <tr>
+              <td><strong>JVM Tuning Flag</strong></td>
+              <td><code>-Xss</code> (e.g. <code>-Xss512k</code>)</td>
+              <td><code>-Xms</code>, <code>-Xmx</code> (e.g. <code>-Xmx2g</code>)</td>
+              <td><code>-XX:MetaspaceSize</code>, <code>-XX:MaxMetaspaceSize</code></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="two-col-grid" style="margin-top: 20px;">
+          <div class="alert-box">
+            <div class="alert-title">💥 1. `java.lang.StackOverflowError`</div>
+            <span style="font-size: 0.85rem; color: #991b1b; line-height: 1.6;">
+              Occurs when method calls exceed the thread's Stack size (most commonly caused by <strong>unbounded recursive method calls</strong> without a base condition).
+            </span>
+          </div>
+
+          <div class="alert-box info">
+            <div class="alert-title">💥 2. `java.lang.OutOfMemoryError: Java heap space`</div>
+            <span style="font-size: 0.85rem; color: #075985; line-height: 1.6;">
+              Occurs when the JVM Heap is completely full and the Garbage Collector cannot free up memory to instantiate a new object (caused by memory leaks or small max heap size).
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: INTERACTIVE MEMORY EXECUTION TRACER -->
+    <div id="pane-stepper" class="tab-pane">
+      <div class="card">
+        <div class="card-title">
+          <span class="icon">⚙️</span>
+          <span>Interactive Object Creation & Stack Frame Tracer</span>
+        </div>
+        <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 16px;">
+          Click the step pills below to trace how Stack Frames are pushed/popped and how Object references in Stack point to Heap memory instances:
+        </p>
+
+        <div class="two-col-grid" style="margin-bottom: 16px;">
+          <div>
+            <div class="code-box">
+<span class="cmt">// MemoryDemo.java</span><br/>
+<span class="kw">public class</span> <span class="cls">MemoryDemo</span> {<br/>
+&nbsp;&nbsp;<span class="kw">public static void</span> <span class="fn">main</span>(<span class="cls">String</span>[] args) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">int</span> id = <span class="num">101</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="cls">Student</span> s1 = <span class="kw">new</span> <span class="cls">Student</span>(<span class="str">"Alice"</span>, <span class="num">3.9</span>);<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">processStudent</span>(s1);<br/>
+&nbsp;&nbsp;}<br/><br/>
+
+&nbsp;&nbsp;<span class="kw">public static void</span> <span class="fn">processStudent</span>(<span class="cls">Student</span> st) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">double</span> bonus = <span class="num">0.1</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;st.gpa += bonus; <span class="cmt">// Mutates Heap object!</span><br/>
+&nbsp;&nbsp;}<br/>
+}
+            </div>
+          </div>
+
+          <div>
+            <!-- Stepper Container -->
+            <div class="stepper-container">
+              <div class="stepper-controls">
+                <span style="font-weight:700; color:#38bdf8; font-size:0.88rem;">Step:</span>
+                <button class="step-pill active" onclick="setTraceStep(1)">1. main() Start</button>
+                <button class="step-pill" onclick="setTraceStep(2)">2. new Student()</button>
+                <button class="step-pill" onclick="setTraceStep(3)">3. processStudent() Call</button>
+                <button class="step-pill" onclick="setTraceStep(4)">4. bonus Var</button>
+                <button class="step-pill" onclick="setTraceStep(5)">5. st.gpa Mutate</button>
+                <button class="step-pill" onclick="setTraceStep(6)">6. Frame Pop</button>
+                <button class="step-pill" onclick="setTraceStep(7)">7. main() Exit (GC)</button>
+              </div>
+
+              <div class="step-content-box" id="traceStepBox">
+                <!-- Step Explanation -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Memory Diagram -->
+        <div class="memory-diagram">
+          <div class="mem-box">
+            <div class="mem-title stack-title">📦 Stack Memory (Call Frames & Ref Pointers)</div>
+            <div id="stackFrameVisual">
+              <!-- Stack visual -->
+            </div>
+          </div>
+
+          <div class="mem-box">
+            <div class="mem-title heap-title">🏢 Heap Memory (Physical Object Instances)</div>
+            <div class="heap-object" id="heapObjectVisual">
+              <!-- Heap visual -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: JVM STARTUP MEMORY FLAGS & TUNING -->
+    <div id="pane-flags" class="tab-pane">
+      <div class="card">
+        <div class="card-title">
+          <span class="icon">🛠️</span>
+          <span>JVM Startup Memory Settings & Flag Reference</span>
+        </div>
+        <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 14px;">
+          When starting a Java application in production, you configure JVM memory limits using command-line startup flags:
+        </p>
+
+        <div class="topic-grid">
+          <div class="topic-card">
+            <div class="topic-card-head">
+              <div class="topic-card-title">1. Initial Heap Size</div>
+              <span class="topic-badge">-Xms</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              Sets the initial memory size allocated to the Heap upon startup (e.g. <code>-Xms512m</code> or <code>-Xms2g</code>). Prevents frequent heap growth overhead during initial load.
+            </p>
+          </div>
+
+          <div class="topic-card">
+            <div class="topic-card-head">
+              <div class="topic-card-title">2. Maximum Heap Size</div>
+              <span class="topic-badge">-Xmx</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              Sets the upper limit of Heap memory the JVM is allowed to consume (e.g. <code>-Xmx2g</code> or <code>-Xmx8g</code>). If application exceeds this, <code>OutOfMemoryError</code> is thrown.
+            </p>
+          </div>
+
+          <div class="topic-card">
+            <div class="topic-card-head">
+              <div class="topic-card-title">3. Thread Stack Size</div>
+              <span class="topic-badge">-Xss</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              Sets memory size allocated to each thread's Stack (e.g. <code>-Xss512k</code> or <code>-Xss1m</code>). Lowering this allows creating more concurrent threads.
+            </p>
+          </div>
+
+          <div class="topic-card">
+            <div class="topic-card-head">
+              <div class="topic-card-title">4. Metaspace Limits</div>
+              <span class="topic-badge">-XX:MaxMetaspaceSize</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              Configures initial and maximum memory limits for native class metadata (e.g. <code>-XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=512m</code>).
+            </p>
+          </div>
+
+          <div class="topic-card">
+            <div class="topic-card-head">
+              <div class="topic-card-title">5. OOM Heap Dump</div>
+              <span class="topic-badge">-XX:+HeapDumpOnOutOfMemoryError</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              Instructs JVM to automatically generate a <code>.hprof</code> Heap Dump snapshot when <code>OutOfMemoryError</code> occurs for post-mortem memory leak debugging.
+            </p>
+          </div>
+        </div>
+
+        <div class="alert-box success" style="margin-top: 20px;">
+          <div class="alert-title">💡 Production Best Practice: Setting -Xms equal to -Xmx</div>
+          <span style="font-size: 0.85rem; color: #065f46; line-height: 1.6;">
+            In production server environments (e.g. Docker, Kubernetes, AWS), always set <code>-Xms</code> equal to <code>-Xmx</code> (e.g. <code>-Xms4g -Xmx4g</code>). This pre-allocates the full heap on startup, avoiding costly Garbage Collector heap expansion pauses while running under heavy traffic!
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 5: INTERACTIVE JVM CLI COMMAND GENERATOR -->
+    <div id="pane-builder" class="tab-pane">
+      <div class="card">
+        <div class="card-title">
+          <span class="icon">🚀</span>
+          <span>Interactive JVM Startup Memory Command Generator</span>
+        </div>
+        <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 14px;">
+          Select your deployment environment preset or tweak custom memory parameters below to generate an exact production <code>java</code> startup command line string!
+        </p>
+
+        <!-- Builder Panel -->
+        <div style="background: #0f172a; border-radius: 14px; padding: 20px; border: 1px solid #334155; color: #fff; margin-bottom: 20px;">
+          
+          <div style="display: flex; gap: 14px; flex-wrap: wrap; align-items: center; margin-bottom: 16px;">
+            <div class="tweak-input-group">
+              <label style="color:#38bdf8;">Environment Preset:</label>
+              <select id="cliPreset" class="tweak-input" onchange="applyCliPreset()">
+                <option value="custom">Custom Configuration</option>
+                <option value="micro">Microservice (Spring Boot in K8s / 1GB RAM)</option>
+                <option value="web" selected>Standard Web App (4GB Server)</option>
+                <option value="enterprise">Enterprise Monolith (16GB Server)</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 16px;">
+            <div class="tweak-input-group">
+              <label style="color:#cbd5e1;">Initial Heap (-Xms):</label>
+              <select id="cliXms" class="tweak-input" onchange="updateCliCommand()">
+                <option value="256m">256m</option>
+                <option value="512m">512m</option>
+                <option value="1g">1g</option>
+                <option value="2g" selected>2g</option>
+                <option value="4g">4g</option>
+                <option value="8g">8g</option>
+              </select>
+            </div>
+
+            <div class="tweak-input-group">
+              <label style="color:#cbd5e1;">Max Heap (-Xmx):</label>
+              <select id="cliXmx" class="tweak-input" onchange="updateCliCommand()">
+                <option value="512m">512m</option>
+                <option value="1g">1g</option>
+                <option value="2g" selected>2g</option>
+                <option value="4g">4g</option>
+                <option value="8g">8g</option>
+                <option value="16g">16g</option>
+              </select>
+            </div>
+
+            <div class="tweak-input-group">
+              <label style="color:#cbd5e1;">Thread Stack (-Xss):</label>
+              <select id="cliXss" class="tweak-input" onchange="updateCliCommand()">
+                <option value="256k">256k</option>
+                <option value="512k" selected>512k</option>
+                <option value="1m">1m</option>
+              </select>
+            </div>
+
+            <div class="tweak-input-group">
+              <label style="color:#cbd5e1;">Initial Metaspace:</label>
+              <select id="cliMetaInit" class="tweak-input" onchange="updateCliCommand()">
+                <option value="128m">128m</option>
+                <option value="256m" selected>256m</option>
+                <option value="512m">512m</option>
+              </select>
+            </div>
+
+            <div class="tweak-input-group">
+              <label style="color:#cbd5e1;">Max Metaspace:</label>
+              <select id="cliMetaMax" class="tweak-input" onchange="updateCliCommand()">
+                <option value="256m">256m</option>
+                <option value="512m" selected>512m</option>
+                <option value="1g">1g</option>
+              </select>
+            </div>
+
+            <div class="tweak-input-group">
+              <label style="color:#cbd5e1;">JAR File / Class:</label>
+              <input type="text" id="cliJarName" class="tweak-input" value="application.jar" oninput="updateCliCommand()" style="width: 140px;">
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 14px;">
+            <input type="checkbox" id="cliOomDump" checked onchange="updateCliCommand()">
+            <label for="cliOomDump" style="font-size:0.88rem; color:#cbd5e1; cursor:pointer;">
+              Enable Heap Dump on OutOfMemoryError (<code>-XX:+HeapDumpOnOutOfMemoryError</code>)
+            </label>
+          </div>
+
+          <div style="font-weight: 700; color: #fbbf24; margin-bottom: 8px; font-size: 0.95rem;">
+            Generated Production Startup Command Line:
+          </div>
+          <div class="terminal-box" id="cliOutputBox">
+            <!-- Command Output -->
+          </div>
+
+          <div style="margin-top: 14px; display: flex; gap: 10px; align-items: center;">
+            <button class="sim-btn green" onclick="copyCliCommand()">Copy Command to Clipboard 📋</button>
+            <span id="copyToast" style="font-size:0.85rem; color:#4ade80; display:none; font-weight:600;">Copied to clipboard! 🎉</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 6: SELF-ASSESSMENT QUIZ -->
+    <div id="pane-quiz" class="tab-pane">
+      <div class="card">
+        <div class="card-title">
+          <span class="icon">🎯</span>
+          <span>JVM Memory Model Self-Assessment Quizzes</span>
+        </div>
+
+        <div class="quiz-grid">
+          <!-- Question 1 -->
+          <div class="quiz-card">
+            <div class="quiz-q">1. Where are physical Object instances stored in JVM memory?</div>
+            <div class="quiz-options">
+              <div class="quiz-opt" onclick="checkQuiz(this, true, 'q1')">A) Heap Memory</div>
+              <div class="quiz-opt" onclick="checkQuiz(this, false, 'q1')">B) Stack Memory</div>
+              <div class="quiz-opt" onclick="checkQuiz(this, false, 'q1')">C) Metaspace</div>
+            </div>
+            <div id="q1-exp" class="quiz-explanation">
+              🎉 <strong>Correct!</strong> All object instances reside in <strong>Heap Memory</strong>, while reference variables holding memory addresses reside in Stack Memory.
+            </div>
+          </div>
+
+          <!-- Question 2 -->
+          <div class="quiz-card">
+            <div class="quiz-q">2. Which JVM startup flag controls the Maximum Heap Memory size?</div>
+            <div class="quiz-options">
+              <div class="quiz-opt" onclick="checkQuiz(this, false, 'q2')">A) -Xss</div>
+              <div class="quiz-opt" onclick="checkQuiz(this, false, 'q2')">B) -Xms</div>
+              <div class="quiz-opt" onclick="checkQuiz(this, true, 'q2')">C) -Xmx</div>
+            </div>
+            <div id="q2-exp" class="quiz-explanation">
+              🎉 <strong>Correct!</strong> <code>-Xmx</code> specifies Maximum Heap Memory (e.g. <code>-Xmx4g</code>), while <code>-Xms</code> sets Initial Heap Memory.
+            </div>
+          </div>
+
+          <!-- Question 3 -->
+          <div class="quiz-card">
+            <div class="quiz-q">3. What error occurs if recursive method calls exceed the thread stack limit?</div>
+            <div class="quiz-options">
+              <div class="quiz-opt" onclick="checkQuiz(this, true, 'q3')">A) java.lang.StackOverflowError</div>
+              <div class="quiz-opt" onclick="checkQuiz(this, false, 'q3')">B) java.lang.OutOfMemoryError</div>
+              <div class="quiz-opt" onclick="checkQuiz(this, false, 'q3')">C) java.lang.NullPointerException</div>
+            </div>
+            <div id="q3-exp" class="quiz-explanation">
+              🎉 <strong>Correct!</strong> Excessive nested stack frames trigger a <code>StackOverflowError</code> on the thread stack.
+            </div>
+          </div>
+
+          <!-- Question 4 -->
+          <div class="quiz-card">
+            <div class="quiz-q">4. Where does JVM store class definitions, bytecode, and metadata in Java 8+?</div>
+            <div class="quiz-options">
+              <div class="quiz-opt" onclick="checkQuiz(this, false, 'q4')">A) PermGen</div>
+              <div class="quiz-opt" onclick="checkQuiz(this, true, 'q4')">B) Metaspace (Native OS Memory)</div>
+              <div class="quiz-opt" onclick="checkQuiz(this, false, 'q4')">C) Young Generation</div>
+            </div>
+            <div id="q4-exp" class="quiz-explanation">
+              🎉 <strong>Correct!</strong> Java 8 replaced PermGen with <strong>Metaspace</strong>, which allocates class metadata in native OS memory.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      Java Learning Module — JVM Memory Architecture & Startup Tuning | <a href="../index.html">Return to Home Index</a>
+    </footer>
+
+  </div>
+
+  <!-- Modal Lightbox for Poster Image -->
+  <div id="imageModal" class="modal" role="dialog" aria-label="Diagram Lightbox Modal" onclick="closeImageModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeImageModal()">&times;</button>
+      <img src="java_stack_vs_heap.png" alt="Java Stack vs Heap Memory Poster" class="modal-img" />
+    </div>
+  </div>
+
+  <script>
+    // Tab Switching
+    function switchMainTab(evt, paneId) {
+      document.querySelectorAll('.main-tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+      evt.currentTarget.classList.add('active');
+      document.getElementById(paneId).classList.add('active');
+    }
+
+    // Modal Lightbox for Image Poster
+    function openImageModal() {
+      const modal = document.getElementById('imageModal');
+      if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+    }
+
+    function closeImageModal(e) {
+      if (!e || e.target.id === 'imageModal' || e.target.classList.contains('modal-close')) {
+        const modal = document.getElementById('imageModal');
+        if (modal) {
+          modal.classList.remove('active');
+          document.body.style.overflow = '';
+        }
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeImageModal({ target: { id: 'imageModal' } });
+    });
+
+    // Step 2: Stack Frame Trace Stepper
+    const TRACE_STEPS = {
+      1: {
+        title: "Step 1: main() Execution Begins",
+        desc: "JVM pushes the <code>main()</code> StackFrame onto Stack memory. Primitive variable <code>id = 101</code> is stored directly inside the <code>main()</code> frame.",
+        stack: "<div class='stack-slot'><strong>Frame: main()</strong><br/>id: 101<br/>s1: null</div>",
+        heap: "(Heap Memory is empty)"
+      },
+      2: {
+        title: "Step 2: Object Creation (`new Student('Alice', 3.9)`)",
+        desc: "<code>new</code> allocates memory in Heap at address <code>0x4A10</code>. Instance fields (<code>name='Alice', gpa=3.9</code>) are populated. Reference variable <code>s1</code> in Stack stores address <code>0x4A10</code>.",
+        stack: "<div class='stack-slot'><strong>Frame: main()</strong><br/>id: 101<br/>s1: 0x4A10 (Pointer)</div>",
+        heap: "Address: 0x4A10<br/>Type: Student<br/>name: 'Alice'<br/>gpa: 3.9"
+      },
+      3: {
+        title: "Step 3: Call processStudent(s1)",
+        desc: "JVM pushes <code>processStudent()</code> StackFrame onto Stack. Parameter <code>st</code> receives a COPY of the reference address pointer <code>0x4A10</code> (Pass-by-value of reference!).",
+        stack: "<div class='stack-slot' style='border-color:#38bdf8;'><strong>Frame: processStudent()</strong><br/>st: 0x4A10 (Copy Pointer)</div><div class='stack-slot'><strong>Frame: main()</strong><br/>id: 101<br/>s1: 0x4A10</div>",
+        heap: "Address: 0x4A10<br/>Type: Student<br/>name: 'Alice'<br/>gpa: 3.9"
+      },
+      4: {
+        title: "Step 4: Local Primitive Variable Allocation",
+        desc: "Inside <code>processStudent()</code> frame, local primitive variable <code>double bonus = 0.1</code> is stored on the Stack.",
+        stack: "<div class='stack-slot' style='border-color:#38bdf8;'><strong>Frame: processStudent()</strong><br/>st: 0x4A10<br/>bonus: 0.1</div><div class='stack-slot'><strong>Frame: main()</strong><br/>id: 101<br/>s1: 0x4A10</div>",
+        heap: "Address: 0x4A10<br/>Type: Student<br/>name: 'Alice'<br/>gpa: 3.9"
+      },
+      5: {
+        title: "Step 5: st.gpa += bonus (Heap Object Field Mutation)",
+        desc: "Executing <code>st.gpa += bonus</code> follows pointer <code>0x4A10</code> into Heap memory and mutates the instance variable <code>gpa</code> from <code>3.9</code> to <code>4.0</code>!",
+        stack: "<div class='stack-slot' style='border-color:#38bdf8;'><strong>Frame: processStudent()</strong><br/>st: 0x4A10<br/>bonus: 0.1</div><div class='stack-slot'><strong>Frame: main()</strong><br/>id: 101<br/>s1: 0x4A10</div>",
+        heap: "Address: 0x4A10<br/>Type: Student<br/>name: 'Alice'<br/><strong style='color:#4ade80;'>gpa: 4.0 (Updated!)</strong>"
+      },
+      6: {
+        title: "Step 6: processStudent() Completes & Pops Frame",
+        desc: "<code>processStudent()</code> finishes execution. Its StackFrame (containing <code>st</code> & <code>bonus</code>) is popped off Stack. Reference <code>s1</code> in <code>main()</code> frame still points to the mutated Heap object <code>0x4A10</code>!",
+        stack: "<div class='stack-slot'><strong>Frame: main()</strong><br/>id: 101<br/>s1: 0x4A10</div>",
+        heap: "Address: 0x4A10<br/>Type: Student<br/>name: 'Alice'<br/>gpa: 4.0"
+      },
+      7: {
+        title: "Step 7: main() Exits (Garbage Collection Eligibility)",
+        desc: "<code>main()</code> frame pops off Stack. Variable <code>s1</code> is destroyed. Object <code>0x4A10</code> in Heap now has 0 active references and becomes eligible for Garbage Collection!",
+        stack: "(Stack is completely empty)",
+        heap: "Address: 0x4A10 (Unreferenced — Eligible for Garbage Collection 🗑️)"
+      }
+    };
+
+    function setTraceStep(stepNum) {
+      document.querySelectorAll('.stepper-controls .step-pill').forEach((p, idx) => {
+        p.classList.toggle('active', idx + 1 === stepNum);
+      });
+      const data = TRACE_STEPS[stepNum];
+      document.getElementById('traceStepBox').innerHTML = `
+        <div style="font-weight:700; color:#38bdf8; font-size:1rem;">${data.title}</div>
+        <div style="font-size:0.88rem; color:#cbd5e1; line-height:1.5;">${data.desc}</div>
+      `;
+      document.getElementById('stackFrameVisual').innerHTML = data.stack;
+      document.getElementById('heapObjectVisual').innerHTML = data.heap;
+    }
+
+    // CLI Generator Logic
+    function applyCliPreset() {
+      const p = document.getElementById('cliPreset').value;
+      if (p === 'micro') {
+        document.getElementById('cliXms').value = '512m';
+        document.getElementById('cliXmx').value = '512m';
+        document.getElementById('cliXss').value = '256k';
+        document.getElementById('cliMetaInit').value = '128m';
+        document.getElementById('cliMetaMax').value = '256m';
+      } else if (p === 'web') {
+        document.getElementById('cliXms').value = '2g';
+        document.getElementById('cliXmx').value = '2g';
+        document.getElementById('cliXss').value = '512k';
+        document.getElementById('cliMetaInit').value = '256m';
+        document.getElementById('cliMetaMax').value = '512m';
+      } else if (p === 'enterprise') {
+        document.getElementById('cliXms').value = '8g';
+        document.getElementById('cliXmx').value = '8g';
+        document.getElementById('cliXss').value = '1m';
+        document.getElementById('cliMetaInit').value = '512m';
+        document.getElementById('cliMetaMax').value = '1g';
+      }
+      updateCliCommand();
+    }
+
+    function updateCliCommand() {
+      const xms = document.getElementById('cliXms').value;
+      const xmx = document.getElementById('cliXmx').value;
+      const xss = document.getElementById('cliXss').value;
+      const metaInit = document.getElementById('cliMetaInit').value;
+      const metaMax = document.getElementById('cliMetaMax').value;
+      const oomDump = document.getElementById('cliOomDump').checked;
+      const jar = document.getElementById('cliJarName').value.trim() || 'app.jar';
+
+      let cmd = `java -Xms${xms} -Xmx${xmx} -Xss${xss} -XX:MetaspaceSize=${metaInit} -XX:MaxMetaspaceSize=${metaMax}`;
+      if (oomDump) {
+        cmd += ` -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=./heap-dumps`;
+      }
+      cmd += ` -jar ${jar}`;
+
+      document.getElementById('cliOutputBox').textContent = cmd;
+    }
+
+    function copyCliCommand() {
+      const text = document.getElementById('cliOutputBox').textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        const toast = document.getElementById('copyToast');
+        toast.style.display = 'inline';
+        setTimeout(() => toast.style.display = 'none', 2500);
+      });
+    }
+
+    // Quiz Verification
+    function checkQuiz(opt, isCorrect, qId) {
+      const parent = opt.parentElement;
+      parent.querySelectorAll('.quiz-opt').forEach(o => o.classList.remove('correct', 'incorrect'));
+      const exp = document.getElementById(qId + '-exp');
+      exp.style.display = 'block';
+
+      if (isCorrect) {
+        opt.classList.add('correct');
+      } else {
+        opt.classList.add('incorrect');
+        exp.innerHTML = `❌ <strong>Incorrect.</strong> Try again! Review Stack vs Heap concepts in tabs above.`;
+      }
+    }
+
+    // Init Defaults
+    window.addEventListener('DOMContentLoaded', () => {
+      setTraceStep(1);
+      updateCliCommand();
+    });
+  </script>
+</body>
+</html>

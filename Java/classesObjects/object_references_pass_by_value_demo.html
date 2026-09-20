@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Object References & Pass-by-Value in Java | Java Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --primary-light: #818cf8;
+      --secondary: #0284c7;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --accent-purple: #8b5cf6;
+      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f1f5f9 100%);
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 8px 20px rgba(79, 70, 229, 0.07);
+      --shadow-lg: 0 16px 32px rgba(15, 23, 42, 0.08);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      color: var(--text-main);
+      padding: 16px 12px;
+      line-height: 1.5;
+    }
+
+    .container { max-width: 1140px; margin: 0 auto; }
+
+    /* Top Nav */
+    .top-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #ffffff;
+      color: var(--primary-dark);
+      text-decoration: none;
+      padding: 8px 16px;
+      border-radius: 30px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      border: 1px solid var(--card-border);
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s ease;
+    }
+
+    .back-btn:hover {
+      background: var(--primary);
+      color: #ffffff;
+      transform: translateX(-3px);
+    }
+
+    .nav-tag {
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.85rem;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 5px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--card-border);
+    }
+
+    /* Hero Header */
+    .hero {
+      background: linear-gradient(135deg, #0284c7 0%, #4f46e5 50%, #7c3aed 100%);
+      color: #ffffff;
+      border-radius: 16px;
+      padding: 24px 28px;
+      box-shadow: var(--shadow-md);
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .hero-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .hero h1 { font-size: 2rem; font-weight: 800; letter-spacing: -0.5px; }
+    .hero p { font-size: 1rem; opacity: 0.95; max-width: 860px; }
+
+    .hero-stats {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .hero-stat-pill {
+      background: rgba(255, 255, 255, 0.18);
+      backdrop-filter: blur(8px);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+
+    /* Tab Bar */
+    .main-tab-bar {
+      display: flex;
+      gap: 6px;
+      background: transparent;
+      padding: 0 4px;
+      border-bottom: 2px solid #cbd5e1;
+      margin-bottom: 24px;
+      overflow-x: auto;
+      scrollbar-width: thin;
+    }
+
+    .main-tab-btn {
+      flex: 1;
+      min-width: 150px;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-bottom: none;
+      padding: 12px 14px;
+      border-radius: 12px 12px 0 0;
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      position: relative;
+      bottom: -2px;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      box-shadow: inset 0 -3px 6px rgba(0, 0, 0, 0.03);
+    }
+
+    .main-tab-btn:hover {
+      background: #ffffff;
+      color: var(--primary);
+      border-color: #94a3b8;
+    }
+
+    .main-tab-btn.active {
+      background: #ffffff;
+      color: var(--primary-dark);
+      font-weight: 700;
+      border: 2px solid var(--primary);
+      border-bottom: 2px solid #ffffff;
+      box-shadow: 0 -4px 14px rgba(79, 70, 229, 0.12);
+      z-index: 2;
+    }
+
+    .main-tab-btn.active::before {
+      content: '';
+      position: absolute;
+      top: -2px;
+      left: -2px;
+      right: -2px;
+      height: 4px;
+      background: linear-gradient(90deg, var(--secondary), var(--primary));
+      border-radius: 12px 12px 0 0;
+    }
+
+    /* Tab Panes */
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
+    /* General Card Container */
+    .card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--card-border);
+    }
+
+    .card-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-title .icon {
+      font-size: 1.3rem;
+      background: #eef2ff;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+    }
+
+    /* Grid Layouts */
+    .two-col-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 868px) {
+      .two-col-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Code Box Styling */
+    .code-box {
+      background: #0f172a;
+      color: #f8fafc;
+      font-family: 'Fira Code', monospace;
+      padding: 16px 18px;
+      border-radius: 12px;
+      font-size: 0.88rem;
+      line-height: 1.65;
+      overflow-x: auto;
+      border: 1px solid #334155;
+    }
+    .kw { color: #f43f5e; font-weight: 600; }
+    .cls { color: #38bdf8; font-weight: 600; }
+    .str { color: #4ade80; }
+    .cmt { color: #94a3b8; font-style: italic; }
+    .num { color: #c084fc; }
+    .op { color: #fbbf24; font-weight: 600; }
+    .fn { color: #60a5fa; font-weight: 600; }
+    .hl { background: rgba(56, 189, 248, 0.2); border-radius: 4px; padding: 0 4px; }
+
+    /* Topic Grid & Cards */
+    .topic-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .topic-card {
+      background: #ffffff;
+      border-radius: 14px;
+      border: 1px solid var(--card-border);
+      padding: 18px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .topic-card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .topic-card-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .topic-badge {
+      font-size: 0.75rem;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-weight: 700;
+      background: #eef2ff;
+      color: var(--primary);
+    }
+
+    /* Comparison Table */
+    .comp-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0;
+      font-size: 0.88rem;
+    }
+    .comp-table th, .comp-table td {
+      border: 1px solid #e2e8f0;
+      padding: 10px 14px;
+      text-align: left;
+    }
+    .comp-table th {
+      background: #f8fafc;
+      color: var(--primary-dark);
+      font-weight: 700;
+    }
+    .comp-table tr:nth-child(even) { background: #f8fafc; }
+
+    /* Alert / Rule Boxes */
+    .alert-box {
+      border-left: 5px solid var(--accent-rose);
+      background: #fff1f2;
+      padding: 14px 18px;
+      border-radius: 0 12px 12px 0;
+      margin: 14px 0;
+    }
+    .alert-box.info {
+      border-left-color: var(--secondary);
+      background: #f0f9ff;
+    }
+    .alert-box.success {
+      border-left-color: var(--accent-green);
+      background: #ecfdf5;
+    }
+    .alert-title { font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+
+    /* Interactive Stepper Visualizer */
+    .stepper-container {
+      background: #0f172a;
+      border-radius: 14px;
+      padding: 20px;
+      color: #f8fafc;
+      border: 1px solid #334155;
+    }
+    .stepper-controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .step-pill {
+      background: #1e293b;
+      color: #94a3b8;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      border: 1px solid #334155;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .step-pill.active {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary-light);
+    }
+    .step-content-box {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* Memory Diagram Box */
+    .memory-diagram {
+      display: grid;
+      grid-template-columns: 1fr 1.5fr;
+      gap: 16px;
+      margin-top: 14px;
+    }
+    @media (max-width: 768px) {
+      .memory-diagram { grid-template-columns: 1fr; }
+    }
+    .mem-box {
+      background: #0f172a;
+      border-radius: 12px;
+      padding: 14px;
+      border: 1px solid #334155;
+    }
+    .mem-title { font-weight: 700; font-size: 0.9rem; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+    .stack-title { color: #4ade80; }
+    .heap-title { color: #38bdf8; }
+    
+    .stack-slot {
+      background: #1e293b;
+      border: 1px dashed #4ade80;
+      padding: 10px;
+      border-radius: 8px;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+      margin-bottom: 8px;
+    }
+    .heap-object {
+      background: #1e293b;
+      border: 2px solid #38bdf8;
+      padding: 12px;
+      border-radius: 10px;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+    }
+
+    /* Action Buttons */
+    .sim-btn {
+      background: var(--primary);
+      color: #ffffff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .sim-btn:hover { background: var(--primary-dark); }
+    .sim-btn.green { background: var(--accent-green); }
+    .sim-btn.purple { background: var(--accent-purple); }
+    .sim-btn.amber { background: var(--accent-amber); color: #000; }
+    .sim-btn.danger { background: var(--accent-rose); }
+
+    /* Interactive Inputs */
+    .tweak-input-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.88rem;
+      font-weight: 600;
+    }
+    .tweak-input {
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      font-family: 'Fira Code', monospace;
+      font-weight: 600;
+      font-size: 0.88rem;
+    }
+
+    /* Terminal Console */
+    .terminal-box {
+      background: #090d16;
+      color: #38bdf8;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.88rem;
+      padding: 16px;
+      border-radius: 10px;
+      border: 1px solid #1e293b;
+      min-height: 90px;
+      word-break: break-all;
+    }
+
+    /* Quizzes */
+    .quiz-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 16px;
+    }
+    .quiz-card {
+      background: #0f172a;
+      color: #ffffff;
+      border-radius: 14px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      border: 1px solid #334155;
+    }
+    .quiz-q { font-size: 0.98rem; font-weight: 600; color: #38bdf8; line-height: 1.5; }
+    .quiz-options { display: flex; flex-direction: column; gap: 8px; }
+    .quiz-opt {
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 10px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.88rem;
+      transition: all 0.2s ease;
+    }
+    .quiz-opt:hover { background: rgba(255, 255, 255, 0.14); }
+    .quiz-opt.correct { background: #059669 !important; border-color: #10b981 !important; color: #fff; }
+    .quiz-opt.incorrect { background: #dc2626 !important; border-color: #f87171 !important; color: #fff; }
+    .quiz-explanation {
+      font-size: 0.83rem;
+      color: #cbd5e1;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 10px;
+      border-radius: 6px;
+      border-left: 3px solid #38bdf8;
+      display: none;
+    }
+
+    footer { text-align: center; color: var(--text-muted); font-size: 0.88rem; padding: 24px 0; }
+    footer a { color: var(--primary); text-decoration: none; font-weight: 600; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Top Nav -->
+    <div class="top-nav">
+      <a href="../index.html" class="back-btn">
+        ⬅ Back to Java Index
+      </a>
+      <span class="nav-tag">Classes & Objects Module #3</span>
+    </div>
+
+    <!-- Hero Header -->
+    <div class="hero">
+      <div class="hero-top">
+        <h1>Object References & Pass-by-Value in Java</h1>
+        <div class="hero-stats">
+          <span class="hero-stat-pill">Object Parameters</span>
+          <span class="hero-stat-pill">Memory Pointer Copy</span>
+          <span class="hero-stat-pill">Strict Pass-by-Value</span>
+          <span class="hero-stat-pill">Mutation vs Reassignment</span>
+          <span class="hero-stat-pill">Live Memory Sandbox</span>
+        </div>
+      </div>
+      <p>Master how Java handles method parameters. Learn how methods accept other object instances as parameters, understand why Java is <strong>strictly 100% Pass-by-Value</strong>, and discover the critical difference between mutating an object's fields vs reassigning a reference parameter.</p>
+    </div>
+
+    <!-- Main Navigation Tab Bar -->
+    <div class="main-tab-bar">
+      <button class="main-tab-btn active" onclick="switchMainTab(event, 'pane-object-params')">
+        🤝 1. Methods Taking Object Parameters
+      </button>
+      <button class="main-tab-btn" onclick="switchMainTab(event, 'pane-references')">
+        🔗 2. Object References & Pointer Aliasing
+      </button>
+      <button class="main-tab-btn" onclick="switchMainTab(event, 'pane-pass-by-value')">
+        ⚡ 3. Strict Pass-by-Value Deep-Dive
+      </button>
+      <button class="main-tab-btn" onclick="switchMainTab(event, 'pane-reassignment')">
+        🔀 4. Mutation vs Reference Reassignment
+      </button>
+      <button class="main-tab-btn" onclick="switchMainTab(event, 'pane-sandbox')">
+        🧪 5. Live Memory Sandbox
+      </button>
+      <button class="main-tab-btn" onclick="switchMainTab(event, 'pane-quiz')">
+        🎯 6. Self-Assessment Quiz
+      </button>
+    </div>
+
+    <!-- TAB 1: METHODS TAKING OBJECT PARAMETERS -->
+    <div id="pane-object-params" class="tab-pane active">
+      <div class="card">
+        <div class="card-title">
+          <span class="icon">🤝</span>
+          <span>Methods Declaration Taking Another Object as a Parameter</span>
+        </div>
+
+        <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 16px;">
+          In Object-Oriented Programming, objects don't exist in isolation—they interact with one another! A method in Class A can accept an instance of Class B (or another instance of Class A) as a parameter.
+        </p>
+
+        <div class="two-col-grid">
+          <div>
+            <h3 style="font-size: 1.05rem; color: var(--primary-dark); margin-bottom: 10px;">Inter-Object Interaction</h3>
+            <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 12px;">
+              In the code on the right, <code>transferFunds()</code> is invoked on <code>acc1</code> (the calling object <code>this</code>), and accepts <code>targetAcc</code> (another <code>BankAccount</code> object) as a parameter.
+            </p>
+            <ul style="font-size: 0.85rem; color: var(--text-muted); margin-left: 18px; line-height: 1.7; margin-bottom: 14px;">
+              <li><code>this.balance</code> accesses the calling object's balance in Heap.</li>
+              <li><code>targetAcc.balance</code> accesses the parameter object's balance in Heap.</li>
+              <li>Both objects mutate state simultaneously!</li>
+            </ul>
+
+            <div class="alert-box success">
+              <div class="alert-title">💡 Real-World Use Cases</div>
+              <span style="font-size: 0.85rem; color: #065f46; line-height: 1.6;">
+                Bank transfers (<code>acc1.transfer(acc2, 500)</code>), comparing two objects (<code>emp1.equals(emp2)</code>), or merging collections!
+              </span>
+            </div>
+          </div>
+
+          <div>
+            <div class="code-box">
+<span class="cmt">// BankAccount.java</span><br/>
+<span class="kw">public class</span> <span class="cls">BankAccount</span> {<br/>
+&nbsp;&nbsp;<span class="cls">String</span> accountNumber;<br/>
+&nbsp;&nbsp;<span class="kw">double</span> balance;<br/><br/>
+
+&nbsp;&nbsp;<span class="kw">public</span> <span class="fn">BankAccount</span>(<span class="cls">String</span> accNo, <span class="kw">double</span> bal) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">this</span>.accountNumber = accNo;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">this</span>.balance = bal;<br/>
+&nbsp;&nbsp;}<br/><br/>
+
+&nbsp;&nbsp;<span class="cmt">// Method taking ANOTHER BankAccount object parameter</span><br/>
+&nbsp;&nbsp;<span class="kw">public void</span> <span class="fn">transferFunds</span>(<span class="cls">BankAccount</span> targetAcc, <span class="kw">double</span> amount) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> (<span class="kw">this</span>.balance >= amount) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">this</span>.balance -= amount;      <span class="cmt">// Mutates calling object</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="hl">targetAcc.balance += amount;</span> <span class="cmt">// Mutates target object!</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br/>
+&nbsp;&nbsp;}<br/>
+}
+            </div>
+          </div>
+        </div>
+
+        <!-- Interactive Transfer Simulator -->
+        <div style="background: #0f172a; border-radius: 14px; padding: 18px; border: 1px solid #334155; color: #fff; margin-top: 20px;">
+          <div style="font-weight: 700; color: #38bdf8; margin-bottom: 10px; font-size: 0.95rem;">
+            🧪 Interactive Bank Account Transfer Simulator
+          </div>
+          <p style="font-size: 0.85rem; color: #cbd5e1; margin-bottom: 14px;">
+            Simulate invoking <code>acc1.transferFunds(acc2, amount)</code> and observe how the method accesses both Heap objects:
+          </p>
+
+          <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 14px;">
+            <div class="tweak-input-group">
+              <label style="color:#cbd5e1;">acc1 (Caller) Bal ($):</label>
+              <input type="number" id="simAcc1Bal" class="tweak-input" value="1500" style="width: 80px;">
+            </div>
+            <div class="tweak-input-group">
+              <label style="color:#cbd5e1;">acc2 (Target) Bal ($):</label>
+              <input type="number" id="simAcc2Bal" class="tweak-input" value="500" style="width: 80px;">
+            </div>
+            <div class="tweak-input-group">
+              <label style="color:#cbd5e1;">Transfer Amount ($):</label>
+              <input type="number" id="simAmt" class="tweak-input" value="300" style="width: 80px;">
+            </div>
+            <button class="sim-btn green" onclick="runSimTransfer()">Execute `acc1.transferFunds(acc2, amount)` ⚡</button>
+          </div>
+
+          <div class="terminal-box" id="simTransferConsole">
+            Press 'Execute acc1.transferFunds(acc2, amount)' to test inter-object method call...
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: OBJECT REFERENCES & POINTER ALIASING -->
+    <div id="pane-references" class="tab-pane">
+      <div class="card">
+        <div class="card-title">
+          <span class="icon">🔗</span>
+          <span>Object Reference Variables & Reference Aliasing</span>
+        </div>
+
+        <div class="two-col-grid">
+          <div>
+            <h3 style="font-size: 1.05rem; color: var(--primary-dark); margin-bottom: 10px;">1. Reference Variables store Address Pointers</h3>
+            <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 12px;">
+              When you write <code>BankAccount b1 = new BankAccount("A101", 1000);</code>, variable <code>b1</code> does NOT hold the object itself. It holds a <strong>memory address pointer</strong> (e.g. <code>0x4A10</code>) referencing the object in Heap memory!
+            </p>
+
+            <h3 style="font-size: 1.05rem; color: var(--primary-dark); margin-top: 16px; margin-bottom: 10px;">2. What is Reference Aliasing?</h3>
+            <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 12px;">
+              When you assign one reference variable to another (<code>BankAccount b2 = b1;</code>), the memory address pointer <code>0x4A10</code> is copied to <code>b2</code>. Now <strong>both `b1` and `b2` point to the EXACT SAME object in Heap memory!</strong>
+            </p>
+
+            <div class="alert-box">
+              <div class="alert-title">⚠️ Pointer Aliasing Effect</div>
+              <span style="font-size: 0.85rem; color: #991b1b; line-height: 1.6;">
+                Modifying state via <code>b2.balance = 5000;</code> instantly affects <code>b1.balance</code> because there is only ONE physical object in Heap memory being shared by two pointers!
+              </span>
+            </div>
+          </div>
+
+          <div>
+            <div class="code-box">
+<span class="cmt">// Reference Aliasing Example</span><br/>
+<span class="cls">BankAccount</span> b1 = <span class="kw">new</span> <span class="cls">BankAccount</span>(<span class="str">"A101"</span>, <span class="num">1000.0</span>);<br/>
+<span class="cmt">// b1 holds address 0x4A10</span><br/><br/>
+
+<span class="cls">BankAccount</span> b2 = b1; <span class="cmt">// Copies address pointer 0x4A10 into b2!</span><br/>
+<span class="cmt">// Both b1 and b2 point to 0x4A10</span><br/><br/>
+
+b2.balance = <span class="num">5000.0</span>; <span class="cmt">// Mutates object at 0x4A10</span><br/><br/>
+
+<span class="cls">System</span>.out.println(b1.balance); <span class="cmt">// Prints 5000.0!</span><br/>
+<span class="cls">System</span>.out.println(b1 == b2);     <span class="cmt">// true (Identical addresses!)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: STRICT PASS-BY-VALUE DEEP DIVE -->
+    <div id="pane-pass-by-value" class="tab-pane">
+      <div class="card">
+        <div class="card-title">
+          <span class="icon">⚡</span>
+          <span>Deep Dive: Java is STRICTLY 100% Pass-by-Value!</span>
+        </div>
+
+        <div class="alert-box success">
+          <div class="alert-title">📢 The Universal Golden Rule of Java</div>
+          <span style="font-size: 0.9rem; color: #065f46; font-weight: 700; line-height: 1.6;">
+            Java is STRICTLY 100% Pass-by-Value ONLY! There is NO Pass-by-Reference in Java!
+          </span>
+        </div>
+
+        <div class="two-col-grid" style="margin-top: 16px;">
+          <div class="topic-card" style="border-top: 4px solid var(--primary);">
+            <div class="topic-card-head">
+              <div class="topic-card-title">A. Passing Primitives</div>
+              <span class="topic-badge">Primitive Pass-by-Value</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              When passing a primitive (<code>int</code>, <code>double</code>, <code>boolean</code>), a copy of the primitive value (e.g. <code>10</code>) is passed to the method parameter.
+            </p>
+            <div class="code-box">
+<span class="kw">void</span> <span class="fn">modifyPrimitive</span>(<span class="kw">int</span> x) {<br/>
+&nbsp;&nbsp;x = <span class="num">99</span>; <span class="cmt">// Modifies copy ONLY</span><br/>
+}<br/>
+<span class="kw">int</span> num = <span class="num">10</span>;<br/>
+<span class="fn">modifyPrimitive</span>(num);<br/>
+<span class="cmt">// num is STILL 10! Unchanged!</span>
+            </div>
+          </div>
+
+          <div class="topic-card" style="border-top: 4px solid var(--secondary);">
+            <div class="topic-card-head">
+              <div class="topic-card-title">B. Passing Objects</div>
+              <span class="topic-badge">Reference Pointer Pass-by-Value</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              When passing an object reference, a copy of the <strong>reference address pointer (e.g. `0x4A10`)</strong> is passed into the method parameter!
+            </p>
+            <div class="code-box">
+<span class="kw">void</span> <span class="fn">modifyObject</span>(<span class="cls">BankAccount</span> acc) {<br/>
+&nbsp;&nbsp;<span class="cmt">// acc is a COPY of reference pointer 0x4A10</span><br/>
+&nbsp;&nbsp;acc.balance = <span class="num">9999</span>; <span class="cmt">// Mutates Heap object!</span><br/>
+}<br/>
+<span class="cls">BankAccount</span> myAcc = <span class="kw">new</span> <span class="cls">BankAccount</span>(...);<br/>
+<span class="fn">modifyObject</span>(myAcc);<br/>
+<span class="cmt">// myAcc.balance IS UPDATED to 9999!</span>
+            </div>
+          </div>
+        </div>
+
+        <p style="font-size: 0.88rem; color: var(--text-muted); margin-top: 16px;">
+          <strong>Why do people mistakenly call it "Pass-by-Reference"?</strong> Because passing a copy of an object's reference address allows the method to mutate the original object's fields in Heap memory! However, passing the pointer by value is NOT the same as pass-by-reference. See Tab 4 to see why!
+        </p>
+      </div>
+    </div>
+
+    <!-- TAB 4: FIELD MUTATION VS REFERENCE REASSIGNMENT -->
+    <div id="pane-reassignment" class="tab-pane">
+      <div class="card">
+        <div class="card-title">
+          <span class="icon">🔀</span>
+          <span>Field Mutation vs Parameter Reference Reassignment</span>
+        </div>
+
+        <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 14px;">
+          This is the classic Java interview test! Observe what happens when a method mutates fields vs when a method reassigns the parameter variable:
+        </p>
+
+        <div class="code-box" style="margin-bottom: 16px;">
+<span class="kw">public class</span> <span class="cls">TestDemo</span> {<br/>
+&nbsp;&nbsp;<span class="kw">public static void</span> <span class="fn">main</span>(<span class="cls">String</span>[] args) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="cls">BankAccount</span> account = <span class="kw">new</span> <span class="cls">BankAccount</span>(<span class="str">"ACC-101"</span>, <span class="num">1000.0</span>); <span class="cmt">// Address 0x4A10</span><br/><br/>
+
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">processAccount</span>(account);<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="cls">System</span>.out.println(account.accountNumber); <span class="cmt">// Prints "ACC-101" (NOT "NEW-999"!)</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="cls">System</span>.out.println(account.balance);       <span class="cmt">// Prints 5000.0 (Field mutation worked!)</span><br/>
+&nbsp;&nbsp;}<br/><br/>
+
+&nbsp;&nbsp;<span class="kw">public static void</span> <span class="fn">processAccount</span>(<span class="cls">BankAccount</span> b) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="cmt">// Case 1: Field Mutation (Modifies shared Heap object at 0x4A10)</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;b.balance = <span class="num">5000.0</span>; <span class="cmt">// ✅ CALLER SEES THIS CHANGE!</span><br/><br/>
+
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="cmt">// Case 2: Parameter Reference Reassignment</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="hl">b = <span class="kw">new</span> <span class="cls">BankAccount</span>(<span class="str">"NEW-999"</span>, <span class="num">9999.0</span>);</span> <span class="cmt">// Reassigns ONLY local parameter b to 0x88F0!</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;b.balance = <span class="num">7777.0</span>;                   <span class="cmt">// Modifies ONLY local temporary object!</span><br/>
+&nbsp;&nbsp;}<br/>
+}
+        </div>
+
+        <!-- Interactive Stepper -->
+        <div class="stepper-container">
+          <div class="stepper-controls">
+            <span style="font-weight:700; color:#38bdf8; font-size:0.88rem;">Trace Step:</span>
+            <button class="step-pill active" onclick="setReassignStep(1)">1. main() Start</button>
+            <button class="step-pill" onclick="setReassignStep(2)">2. processAccount(account) Call</button>
+            <button class="step-pill" onclick="setReassignStep(3)">3. b.balance = 5000 (Mutation)</button>
+            <button class="step-pill" onclick="setReassignStep(4)">4. b = new BankAccount() (Reassignment)</button>
+            <button class="step-pill" onclick="setReassignStep(5)">5. Method Exit & Result</button>
+          </div>
+
+          <div class="step-content-box" id="reassignStepBox">
+            <!-- Step Explanation -->
+          </div>
+
+          <div class="memory-diagram">
+            <div class="mem-box">
+              <div class="mem-title stack-title">📦 Stack Memory (Reference Variables)</div>
+              <div id="reassignStackVisual">
+                <!-- Stack visual -->
+              </div>
+            </div>
+
+            <div class="mem-box">
+              <div class="mem-title heap-title">🏢 Heap Memory (Object Instances)</div>
+              <div id="reassignHeapVisual">
+                <!-- Heap visual -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 5: LIVE INTERACTIVE SANDBOX -->
+    <div id="pane-sandbox" class="tab-pane">
+      <div class="card">
+        <div class="card-title">
+          <span class="icon">🧪</span>
+          <span>Live Interactive Pass-by-Value & Reference Sandbox</span>
+        </div>
+        <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 14px;">
+          Instantiate BankAccount objects in Heap memory and execute parameter experiments to test field mutation, reference reassignment, and reference swapping live!
+        </p>
+
+        <!-- Sandbox Panel -->
+        <div style="background: #0f172a; border-radius: 14px; padding: 18px; border: 1px solid #334155; color: #fff; margin-bottom: 20px;">
+          <div style="font-weight: 700; color: #38bdf8; margin-bottom: 12px; font-size: 0.95rem;">
+            1. Instantiate BankAccount Objects (`new BankAccount`)
+          </div>
+
+          <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 14px;">
+            <div class="tweak-input-group">
+              <label style="color:#cbd5e1;">Account No:</label>
+              <input type="text" id="sbAccNo" class="tweak-input" value="ACC-101" style="width: 110px;">
+            </div>
+            <div class="tweak-input-group">
+              <label style="color:#cbd5e1;">Initial Balance ($):</label>
+              <input type="number" id="sbBal" class="tweak-input" value="1000" style="width: 90px;">
+            </div>
+            <button class="sim-btn green" onclick="createSandboxObj()">Instantiate Object ⚡</button>
+          </div>
+
+          <div style="border-top: 1px solid #334155; padding-top: 14px; margin-top: 14px;">
+            <div style="font-weight: 700; color: #fbbf24; margin-bottom: 10px; font-size: 0.95rem;">
+              2. Execute Pass-by-Value & Reference Experiments
+            </div>
+
+            <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+              <div class="tweak-input-group">
+                <label style="color:#cbd5e1;">Target Ref:</label>
+                <select id="sbTargetObj" class="tweak-input" style="min-width: 130px;">
+                  <option value="">(No Objects)</option>
+                </select>
+              </div>
+
+              <div class="tweak-input-group">
+                <label style="color:#cbd5e1;">Experiment:</label>
+                <select id="sbExpChoice" class="tweak-input">
+                  <option value="mutate">1. Field Mutation (target.balance += amt)</option>
+                  <option value="reassign">2. Reference Reassignment (target = new BankAccount)</option>
+                  <option value="swap">3. Reference Swap (swap acc1 with acc2)</option>
+                </select>
+              </div>
+
+              <div class="tweak-input-group">
+                <label style="color:#cbd5e1;">Value/Amt:</label>
+                <input type="number" id="sbExpValue" class="tweak-input" value="500" style="width: 80px;">
+              </div>
+
+              <button class="sim-btn purple" onclick="runSandboxExperiment()">Run Experiment 🚀</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Heap Memory Visualizer -->
+        <div style="font-weight: 700; color: var(--primary-dark); margin-bottom: 8px;">
+          🏢 HEAP MEMORY OBJECT INSTANCES (Live State)
+        </div>
+        <div class="topic-grid" id="sandboxHeapGrid" style="margin-bottom: 20px;">
+          <!-- Heap Objects -->
+        </div>
+
+        <!-- Terminal Output -->
+        <div style="font-weight: 700; color: var(--primary-dark); margin-bottom: 6px;">
+          💻 SIMULATED JAVA TERMINAL LOG OUTPUT
+        </div>
+        <div class="terminal-box" id="sandboxConsole">
+          Ready. Instantiate objects and run experiments above to view memory execution logs...
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 6: SELF-ASSESSMENT QUIZ -->
+    <div id="pane-quiz" class="tab-pane">
+      <div class="card">
+        <div class="card-title">
+          <span class="icon">🎯</span>
+          <span>Object References & Pass-by-Value Self-Assessment Quizzes</span>
+        </div>
+
+        <div class="quiz-grid">
+          <!-- Question 1 -->
+          <div class="quiz-card">
+            <div class="quiz-q">1. Is Java Pass-by-Value or Pass-by-Reference?</div>
+            <div class="quiz-options">
+              <div class="quiz-opt" onclick="checkQuiz(this, true, 'q1')">A) Strictly 100% Pass-by-Value ONLY</div>
+              <div class="quiz-opt" onclick="checkQuiz(this, false, 'q1')">B) Pass-by-Reference for Objects, Pass-by-Value for Primitives</div>
+              <div class="quiz-opt" onclick="checkQuiz(this, false, 'q1')">C) Pass-by-Reference for all variables</div>
+            </div>
+            <div id="q1-exp" class="quiz-explanation">
+              🎉 <strong>Correct!</strong> Java is strictly 100% Pass-by-Value. When an object is passed, a <strong>copy of the reference address pointer</strong> is passed by value!
+            </div>
+          </div>
+
+          <!-- Question 2 -->
+          <div class="quiz-card">
+            <div class="quiz-q">2. When you assign `b = new BankAccount()` inside a method parameter `b`, does it change the caller's reference variable?</div>
+            <div class="quiz-options">
+              <div class="quiz-opt" onclick="checkQuiz(this, false, 'q2')">A) Yes, caller's variable now points to the new object</div>
+              <div class="quiz-opt" onclick="checkQuiz(this, true, 'q2')">B) NO, it reassigns ONLY the method's local copied reference variable</div>
+              <div class="quiz-opt" onclick="checkQuiz(this, false, 'q2')">C) It causes a NullPointerException</div>
+            </div>
+            <div id="q2-exp" class="quiz-explanation">
+              🎉 <strong>Correct!</strong> Reassigning parameter `b` changes only the local copied reference pointer in the method stack frame. The caller's reference remains unchanged!
+            </div>
+          </div>
+
+          <!-- Question 3 -->
+          <div class="quiz-card">
+            <div class="quiz-q">3. If you mutate a field `b.balance = 5000` inside a method parameter `b`, is it visible to the caller?</div>
+            <div class="quiz-options">
+              <div class="quiz-opt" onclick="checkQuiz(this, true, 'q3')">A) YES, because both caller and method references point to the SAME Heap object</div>
+              <div class="quiz-opt" onclick="checkQuiz(this, false, 'q3')">B) No, changes to object fields are lost when method exits</div>
+              <div class="quiz-opt" onclick="checkQuiz(this, false, 'q3')">C) Only if the method returns the object</div>
+            </div>
+            <div id="q3-exp" class="quiz-explanation">
+              🎉 <strong>Correct!</strong> Because `b` holds a copy of the memory address pointer to the shared Heap object, field mutations affect the physical Heap instance!
+            </div>
+          </div>
+
+          <!-- Question 4 -->
+          <div class="quiz-card">
+            <div class="quiz-q">4. What does `b1 == b2` evaluate when `b1` and `b2` are object reference variables?</div>
+            <div class="quiz-options">
+              <div class="quiz-opt" onclick="checkQuiz(this, false, 'q4')">A) Compares field values of the two objects</div>
+              <div class="quiz-opt" onclick="checkQuiz(this, true, 'q4')">B) Checks if `b1` and `b2` hold the exact same memory address pointer</div>
+              <div class="quiz-opt" onclick="checkQuiz(this, false, 'q4')">C) Compares class names</div>
+            </div>
+            <div id="q4-exp" class="quiz-explanation">
+              🎉 <strong>Correct!</strong> The `==` operator on object references compares memory address pointers, checking if both variables point to the same Heap instance.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      Java Learning Module — Object References & Pass-by-Value | <a href="../index.html">Return to Home Index</a>
+    </footer>
+
+  </div>
+
+  <script>
+    // Tab Switching
+    function switchMainTab(evt, paneId) {
+      document.querySelectorAll('.main-tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+      evt.currentTarget.classList.add('active');
+      document.getElementById(paneId).classList.add('active');
+    }
+
+    // Inter-Object Transfer Sim
+    function runSimTransfer() {
+      let b1 = parseFloat(document.getElementById('simAcc1Bal').value) || 0;
+      let b2 = parseFloat(document.getElementById('simAcc2Bal').value) || 0;
+      const amt = parseFloat(document.getElementById('simAmt').value) || 0;
+
+      const consoleBox = document.getElementById('simTransferConsole');
+
+      if (b1 < amt) {
+        consoleBox.innerHTML = `<span style="color:#f43f5e;">❌ Transfer Failed! acc1 balance ($${b1.toFixed(2)}) is insufficient for $${amt.toFixed(2)} transfer.</span>`;
+        return;
+      }
+
+      b1 -= amt;
+      b2 += amt;
+
+      document.getElementById('simAcc1Bal').value = b1;
+      document.getElementById('simAcc2Bal').value = b2;
+
+      consoleBox.innerHTML = `
+        ⚡ Executing: acc1.transferFunds(acc2, $${amt.toFixed(2)})<br/>
+        ├─ Mutated calling object (this.balance): $${(b1 + amt).toFixed(2)} ➔ <strong style="color:#4ade80;">$${b1.toFixed(2)}</strong><br/>
+        └─ Mutated target object parameter (targetAcc.balance): $${(b2 - amt).toFixed(2)} ➔ <strong style="color:#38bdf8;">$${b2.toFixed(2)}</strong><br/>
+        🎉 Inter-object transfer completed successfully!
+      `;
+    }
+
+    // Tab 4 Stepper: Reassignment vs Mutation
+    const REASSIGN_STEPS = {
+      1: {
+        title: "Step 1: main() instantiates BankAccount('ACC-101', 1000.0)",
+        desc: "Object created in Heap at address <code>0x4A10</code>. Reference variable <code>account</code> in <code>main()</code> frame stores pointer <code>0x4A10</code>.",
+        stack: "<div class='stack-slot'><strong>Frame: main()</strong><br/>account: 0x4A10</div>",
+        heap: "<div class='heap-object'>Address: 0x4A10<br/>accountNumber: 'ACC-101'<br/>balance: 1000.0</div>"
+      },
+      2: {
+        title: "Step 2: processAccount(account) Call",
+        desc: "<code>processAccount()</code> stack frame pushed. Parameter <code>b</code> receives a COPY of the reference pointer <code>0x4A10</code>. Both <code>account</code> and <code>b</code> point to <code>0x4A10</code>!",
+        stack: "<div class='stack-slot' style='border-color:#38bdf8;'><strong>Frame: processAccount()</strong><br/>b: 0x4A10 (Copied Pointer)</div><div class='stack-slot'><strong>Frame: main()</strong><br/>account: 0x4A10</div>",
+        heap: "<div class='heap-object'>Address: 0x4A10<br/>accountNumber: 'ACC-101'<br/>balance: 1000.0</div>"
+      },
+      3: {
+        title: "Step 3: Case 1 - Field Mutation (b.balance = 5000.0)",
+        desc: "Executing <code>b.balance = 5000.0</code> follows copied pointer <code>0x4A10</code> into Heap and mutates <code>balance</code> field. <strong style='color:#4ade80;'>This change IS VISIBLE to caller main()!</strong>",
+        stack: "<div class='stack-slot' style='border-color:#38bdf8;'><strong>Frame: processAccount()</strong><br/>b: 0x4A10</div><div class='stack-slot'><strong>Frame: main()</strong><br/>account: 0x4A10</div>",
+        heap: "<div class='heap-object'>Address: 0x4A10<br/>accountNumber: 'ACC-101'<br/><strong style='color:#4ade80;'>balance: 5000.0 (Mutated!)</strong></div>"
+      },
+      4: {
+        title: "Step 4: Case 2 - Parameter Reference Reassignment (b = new BankAccount(...))",
+        desc: "<code>b = new BankAccount('NEW-999', 9999.0)</code> creates a NEW object in Heap at <code>0x88F0</code> and reassigns ONLY parameter <code>b</code> in <code>processAccount()</code>. <strong style='color:#fbbf24;'>Caller account STILL points to 0x4A10!</strong>",
+        stack: "<div class='stack-slot' style='border-color:#fbbf24;'><strong>Frame: processAccount()</strong><br/>b: 0x88F0 (Reassigned!)</div><div class='stack-slot'><strong>Frame: main()</strong><br/>account: 0x4A10 (Unchanged!)</div>",
+        heap: "<div class='heap-object'>Address: 0x4A10<br/>accountNumber: 'ACC-101'<br/>balance: 5000.0</div><br/><div class='heap-object' style='border-color:#fbbf24;'>Address: 0x88F0 (New Object)<br/>accountNumber: 'NEW-999'<br/>balance: 9999.0</div>"
+      },
+      5: {
+        title: "Step 5: processAccount() Exits & Returns to main()",
+        desc: "<code>processAccount()</code> stack frame pops off Stack. Pointer <code>b</code> is destroyed. Heap object <code>0x88F0</code> becomes unreferenced garbage. Caller <code>account</code> remains pointing to <code>0x4A10</code> with <code>accountNumber='ACC-101'</code> and <code>balance=5000.0</code>!",
+        stack: "<div class='stack-slot'><strong>Frame: main()</strong><br/>account: 0x4A10</div>",
+        heap: "<div class='heap-object'>Address: 0x4A10<br/>accountNumber: 'ACC-101'<br/>balance: 5000.0</div><br/><div class='heap-object' style='opacity:0.5;'>Address: 0x88F0 (Unreferenced Garbage 🗑️)</div>"
+      }
+    };
+
+    function setReassignStep(stepNum) {
+      document.querySelectorAll('.stepper-controls .step-pill').forEach((p, idx) => {
+        p.classList.toggle('active', idx + 1 === stepNum);
+      });
+      const data = REASSIGN_STEPS[stepNum];
+      document.getElementById('reassignStepBox').innerHTML = `
+        <div style="font-weight:700; color:#38bdf8; font-size:1rem;">${data.title}</div>
+        <div style="font-size:0.88rem; color:#cbd5e1; line-height:1.5;">${data.desc}</div>
+      `;
+      document.getElementById('reassignStackVisual').innerHTML = data.stack;
+      document.getElementById('reassignHeapVisual').innerHTML = data.heap;
+    }
+
+    // Live Sandbox Logic
+    let sbObjects = [];
+    let sbCounter = 0;
+
+    function createSandboxObj() {
+      sbCounter++;
+      const refName = "acc" + sbCounter;
+      const hexAddr = "0x" + (3000 + sbCounter * 16).toString(16).toUpperCase();
+      const accNo = document.getElementById('sbAccNo').value.trim() || ("ACC-" + sbCounter);
+      const bal = parseFloat(document.getElementById('sbBal').value) || 1000;
+
+      const obj = { id: sbCounter, refName, hexAddr, accountNumber: accNo, balance: bal };
+      sbObjects.push(obj);
+
+      renderSandboxHeap();
+      logSandbox(`⚡ Instantiated new BankAccount object at ${hexAddr} (Ref: ${refName}, accNo: "${accNo}", balance: $${bal.toFixed(2)})`);
+    }
+
+    function runSandboxExperiment() {
+      const objId = parseInt(document.getElementById('sbTargetObj').value);
+      if (!objId) {
+        alert("Please instantiate at least one BankAccount object first!");
+        return;
+      }
+      const target = sbObjects.find(o => o.id === objId);
+      if (!target) return;
+
+      const exp = document.getElementById('sbExpChoice').value;
+      const val = parseFloat(document.getElementById('sbExpValue').value) || 0;
+
+      if (exp === 'mutate') {
+        target.balance += val;
+        logSandbox(`🚀 Field Mutation Test: ${target.refName}.balance updated by +$${val.toFixed(2)} -> New Balance: $${target.balance.toFixed(2)} (Caller SEES change!)`);
+      } else if (exp === 'reassign') {
+        const newHex = "0x" + (9000 + Math.floor(Math.random() * 1000)).toString(16).toUpperCase();
+        logSandbox(`🚀 Reference Reassignment Test: Parameter assigned 'new BankAccount()' at ${newHex}. Caller ${target.refName} STILL points to ${target.hexAddr} (Balance: $${target.balance.toFixed(2)})! Caller reference remains UNCHANGED!`);
+      } else if (exp === 'swap') {
+        if (sbObjects.length < 2) {
+          alert("Reference Swap test requires at least 2 objects in Heap!");
+          return;
+        }
+        const other = sbObjects.find(o => o.id !== target.id);
+        logSandbox(`🚀 Reference Swap Test: Attempted swap(${target.refName}, ${other.refName}). In Java, parameter copies were swapped in method stack frame, but caller references ${target.refName} (${target.hexAddr}) and ${other.refName} (${other.hexAddr}) remain UNCHANGED! Swap failed!`);
+      }
+
+      renderSandboxHeap();
+    }
+
+    function renderSandboxHeap() {
+      const grid = document.getElementById('sandboxHeapGrid');
+      const select = document.getElementById('sbTargetObj');
+
+      if (sbObjects.length === 0) {
+        grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: #94a3b8; padding: 20px; background:#fff; border-radius:12px; border:1px solid #e2e8f0;">Heap Memory is empty. Fill values above and click 'Instantiate Object'!</div>`;
+        select.innerHTML = `<option value="">(No Objects)</option>`;
+        return;
+      }
+
+      select.innerHTML = sbObjects.map(o => `<option value="${o.id}">${o.refName} (${o.hexAddr} - $${o.balance.toFixed(2)})</option>`).join('');
+
+      grid.innerHTML = sbObjects.map(o => `
+        <div class="topic-card" style="border-top: 4px solid var(--secondary);">
+          <div class="topic-card-head">
+            <span style="font-family:'Fira Code',monospace; font-weight:700; color:var(--primary-dark);">${o.refName}</span>
+            <span class="topic-badge" style="background:#e0f2fe; color:#0284c7;">Addr: ${o.hexAddr}</span>
+          </div>
+          <div style="font-family:'Fira Code',monospace; font-size:0.83rem; color:var(--text-muted); line-height:1.6;">
+            <div>accountNumber: <strong style="color:var(--primary);">"${o.accountNumber}"</strong></div>
+            <div>balance: <strong style="color:var(--accent-green);">$${o.balance.toFixed(2)}</strong></div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function logSandbox(msg) {
+      const consoleBox = document.getElementById('sandboxConsole');
+      consoleBox.innerHTML += msg + "<br/>";
+      consoleBox.scrollTop = consoleBox.scrollHeight;
+    }
+
+    // Quiz Verification
+    function checkQuiz(opt, isCorrect, qId) {
+      const parent = opt.parentElement;
+      parent.querySelectorAll('.quiz-opt').forEach(o => o.classList.remove('correct', 'incorrect'));
+      const exp = document.getElementById(qId + '-exp');
+      exp.style.display = 'block';
+
+      if (isCorrect) {
+        opt.classList.add('correct');
+      } else {
+        opt.classList.add('incorrect');
+        exp.innerHTML = `❌ <strong>Incorrect.</strong> Try again! Review pass-by-value concepts in tabs above.`;
+      }
+    }
+
+    // Init Defaults
+    window.addEventListener('DOMContentLoaded', () => {
+      setReassignStep(1);
+      renderSandboxHeap();
+    });
+  </script>
+</body>
+</html>

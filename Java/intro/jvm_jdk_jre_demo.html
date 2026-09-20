@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JVM, JDK & JRE Architecture | Java Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --primary-light: #818cf8;
+      --secondary: #0284c7;
+      --accent-jdk: #10b981;
+      --accent-jre: #0284c7;
+      --accent-jvm: #ef4444;
+      --accent-purple: #8b5cf6;
+      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f1f5f9 100%);
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 10px 25px rgba(79, 70, 229, 0.07);
+      --shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      color: var(--text-main);
+      padding: 24px 16px;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    /* Top Navigation */
+    .top-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #ffffff;
+      color: var(--primary-dark);
+      text-decoration: none;
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      border: 1px solid var(--card-border);
+      box-shadow: var(--shadow-sm);
+      transition: all 0.25s ease;
+    }
+    .back-btn:hover {
+      background: var(--primary);
+      color: #ffffff;
+      transform: translateX(-4px);
+      box-shadow: 0 8px 20px rgba(79, 70, 229, 0.25);
+    }
+    .nav-tag {
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.9rem;
+      background: rgba(255, 255, 255, 0.7);
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--card-border);
+    }
+
+    /* Hero Banner */
+    .hero {
+      background: linear-gradient(135deg, #0284c7 0%, #4f46e5 50%, #7c3aed 100%);
+      color: #ffffff;
+      border-radius: 20px;
+      padding: 44px 32px;
+      text-align: center;
+      box-shadow: var(--shadow-lg);
+      margin-bottom: 32px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.18) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.2);
+      padding: 6px 18px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    .hero h1 {
+      font-size: 2.6rem;
+      font-weight: 800;
+      margin-bottom: 14px;
+      line-height: 1.25;
+      letter-spacing: -0.5px;
+    }
+    .hero p {
+      font-size: 1.15rem;
+      opacity: 0.95;
+      max-width: 780px;
+      margin: 0 auto 24px auto;
+      font-weight: 400;
+    }
+
+    /* Key Stats Bar */
+    .stats-bar {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    .stat-pill {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      padding: 10px 20px;
+      border-radius: 12px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Content Cards */
+    .card {
+      background: var(--card-bg);
+      border-radius: 18px;
+      padding: 32px;
+      margin-bottom: 32px;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--card-border);
+      transition: box-shadow 0.3s ease;
+    }
+    .card:hover {
+      box-shadow: var(--shadow-lg);
+    }
+    .section-title {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .section-title span.icon {
+      font-size: 1.8rem;
+      background: #eef2ff;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+    }
+
+    /* Analogy Box */
+    .analogy-banner {
+      background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%);
+      border-left: 6px solid var(--secondary);
+      border-radius: 14px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    .analogy-banner h3 {
+      font-size: 1.25rem;
+      color: #0369a1;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .analogy-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-top: 14px;
+    }
+    .analogy-item {
+      background: #ffffff;
+      padding: 16px;
+      border-radius: 10px;
+      border: 1px solid #bae6fd;
+    }
+    .analogy-item strong {
+      display: block;
+      color: var(--text-main);
+      margin-bottom: 4px;
+      font-size: 1.05rem;
+    }
+    .analogy-item p {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    /* 3 Main Components Grid */
+    .comp-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+      margin-top: 20px;
+    }
+    .comp-card {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 28px;
+      border-top: 6px solid #ccc;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
+      border-left: 1px solid var(--card-border);
+      border-right: 1px solid var(--card-border);
+      border-bottom: 1px solid var(--card-border);
+      transition: all 0.3s ease;
+      position: relative;
+    }
+    .comp-card.jdk { border-top-color: var(--accent-jdk); }
+    .comp-card.jre { border-top-color: var(--accent-jre); }
+    .comp-card.jvm { border-top-color: var(--accent-jvm); }
+
+    .comp-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 16px 32px rgba(0, 0, 0, 0.1);
+    }
+
+    .comp-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .comp-icon {
+      font-size: 2.2rem;
+    }
+    .comp-title-wrap h3 {
+      font-size: 1.4rem;
+      color: var(--text-main);
+    }
+    .comp-title-wrap span {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .comp-desc {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+
+    .comp-feature-list {
+      list-style: none;
+      padding: 0;
+    }
+    .comp-feature-list li {
+      font-size: 0.9rem;
+      color: #334155;
+      padding: 6px 0;
+      border-bottom: 1px dashed #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .comp-feature-list li:last-child {
+      border-bottom: none;
+    }
+    .check-icon {
+      font-weight: bold;
+    }
+    .jdk .check-icon { color: var(--accent-jdk); }
+    .jre .check-icon { color: var(--accent-jre); }
+    .jvm .check-icon { color: var(--accent-jvm); }
+
+    /* Nesting Hierarchy Diagram */
+    .hierarchy-container {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 32px 24px;
+      margin-top: 20px;
+      text-align: center;
+    }
+    .nest-box {
+      border-radius: 14px;
+      padding: 20px;
+      transition: all 0.25s ease;
+      margin: 0 auto;
+    }
+    .box-jdk {
+      background: rgba(16, 185, 129, 0.08);
+      border: 2px dashed var(--accent-jdk);
+      max-width: 850px;
+    }
+    .box-jre {
+      background: rgba(2, 132, 199, 0.08);
+      border: 2px dashed var(--accent-jre);
+      max-width: 680px;
+      margin-top: 14px;
+    }
+    .box-jvm {
+      background: rgba(239, 68, 68, 0.08);
+      border: 2px solid var(--accent-jvm);
+      max-width: 500px;
+      margin-top: 14px;
+    }
+
+    .box-tag {
+      font-weight: 800;
+      font-size: 1.1rem;
+      margin-bottom: 6px;
+      display: inline-block;
+      padding: 4px 14px;
+      border-radius: 20px;
+    }
+    .box-jdk .box-tag { background: #d1fae5; color: #065f46; }
+    .box-jre .box-tag { background: #e0f2fe; color: #075985; }
+    .box-jvm .box-tag { background: #fee2e2; color: #991b1b; }
+
+    .box-sub {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+    }
+
+    /* Scenario Switcher */
+    .scenario-nav {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .scen-btn {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+    .scen-btn:hover {
+      background: #e2e8f0;
+      color: var(--text-main);
+    }
+    .scen-btn.active {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+      box-shadow: 0 4px 14px rgba(79, 70, 229, 0.25);
+    }
+
+    .scen-card {
+      display: none;
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 14px;
+      padding: 24px;
+      border-left: 6px solid var(--primary);
+      animation: fadeIn 0.3s ease;
+    }
+    .scen-card.active {
+      display: block;
+    }
+    .scen-card h4 {
+      font-size: 1.2rem;
+      color: var(--text-main);
+      margin-bottom: 8px;
+    }
+    .scen-verdict {
+      display: inline-block;
+      font-weight: 700;
+      font-size: 0.95rem;
+      padding: 6px 14px;
+      border-radius: 8px;
+      margin: 10px 0;
+    }
+    .verdict-jdk { background: #d1fae5; color: #065f46; }
+    .verdict-jre { background: #e0f2fe; color: #075985; }
+
+    /* JVM Internal Architecture Grid */
+    .jvm-arch-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 18px;
+      margin-top: 20px;
+    }
+    .arch-box {
+      background: #f8fafc;
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid #e2e8f0;
+      transition: all 0.2s ease;
+    }
+    .arch-box:hover {
+      background: #ffffff;
+      border-color: var(--primary-light);
+      box-shadow: 0 8px 20px rgba(79, 70, 229, 0.08);
+    }
+    .arch-box h4 {
+      font-size: 1.05rem;
+      color: var(--primary-dark);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .arch-box p {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    /* Diagram Image Card */
+    .diagram-img-card {
+      background: #ffffff;
+      border-radius: 14px;
+      padding: 16px;
+      border: 1px solid #e2e8f0;
+      box-shadow: var(--shadow-sm);
+      margin-top: 20px;
+      text-align: center;
+    }
+    .diagram-img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 10px;
+      display: block;
+      margin: 0 auto;
+    }
+
+    /* Quiz Card */
+    .quiz-card {
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      color: #ffffff;
+      border-radius: 18px;
+      padding: 32px;
+      margin-bottom: 32px;
+      box-shadow: var(--shadow-lg);
+    }
+    .quiz-q {
+      font-size: 1.15rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: #38bdf8;
+    }
+    .quiz-options {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .quiz-opt {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      padding: 14px 20px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 0.98rem;
+      transition: all 0.2s ease;
+    }
+    .quiz-opt:hover {
+      background: rgba(255, 255, 255, 0.18);
+      transform: translateX(4px);
+    }
+    .quiz-opt.correct {
+      background: #059669 !important;
+      border-color: #10b981 !important;
+    }
+    .quiz-opt.incorrect {
+      background: #dc2626 !important;
+      border-color: #f87171 !important;
+    }
+    .quiz-feedback {
+      margin-top: 16px;
+      font-size: 0.98rem;
+      font-weight: 600;
+      min-height: 28px;
+    }
+    .quiz-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    .quiz-btn {
+      background: var(--primary);
+      color: #ffffff;
+      border: none;
+      padding: 8px 18px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+    .quiz-btn:hover {
+      background: var(--primary-light);
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.92rem;
+      padding: 24px 0;
+    }
+    footer a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 880px) {
+      .hero h1 { font-size: 2rem; }
+      .comp-grid { grid-template-columns: 1fr; }
+      .card { padding: 22px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Top Navigation -->
+    <div class="top-nav">
+      <a href="../index.html" class="back-btn">
+        ⬅ Back to Java Index
+      </a>
+      <span class="nav-tag">Java Learning Module #0</span>
+    </div>
+
+    <!-- Hero Banner -->
+    <div class="hero">
+      <div class="hero-badge">⚙️ Core Java Architecture</div>
+      <h1>JVM, JDK & JRE Architecture Explained</h1>
+      <p>Master the internal components of Java runtime — understand how the JDK compiles, how the JRE provides runtime libraries, and how the JVM executes Bytecode across platforms.</p>
+
+      <div class="stats-bar">
+        <div class="stat-pill">🔧 JDK: Develop & Build</div>
+        <div class="stat-pill">🏠 JRE: Run & Deploy</div>
+        <div class="stat-pill">⚡ JVM: Virtual Execution Engine</div>
+      </div>
+    </div>
+
+    <!-- Analogy Section -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🏡</span>
+        <span>1. Building a House Analogy (Simplifying JDK vs JRE vs JVM)</span>
+      </div>
+
+      <div class="analogy-banner">
+        <h3>🏠 Think of Java Components like Constructing & Living in a House:</h3>
+        <div class="analogy-grid">
+          <div class="analogy-item">
+            <strong>🔨 JDK (Java Development Kit)</strong>
+            <p>The complete builder's construction toolbox — contains hammer, nails, blueprints, PLUS the house itself. Needed to build software.</p>
+          </div>
+          <div class="analogy-item">
+            <strong>🏡 JRE (Java Runtime Environment)</strong>
+            <p>The fully furnished house ready to live in — contains furniture, light switches, and plumbing. Needed to run software.</p>
+          </div>
+          <div class="analogy-item">
+            <strong>⚡ JVM (Java Virtual Machine)</strong>
+            <p>The invisible electrical grid & engine powering the appliances inside the house. Executes the core workload.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Component Cards Section -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">📦</span>
+        <span>2. Deep Dive into the 3 Core Components</span>
+      </div>
+
+      <div class="comp-grid">
+        <!-- JDK Card -->
+        <div class="comp-card jdk">
+          <div class="comp-header">
+            <span class="comp-icon">🔧</span>
+            <div class="comp-title-wrap">
+              <h3>JDK</h3>
+              <span>Java Development Kit</span>
+            </div>
+          </div>
+          <p class="comp-desc">The full software development environment. Contains developer tools plus the complete JRE & JVM.</p>
+          <ul class="comp-feature-list">
+            <li><span class="check-icon">✓</span> Java Compiler (<code>javac</code>)</li>
+            <li><span class="check-icon">✓</span> Debugger (<code>jdb</code>) & Profiler</li>
+            <li><span class="check-icon">✓</span> Documentation Generator (<code>javadoc</code>)</li>
+            <li><span class="check-icon">✓</span> Archive Tool (<code>jar</code>)</li>
+            <li><span class="check-icon">✓</span> Includes full JRE + JVM</li>
+          </ul>
+        </div>
+
+        <!-- JRE Card -->
+        <div class="comp-card jre">
+          <div class="comp-header">
+            <span class="comp-icon">🏠</span>
+            <div class="comp-title-wrap">
+              <h3>JRE</h3>
+              <span>Java Runtime Environment</span>
+            </div>
+          </div>
+          <p class="comp-desc">The runtime environment required to run compiled Java applications. Contains libraries but no compiler tools.</p>
+          <ul class="comp-feature-list">
+            <li><span class="check-icon">✓</span> Standard Class Libraries (<code>rt.jar</code>)</li>
+            <li><span class="check-icon">✓</span> ClassLoader Subsystem</li>
+            <li><span class="check-icon">✓</span> User Interface Toolkits (AWT/Swing)</li>
+            <li><span class="check-icon">✓</span> Runtime Utility APIs</li>
+            <li><span class="check-icon">✓</span> Includes JVM engine</li>
+          </ul>
+        </div>
+
+        <!-- JVM Card -->
+        <div class="comp-card jvm">
+          <div class="comp-header">
+            <span class="comp-icon">⚡</span>
+            <div class="comp-title-wrap">
+              <h3>JVM</h3>
+              <span>Java Virtual Machine</span>
+            </div>
+          </div>
+          <p class="comp-desc">An abstract virtual computer that executes Bytecode line-by-line or compiles hot paths via JIT compiler.</p>
+          <ul class="comp-feature-list">
+            <li><span class="check-icon">✓</span> Bytecode Execution Engine</li>
+            <li><span class="check-icon">✓</span> Memory Heap & Stack Manager</li>
+            <li><span class="check-icon">✓</span> Automatic Garbage Collector</li>
+            <li><span class="check-icon">✓</span> JIT (Just-In-Time) Compiler</li>
+            <li><span class="check-icon">✓</span> Platform-Specific OS Bridge</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Containment Hierarchy Diagram -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">📊</span>
+        <span>3. Containment Hierarchy Diagram</span>
+      </div>
+      <p style="color: var(--text-muted); margin-bottom: 16px;">
+        Notice how JDK, JRE, and JVM fit inside one another like nested boxes:
+      </p>
+
+      <div class="hierarchy-container">
+        <div class="nest-box box-jdk">
+          <span class="box-tag">JDK (Java Development Kit)</span>
+          <div class="box-sub">Contains: Developer Tools (javac, jdb, javadoc, jar) + JRE</div>
+
+          <div class="nest-box box-jre">
+            <span class="box-tag">JRE (Java Runtime Environment)</span>
+            <div class="box-sub">Contains: Class Libraries (rt.jar) + ClassLoader + JVM</div>
+
+            <div class="nest-box box-jvm">
+              <span class="box-tag">JVM (Java Virtual Machine)</span>
+              <div class="box-sub">Contains: Interpreter + JIT Compiler + Garbage Collector + Memory Areas</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- JVM Internal Architecture -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🧠</span>
+        <span>4. Inside the JVM Architecture (Memory & Execution Subsystems)</span>
+      </div>
+      <p style="color: var(--text-muted);">
+        The JVM consists of 3 major internal subsystems working in harmony:
+      </p>
+
+      <div class="jvm-arch-grid">
+        <div class="arch-box">
+          <h4>📥 1. ClassLoader Subsystem</h4>
+          <p>Loads <code>.class</code> bytecode files into memory, performs verification checks, allocates static variables, and links dependencies.</p>
+        </div>
+
+        <div class="arch-box">
+          <h4>💾 2. JVM Memory Area</h4>
+          <p>Includes <strong>Heap</strong> (all objects), <strong>Stack</strong> (local method frames), <strong>Method Area / Metaspace</strong> (class definitions), and <strong>PC Registers</strong>.</p>
+        </div>
+
+        <div class="arch-box">
+          <h4>⚙️ 3. Execution Engine</h4>
+          <p>Combines an <strong>Interpreter</strong> (line-by-line reader), <strong>JIT Compiler</strong> (high-speed native code generator), and <strong>Garbage Collector</strong>.</p>
+        </div>
+
+        <div class="arch-box">
+          <h4>🔌 4. Native Interface (JNI)</h4>
+          <p>Allows Java bytecode to interact directly with native C/C++ OS libraries and system drivers.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Interactive Real World Scenarios -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🎯</span>
+        <span>5. Real-World Scenarios: Which One Do You Need?</span>
+      </div>
+      <p style="color: var(--text-muted); margin-bottom: 20px;">
+        Click on a persona below to find out whether JDK or JRE is required:
+      </p>
+
+      <div class="scenario-nav">
+        <button class="scen-btn active" onclick="showScenario('student')">👨‍🎓 CS Student / Developer</button>
+        <button class="scen-btn" onclick="showScenario('user')">👤 Regular End User</button>
+        <button class="scen-btn" onclick="showScenario('server')">🖥️ Cloud / Server Admin</button>
+        <button class="scen-btn" onclick="showScenario('company')">🏢 Enterprise Dev Team</button>
+      </div>
+
+      <div id="scen-student" class="scen-card active">
+        <h4>👨‍🎓 Scenario: Computer Science Student / Beginner</h4>
+        <p><strong>Goal:</strong> Write Java programs, compile <code>.java</code> files into <code>.class</code> files, and fix code bugs.</p>
+        <span class="scen-verdict verdict-jdk">You Need: JDK (Java Development Kit)</span>
+        <p style="margin-top: 6px; color: var(--text-muted);"><strong>Reason:</strong> You cannot compile code without <code>javac</code>, which only exists inside the JDK.</p>
+      </div>
+
+      <div id="scen-user" class="scen-card">
+        <h4>👤 Scenario: Regular End User</h4>
+        <p><strong>Goal:</strong> Play Minecraft or run an offline banking application packaged as a <code>.jar</code> file.</p>
+        <span class="scen-verdict verdict-jre">You Need: JRE (Java Runtime Environment)</span>
+        <p style="margin-top: 6px; color: var(--text-muted);"><strong>Reason:</strong> You only need to run existing compiled applications. You do not need compilers or debuggers.</p>
+      </div>
+
+      <div id="scen-server" class="scen-card">
+        <h4>🖥️ Scenario: Cloud Server Administrator</h4>
+        <p><strong>Goal:</strong> Deploy pre-compiled Spring Boot microservices on AWS EC2 or Kubernetes Linux servers.</p>
+        <span class="scen-verdict verdict-jre">You Need: JRE / Java Runtime (Headless)</span>
+        <p style="margin-top: 6px; color: var(--text-muted);"><strong>Reason:</strong> Production servers should stay lightweight and secure without extra development tools.</p>
+      </div>
+
+      <div id="scen-company" class="scen-card">
+        <h4>🏢 Scenario: Enterprise Software Company</h4>
+        <p><strong>Goal:</strong> Build, test, package, and profile complex multi-module Java software applications.</p>
+        <span class="scen-verdict verdict-jdk">You Need: JDK (Java Development Kit)</span>
+        <p style="margin-top: 6px; color: var(--text-muted);"><strong>Reason:</strong> Developers require Maven/Gradle integration, debugging tools, and full compiler support.</p>
+      </div>
+    </div>
+
+    <!-- Architecture Visual Diagram -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🖼️</span>
+        <span>6. High Resolution Architecture Poster</span>
+      </div>
+      <p style="color: var(--text-muted);">Visual summary of JDK, JRE, and JVM relationship:</p>
+
+      <div class="diagram-img-card">
+        <img src="../jdk-jre-jvm.png" alt="JDK JRE JVM Architecture Visual Poster" class="diagram-img" />
+      </div>
+    </div>
+
+    <!-- Interactive Quiz -->
+    <div class="quiz-card">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 1.6rem;">🧠</span>
+          <h3 style="font-size: 1.3rem; margin: 0;">Interactive Knowledge Check</h3>
+        </div>
+        <span id="quizScoreBadge" style="background: rgba(255,255,255,0.15); padding: 4px 12px; border-radius: 12px; font-size: 0.85rem; font-weight: 600;">Question <span id="qCurr">1</span> of 3</span>
+      </div>
+
+      <div id="quizQuestion" class="quiz-q">Loading question...</div>
+      <div id="quizOptions" class="quiz-options"></div>
+      <div id="quizFeedback" class="quiz-feedback"></div>
+
+      <div class="quiz-nav">
+        <button id="prevBtn" class="quiz-btn" onclick="navQuiz(-1)">← Previous</button>
+        <button id="nextBtn" class="quiz-btn" onclick="navQuiz(1)">Next →</button>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      Java Learning Index — Built for Student Excellence | <a href="../index.html">Return to Home Index</a>
+    </footer>
+
+  </div>
+
+  <script>
+    // --- Scenario Switcher ---
+    function showScenario(scenKey) {
+      const btns = document.querySelectorAll('.scen-btn');
+      btns.forEach(b => b.classList.remove('active'));
+
+      const cards = document.querySelectorAll('.scen-card');
+      cards.forEach(c => c.classList.remove('active'));
+
+      event.currentTarget.classList.add('active');
+      document.getElementById('scen-' + scenKey).classList.add('active');
+    }
+
+    // --- Quiz Data ---
+    const QUIZ_QUESTIONS = [
+      {
+        q: "Which component contains the Java Compiler (javac)?",
+        opts: [
+          "A) JVM",
+          "B) JRE",
+          "C) JDK",
+          "D) ClassLoader"
+        ],
+        correct: 2,
+        explanation: "The javac compiler is exclusively part of the JDK (Java Development Kit)."
+      },
+      {
+        q: "What is the primary role of the JVM (Java Virtual Machine)?",
+        opts: [
+          "A) To write Java code",
+          "B) To execute Bytecode (.class files) on the native platform",
+          "C) To format source code automatically",
+          "D) To convert HTML into Java code"
+        ],
+        correct: 1,
+        explanation: "The JVM is the core execution engine that reads Bytecode and executes it on the target OS."
+      },
+      {
+        q: "If an end-user only wants to RUN a Java desktop app, what do they need to install?",
+        opts: [
+          "A) Full JDK",
+          "B) JRE (or bundled JVM)",
+          "C) Only a C++ compiler",
+          "D) Oracle Database Server"
+        ],
+        correct: 1,
+        explanation: "Running existing compiled Java software requires only the JRE (which includes the JVM runtime)."
+      }
+    ];
+
+    let currentQ = 0;
+    const userAnswers = {};
+
+    function renderQuestion() {
+      const qData = QUIZ_QUESTIONS[currentQ];
+      document.getElementById('qCurr').textContent = currentQ + 1;
+      document.getElementById('quizQuestion').textContent = `${currentQ + 1}. ${qData.q}`;
+
+      const optsContainer = document.getElementById('quizOptions');
+      optsContainer.innerHTML = '';
+      const feedback = document.getElementById('quizFeedback');
+      feedback.textContent = '';
+
+      qData.opts.forEach((optText, idx) => {
+        const div = document.createElement('div');
+        div.className = 'quiz-opt';
+        div.textContent = optText;
+
+        if (userAnswers[currentQ] !== undefined) {
+          if (idx === qData.correct) {
+            div.classList.add('correct');
+          } else if (idx === userAnswers[currentQ]) {
+            div.classList.add('incorrect');
+          }
+        }
+
+        div.onclick = () => selectOption(idx);
+        optsContainer.appendChild(div);
+      });
+
+      if (userAnswers[currentQ] !== undefined) {
+        if (userAnswers[currentQ] === qData.correct) {
+          feedback.style.color = '#34d399';
+          feedback.textContent = `🎉 Correct! ${qData.explanation}`;
+        } else {
+          feedback.style.color = '#f87171';
+          feedback.textContent = `❌ Incorrect. ${qData.explanation}`;
+        }
+      }
+
+      document.getElementById('prevBtn').style.visibility = currentQ === 0 ? 'hidden' : 'visible';
+      document.getElementById('nextBtn').textContent = currentQ === QUIZ_QUESTIONS.length - 1 ? 'Finish 🏁' : 'Next →';
+    }
+
+    function selectOption(optIndex) {
+      if (userAnswers[currentQ] !== undefined) return;
+      userAnswers[currentQ] = optIndex;
+      renderQuestion();
+    }
+
+    function navQuiz(dir) {
+      if (dir === 1 && currentQ < QUIZ_QUESTIONS.length - 1) {
+        currentQ++;
+        renderQuestion();
+      } else if (dir === -1 && currentQ > 0) {
+        currentQ--;
+        renderQuestion();
+      } else if (dir === 1 && currentQ === QUIZ_QUESTIONS.length - 1) {
+        let correctCount = 0;
+        Object.keys(userAnswers).forEach(k => {
+          if (userAnswers[k] === QUIZ_QUESTIONS[k].correct) correctCount++;
+        });
+        alert(`Quiz Complete! You scored ${correctCount} out of ${QUIZ_QUESTIONS.length}`);
+      }
+    }
+
+    // Init
+    renderQuestion();
+  </script>
+</body>
+</html>

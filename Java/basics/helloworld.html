@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Java Entry Point & CLI Execution | Java Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --primary-light: #818cf8;
+      --secondary: #0284c7;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --accent-purple: #8b5cf6;
+      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f1f5f9 100%);
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 8px 20px rgba(79, 70, 229, 0.07);
+      --shadow-lg: 0 16px 32px rgba(15, 23, 42, 0.08);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      color: var(--text-main);
+      padding: 16px 12px;
+      line-height: 1.5;
+    }
+
+    .container { max-width: 1140px; margin: 0 auto; }
+
+    /* Top Nav */
+    .top-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #ffffff;
+      color: var(--primary-dark);
+      text-decoration: none;
+      padding: 8px 16px;
+      border-radius: 30px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      border: 1px solid var(--card-border);
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s ease;
+    }
+
+    .back-btn:hover {
+      background: var(--primary);
+      color: #ffffff;
+      transform: translateX(-3px);
+    }
+
+    .nav-tag {
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.85rem;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 5px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--card-border);
+    }
+
+    /* Hero Header */
+    .hero {
+      background: linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #0284c7 100%);
+      color: #ffffff;
+      border-radius: 16px;
+      padding: 24px 28px;
+      box-shadow: var(--shadow-md);
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .hero-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .hero h1 { font-size: 2rem; font-weight: 800; letter-spacing: -0.5px; }
+    .hero p { font-size: 1rem; opacity: 0.95; max-width: 860px; }
+
+    .hero-stats {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .hero-stat-pill {
+      background: rgba(255, 255, 255, 0.18);
+      backdrop-filter: blur(8px);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+
+    /* Tab Bar */
+    .main-tab-bar {
+      display: flex;
+      gap: 6px;
+      background: transparent;
+      padding: 0 4px;
+      border-bottom: 2px solid #cbd5e1;
+      margin-bottom: 24px;
+      overflow-x: auto;
+      scrollbar-width: thin;
+    }
+
+    .main-tab-btn {
+      flex: 1;
+      min-width: 150px;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-bottom: none;
+      padding: 12px 14px;
+      border-radius: 12px 12px 0 0;
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      position: relative;
+      bottom: -2px;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      box-shadow: inset 0 -3px 6px rgba(0, 0, 0, 0.03);
+    }
+
+    .main-tab-btn:hover {
+      background: #ffffff;
+      color: var(--primary);
+      border-color: #94a3b8;
+    }
+
+    .main-tab-btn.active {
+      background: #ffffff;
+      color: var(--primary-dark);
+      font-weight: 700;
+      border: 2px solid var(--primary);
+      border-bottom: 2px solid #ffffff;
+      box-shadow: 0 -4px 14px rgba(79, 70, 229, 0.12);
+      z-index: 2;
+    }
+
+    .main-tab-btn.active::before {
+      content: '';
+      position: absolute;
+      top: -2px;
+      left: -2px;
+      right: -2px;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary), #7c3aed);
+      border-radius: 12px 12px 0 0;
+    }
+
+    /* Tab Panes */
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
+    /* General Card Container */
+    .card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--card-border);
+    }
+
+    .card-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-title .icon {
+      font-size: 1.3rem;
+      background: #eef2ff;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+    }
+
+    /* Grid Layouts */
+    .two-col-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 868px) {
+      .two-col-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Code Box Styling */
+    .code-box {
+      background: #0f172a;
+      color: #f8fafc;
+      font-family: 'Fira Code', monospace;
+      padding: 16px 18px;
+      border-radius: 12px;
+      font-size: 0.88rem;
+      line-height: 1.65;
+      overflow-x: auto;
+      border: 1px solid #334155;
+    }
+    .kw { color: #f43f5e; font-weight: 600; }
+    .cls { color: #38bdf8; font-weight: 600; }
+    .str { color: #4ade80; }
+    .cmt { color: #94a3b8; font-style: italic; }
+    .num { color: #c084fc; }
+    .op { color: #fbbf24; font-weight: 600; }
+    .fn { color: #60a5fa; font-weight: 600; }
+    .hl { background: rgba(56, 189, 248, 0.2); border-radius: 4px; padding: 0 4px; }
+
+    /* Topic Grid & Cards */
+    .topic-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .topic-card {
+      background: #ffffff;
+      border-radius: 14px;
+      border: 1px solid var(--card-border);
+      padding: 18px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .topic-card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .topic-card-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .topic-badge {
+      font-size: 0.75rem;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-weight: 700;
+      background: #eef2ff;
+      color: var(--primary);
+    }
+
+    /* Comparison Table */
+    .comp-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0;
+      font-size: 0.88rem;
+    }
+    .comp-table th, .comp-table td {
+      border: 1px solid #e2e8f0;
+      padding: 10px 14px;
+      text-align: left;
+    }
+    .comp-table th {
+      background: #f8fafc;
+      color: var(--primary-dark);
+      font-weight: 700;
+    }
+    .comp-table tr:nth-child(even) { background: #f8fafc; }
+
+    /* Alert / Rule Boxes */
+    .alert-box {
+      border-left: 5px solid var(--accent-rose);
+      background: #fff1f2;
+      padding: 14px 18px;
+      border-radius: 0 12px 12px 0;
+      margin: 14px 0;
+    }
+    .alert-box.info {
+      border-left-color: var(--secondary);
+      background: #f0f9ff;
+    }
+    .alert-box.success {
+      border-left-color: var(--accent-green);
+      background: #ecfdf5;
+    }
+    .alert-title { font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+
+    /* Interactive Action Buttons */
+    .sim-btn {
+      background: var(--primary);
+      color: #ffffff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .sim-btn:hover { background: var(--primary-dark); }
+    .sim-btn.green { background: var(--accent-green); }
+    .sim-btn.purple { background: var(--accent-purple); }
+    .sim-btn.amber { background: var(--accent-amber); color: #000; }
+    .sim-btn.danger { background: var(--accent-rose); }
+
+    /* Interactive Inputs */
+    .tweak-input-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.88rem;
+      font-weight: 600;
+    }
+    .tweak-input {
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      font-family: 'Fira Code', monospace;
+      font-weight: 600;
+      font-size: 0.88rem;
+    }
+
+    /* Terminal Console */
+    .terminal-box {
+      background: #090d16;
+      color: #38bdf8;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.88rem;
+      padding: 16px;
+      border-radius: 10px;
+      border: 1px solid #1e293b;
+      min-height: 100px;
+      word-break: break-all;
+    }
+
+    /* Quizzes */
+    .quiz-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 16px;
+    }
+    .quiz-card {
+      background: #0f172a;
+      color: #ffffff;
+      border-radius: 14px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      border: 1px solid #334155;
+    }
+    .quiz-q { font-size: 0.98rem; font-weight: 600; color: #38bdf8; line-height: 1.5; }
+    .quiz-options { display: flex; flex-direction: column; gap: 8px; }
+    .quiz-opt {
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 10px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.88rem;
+      transition: all 0.2s ease;
+    }
+    .quiz-opt:hover { background: rgba(255, 255, 255, 0.14); }
+    .quiz-opt.correct { background: #059669 !important; border-color: #10b981 !important; color: #fff; }
+    .quiz-opt.incorrect { background: #dc2626 !important; border-color: #f87171 !important; color: #fff; }
+    .quiz-explanation {
+      font-size: 0.83rem;
+      color: #cbd5e1;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 10px;
+      border-radius: 6px;
+      border-left: 3px solid #38bdf8;
+      display: none;
+    }
+
+    footer { text-align: center; color: var(--text-muted); font-size: 0.88rem; padding: 24px 0; }
+    footer a { color: var(--primary); text-decoration: none; font-weight: 600; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Top Nav -->
+    <div class="top-nav">
+      <a href="../index.html" class="back-btn">
+        ⬅ Back to Java Index
+      </a>
+      <span class="nav-tag">Java Basics Module</span>
+    </div>
+
+    <!-- Hero Header -->
+    <div class="hero">
+      <div class="hero-top">
+        <h1>Java Entry Point & CLI Execution</h1>
+        <div class="hero-stats">
+          <span class="hero-stat-pill">`public static void main`</span>
+          <span class="hero-stat-pill">`String[] args`</span>
+          <span class="hero-stat-pill">`javac` Compiler</span>
+          <span class="hero-stat-pill">`java` Launcher</span>
+          <span class="hero-stat-pill">CLI Terminal Simulator</span>
+        </div>
+      </div>
+      <p>Understand the exact starting point of any Java application: <code>public static void main(String[] args)</code>. Explore why each keyword is required by the JVM runtime and master compiling and launching Java applications from the command line interface.</p>
+    </div>
+
+    <!-- Main Navigation Tab Bar -->
+    <div class="main-tab-bar">
+      <button class="main-tab-btn active" onclick="switchMainTab(event, 'pane-main')">
+        🔍 1. `public static void main` Breakdown
+      </button>
+      <button class="main-tab-btn" onclick="switchMainTab(event, 'pane-cli')">
+        💻 2. CLI Execution (`javac` vs `java`)
+      </button>
+      <button class="main-tab-btn" onclick="switchMainTab(event, 'pane-args')">
+        📦 3. Command Line Arguments (`String[] args`)
+      </button>
+      <button class="main-tab-btn" onclick="switchMainTab(event, 'pane-terminal')">
+        🧪 4. Interactive Terminal Simulator
+      </button>
+      <button class="main-tab-btn" onclick="switchMainTab(event, 'pane-quiz')">
+        🎯 5. Self-Assessment Quiz
+      </button>
+    </div>
+
+    <!-- TAB 1: PUBLIC STATIC VOID MAIN BREAKDOWN -->
+    <div id="pane-main" class="tab-pane active">
+      <div class="card">
+        <div class="card-title">
+          <span class="icon">🔍</span>
+          <span>Anatomy of `public static void main(String[] args)`</span>
+        </div>
+
+        <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 16px;">
+          When you execute a Java program, the JVM launcher looks specifically for a method with the signature <code>public static void main(String[] args)</code> as the entry point. Every keyword serves a distinct purpose:
+        </p>
+
+        <div class="code-box" style="margin-bottom: 20px;">
+<span class="kw">public class</span> <span class="cls">HelloWorld</span> {<br/>
+&nbsp;&nbsp;<span class="cmt">// Universal Application Entry Point</span><br/>
+&nbsp;&nbsp;<span class="kw">public static void</span> <span class="fn">main</span>(<span class="cls">String</span>[] args) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="cls">System</span>.out.println(<span class="str">"Hello, Java World!"</span>);<br/>
+&nbsp;&nbsp;}<br/>
+}
+        </div>
+
+        <div class="topic-grid">
+          <div class="topic-card" style="border-left: 4px solid var(--primary);">
+            <div class="topic-card-head">
+              <div class="topic-card-title">1. `public`</div>
+              <span class="topic-badge">Access Modifier</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              Specifies that the <code>main()</code> method is accessible from anywhere outside the package. The JVM runtime launcher resides outside your application package and requires public access to invoke it.
+            </p>
+          </div>
+
+          <div class="topic-card" style="border-left: 4px solid var(--accent-green);">
+            <div class="topic-card-head">
+              <div class="topic-card-title">2. `static`</div>
+              <span class="topic-badge">Class Modifier</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              Allows the JVM to invoke <code>main()</code> directly on the class (<code>HelloWorld.main()</code>) <strong>without instantiating an object first</strong> (`new HelloWorld()`).
+            </p>
+          </div>
+
+          <div class="topic-card" style="border-left: 4px solid var(--accent-rose);">
+            <div class="topic-card-head">
+              <div class="topic-card-title">3. `void`</div>
+              <span class="topic-badge">Return Type</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              Indicates that <code>main()</code> returns no value back to the OS. When <code>main()</code> finishes execution, the application process terminates cleanly with exit code <code>0</code>.
+            </p>
+          </div>
+
+          <div class="topic-card" style="border-left: 4px solid var(--secondary);">
+            <div class="topic-card-head">
+              <div class="topic-card-title">4. `main`</div>
+              <span class="topic-badge">Method Name</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              The standardized method name hardcoded in the JVM launcher specification as the entry point signature.
+            </p>
+          </div>
+
+          <div class="topic-card" style="border-left: 4px solid var(--accent-purple);">
+            <div class="topic-card-head">
+              <div class="topic-card-title">5. `String[] args`</div>
+              <span class="topic-badge">Parameter Array</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              An array of String parameters holding any command-line arguments passed when launching the program from terminal (e.g. <code>java HelloWorld arg1 arg2</code>).
+            </p>
+          </div>
+        </div>
+
+        <!-- Interactive "What If?" Experimenter -->
+        <div style="background: #0f172a; border-radius: 14px; padding: 18px; border: 1px solid #334155; color: #fff; margin-top: 20px;">
+          <div style="font-weight: 700; color: #38bdf8; margin-bottom: 10px; font-size: 0.95rem;">
+            🧪 Interactive "What If?" Modifiers Experimenter
+          </div>
+          <p style="font-size: 0.85rem; color: #cbd5e1; margin-bottom: 12px;">
+            Click below to see what happens when you alter the required <code>public static void main</code> signature:
+          </p>
+
+          <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px;">
+            <button class="sim-btn danger" onclick="testModifier('noStatic')">Remove `static` ❌</button>
+            <button class="sim-btn danger" onclick="testModifier('noPublic')">Remove `public` ❌</button>
+            <button class="sim-btn danger" onclick="testModifier('wrongReturn')">Change `void` to `int` ❌</button>
+            <button class="sim-btn danger" onclick="testModifier('wrongName')">Rename `main` to `start` ❌</button>
+            <button class="sim-btn green" onclick="testModifier('validVarargs')">Use `String... args` (Varargs) ✅</button>
+          </div>
+
+          <div class="terminal-box" id="modifierConsole">
+            Click any button above to test JVM runtime behavior...
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: COMMAND LINE EXECUTION (JAVAC VS JAVA) -->
+    <div id="pane-cli" class="tab-pane">
+      <div class="card">
+        <div class="card-title">
+          <span class="icon">💻</span>
+          <span>Command Line Execution (`javac` vs `java`)</span>
+        </div>
+
+        <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 16px;">
+          Executing a Java application from the Command Line Interface (CLI) involves a two-stage process: <strong>Compilation</strong> followed by <strong>JVM Launching</strong>.
+        </p>
+
+        <div class="topic-grid" style="margin-bottom: 20px;">
+          <div class="topic-card" style="border-top: 4px solid var(--primary);">
+            <div class="topic-card-head">
+              <div class="topic-card-title">Stage 1: Compilation (`javac`)</div>
+              <span class="topic-badge">javac Compiler</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              Compiles human-readable Java source code (<code>.java</code>) into platform-independent JVM Bytecode (<code>.class</code> file).
+            </p>
+            <div class="code-box">
+$ javac HelloWorld.java<br/>
+<span class="cmt"># Generates HelloWorld.class</span>
+            </div>
+          </div>
+
+          <div class="topic-card" style="border-top: 4px solid var(--accent-green);">
+            <div class="topic-card-head">
+              <div class="topic-card-title">Stage 2: Execution (`java`)</div>
+              <span class="topic-badge">java JVM Launcher</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              Starts the JVM runtime, loads the <code>.class</code> bytecode, finds <code>public static void main</code>, and interprets/JIT-executes it!
+            </p>
+            <div class="code-box">
+$ java HelloWorld<br/>
+<span class="str">Hello, Java World!</span>
+            </div>
+          </div>
+        </div>
+
+        <table class="comp-table">
+          <thead>
+            <tr>
+              <th>Comparison Tool</th>
+              <th><code>javac</code> (Java Compiler)</th>
+              <th><code>java</code> (JVM Launcher)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Purpose</strong></td>
+              <td>Translates source code to bytecode</td>
+              <td>Executes bytecode on JVM runtime</td>
+            </tr>
+            <tr>
+              <td><strong>Input File</strong></td>
+              <td><code>HelloWorld.java</code> (Must include <code>.java</code> extension)</td>
+              <td><code>HelloWorld</code> (Class name WITHOUT <code>.class</code> extension)</td>
+            </tr>
+            <tr>
+              <td><strong>Output</strong></td>
+              <td>Creates <code>HelloWorld.class</code> bytecode file</td>
+              <td>Executes <code>main()</code> and outputs terminal result</td>
+            </tr>
+            <tr>
+              <td><strong>Errors Reported</strong></td>
+              <td>Syntax and Compile-Time errors</td>
+              <td>Runtime Exceptions (e.g. <code>NullPointerException</code>)</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="alert-box info" style="margin-top: 20px;">
+          <div class="alert-title">💡 Modern Java 11+ Single-File Direct Execution</div>
+          <span style="font-size: 0.85rem; color: #075985; line-height: 1.6;">
+            Since Java 11, for single-file source files you can run <code>java HelloWorld.java</code> directly in terminal! The JVM automatically compiles it in memory and executes it without generating a physical <code>.class</code> file on disk.
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: COMMAND LINE ARGUMENTS (STRING[] ARGS) -->
+    <div id="pane-args" class="tab-pane">
+      <div class="card">
+        <div class="card-title">
+          <span class="icon">📦</span>
+          <span>Command-Line Arguments (`String[] args`)</span>
+        </div>
+
+        <div class="two-col-grid">
+          <div>
+            <h3 style="font-size: 1.05rem; color: var(--primary-dark); margin-bottom: 10px;">Passing Arguments at Startup</h3>
+            <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 12px;">
+              When launching a program via <code>java Greeter Alice Bob Developer</code>, the JVM captures space-separated text arguments and populates the <code>String[] args</code> array:
+            </p>
+            <ul style="font-size: 0.85rem; color: var(--text-muted); margin-left: 18px; line-height: 1.7; margin-bottom: 14px;">
+              <li><code>args[0]</code> = <code>"Alice"</code></li>
+              <li><code>args[1]</code> = <code>"Bob"</code></li>
+              <li><code>args[2]</code> = <code>"Developer"</code></li>
+              <li><code>args.length</code> = <code>3</code></li>
+            </ul>
+
+            <div class="alert-box">
+              <div class="alert-title">⚠️ Handling Missing Arguments Safely</div>
+              <span style="font-size: 0.85rem; color: #991b1b; line-height: 1.6;">
+                Accessing <code>args[0]</code> when no CLI arguments were passed throws <code>java.lang.ArrayIndexOutOfBoundsException</code>. Always check <code>if (args.length > 0)</code> before accessing array indices!
+              </span>
+            </div>
+          </div>
+
+          <div>
+            <div class="code-box">
+<span class="cmt">// Greeter.java — Reading Command Line Inputs</span><br/>
+<span class="kw">public class</span> <span class="cls">Greeter</span> {<br/>
+&nbsp;&nbsp;<span class="kw">public static void</span> <span class="fn">main</span>(<span class="cls">String</span>[] args) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="cmt">// Safely check array length</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> (args.length < <span class="num">2</span>) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cls">System</span>.out.println(<span class="str">"Usage: java Greeter <name> <age>"</span>);<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br/><br/>
+
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="cls">String</span> name = args[<span class="num">0</span>];<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="cmt">// Convert String argument to primitive int</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">int</span> age = <span class="cls">Integer</span>.<span class="fn">parseInt</span>(args[<span class="num">1</span>]);<br/><br/>
+
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="cls">System</span>.out.println(<span class="str">"Hello "</span> + name + <span class="str">"! You are "</span> + age + <span class="str">" years old."</span>);<br/>
+&nbsp;&nbsp;}<br/>
+}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: INTERACTIVE TERMINAL SIMULATOR -->
+    <div id="pane-terminal" class="tab-pane">
+      <div class="card">
+        <div class="card-title">
+          <span class="icon">🧪</span>
+          <span>Interactive Terminal Compilation & Launch Simulator</span>
+        </div>
+        <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 14px;">
+          Type or modify the Java source code below, enter command-line arguments, and click <strong>Compile (`javac`)</strong> followed by <strong>Run (`java`)</strong> to test execution live!
+        </p>
+
+        <!-- Code Sandbox Controls -->
+        <div style="background: #0f172a; border-radius: 14px; padding: 18px; border: 1px solid #334155; color: #fff; margin-bottom: 16px;">
+          
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <span style="font-weight: 700; color: #38bdf8; font-size: 0.95rem;">1. Java Source Code Editor (`App.java`)</span>
+            <span id="classStatusBadge" style="font-size: 0.75rem; background: #334155; padding: 3px 8px; border-radius: 6px; color: #94a3b8;">Not Compiled Yet</span>
+          </div>
+
+          <textarea id="srcCode" class="code-box" style="width: 100%; height: 160px; resize: vertical; border: 1px solid #475569; outline: none;" spellcheck="false">public class App {
+    public static void main(String[] args) {
+        System.out.println("Starting App...");
+        if (args.length > 0) {
+            System.out.println("Hello " + args[0] + "! Role: " + (args.length > 1 ? args[1] : "User"));
+        } else {
+            System.out.println("No arguments passed! Pass CLI inputs below.");
+        }
+    }
+}</textarea>
+
+          <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-top: 14px;">
+            <div class="tweak-input-group">
+              <label style="color:#cbd5e1;">CLI Arguments (`args[]`):</label>
+              <input type="text" id="cliArgsInput" class="tweak-input" value="Alice Developer" style="width: 200px;">
+            </div>
+
+            <button class="sim-btn green" onclick="compileSimCode()">1. javac App.java ⚡</button>
+            <button class="sim-btn purple" onclick="runSimCode()">2. java App 🚀</button>
+          </div>
+        </div>
+
+        <!-- Terminal Output -->
+        <div style="font-weight: 700; color: var(--primary-dark); margin-bottom: 6px;">
+          💻 SIMULATED TERMINAL OUTPUT CONSOLE
+        </div>
+        <div class="terminal-box" id="simTerminalConsole">
+          Ready. Click '1. javac App.java' to compile your code...
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 5: SELF-ASSESSMENT QUIZ -->
+    <div id="pane-quiz" class="tab-pane">
+      <div class="card">
+        <div class="card-title">
+          <span class="icon">🎯</span>
+          <span>Java Entry Point & CLI Self-Assessment Quizzes</span>
+        </div>
+
+        <div class="quiz-grid">
+          <!-- Question 1 -->
+          <div class="quiz-card">
+            <div class="quiz-q">1. Why must the main method in Java be declared as `static`?</div>
+            <div class="quiz-options">
+              <div class="quiz-opt" onclick="checkQuiz(this, true, 'q1')">A) To allow JVM to invoke it without instantiating an object first</div>
+              <div class="quiz-opt" onclick="checkQuiz(this, false, 'q1')">B) To make variables inside main immutable</div>
+              <div class="quiz-opt" onclick="checkQuiz(this, false, 'q1')">C) To prevent other classes from calling main</div>
+            </div>
+            <div id="q1-exp" class="quiz-explanation">
+              🎉 <strong>Correct!</strong> <code>static</code> allows the JVM runtime launcher to call <code>ClassName.main()</code> directly without allocating an object instance in Heap memory.
+            </div>
+          </div>
+
+          <!-- Question 2 -->
+          <div class="quiz-card">
+            <div class="quiz-q">2. What command compiles a `HelloWorld.java` source file into bytecode?</div>
+            <div class="quiz-options">
+              <div class="quiz-opt" onclick="checkQuiz(this, false, 'q2')">A) java HelloWorld.java</div>
+              <div class="quiz-opt" onclick="checkQuiz(this, true, 'q2')">B) javac HelloWorld.java</div>
+              <div class="quiz-opt" onclick="checkQuiz(this, false, 'q2')">C) compile HelloWorld</div>
+            </div>
+            <div id="q2-exp" class="quiz-explanation">
+              🎉 <strong>Correct!</strong> The <code>javac</code> command compiles source code files (which require the <code>.java</code> file extension) into <code>.class</code> bytecode.
+            </div>
+          </div>
+
+          <!-- Question 3 -->
+          <div class="quiz-card">
+            <div class="quiz-q">3. How do you launch a compiled Java class `HelloWorld.class` using JVM?</div>
+            <div class="quiz-options">
+              <div class="quiz-opt" onclick="checkQuiz(this, false, 'q3')">A) java HelloWorld.class</div>
+              <div class="quiz-opt" onclick="checkQuiz(this, true, 'q3')">B) java HelloWorld</div>
+              <div class="quiz-opt" onclick="checkQuiz(this, false, 'q3')">C) run HelloWorld</div>
+            </div>
+            <div id="q3-exp" class="quiz-explanation">
+              🎉 <strong>Correct!</strong> The <code>java</code> command accepts the class name <strong>WITHOUT</strong> the <code>.class</code> file extension.
+            </div>
+          </div>
+
+          <!-- Question 4 -->
+          <div class="quiz-card">
+            <div class="quiz-q">4. If you run `java App Alice 25`, what is stored in `args[0]`?</div>
+            <div class="quiz-options">
+              <div class="quiz-opt" onclick="checkQuiz(this, false, 'q4')">A) "App"</div>
+              <div class="quiz-opt" onclick="checkQuiz(this, true, 'q4')">B) "Alice"</div>
+              <div class="quiz-opt" onclick="checkQuiz(this, false, 'q4')">C) "25"</div>
+            </div>
+            <div id="q4-exp" class="quiz-explanation">
+              🎉 <strong>Correct!</strong> In Java (unlike C/C++), index <code>args[0]</code> contains the first command-line argument passed after the class name (i.e. <code>"Alice"</code>).
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      Java Learning Module — Entry Point & CLI Execution | <a href="../index.html">Return to Home Index</a>
+    </footer>
+
+  </div>
+
+  <script>
+    // Tab Switching
+    function switchMainTab(evt, paneId) {
+      document.querySelectorAll('.main-tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+      evt.currentTarget.classList.add('active');
+      document.getElementById(paneId).classList.add('active');
+    }
+
+    // Modifier Experimenter
+    const MODIFIER_TESTS = {
+      noStatic: "❌ Error: Main method is not static in class HelloWorld, please define the main method as:\n   public static void main(String[] args)",
+      noPublic: "❌ Error: Main method not found in class HelloWorld, please define the main method as:\n   public static void main(String[] args)",
+      wrongReturn: "❌ Error: Main method must return a value of type void in class HelloWorld, please define main as:\n   public static void main(String[] args)",
+      wrongName: "❌ Error: Main method not found in class HelloWorld, please define the main method as:\n   public static void main(String[] args)",
+      validVarargs: "✅ SUCCESS: 'public static void main(String... args)' is 100% VALID! Varargs (...) is syntactically equivalent to String[] array in Java!"
+    };
+
+    function testModifier(key) {
+      const consoleBox = document.getElementById('modifierConsole');
+      consoleBox.innerText = MODIFIER_TESTS[key];
+    }
+
+    // Terminal Simulator State
+    let isCompiled = false;
+    let compiledClassName = "";
+
+    function compileSimCode() {
+      const code = document.getElementById('srcCode').value;
+      const consoleBox = document.getElementById('simTerminalConsole');
+      const badge = document.getElementById('classStatusBadge');
+
+      const match = code.match(/public\s+class\s+([A-Za-z0-9_]+)/);
+      if (!match) {
+        consoleBox.innerHTML = "<span style='color:#f43f5e;'>$ javac App.java<br/>App.java:1: error: class definition not found!</span>";
+        isCompiled = false;
+        badge.textContent = "Compilation Failed";
+        badge.style.background = "#991b1b";
+        badge.style.color = "#fff";
+        return;
+      }
+
+      compiledClassName = match[1];
+      isCompiled = true;
+
+      consoleBox.innerHTML = `$ javac ${compiledClassName}.java<br/><span style='color:#4ade80;'>✅ Compiling ${compiledClassName}.java...<br/>🎉 Generated bytecode file: ${compiledClassName}.class</span>`;
+      badge.textContent = `${compiledClassName}.class Ready`;
+      badge.style.background = "#059669";
+      badge.style.color = "#fff";
+    }
+
+    function runSimCode() {
+      const consoleBox = document.getElementById('simTerminalConsole');
+      const argsInput = document.getElementById('cliArgsInput').value.trim();
+      const rawArgs = argsInput ? argsInput.split(/\s+/) : [];
+
+      if (!isCompiled) {
+        consoleBox.innerHTML = "<span style='color:#f43f5e;'>$ java App<br/>Error: Could not find or load main class App (Did you forget to compile with javac first?)</span>";
+        return;
+      }
+
+      consoleBox.innerHTML += `<br/><br/>$ java ${compiledClassName} ${argsInput}<br/>----------------------------------------<br/>`;
+
+      if (rawArgs.length > 0) {
+        consoleBox.innerHTML += `Starting App...<br/>Hello ${rawArgs[0]}! Role: ${rawArgs.length > 1 ? rawArgs[1] : 'User'}<br/>`;
+      } else {
+        consoleBox.innerHTML += `Starting App...<br/>No arguments passed! Pass CLI inputs below.<br/>`;
+      }
+
+      consoleBox.innerHTML += `<span style='color:#4ade80;'>[Process finished with exit code 0]</span>`;
+      consoleBox.scrollTop = consoleBox.scrollHeight;
+    }
+
+    // Quiz Verification
+    function checkQuiz(opt, isCorrect, qId) {
+      const parent = opt.parentElement;
+      parent.querySelectorAll('.quiz-opt').forEach(o => o.classList.remove('correct', 'incorrect'));
+      const exp = document.getElementById(qId + '-exp');
+      exp.style.display = 'block';
+
+      if (isCorrect) {
+        opt.classList.add('correct');
+      } else {
+        opt.classList.add('incorrect');
+        exp.innerHTML = `❌ <strong>Incorrect.</strong> Try again! Review the concepts in tabs above.`;
+      }
+    }
+  </script>
+</body>
+</html>

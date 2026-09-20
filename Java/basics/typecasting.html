@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Typecasting in Java (Widening & Narrowing) | Java Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --secondary: #0284c7;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f1f5f9 100%);
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 10px 25px rgba(79, 70, 229, 0.07);
+      --shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      color: var(--text-main);
+      padding: 24px 16px;
+      line-height: 1.6;
+    }
+
+    .container { max-width: 1100px; margin: 0 auto; }
+
+    /* Top Nav */
+    .top-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #ffffff;
+      color: var(--primary-dark);
+      text-decoration: none;
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      border: 1px solid var(--card-border);
+      box-shadow: var(--shadow-sm);
+      transition: all 0.25s ease;
+    }
+    .back-btn:hover { background: var(--primary); color: #ffffff; transform: translateX(-4px); }
+    .nav-tag {
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.9rem;
+      background: rgba(255, 255, 255, 0.7);
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--card-border);
+    }
+
+    /* Hero */
+    .hero {
+      background: linear-gradient(135deg, #0284c7 0%, #4f46e5 100%);
+      color: #ffffff;
+      border-radius: 20px;
+      padding: 44px 32px;
+      text-align: center;
+      box-shadow: var(--shadow-lg);
+      margin-bottom: 32px;
+    }
+    .hero h1 { font-size: 2.6rem; font-weight: 800; margin-bottom: 14px; }
+    .hero p { font-size: 1.15rem; opacity: 0.95; max-width: 780px; margin: 0 auto 24px auto; }
+
+    /* Cards */
+    .card {
+      background: var(--card-bg);
+      border-radius: 18px;
+      padding: 32px;
+      margin-bottom: 32px;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--card-border);
+    }
+    .section-title {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .section-title span.icon {
+      font-size: 1.8rem;
+      background: #eef2ff;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+    }
+
+    /* Comparison Grid */
+    .cast-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-top: 20px;
+    }
+    .cast-box {
+      border-radius: 14px;
+      padding: 24px;
+      border: 1px solid var(--card-border);
+    }
+    .cast-box.widening { background: #f0fdf4; border-left: 6px solid var(--accent-green); }
+    .cast-box.narrowing { background: #fff1f2; border-left: 6px solid var(--accent-rose); }
+
+    .cast-box h4 { font-size: 1.2rem; margin-bottom: 8px; }
+    .cast-box.widening h4 { color: #166534; }
+    .cast-box.narrowing h4 { color: #9f1239; }
+
+    .code-box {
+      background: #0f172a;
+      color: #f8fafc;
+      font-family: 'Fira Code', monospace;
+      padding: 20px;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      line-height: 1.7;
+      overflow-x: auto;
+      border: 1px solid #334155;
+    }
+    .kw { color: #f43f5e; font-weight: 600; }
+    .cls { color: #38bdf8; font-weight: 600; }
+    .str { color: #4ade80; }
+    .cmt { color: #94a3b8; font-style: italic; }
+    .num { color: #c084fc; }
+
+    /* Interactive Simulator */
+    .cast-sim-box {
+      background: #0f172a;
+      border-radius: 14px;
+      padding: 24px;
+      color: #f8fafc;
+      margin-top: 16px;
+      border: 1px solid #334155;
+    }
+    .sim-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .sim-input {
+      background: #1e293b;
+      border: 1px solid #475569;
+      color: #38bdf8;
+      font-family: 'Fira Code', monospace;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+    }
+    .sim-btn {
+      background: var(--primary);
+      color: #ffffff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-family: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .sim-btn:hover { background: var(--primary-dark); }
+
+    .result-display {
+      background: #1e293b;
+      border: 1px solid #38bdf8;
+      padding: 16px;
+      border-radius: 10px;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.95rem;
+    }
+
+    /* Quiz */
+    .quiz-card {
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      color: #ffffff;
+      border-radius: 18px;
+      padding: 32px;
+      margin-bottom: 32px;
+    }
+    .quiz-q { font-size: 1.15rem; font-weight: 600; margin-bottom: 16px; color: #38bdf8; }
+    .quiz-options { display: flex; flex-direction: column; gap: 12px; }
+    .quiz-opt {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      padding: 14px 20px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 0.98rem;
+    }
+    .quiz-opt.correct { background: #059669 !important; border-color: #10b981 !important; }
+    .quiz-opt.incorrect { background: #dc2626 !important; border-color: #f87171 !important; }
+    .quiz-feedback { margin-top: 16px; font-weight: 600; min-height: 28px; }
+
+    footer { text-align: center; color: var(--text-muted); font-size: 0.92rem; padding: 24px 0; }
+    footer a { color: var(--primary); text-decoration: none; font-weight: 600; }
+
+    @media (max-width: 880px) {
+      .cast-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Top Nav -->
+    <div class="top-nav">
+      <a href="../index.html" class="back-btn">
+        ⬅ Back to Java Index
+      </a>
+      <span class="nav-tag">Java Basics Module #7</span>
+    </div>
+
+    <!-- Hero -->
+    <div class="hero">
+      <h1>Typecasting in Java: Widening & Narrowing</h1>
+      <p>Convert data types safely! Learn when Java automatically widens data types and how explicit narrowing casts larger values into smaller variables.</p>
+    </div>
+
+    <!-- Section 1: Overview -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🔄</span>
+        <span>1. Implicit (Widening) vs Explicit (Narrowing) Casting</span>
+      </div>
+
+      <div class="cast-grid">
+        <div class="cast-box widening">
+          <h4>✅ Implicit Widening (Automatic)</h4>
+          <p>Converts smaller data types into larger data types automatically without precision loss.</p>
+          <p><strong>Path:</strong> <code>byte</code> ➔ <code>short</code> ➔ <code>int</code> ➔ <code>long</code> ➔ <code>float</code> ➔ <code>double</code></p>
+          <div class="code-box" style="margin-top: 12px;">
+<span class="kw">int</span> myInt = <span class="num">9</span>;<br/>
+<span class="kw">double</span> myDouble = myInt; <span class="cmt">// Auto cast to 9.0</span>
+          </div>
+        </div>
+
+        <div class="cast-box narrowing">
+          <h4>⚠️ Explicit Narrowing (Manual)</h4>
+          <p>Converts larger data types into smaller types. Requires manual <code>(target_type)</code> cast and may cause data truncation or overflow.</p>
+          <div class="code-box" style="margin-top: 12px;">
+<span class="kw">double</span> myDouble = <span class="num">9.78</span>;<br/>
+<span class="kw">int</span> myInt = (<span class="kw">int</span>) myDouble; <span class="cmt">// Truncates decimal to 9</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 2: Interactive Simulator -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🧮</span>
+        <span>2. Interactive Typecasting Calculator</span>
+      </div>
+      <p style="color: var(--text-muted);">Test how double-to-int decimal truncation and int-to-byte overflow occur in real time:</p>
+
+      <div class="cast-sim-box">
+        <div class="sim-row">
+          <span>Enter double value:</span>
+          <input id="dblInput" class="sim-input" value="125.75" />
+          <button class="sim-btn" onclick="calcCast()">Cast to int</button>
+        </div>
+
+        <div id="castRes" class="result-display">
+          Original double: <strong>125.75</strong><br/>
+          After (int) cast: <strong style="color: #4ade80;">125</strong> (Decimal .75 truncated!)
+        </div>
+      </div>
+    </div>
+
+    <!-- Quiz -->
+    <div class="quiz-card">
+      <div class="quiz-q">What happens when you cast `(int) 9.99` in Java?</div>
+      <div class="quiz-options">
+        <div class="quiz-opt" onclick="checkQ(this, false)">A) Rounds up to 10</div>
+        <div class="quiz-opt" onclick="checkQ(this, true)">B) Truncates to 9</div>
+        <div class="quiz-opt" onclick="checkQ(this, false)">C) Throws a Compiler Error</div>
+      </div>
+      <div id="qFeedback" class="quiz-feedback"></div>
+    </div>
+
+    <footer>
+      Java Learning Index — Built for Student Excellence | <a href="../index.html">Return to Home Index</a>
+    </footer>
+
+  </div>
+
+  <script>
+    function calcCast() {
+      const val = parseFloat(document.getElementById('dblInput').value);
+      const casted = parseInt(val);
+      document.getElementById('castRes').innerHTML = `
+        Original double: <strong>${isNaN(val) ? 0 : val}</strong><br/>
+        After (int) cast: <strong style="color: #4ade80;">${isNaN(casted) ? 0 : casted}</strong> (Decimals truncated cleanly!)
+      `;
+    }
+
+    function checkQ(opt, isCorrect) {
+      document.querySelectorAll('.quiz-opt').forEach(o => o.classList.remove('correct', 'incorrect'));
+      const fb = document.getElementById('qFeedback');
+      if (isCorrect) {
+        opt.classList.add('correct');
+        fb.style.color = '#34d399';
+        fb.textContent = '🎉 Correct! Explicit narrowing from double to int truncates the decimal portion.';
+      } else {
+        opt.classList.add('incorrect');
+        fb.style.color = '#f87171';
+        fb.textContent = '❌ Incorrect. Try again!';
+      }
+    }
+  </script>
+</body>
+</html>

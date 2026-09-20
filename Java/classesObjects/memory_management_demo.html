@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Basic Introduction to Memory Management & Garbage Collection | Java Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --primary-light: #818cf8;
+      --secondary: #0284c7;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --accent-purple: #8b5cf6;
+      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f1f5f9 100%);
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 10px 25px rgba(79, 70, 229, 0.08);
+      --shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      color: var(--text-main);
+      padding: 24px 16px;
+      line-height: 1.6;
+    }
+
+    .container { max-width: 1100px; margin: 0 auto; }
+
+    /* Top Nav */
+    .top-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #ffffff;
+      color: var(--primary-dark);
+      text-decoration: none;
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-weight: 600;
+      font-size: 0.92rem;
+      border: 1px solid var(--card-border);
+      box-shadow: var(--shadow-sm);
+      transition: all 0.25s ease;
+    }
+
+    .back-btn:hover {
+      background: var(--primary);
+      color: #ffffff;
+      transform: translateX(-4px);
+      box-shadow: 0 8px 20px rgba(79, 70, 229, 0.25);
+    }
+
+    .nav-tag {
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.88rem;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 6px 16px;
+      border-radius: 20px;
+      border: 1px solid var(--card-border);
+    }
+
+    /* Hero Banner */
+    .hero {
+      background: linear-gradient(135deg, #0f172a 0%, #312e81 50%, #4338ca 100%);
+      color: #ffffff;
+      border-radius: 20px;
+      padding: 36px 32px;
+      box-shadow: var(--shadow-lg);
+      margin-bottom: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .hero-badge {
+      background: linear-gradient(90deg, #10b981, #0284c7);
+      color: #ffffff;
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 4px 12px;
+      border-radius: 12px;
+    }
+
+    .hero h1 {
+      font-size: 2.3rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: #ffffff;
+    }
+
+    .hero p {
+      font-size: 1.05rem;
+      color: #e2e8f0;
+      max-width: 850px;
+    }
+
+    /* Section Headers */
+    .section-header {
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .section-header h2 {
+      font-size: 1.45rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+    }
+
+    .section-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: #eef2ff;
+      border: 1px solid var(--primary-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary);
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+
+    /* Section Cards */
+    .section-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 28px;
+      margin-bottom: 32px;
+      box-shadow: var(--shadow-md);
+    }
+
+    /* Code Box */
+    code, pre {
+      font-family: 'Fira Code', monospace;
+    }
+
+    .code-box {
+      background: #0f172a;
+      color: #f8fafc;
+      border-radius: 14px;
+      padding: 18px;
+      font-size: 0.86rem;
+      line-height: 1.65;
+      border: 1px solid #334155;
+      overflow-x: auto;
+    }
+
+    .kw { color: #f43f5e; font-weight: 600; }
+    .cls { color: #38bdf8; font-weight: 600; }
+    .str { color: #4ade80; }
+    .num { color: #fbbf24; }
+    .cm { color: #94a3b8; font-style: italic; }
+
+    /* Interactive GC Simulator */
+    .sim-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .sim-btn {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      color: var(--text-main);
+      padding: 10px 18px;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sim-btn:hover {
+      background: #e0e7ff;
+      border-color: var(--primary-light);
+      color: var(--primary-dark);
+    }
+
+    .sim-btn.active {
+      background: var(--primary);
+      border-color: var(--primary-dark);
+      color: #ffffff;
+      box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+    }
+
+    .gc-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .gc-grid { grid-template-columns: 1fr; }
+    }
+
+    .memory-box {
+      background: #f8fafc;
+      border-radius: 16px;
+      padding: 20px;
+      border: 1px solid #e2e8f0;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      min-height: 250px;
+    }
+
+    .obj-card {
+      padding: 14px;
+      border-radius: 12px;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.88rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.4s ease;
+    }
+
+    .obj-active {
+      background: #ecfdf5;
+      border: 1px solid #10b981;
+      color: #065f46;
+    }
+
+    .obj-orphaned {
+      background: #fff1f2;
+      border: 1px dashed #f43f5e;
+      color: #be123c;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .sim-console {
+      background: #0f172a;
+      border-radius: 16px;
+      padding: 20px;
+      border: 1px solid #334155;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .console-header {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #94a3b8;
+      border-bottom: 1px solid #334155;
+      padding-bottom: 8px;
+    }
+
+    .console-log {
+      font-family: 'Fira Code', monospace;
+      font-size: 0.88rem;
+      color: #34d399;
+      line-height: 1.6;
+    }
+
+    /* Concept Cards Grid */
+    .concept-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin-top: 10px;
+    }
+
+    .concept-card {
+      background: #ffffff;
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .concept-title {
+      font-weight: 700;
+      color: var(--primary-dark);
+      font-size: 1.05rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Top Nav -->
+    <nav class="top-nav">
+      <a href="../index.html" class="back-btn">
+        <span>←</span> Back to Course Index
+      </a>
+      <span class="nav-tag">Java Core • Classes & Objects</span>
+    </nav>
+
+    <!-- Hero Banner -->
+    <header class="hero">
+      <div class="hero-top">
+        <span class="hero-badge">Basic Introduction</span>
+        <span style="color: #c7d2fe; font-size: 0.88rem; font-weight: 600;">Java Core Fundamentals</span>
+      </div>
+      <h1>Memory Management & Garbage Collection</h1>
+      <p>
+        Learn how Java automatically manages Heap memory, how objects become eligible for Garbage Collection, and why you never need to manually free memory in Java!
+      </p>
+    </header>
+
+    <!-- Section 1: Stack vs Heap Quick Recap -->
+    <section>
+      <div class="section-header">
+        <div class="section-icon">🧠</div>
+        <h2>1. Memory Architecture Recap</h2>
+      </div>
+
+      <div class="section-card">
+        <p style="color: var(--text-muted); margin-bottom: 18px;">
+          In Java, memory is divided into two primary runtime areas: <strong>Stack Memory</strong> and <strong>Heap Memory</strong>.
+        </p>
+
+        <div class="concept-grid">
+          <div class="concept-card">
+            <div class="concept-title">📚 Stack Memory</div>
+            <p style="font-size: 0.92rem; color: var(--text-muted);">
+              Stores local primitive variables and <em>object reference pointers</em>. Stack memory is thread-safe, fast, and automatically cleaned up when method execution finishes.
+            </p>
+          </div>
+
+          <div class="concept-card">
+            <div class="concept-title">🏔️ Heap Memory</div>
+            <p style="font-size: 0.92rem; color: var(--text-muted);">
+              Stores all dynamically created Java <strong>Objects</strong> (via <code>new</code> operator). Shared across all threads. Managed automatically by the <strong>Garbage Collector (GC)</strong>.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 2: What is Garbage Collection? -->
+    <section>
+      <div class="section-header">
+        <div class="section-icon">♻️</div>
+        <h2>2. What is Garbage Collection (GC)?</h2>
+      </div>
+
+      <div class="section-card">
+        <p style="color: var(--text-muted); margin-bottom: 16px;">
+          In languages like C or C++, developers must explicitly allocate (`malloc`) and deallocate (`free`) memory. Forgetting to free memory causes <strong>Memory Leaks</strong>.
+        </p>
+        <p style="color: var(--text-muted); margin-bottom: 18px;">
+          In Java, the <strong>Garbage Collector</strong> is a background JVM daemon thread that automatically reclaims memory occupied by <strong>unreachable objects</strong> on the Heap.
+        </p>
+
+        <h3 style="color: var(--primary-dark); margin-bottom: 12px; font-size: 1.1rem;">How an Object Becomes Eligible for GC:</h3>
+        <div class="concept-grid">
+          <div class="concept-card">
+            <div class="concept-title">1. Nullifying Reference</div>
+            <div class="code-box">
+              <span class="cls">Student</span> s = <span class="kw">new</span> <span class="cls">Student</span>();<br/>
+              s = <span class="kw">null</span>; <span class="cm">// Object is now unreachable!</span>
+            </div>
+          </div>
+
+          <div class="concept-card">
+            <div class="concept-title">2. Reassigning Reference</div>
+            <div class="code-box">
+              <span class="cls">Student</span> s1 = <span class="kw">new</span> <span class="cls">Student</span>(<span class="str">"Alice"</span>);<br/>
+              <span class="cls">Student</span> s2 = <span class="kw">new</span> <span class="cls">Student</span>(<span class="str">"Bob"</span>);<br/>
+              s1 = s2; <span class="cm">// "Alice" object is now unreachable!</span>
+            </div>
+          </div>
+
+          <div class="concept-card">
+            <div class="concept-title">3. Out of Scope</div>
+            <div class="code-box">
+              <span class="kw">public void</span> create() {<br/>
+              &nbsp;&nbsp;<span class="cls">Student</span> temp = <span class="kw">new</span> <span class="cls">Student</span>();<br/>
+              } <span class="cm">// temp reference dies when method returns</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 3: Interactive GC Simulator -->
+    <section>
+      <div class="section-header">
+        <div class="section-icon">⚙️</div>
+        <h2>3. Interactive Garbage Collector Simulator</h2>
+      </div>
+
+      <div class="section-card">
+        <p style="color: var(--text-muted); margin-bottom: 18px;">
+          Test how objects on the Heap transition from <strong>Active</strong> to <strong>Orphaned (Eligible for GC)</strong>, and watch the Garbage Collector sweep them away:
+        </p>
+
+        <div class="sim-controls">
+          <button class="sim-btn active" id="btn-init-gc" onclick="resetGCSim()">
+            <span>🏁 Initial State (2 Objects)</span>
+          </button>
+          <button class="sim-btn" id="btn-null-ref" onclick="nullifyRef()">
+            <span>🗑️ Nullify s1 Reference (s1 = null)</span>
+          </button>
+          <button class="sim-btn" id="btn-run-gc" onclick="runGC()">
+            <span>🧹 Trigger Garbage Collector</span>
+          </button>
+        </div>
+
+        <div class="gc-grid">
+          <!-- Memory View -->
+          <div class="memory-box">
+            <div style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted);">
+              Heap Memory Objects Status
+            </div>
+
+            <div class="obj-card obj-active" id="obj-s1">
+              <div>
+                <strong>Student Object 1 ("Alice")</strong><br/>
+                <span style="font-size: 0.78rem;">Address: 0x10A | Reference: s1</span>
+              </div>
+              <span style="font-weight: 700;">🟢 ACTIVE</span>
+            </div>
+
+            <div class="obj-card obj-active" id="obj-s2">
+              <div>
+                <strong>Student Object 2 ("Bob")</strong><br/>
+                <span style="font-size: 0.78rem;">Address: 0x20B | Reference: s2</span>
+              </div>
+              <span style="font-weight: 700;">🟢 ACTIVE</span>
+            </div>
+          </div>
+
+          <!-- Console Box -->
+          <div class="sim-console">
+            <div class="console-header">JVM Garbage Collection Console Log</div>
+            <div class="console-log" id="gc-log">
+              ▶️ Both s1 ("Alice") and s2 ("Bob") have live references pointing to them from Stack.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 4: System.gc() Myth vs Reality -->
+    <section>
+      <div class="section-header">
+        <div class="section-icon">💡</div>
+        <h2>4. System.gc() — Myth vs Reality</h2>
+      </div>
+
+      <div class="section-card">
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <h3 style="color: var(--primary-dark); font-size: 1.1rem;">Can you force Garbage Collection in Java?</h3>
+          <p style="color: var(--text-muted);">
+            You can call <code>System.gc()</code> or <code>Runtime.getRuntime().gc()</code> in your code.
+          </p>
+          <div class="code-box">
+            <span class="cls">System</span>.gc(); <span class="cm">// Requesting Garbage Collector to run</span>
+          </div>
+          <div style="background: #fff3c4; border-left: 4px solid #f59e0b; padding: 14px; border-radius: 8px; color: #92400e; font-size: 0.92rem;">
+            ⚠️ <strong>Crucial Interview Point:</strong> Calling <code>System.gc()</code> is only a <strong>request or suggestion</strong> to the JVM! It is NOT a guarantee that the Garbage Collector will run immediately. The JVM decides when it is optimal to execute GC based on memory pressure.
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    let isNullified = false;
+    let isCollected = false;
+
+    const objS1 = document.getElementById('obj-s1');
+    const objS2 = document.getElementById('obj-s2');
+    const gcLog = document.getElementById('gc-log');
+
+    const btnInit = document.getElementById('btn-init-gc');
+    const btnNull = document.getElementById('btn-null-ref');
+    const btnGC = document.getElementById('btn-run-gc');
+
+    function resetGCSim() {
+      isNullified = false;
+      isCollected = false;
+
+      [btnInit, btnNull, btnGC].forEach(b => b.classList.remove('active'));
+      btnInit.classList.add('active');
+
+      objS1.style.display = 'flex';
+      objS1.className = 'obj-card obj-active';
+      objS1.innerHTML = `
+        <div>
+          <strong>Student Object 1 ("Alice")</strong><br/>
+          <span style="font-size: 0.78rem;">Address: 0x10A | Reference: s1</span>
+        </div>
+        <span style="font-weight: 700;">🟢 ACTIVE</span>`;
+
+      objS2.style.display = 'flex';
+      objS2.className = 'obj-card obj-active';
+
+      gcLog.innerHTML = '▶️ Both s1 ("Alice") and s2 ("Bob") have live references pointing to them from Stack.';
+    }
+
+    function nullifyRef() {
+      if (isCollected) return;
+      isNullified = true;
+
+      [btnInit, btnNull, btnGC].forEach(b => b.classList.remove('active'));
+      btnNull.classList.add('active');
+
+      objS1.className = 'obj-card obj-orphaned';
+      objS1.innerHTML = `
+        <div>
+          <strong>Student Object 1 ("Alice")</strong><br/>
+          <span style="font-size: 0.78rem;">Address: 0x10A | Reference: NULL (Unreachable!)</span>
+        </div>
+        <span style="font-weight: 700;">⚠️ ELIGIBLE FOR GC</span>`;
+
+      gcLog.innerHTML = '⚠️ Line executed: s1 = null;<br/>Object "Alice" at 0x10A has 0 references! It is now ORPHANED and marked eligible for Garbage Collection.';
+    }
+
+    function runGC() {
+      [btnInit, btnNull, btnGC].forEach(b => b.classList.remove('active'));
+      btnGC.classList.add('active');
+
+      if (!isNullified) {
+        gcLog.innerHTML = 'ℹ️ Garbage Collector ran check: All objects currently have active live references. 0 objects reclaimed.';
+      } else if (!isCollected) {
+        isCollected = true;
+        objS1.style.display = 'none';
+        gcLog.innerHTML = '🧹 Garbage Collector Executed!<br/>Swept away orphaned Student Object 1 ("Alice") from Heap memory. Reclaimed memory address 0x10A!';
+      } else {
+        gcLog.innerHTML = '✅ Heap memory is already clean. 0 unreachable objects remaining.';
+      }
+    }
+  </script>
+</body>
+</html>

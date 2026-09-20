@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Operators, Precedence & Associativity in Java | Java Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --primary-light: #818cf8;
+      --secondary: #0284c7;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --accent-purple: #8b5cf6;
+      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f1f5f9 100%);
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 8px 20px rgba(79, 70, 229, 0.07);
+      --shadow-lg: 0 16px 32px rgba(15, 23, 42, 0.08);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      color: var(--text-main);
+      padding: 16px 12px;
+      line-height: 1.5;
+    }
+
+    .container { max-width: 1140px; margin: 0 auto; }
+
+    /* Top Nav */
+    .top-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #ffffff;
+      color: var(--primary-dark);
+      text-decoration: none;
+      padding: 8px 16px;
+      border-radius: 30px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      border: 1px solid var(--card-border);
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s ease;
+    }
+    .back-btn:hover { background: var(--primary); color: #ffffff; transform: translateX(-3px); }
+    .nav-tag {
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.85rem;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 5px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--card-border);
+    }
+
+    /* Compact Hero Header */
+    .hero {
+      background: linear-gradient(135deg, #4f46e5 0%, #6366f1 40%, #0284c7 100%);
+      color: #ffffff;
+      border-radius: 16px;
+      padding: 24px 28px;
+      box-shadow: var(--shadow-md);
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .hero-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+    .hero h1 { font-size: 2rem; font-weight: 800; letter-spacing: -0.5px; }
+    .hero p { font-size: 1rem; opacity: 0.95; max-width: 820px; }
+    
+    .hero-stats {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .hero-stat-pill {
+      background: rgba(255, 255, 255, 0.18);
+      backdrop-filter: blur(8px);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+
+    /* Main Navigation Tab Bar - Classic Tab Styling */
+    .main-tab-bar {
+      display: flex;
+      gap: 6px;
+      background: transparent;
+      padding: 0 4px;
+      border-bottom: 2px solid #cbd5e1;
+      margin-bottom: 24px;
+      overflow-x: auto;
+      scrollbar-width: thin;
+    }
+    .main-tab-btn {
+      flex: 1;
+      min-width: 140px;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-bottom: none;
+      padding: 12px 16px;
+      border-radius: 12px 12px 0 0;
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 0.92rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      position: relative;
+      bottom: -2px;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      box-shadow: inset 0 -3px 6px rgba(0, 0, 0, 0.03);
+    }
+    .main-tab-btn:hover {
+      background: #ffffff;
+      color: var(--primary);
+      border-color: #94a3b8;
+    }
+    .main-tab-btn.active {
+      background: #ffffff;
+      color: var(--primary-dark);
+      font-weight: 700;
+      border: 2px solid var(--primary);
+      border-bottom: 2px solid #ffffff;
+      box-shadow: 0 -4px 14px rgba(79, 70, 229, 0.12);
+      z-index: 2;
+    }
+    .main-tab-btn.active::before {
+      content: '';
+      position: absolute;
+      top: -2px;
+      left: -2px;
+      right: -2px;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary), #7c3aed);
+      border-radius: 12px 12px 0 0;
+    }
+
+    /* Tab Panes */
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
+    /* General Card Container */
+    .card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--card-border);
+    }
+
+    .card-title {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .card-title .icon {
+      font-size: 1.4rem;
+      background: #eef2ff;
+      width: 38px;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+    }
+
+    /* Dashboard Layout Grid for Live Lab */
+    .lab-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 868px) {
+      .lab-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Preset Buttons & Selector */
+    .preset-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .preset-label {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .preset-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .preset-chip {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-main);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .preset-chip:hover { border-color: var(--primary); background: #eef2ff; color: var(--primary); }
+    .preset-chip.active { background: var(--primary); color: #ffffff; border-color: var(--primary); }
+
+    /* Interactive Visualizer Canvas / Box */
+    .eval-box {
+      background: #0f172a;
+      border-radius: 14px;
+      padding: 20px;
+      color: #f8fafc;
+      border: 1px solid #334155;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .eval-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #334155;
+      padding-bottom: 10px;
+    }
+    .eval-title { font-weight: 700; font-size: 1rem; color: #38bdf8; }
+    .eval-rule-badge {
+      background: #1e293b;
+      color: #fbbf24;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.78rem;
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid #475569;
+    }
+
+    .expr-display {
+      font-family: 'Fira Code', monospace;
+      font-size: 1.15rem;
+      background: #1e293b;
+      padding: 14px 18px;
+      border-radius: 10px;
+      border-left: 4px solid #38bdf8;
+      word-break: break-word;
+    }
+    .expr-display .highlight {
+      background: rgba(245, 158, 11, 0.25);
+      color: #fbbf24;
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px dashed #f59e0b;
+      font-weight: 700;
+    }
+
+    /* Steps breakdown list */
+    .steps-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .step-item {
+      background: #1e293b;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 0.88rem;
+      border: 1px solid #334155;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+    .step-num {
+      background: var(--primary);
+      color: #fff;
+      font-size: 0.75rem;
+      font-weight: 700;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .step-content { flex: 1; }
+    .step-code { font-family: 'Fira Code', monospace; color: #4ade80; font-weight: 600; }
+    .step-explain { color: #94a3b8; font-size: 0.83rem; margin-top: 2px; }
+
+    .eval-result {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(6, 182, 212, 0.15));
+      border: 1px solid #10b981;
+      border-radius: 10px;
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: 'Fira Code', monospace;
+    }
+    .eval-result-label { font-size: 0.9rem; color: #a7f3d0; font-weight: 600; }
+    .eval-result-val { font-size: 1.2rem; font-weight: 700; color: #34d399; }
+
+    /* Custom Tweak Interactive Playground */
+    .tweak-card {
+      background: #f8fafc;
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .tweak-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .tweak-input-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    .tweak-input {
+      width: 60px;
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      font-family: 'Fira Code', monospace;
+      font-weight: 600;
+      text-align: center;
+      font-size: 0.95rem;
+    }
+    .tweak-input:focus { outline: none; border-color: var(--primary); }
+
+    /* Increment / Decrement Memory Inspector Box */
+    .mem-box {
+      background: #0f172a;
+      border-radius: 14px;
+      padding: 18px;
+      color: #f8fafc;
+      border: 1px solid #334155;
+    }
+    .mem-registers {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+      gap: 10px;
+      margin: 12px 0;
+    }
+    .mem-reg {
+      background: #1e293b;
+      border: 1px solid #334155;
+      padding: 10px;
+      border-radius: 10px;
+      text-align: center;
+    }
+    .mem-reg-name { font-size: 0.75rem; color: #94a3b8; font-weight: 700; text-transform: uppercase; }
+    .mem-reg-val { font-family: 'Fira Code', monospace; font-size: 1.4rem; font-weight: 700; color: #38bdf8; margin-top: 2px; }
+
+    /* Code Box Styling */
+    .code-box {
+      background: #0f172a;
+      color: #f8fafc;
+      font-family: 'Fira Code', monospace;
+      padding: 16px 18px;
+      border-radius: 12px;
+      font-size: 0.88rem;
+      line-height: 1.65;
+      overflow-x: auto;
+      border: 1px solid #334155;
+    }
+    .kw { color: #f43f5e; font-weight: 600; }
+    .cls { color: #38bdf8; font-weight: 600; }
+    .str { color: #4ade80; }
+    .cmt { color: #94a3b8; font-style: italic; }
+    .num { color: #c084fc; }
+    .op { color: #fbbf24; font-weight: 600; }
+
+    /* Category Accordion / Grid Layout */
+    .categories-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+      gap: 16px;
+    }
+    .category-card {
+      background: #ffffff;
+      border-radius: 14px;
+      border: 1px solid var(--card-border);
+      padding: 18px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .cat-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .cat-title { font-size: 1.05rem; font-weight: 700; color: var(--primary-dark); display: flex; align-items: center; gap: 8px; }
+    .cat-badge { font-size: 0.75rem; padding: 3px 8px; border-radius: 6px; font-weight: 700; background: #eef2ff; color: var(--primary); }
+
+    /* Precedence Table */
+    .table-container { overflow-x: auto; margin-top: 10px; }
+    .prec-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+    .prec-table th {
+      background: #f1f5f9;
+      color: var(--primary-dark);
+      padding: 10px 14px;
+      text-align: left;
+      font-weight: 700;
+      border-bottom: 2px solid #cbd5e1;
+      white-space: nowrap;
+    }
+    .prec-table td {
+      padding: 9px 14px;
+      border-bottom: 1px solid #e2e8f0;
+      vertical-align: middle;
+    }
+    .prec-table tr:hover { background: #f8fafc; }
+    .prec-table code {
+      background: #eef2ff;
+      color: var(--primary);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Fira Code', monospace;
+      font-weight: 600;
+    }
+    .assoc-lr { color: var(--secondary); font-weight: 600; }
+    .assoc-rl { color: var(--accent-rose); font-weight: 600; }
+
+    .table-filter-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .filter-btn {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .filter-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+    /* Quizzes */
+    .quiz-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 16px;
+    }
+    .quiz-card {
+      background: #0f172a;
+      color: #ffffff;
+      border-radius: 14px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      border: 1px solid #334155;
+    }
+    .quiz-q { font-size: 0.98rem; font-weight: 600; color: #38bdf8; line-height: 1.5; }
+    .quiz-code { font-family: 'Fira Code', monospace; background: #1e293b; padding: 8px 12px; border-radius: 6px; color: #f8fafc; font-size: 0.85rem; margin: 4px 0; }
+    .quiz-options { display: flex; flex-direction: column; gap: 8px; }
+    .quiz-opt {
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 10px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.88rem;
+      transition: all 0.2s ease;
+    }
+    .quiz-opt:hover { background: rgba(255, 255, 255, 0.14); }
+    .quiz-opt.correct { background: #059669 !important; border-color: #10b981 !important; color: #fff; }
+    .quiz-opt.incorrect { background: #dc2626 !important; border-color: #f87171 !important; color: #fff; }
+    .quiz-explanation {
+      font-size: 0.83rem;
+      color: #cbd5e1;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 10px;
+      border-radius: 6px;
+      border-left: 3px solid #38bdf8;
+      display: none;
+    }
+
+    /* Short-circuit Interactive visualizer */
+    .sc-demo-box {
+      background: #0f172a;
+      border-radius: 12px;
+      padding: 16px;
+      color: #f8fafc;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      border: 1px solid #334155;
+    }
+
+    footer { text-align: center; color: var(--text-muted); font-size: 0.88rem; padding: 20px 0; }
+    footer a { color: var(--primary); text-decoration: none; font-weight: 600; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Top Nav -->
+    <div class="top-nav">
+      <a href="../index.html" class="back-btn">
+        ⬅ Back to Java Index
+      </a>
+      <span class="nav-tag">Java Basics Module #10</span>
+    </div>
+
+    <!-- Compact Hero Header -->
+    <div class="hero">
+      <div class="hero-top">
+        <h1>Operators, Precedence & Associativity</h1>
+        <div class="hero-stats">
+          <span class="hero-stat-pill">15 Precedence Levels</span>
+          <span class="hero-stat-pill">Left & Right Associativity</span>
+          <span class="hero-stat-pill">Live Execution Visualizer</span>
+        </div>
+      </div>
+      <p>Master how Java evaluates complex mathematical & logical expressions. Learn operator hierarchy, left-to-right vs right-to-left evaluation order, and post/pre-increment side effects.</p>
+    </div>
+
+    <!-- Main Navigation Tab Bar -->
+    <div class="main-tab-bar">
+      <button class="main-tab-btn active" onclick="switchMainTab(event, 'pane-lab')">
+        🔬 Live Visualizer Lab
+      </button>
+      <button class="main-tab-btn" onclick="switchMainTab(event, 'pane-categories')">
+        📚 Categories & Code
+      </button>
+      <button class="main-tab-btn" onclick="switchMainTab(event, 'pane-table')">
+        📊 Precedence Table
+      </button>
+      <button class="main-tab-btn" onclick="switchMainTab(event, 'pane-quiz')">
+        🎯 Interactive Quizzes
+      </button>
+    </div>
+
+    <!-- TAB PANE 1: LIVE VISUALIZER LAB -->
+    <div id="pane-lab" class="tab-pane active">
+      <div class="lab-grid">
+        
+        <!-- Left Column: Live Precedence & Associativity Step Visualizer -->
+        <div class="card">
+          <div class="card-title">
+            <span class="icon">⚡</span>
+            <span>Live Precedence & Step Visualizer</span>
+          </div>
+
+          <div class="preset-container">
+            <span class="preset-label">Select Java Expression Preset:</span>
+            <div class="preset-chips">
+              <button class="preset-chip active" onclick="loadPreset('arith1')">10 + 2 * 5</button>
+              <button class="preset-chip" onclick="loadPreset('arith2')">(10 + 2) * 5</button>
+              <button class="preset-chip" onclick="loadPreset('assoc_div')">100 / 10 / 2</button>
+              <button class="preset-chip" onclick="loadPreset('str_concat')">"Val: " + 10 + 20</button>
+              <button class="preset-chip" onclick="loadPreset('str_paren')">"Val: " + (10 + 20)</button>
+              <button class="preset-chip" onclick="loadPreset('bitwise_trap')">5 & 3 == 1</button>
+              <button class="preset-chip" onclick="loadPreset('shift_add')">1 &lt;&lt; 2 + 1</button>
+              <button class="preset-chip" onclick="loadPreset('incr_expr')">a++ + ++a * 2</button>
+              <button class="preset-chip" onclick="loadPreset('ternary_chain')">85 &gt;= 90 ? "A" : "B"</button>
+              <button class="preset-chip" onclick="loadPreset('assign_chain')">a = b = c = 10</button>
+            </div>
+          </div>
+
+          <div class="eval-box">
+            <div class="eval-header">
+              <span id="evalTitle" class="eval-title">Mixed Arithmetic Precedence</span>
+              <span id="evalRuleBadge" class="eval-rule-badge">Multiplication before Addition</span>
+            </div>
+
+            <div id="exprDisplay" class="expr-display">
+              10 + <span class="highlight">2 * 5</span>
+            </div>
+
+            <div class="steps-container" id="stepsContainer">
+              <!-- Steps populated dynamically via JS -->
+            </div>
+
+            <div class="eval-result">
+              <span class="eval-result-label">JAVA EVALUATED RESULT:</span>
+              <span id="evalResultVal" class="eval-result-val">20</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Interactive Simulators (Increment & Short-Circuit) -->
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+          
+          <!-- Pre vs Post Increment Memory Sandbox -->
+          <div class="card">
+            <div class="card-title">
+              <span class="icon">⬆️</span>
+              <span>Increment Memory Inspector</span>
+            </div>
+            <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 12px;">
+              Observe how memory registers <code>x</code> and <code>y</code> update during Pre-increment (<code>++x</code>) vs Post-increment (<code>x++</code>):
+            </p>
+
+            <div class="tweak-card">
+              <div class="tweak-row">
+                <div class="tweak-input-group">
+                  <label for="incrInitVal">Initial x:</label>
+                  <input type="number" id="incrInitVal" class="tweak-input" value="5" onchange="runIncrSim()">
+                </div>
+                <button class="preset-chip active" style="background: var(--primary);" onclick="setIncrMode('pre')">Pre (++x)</button>
+                <button class="preset-chip" style="background: var(--secondary); color:#fff;" onclick="setIncrMode('post')">Post (x++)</button>
+              </div>
+            </div>
+
+            <div class="mem-box">
+              <div style="font-size: 0.85rem; font-family: 'Fira Code', monospace; color: #fbbf24;" id="incrCodeSnippet">
+                int x = 5; int y = ++x;
+              </div>
+
+              <div class="mem-registers">
+                <div class="mem-reg">
+                  <div class="mem-reg-name">Variable x</div>
+                  <div id="memRegX" class="mem-reg-val">6</div>
+                </div>
+                <div class="mem-reg">
+                  <div class="mem-reg-name">Variable y</div>
+                  <div id="memRegY" class="mem-reg-val">6</div>
+                </div>
+                <div class="mem-reg">
+                  <div class="mem-reg-name">Returned Val</div>
+                  <div id="memRegRet" class="mem-reg-val" style="color: #4ade80;">6</div>
+                </div>
+              </div>
+
+              <div id="incrExplanation" style="font-size: 0.83rem; color: #cbd5e1; line-height: 1.4;">
+                Pre-increment increments <code>x</code> from 5 to 6 FIRST, then assigns 6 to <code>y</code>.
+              </div>
+            </div>
+          </div>
+
+          <!-- Short-Circuit Evaluation Simulator -->
+          <div class="card">
+            <div class="card-title">
+              <span class="icon">🔀</span>
+              <span>Short-Circuit Evaluation Lab</span>
+            </div>
+            <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 12px;">
+              Logical <code>&&</code> and <code>||</code> short-circuit (skip right-hand side evaluation if left-hand side determines the outcome).
+            </p>
+
+            <div class="tweak-card">
+              <div class="tweak-row">
+                <div class="tweak-input-group">
+                  <label for="scLhs">LHS Value:</label>
+                  <select id="scLhs" class="tweak-input" style="width: 80px;" onchange="runShortCircuitSim()">
+                    <option value="false" selected>false</option>
+                    <option value="true">true</option>
+                  </select>
+                </div>
+                <div class="tweak-input-group">
+                  <label for="scOp">Operator:</label>
+                  <select id="scOp" class="tweak-input" style="width: 80px;" onchange="runShortCircuitSim()">
+                    <option value="&&" selected>&&</option>
+                    <option value="||">||</option>
+                    <option value="&">& (Bitwise)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="sc-demo-box">
+              <div id="scExprText" style="font-family: 'Fira Code', monospace; color: #38bdf8; font-size: 0.9rem;">
+                int val = 10; boolean test = false && (++val > 0);
+              </div>
+              <div id="scStatusBadge" style="font-size: 0.82rem; font-weight: 700; color: #f43f5e; background: #1e293b; padding: 6px 12px; border-radius: 6px; border: 1px solid #475569;">
+                ⚠️ RIGHT SIDE SKIPPED (Short-Circuited)
+              </div>
+              <div id="scResultText" style="font-size: 0.85rem; color: #a7f3d0; font-family: 'Fira Code', monospace;">
+                Result: false | Final val = 10 (unaltered!)
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB PANE 2: CATEGORIES & CODE EXAMPLES -->
+    <div id="pane-categories" class="tab-pane">
+      <div class="categories-grid">
+
+        <!-- 1. Arithmetic & Modulus -->
+        <div class="category-card">
+          <div class="cat-head">
+            <div class="cat-title">➕ Arithmetic & Modulus</div>
+            <span class="cat-badge">Precedence: Level 3 & 4</span>
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-muted);">Multiplicative (<code>*</code>, <code>/</code>, <code>%</code>) evaluate before Additive (<code>+</code>, <code>-</code>). Integer division truncates decimals.</p>
+          <div class="code-box">
+<span class="kw">int</span> a = <span class="num">10</span>, b = <span class="num">3</span>;<br/>
+<span class="kw">int</span> sum = a + b; <span class="cmt">// 13</span><br/>
+<span class="kw">int</span> div = a / b; <span class="cmt">// 3 (decimals truncated!)</span><br/>
+<span class="kw">int</span> mod = a % b; <span class="cmt">// 1 (remainder)</span><br/>
+<span class="kw">int</span> res = <span class="num">10</span> + <span class="num">2</span> * <span class="num">5</span>; <span class="cmt">// 20 (NOT 60!)</span>
+          </div>
+        </div>
+
+        <!-- 2. Increment & Decrement -->
+        <div class="category-card">
+          <div class="cat-head">
+            <div class="cat-title">⬆️ Pre vs Post Increment</div>
+            <span class="cat-badge">Precedence: Level 1 & 2</span>
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-muted);">Postfix (<code>x++</code>) has Level 1 precedence (evaluates value first). Prefix (<code>++x</code>) has Level 2 precedence (increments first).</p>
+          <div class="code-box">
+<span class="kw">int</span> x = <span class="num">5</span>;<br/>
+<span class="kw">int</span> y = ++x; <span class="cmt">// Pre: x becomes 6, y gets 6</span><br/><br/>
+<span class="kw">int</span> p = <span class="num">5</span>;<br/>
+<span class="kw">int</span> q = p++; <span class="cmt">// Post: q gets 5, THEN p becomes 6</span>
+          </div>
+        </div>
+
+        <!-- 3. Relational & Equality -->
+        <div class="category-card">
+          <div class="cat-head">
+            <div class="cat-title">🤝 Relational & Equality</div>
+            <span class="cat-badge">Precedence: Level 6 & 7</span>
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-muted);">Relational (<code>&lt;</code>, <code>&gt;=</code>) has higher precedence than Equality (<code>==</code>, <code>!=</code>). All associate Left-to-Right.</p>
+          <div class="code-box">
+<span class="kw">boolean</span> c1 = <span class="num">5</span> &gt; <span class="num">3</span>; <span class="cmt">// true</span><br/>
+<span class="kw">boolean</span> c2 = <span class="num">10</span> == <span class="num">5</span> * <span class="num">2</span>; <span class="cmt">// true (* runs before ==)</span><br/>
+<span class="kw">boolean</span> c3 = <span class="num">5</span> &gt; <span class="num">3</span> == <span class="kw">true</span>; <span class="cmt">// (5 > 3) == true -> true</span>
+          </div>
+        </div>
+
+        <!-- 4. Logical Short-Circuiting -->
+        <div class="category-card">
+          <div class="cat-head">
+            <div class="cat-title">⚡ Logical AND / OR</div>
+            <span class="cat-badge">Precedence: Level 11 & 12</span>
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-muted);">Logical AND (<code>&&</code>) evaluates before Logical OR (<code>||</code>). Both short-circuit left-to-right.</p>
+          <div class="code-box">
+<span class="kw">boolean</span> a = <span class="kw">true</span>, b = <span class="kw">false</span>, c = <span class="kw">false</span>;<br/>
+<span class="kw">boolean</span> res = a || b && c; <span class="cmt">// true || (false && false) -> true!</span><br/>
+<span class="kw">boolean</span> pass = (score &gt;= <span class="num">50</span>) || (hasBonus);
+          </div>
+        </div>
+
+        <!-- 5. Bitwise & Shift -->
+        <div class="category-card">
+          <div class="cat-head">
+            <div class="cat-title">⚙️ Bitwise & Bit-Shift</div>
+            <span class="cat-badge">Precedence: Level 5, 8, 9, 10</span>
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-muted);">Shift operators (<code>&lt;&lt;</code>, <code>&gt;&gt;</code>) execute before Bitwise (<code>&</code>, <code>^</code>, <code>|</code>). Beware: addition runs before shift!</p>
+          <div class="code-box">
+<span class="kw">int</span> p = <span class="num">5</span> & <span class="num">3</span>; <span class="cmt">// 0101 & 0011 = 0001 (1)</span><br/>
+<span class="kw">int</span> s = <span class="num">1</span> &lt;&lt; <span class="num">2</span> + <span class="num">1</span>; <span class="cmt">// 1 << (2 + 1) = 1 << 3 = 8!</span><br/>
+<span class="cmt">// Addition (+) executes BEFORE Shift (<<)</span>
+          </div>
+        </div>
+
+        <!-- 6. Ternary & Assignment -->
+        <div class="category-card">
+          <div class="cat-head">
+            <div class="cat-title">❓ Ternary & Assignment</div>
+            <span class="cat-badge">Precedence: Level 13 & 14</span>
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-muted);">Ternary (<code>? :</code>) and Assignment (<code>=</code>, <code>+=</code>) are <strong>Right-to-Left</strong> associative!</p>
+          <div class="code-box">
+<span class="kw">int</span> a, b, c;<br/>
+a = b = c = <span class="num">10</span>; <span class="cmt">// Right-to-left: a = (b = (c = 10))</span><br/>
+<span class="cls">String</span> grade = score &gt;= <span class="num">90</span> ? <span class="str">"A"</span> : score &gt;= <span class="num">80</span> ? <span class="str">"B"</span> : <span class="str">"C"</span>;
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- TAB PANE 3: PRECEDENCE TABLE -->
+    <div id="pane-table" class="tab-pane">
+      <div class="card">
+        <div class="card-title">
+          <span class="icon">📊</span>
+          <span>Complete Java Operator Precedence & Associativity Table</span>
+        </div>
+        <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 12px;">
+          Operators near the top (Level 1) have the <strong>highest priority</strong> and are evaluated first. When operators have equal precedence, <strong>Associativity</strong> determines evaluation direction.
+        </p>
+
+        <div class="table-filter-bar">
+          <button class="filter-btn active" onclick="filterTable('all')">All Operators</button>
+          <button class="filter-btn" onclick="filterTable('unary')">Unary & Postfix</button>
+          <button class="filter-btn" onclick="filterTable('arith')">Arithmetic & Shift</button>
+          <button class="filter-btn" onclick="filterTable('logic')">Relational & Logical</button>
+          <button class="filter-btn" onclick="filterTable('assign')">Ternary & Assignment</button>
+        </div>
+
+        <div class="table-container">
+          <table class="prec-table">
+            <thead>
+              <tr>
+                <th>Level</th>
+                <th>Category</th>
+                <th>Operators</th>
+                <th>Associativity</th>
+                <th>Description / Example</th>
+              </tr>
+            </thead>
+            <tbody id="precTableBody">
+              <tr data-cat="unary"><td>1</td><td>Postfix</td><td><code>expr++ expr-- . () []</code></td><td class="assoc-lr">Left-to-Right</td><td>Post-increment/decrement, member access, method invocation</td></tr>
+              <tr data-cat="unary"><td>2</td><td>Unary</td><td><code>++expr --expr +expr -expr ! ~ (type)</code></td><td class="assoc-rl">Right-to-Left</td><td>Pre-increment/decrement, unary plus/minus, logical NOT, bitwise NOT, cast</td></tr>
+              <tr data-cat="arith"><td>3</td><td>Multiplicative</td><td><code>* / %</code></td><td class="assoc-lr">Left-to-Right</td><td>Multiplication, integer/floating division, modulus remainder</td></tr>
+              <tr data-cat="arith"><td>4</td><td>Additive</td><td><code>+ -</code></td><td class="assoc-lr">Left-to-Right</td><td>Addition, subtraction, string concatenation (<code>+</code>)</td></tr>
+              <tr data-cat="arith"><td>5</td><td>Shift</td><td><code>&lt;&lt; &gt;&gt; &gt;&gt;&gt;</code></td><td class="assoc-lr">Left-to-Right</td><td>Signed left shift, signed right shift, unsigned right shift</td></tr>
+              <tr data-cat="logic"><td>6</td><td>Relational</td><td><code>&lt; &lt;= &gt; &gt;= instanceof</code></td><td class="assoc-lr">Left-to-Right</td><td>Comparison operators and type comparison</td></tr>
+              <tr data-cat="logic"><td>7</td><td>Equality</td><td><code>== !=</code></td><td class="assoc-lr">Left-to-Right</td><td>Equal to, not equal to</td></tr>
+              <tr data-cat="logic"><td>8</td><td>Bitwise AND</td><td><code>&</code></td><td class="assoc-lr">Left-to-Right</td><td>Bitwise AND (also non-short-circuit boolean AND)</td></tr>
+              <tr data-cat="logic"><td>9</td><td>Bitwise XOR</td><td><code>^</code></td><td class="assoc-lr">Left-to-Right</td><td>Bitwise exclusive OR</td></tr>
+              <tr data-cat="logic"><td>10</td><td>Bitwise OR</td><td><code>|</code></td><td class="assoc-lr">Left-to-Right</td><td>Bitwise inclusive OR (also non-short-circuit boolean OR)</td></tr>
+              <tr data-cat="logic"><td>11</td><td>Logical AND</td><td><code>&&</code></td><td class="assoc-lr">Left-to-Right</td><td>Short-circuit conditional AND</td></tr>
+              <tr data-cat="logic"><td>12</td><td>Logical OR</td><td><code>||</code></td><td class="assoc-lr">Left-to-Right</td><td>Short-circuit conditional OR</td></tr>
+              <tr data-cat="assign"><td>13</td><td>Ternary</td><td><code>? :</code></td><td class="assoc-rl">Right-to-Left</td><td>Inline conditional ternary operator</td></tr>
+              <tr data-cat="assign"><td>14</td><td>Assignment</td><td><code>= += -= *= /= %= &amp;= ^= |= &lt;&lt;= &gt;&gt;=</code></td><td class="assoc-rl">Right-to-Left</td><td>Simple and compound assignment operators</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB PANE 4: INTERACTIVE QUIZZES -->
+    <div id="pane-quiz" class="tab-pane">
+      <div class="card">
+        <div class="card-title">
+          <span class="icon">🎯</span>
+          <span>Operator Precedence Self-Assessment Quizzes</span>
+        </div>
+        <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 16px;">
+          Test your understanding of Java evaluation order, associativity, and side-effects. Click an answer to see instant feedback!
+        </p>
+
+        <div class="quiz-grid">
+          
+          <!-- Question 1 -->
+          <div class="quiz-card">
+            <div class="quiz-q">1. What is the value of <code>result</code>?</div>
+            <div class="quiz-code">int result = 10 + 5 * 2 - 4 / 2;</div>
+            <div class="quiz-options">
+              <div class="quiz-opt" onclick="checkQuiz(this, false, 'q1')">A) 13</div>
+              <div class="quiz-opt" onclick="checkQuiz(this, true, 'q1')">B) 18</div>
+              <div class="quiz-opt" onclick="checkQuiz(this, false, 'q1')">C) 23</div>
+            </div>
+            <div id="q1-exp" class="quiz-explanation">
+              🎉 <strong>Correct!</strong> Precedence rules: <code>5 * 2 = 10</code> and <code>4 / 2 = 2</code> run first. Then <code>10 + 10 - 2 = 18</code>.
+            </div>
+          </div>
+
+          <!-- Question 2 -->
+          <div class="quiz-card">
+            <div class="quiz-q">2. What are the values of <code>a</code> and <code>b</code>?</div>
+            <div class="quiz-code">int a = 4; int b = a++ + ++a;</div>
+            <div class="quiz-options">
+              <div class="quiz-opt" onclick="checkQuiz(this, true, 'q2')">A) a = 6, b = 10</div>
+              <div class="quiz-opt" onclick="checkQuiz(this, false, 'q2')">B) a = 6, b = 9</div>
+              <div class="quiz-opt" onclick="checkQuiz(this, false, 'q2')">C) a = 5, b = 10</div>
+            </div>
+            <div id="q2-exp" class="quiz-explanation">
+              🎉 <strong>Correct!</strong> <code>a++</code> uses original value 4 (then <code>a</code> becomes 5). Then <code>++a</code> increments <code>a</code> to 6 and uses 6. <code>b = 4 + 6 = 10</code>.
+            </div>
+          </div>
+
+          <!-- Question 3 -->
+          <div class="quiz-card">
+            <div class="quiz-q">3. What is printed by this code?</div>
+            <div class="quiz-code">System.out.println("Java" + 10 + 20);</div>
+            <div class="quiz-options">
+              <div class="quiz-opt" onclick="checkQuiz(this, false, 'q3')">A) Java30</div>
+              <div class="quiz-opt" onclick="checkQuiz(this, true, 'q3')">B) Java1020</div>
+              <div class="quiz-opt" onclick="checkQuiz(this, false, 'q3')">C) Compilation Error</div>
+            </div>
+            <div id="q3-exp" class="quiz-explanation">
+              🎉 <strong>Correct!</strong> <code>+</code> evaluates Left-to-Right. <code>"Java" + 10</code> yields <code>"Java10"</code>, then <code>"Java10" + 20</code> yields <code>"Java1020"</code>.
+            </div>
+          </div>
+
+          <!-- Question 4 -->
+          <div class="quiz-card">
+            <div class="quiz-q">4. What is the value of <code>count</code> after execution?</div>
+            <div class="quiz-code">int count = 5;<br/>boolean test = false && (++count > 0);</div>
+            <div class="quiz-options">
+              <div class="quiz-opt" onclick="checkQuiz(this, true, 'q4')">A) count = 5</div>
+              <div class="quiz-opt" onclick="checkQuiz(this, false, 'q4')">B) count = 6</div>
+              <div class="quiz-opt" onclick="checkQuiz(this, false, 'q4')">C) count = 0</div>
+            </div>
+            <div id="q4-exp" class="quiz-explanation">
+              🎉 <strong>Correct!</strong> Logical <code>&&</code> short-circuits! Because the left-hand side is <code>false</code>, <code>(++count > 0)</code> is never evaluated, leaving <code>count</code> at 5.
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      Java Learning Index — Built for Student Excellence | <a href="../index.html">Return to Home Index</a>
+    </footer>
+
+  </div>
+
+  <script>
+    // Tab switching for main tabs
+    function switchMainTab(evt, paneId) {
+      document.querySelectorAll('.main-tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+      evt.currentTarget.classList.add('active');
+      document.getElementById(paneId).classList.add('active');
+    }
+
+    // Interactive Expression Presets Data
+    const PRESETS = {
+      arith1: {
+        title: "Mixed Arithmetic Precedence",
+        rule: "Multiplication * before Addition +",
+        code: `10 + <span class="highlight">2 * 5</span>`,
+        steps: [
+          { code: "2 * 5 => 10", exp: "Multiplication (*) has Level 3 precedence, higher than Addition (+) Level 4." },
+          { code: "10 + 10 => 20", exp: "Addition (+) executes next with evaluated multiplication result." }
+        ],
+        result: "20"
+      },
+      arith2: {
+        title: "Parentheses Override Precedence",
+        rule: "Parentheses () have Highest Level 1 Priority",
+        code: `<span class="highlight">(10 + 2)</span> * 5`,
+        steps: [
+          { code: "(10 + 2) => 12", exp: "Parentheses () force addition to evaluate FIRST despite lower operator priority." },
+          { code: "12 * 5 => 60", exp: "Multiplication executes with parenthesized result." }
+        ],
+        result: "60"
+      },
+      assoc_div: {
+        title: "Division Left-to-Right Associativity",
+        rule: "Associativity: Left-to-Right",
+        code: `<span class="highlight">100 / 10</span> / 2`,
+        steps: [
+          { code: "100 / 10 => 10", exp: "Division / associates Left-to-Right, so left pair evaluates first." },
+          { code: "10 / 2 => 5", exp: "Result of left division is divided by 2. (NOT 100 / (10/2) = 20)" }
+        ],
+        result: "5"
+      },
+      str_concat: {
+        title: "String Concatenation Left-to-Right Trap",
+        rule: "Left-to-Right Associativity for +",
+        code: `<span class="highlight">"Val: " + 10</span> + 20`,
+        steps: [
+          { code: '"Val: " + 10 => "Val: 10"', exp: '+ evaluates left-to-right. String + int produces String.' },
+          { code: '"Val: 10" + 20 => "Val: 1020"', exp: 'Second + concatenates 20 to String "Val: 10".' }
+        ],
+        result: '"Val: 1020"'
+      },
+      str_paren: {
+        title: "Parentheses in String Concatenation",
+        rule: "Parentheses force integer addition first",
+        code: `"Val: " + <span class="highlight">(10 + 20)</span>`,
+        steps: [
+          { code: "(10 + 20) => 30", exp: "Parentheses force integer addition to evaluate FIRST." },
+          { code: '"Val: " + 30 => "Val: 30"', exp: "Concatenates String with evaluated integer 30." }
+        ],
+        result: '"Val: 30"'
+      },
+      bitwise_trap: {
+        title: "Bitwise AND vs Equality Trap",
+        rule: "Equality == (Level 7) before Bitwise & (Level 8)",
+        code: `<span class="highlight">(5 & 3)</span> == 1`,
+        steps: [
+          { code: "5 & 3 => 1", exp: "Bitwise 0101 & 0011 yields 0001 (1)." },
+          { code: "1 == 1 => true", exp: "Note: Without parentheses, 5 & 3 == 1 is invalid Java because == runs first!" }
+        ],
+        result: "true"
+      },
+      shift_add: {
+        title: "Shift vs Addition Precedence Trap",
+        rule: "Addition + (Level 4) BEFORE Shift << (Level 5)",
+        code: `1 &lt;&lt; <span class="highlight">2 + 1</span>`,
+        steps: [
+          { code: "2 + 1 => 3", exp: "Addition (+) Level 4 executes BEFORE Bit-shift (<<) Level 5!" },
+          { code: "1 << 3 => 8", exp: "Shift 1 left by 3 bits (1 * 2^3 = 8). (NOT (1<<2)+1 = 5)." }
+        ],
+        result: "8"
+      },
+      incr_expr: {
+        title: "Post & Pre-Increment Side Effects in Expression",
+        rule: "Precedence: Postfix (L1) -> Prefix (L2) -> Multiplication (L3) -> Addition (L4)",
+        code: `int a = 5; int res = a++ + <span class="highlight">++a * 2</span>;`,
+        steps: [
+          { code: "a++ evaluates to 5", exp: "Post-increment uses 5 first, then increments a to 6." },
+          { code: "++a increments a from 6 to 7", exp: "Pre-increment increments a to 7, then returns 7." },
+          { code: "7 * 2 => 14", exp: "Multiplication runs before addition." },
+          { code: "5 + 14 => 19", exp: "Final addition evaluates to 19 (a = 7)." }
+        ],
+        result: "19"
+      },
+      ternary_chain: {
+        title: "Chained Ternary Right-to-Left Associativity",
+        rule: "Associativity: Right-to-Left",
+        code: `85 >= 90 ? "A" : <span class="highlight">(85 >= 80 ? "B" : "C")</span>`,
+        steps: [
+          { code: "85 >= 90 => false", exp: "Ternary associates Right-to-Left, grouping rightmost branch." },
+          { code: 'False branch evaluates: 85 >= 80 ? "B" : "C"', exp: "Checks second condition." },
+          { code: '85 >= 80 => true => "B"', exp: "Returns string result 'B'." }
+        ],
+        result: '"B"'
+      },
+      assign_chain: {
+        title: "Chained Assignment Right-to-Left",
+        rule: "Associativity: Right-to-Left",
+        code: `a = (b = <span class="highlight">(c = 10)</span>)`,
+        steps: [
+          { code: "c = 10 => 10", exp: "Assignment evaluates Right-to-Left. c is assigned 10 and returns 10." },
+          { code: "b = 10 => 10", exp: "b is assigned 10 and returns 10." },
+          { code: "a = 10 => 10", exp: "a is assigned 10 and returns 10. All three variables now equal 10." }
+        ],
+        result: "a=10, b=10, c=10"
+      }
+    };
+
+    function loadPreset(key) {
+      document.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('active'));
+      const chip = Array.from(document.querySelectorAll('.preset-chip')).find(c => c.getAttribute('onclick')?.includes(key));
+      if (chip) chip.classList.add('active');
+
+      const p = PRESETS[key];
+      if (!p) return;
+
+      document.getElementById('evalTitle').textContent = p.title;
+      document.getElementById('evalRuleBadge').textContent = p.rule;
+      document.getElementById('exprDisplay').innerHTML = p.code;
+      document.getElementById('evalResultVal').textContent = p.result;
+
+      const container = document.getElementById('stepsContainer');
+      container.innerHTML = '';
+      p.steps.forEach((st, idx) => {
+        const stepDiv = document.createElement('div');
+        stepDiv.className = 'step-item';
+        stepDiv.innerHTML = `
+          <div class="step-num">${idx + 1}</div>
+          <div class="step-content">
+            <div class="step-code">${st.code}</div>
+            <div class="step-explain">${st.exp}</div>
+          </div>
+        `;
+        container.appendChild(stepDiv);
+      });
+    }
+
+    // Increment Memory Inspector logic
+    let currentIncrMode = 'pre';
+    function setIncrMode(mode) {
+      currentIncrMode = mode;
+      runIncrSim();
+    }
+
+    function runIncrSim() {
+      const initVal = parseInt(document.getElementById('incrInitVal').value) || 5;
+      const snippet = document.getElementById('incrCodeSnippet');
+      const regX = document.getElementById('memRegX');
+      const regY = document.getElementById('memRegY');
+      const regRet = document.getElementById('memRegRet');
+      const exp = document.getElementById('incrExplanation');
+
+      if (currentIncrMode === 'pre') {
+        const finalX = initVal + 1;
+        const finalY = finalX;
+        snippet.innerHTML = `int x = ${initVal}; int y = ++x;`;
+        regX.textContent = finalX;
+        regY.textContent = finalY;
+        regRet.textContent = finalY;
+        exp.innerHTML = `<strong>Pre-increment (++x):</strong> Increments <code>x</code> from ${initVal} to <strong>${finalX}</strong> FIRST, then returns ${finalX} and assigns it to <code>y</code>.`;
+      } else {
+        const finalX = initVal + 1;
+        const finalY = initVal;
+        snippet.innerHTML = `int x = ${initVal}; int y = x++;`;
+        regX.textContent = finalX;
+        regY.textContent = finalY;
+        regRet.textContent = initVal;
+        exp.innerHTML = `<strong>Post-increment (x++):</strong> Returns original value <strong>${initVal}</strong> FIRST to assign to <code>y</code>, THEN increments <code>x</code> to <strong>${finalX}</strong> afterwards in memory.`;
+      }
+    }
+
+    // Short Circuit Evaluation Simulator logic
+    function runShortCircuitSim() {
+      const lhs = document.getElementById('scLhs').value === 'true';
+      const op = document.getElementById('scOp').value;
+
+      const exprText = document.getElementById('scExprText');
+      const badge = document.getElementById('scStatusBadge');
+      const resText = document.getElementById('scResultText');
+
+      let val = 10;
+      let rhsEvaluated = false;
+      let finalResult = false;
+
+      if (op === '&&') {
+        exprText.innerHTML = `int val = 10; boolean test = <span style="color: #fbbf24;">${lhs}</span> && (++val > 0);`;
+        if (!lhs) {
+          rhsEvaluated = false;
+          finalResult = false;
+        } else {
+          rhsEvaluated = true;
+          val++;
+          finalResult = val > 0;
+        }
+      } else if (op === '||') {
+        exprText.innerHTML = `int val = 10; boolean test = <span style="color: #fbbf24;">${lhs}</span> || (++val > 0);`;
+        if (lhs) {
+          rhsEvaluated = false;
+          finalResult = true;
+        } else {
+          rhsEvaluated = true;
+          val++;
+          finalResult = val > 0;
+        }
+      } else if (op === '&') {
+        exprText.innerHTML = `int val = 10; boolean test = <span style="color: #fbbf24;">${lhs}</span> & (++val > 0);`;
+        // Bitwise/Boolean Non-short-circuiting AND
+        rhsEvaluated = true;
+        val++;
+        finalResult = lhs & (val > 0);
+      }
+
+      if (rhsEvaluated) {
+        badge.style.background = '#064e3b';
+        badge.style.color = '#34d399';
+        badge.style.borderColor = '#10b981';
+        badge.textContent = '✅ RIGHT SIDE EVALUATED (++val executed)';
+        resText.innerHTML = `Result: <strong>${finalResult}</strong> | Final val = <strong>${val}</strong> (incremented!)`;
+      } else {
+        badge.style.background = '#4c0519';
+        badge.style.color = '#f87171';
+        badge.style.borderColor = '#f43f5e';
+        badge.textContent = '⚡ RIGHT SIDE SKIPPED (Short-Circuited)';
+        resText.innerHTML = `Result: <strong>${finalResult}</strong> | Final val = <strong>${val}</strong> (unaltered!)`;
+      }
+    }
+
+    // Table Filter logic
+    function filterTable(cat) {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      const btn = Array.from(document.querySelectorAll('.filter-btn')).find(b => b.getAttribute('onclick')?.includes(cat));
+      if (btn) btn.classList.add('active');
+
+      const rows = document.querySelectorAll('#precTableBody tr');
+      rows.forEach(r => {
+        if (cat === 'all' || r.getAttribute('data-cat') === cat) {
+          r.style.display = '';
+        } else {
+          r.style.display = 'none';
+        }
+      });
+    }
+
+    // Quiz Verification
+    function checkQuiz(opt, isCorrect, qId) {
+      const parent = opt.parentElement;
+      parent.querySelectorAll('.quiz-opt').forEach(o => o.classList.remove('correct', 'incorrect'));
+      const exp = document.getElementById(qId + '-exp');
+      exp.style.display = 'block';
+
+      if (isCorrect) {
+        opt.classList.add('correct');
+      } else {
+        opt.classList.add('incorrect');
+        exp.innerHTML = `❌ <strong>Incorrect.</strong> Try again! Review operator precedence & evaluation rules.`;
+      }
+    }
+
+    // Initialize defaults on load
+    window.addEventListener('DOMContentLoaded', () => {
+      loadPreset('arith1');
+      runIncrSim();
+      runShortCircuitSim();
+    });
+  </script>
+</body>
+</html>
