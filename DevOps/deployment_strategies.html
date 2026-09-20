@@ -1,0 +1,1537 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DevOps Deployment Strategies | Blue-Green, Canary, Rolling & Shadow</title>
+  <meta name="description" content="Master famous DevOps deployment strategies including Blue-Green, Canary, Rolling, Recreate, Shadow, and A/B testing with simple analogies and interactive simulators.">
+  
+  <!-- Manual Custom Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=JetBrains+Mono:wght@500;700&family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* Global Design System - Light Theme (Consistent with Course Materials) */
+    :root {
+      --bg-main: #fcfbf7;
+      --bg-card: #ffffff;
+      --bg-card-subtle: #f8fafc;
+      
+      --text-heading: #0f172a;
+      --text-body: #334155;
+      --text-muted: #64748b;
+      
+      --brand-blue: #2563eb;
+      --brand-blue-light: #eff6ff;
+      --brand-blue-border: #bfdbfe;
+
+      --brand-emerald: #059669;
+      --brand-emerald-light: #ecfdf5;
+      --brand-emerald-border: #a7f3d0;
+
+      --brand-indigo: #4f46e5;
+      --brand-indigo-light: #eef2ff;
+
+      --brand-purple: #9333ea;
+      --brand-purple-light: #faf5ff;
+
+      --brand-amber: #d97706;
+      --brand-amber-light: #fffbeb;
+      --brand-amber-border: #fde68a;
+
+      --brand-rose: #dc2626;
+      --brand-rose-light: #fef2f2;
+      --brand-rose-border: #fecaca;
+
+      --brand-teal: #0d9488;
+      --brand-teal-light: #f0fdfa;
+
+      --border-light: #e2e8f0;
+      --border-hover: #cbd5e1;
+
+      --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+      --shadow-card: 0 10px 25px -5px rgba(15, 23, 42, 0.05), 0 8px 10px -6px rgba(15, 23, 42, 0.03);
+      --shadow-hover: 0 20px 35px -10px rgba(15, 23, 42, 0.1);
+
+      /* Manual Fonts */
+      --font-primary: 'Plus Jakarta Sans', sans-serif;
+      --font-heading: 'Outfit', sans-serif;
+      --font-code: 'JetBrains Mono', monospace;
+      --font-hand: 'Caveat', cursive;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: var(--font-primary);
+      background-color: var(--bg-main);
+      background-image: 
+        radial-gradient(at 10% 10%, rgba(238, 242, 255, 0.6) 0px, transparent 50%),
+        radial-gradient(at 90% 10%, rgba(236, 253, 245, 0.6) 0px, transparent 50%),
+        radial-gradient(at 50% 90%, rgba(254, 243, 199, 0.5) 0px, transparent 50%);
+      background-attachment: fixed;
+      color: var(--text-body);
+      min-height: 100vh;
+      line-height: 1.6;
+      padding-bottom: 90px;
+    }
+
+    /* Navbar */
+    .navbar {
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-light);
+      padding: 0.9rem 2rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      text-decoration: none;
+      color: var(--text-heading);
+    }
+
+    .brand-logo {
+      width: 42px;
+      height: 42px;
+      background: linear-gradient(135deg, var(--brand-blue), var(--brand-emerald));
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-family: var(--font-heading);
+      font-weight: 800;
+      font-size: 1.3rem;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+    }
+
+    .brand-title {
+      font-family: var(--font-heading);
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-heading);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .nav-btn {
+      background: #ffffff;
+      border: 1px solid var(--border-light);
+      color: var(--text-heading);
+      padding: 0.5rem 1rem;
+      border-radius: 10px;
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+
+    .nav-btn:hover {
+      background: var(--brand-blue-light);
+      color: var(--brand-blue);
+      border-color: var(--brand-blue-border);
+    }
+
+    /* Container */
+    .container {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem;
+    }
+
+    /* Hero Section */
+    .hero {
+      text-align: center;
+      padding: 3rem 2rem 2.5rem;
+      background: #ffffff;
+      border: 1px solid var(--border-light);
+      border-radius: 28px;
+      box-shadow: var(--shadow-card);
+      margin-bottom: 2.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 5px;
+      background: linear-gradient(90deg, var(--brand-blue), var(--brand-emerald), var(--brand-purple), var(--brand-amber));
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--brand-emerald-light);
+      border: 1px solid var(--brand-emerald-border);
+      color: var(--brand-emerald);
+      padding: 0.45rem 1.1rem;
+      border-radius: 30px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 1.25rem;
+    }
+
+    .hero-title {
+      font-family: var(--font-heading);
+      font-size: 2.75rem;
+      font-weight: 800;
+      color: var(--text-heading);
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+      margin-bottom: 1rem;
+    }
+
+    .hero-subtitle {
+      font-size: 1.125rem;
+      color: var(--text-body);
+      max-width: 860px;
+      margin: 0 auto 1.5rem;
+      line-height: 1.65;
+    }
+
+    .hand-note {
+      font-family: var(--font-hand);
+      font-size: 1.6rem;
+      color: var(--brand-indigo);
+      font-weight: 700;
+      display: inline-block;
+      transform: rotate(-1.5deg);
+    }
+
+    /* Live Search & Quick Jump Bar */
+    .search-box-container {
+      margin-top: 1.75rem;
+      display: flex;
+      justify-content: center;
+    }
+
+    .search-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: 650px;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 0.9rem 1.25rem 0.9rem 3.2rem;
+      border-radius: 16px;
+      border: 2px solid var(--border-light);
+      font-family: var(--font-primary);
+      font-size: 1rem;
+      outline: none;
+      background: #ffffff;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s ease;
+    }
+
+    .search-input:focus {
+      border-color: var(--brand-blue);
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 1.1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.25rem;
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+
+    /* TOC Bar */
+    .toc-bar {
+      display: flex;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .toc-chip {
+      background: #ffffff;
+      border: 1px solid var(--border-light);
+      color: var(--text-body);
+      padding: 0.45rem 0.95rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .toc-chip:hover {
+      background: var(--brand-blue-light);
+      color: var(--brand-blue);
+      border-color: var(--brand-blue-border);
+      transform: translateY(-1px);
+    }
+
+    /* Section Cards */
+    .section-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-light);
+      border-radius: 24px;
+      padding: 2.25rem;
+      box-shadow: var(--shadow-card);
+      margin-bottom: 2.5rem;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border-light);
+      padding-bottom: 1rem;
+    }
+
+    .section-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      flex-shrink: 0;
+    }
+
+    .section-title {
+      font-family: var(--font-heading);
+      font-size: 1.65rem;
+      font-weight: 800;
+      color: var(--text-heading);
+    }
+
+    /* Strategy Cards Grid */
+    .grid-2col {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1.25rem;
+    }
+
+    .grid-3col {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.25rem;
+      margin-top: 1.25rem;
+    }
+
+    .strategy-card {
+      background: #ffffff;
+      border: 1.5px solid var(--border-light);
+      border-radius: 20px;
+      padding: 1.6rem;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.25s ease;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .strategy-card:hover {
+      border-color: var(--brand-blue);
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-card);
+    }
+
+    .strategy-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 0.8rem;
+    }
+
+    .strategy-card h4 {
+      font-family: var(--font-heading);
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: var(--text-heading);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .strategy-badge {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 0.25rem 0.65rem;
+      border-radius: 20px;
+      letter-spacing: 0.03em;
+    }
+
+    .badge-blue { background: var(--brand-blue-light); color: var(--brand-blue); border: 1px solid var(--brand-blue-border); }
+    .badge-emerald { background: var(--brand-emerald-light); color: var(--brand-emerald); border: 1px solid var(--brand-emerald-border); }
+    .badge-amber { background: var(--brand-amber-light); color: var(--brand-amber); border: 1px solid var(--brand-amber-border); }
+    .badge-purple { background: var(--brand-purple-light); color: var(--brand-purple); border: 1px solid #e9d5ff; }
+    .badge-rose { background: var(--brand-rose-light); color: var(--brand-rose); border: 1px solid var(--brand-rose-border); }
+
+    .strategy-card p {
+      font-size: 0.93rem;
+      color: var(--text-body);
+      line-height: 1.6;
+      margin-bottom: 1rem;
+    }
+
+    /* Analogy Box */
+    .analogy-box {
+      background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+      border: 1.5px solid var(--brand-blue-border);
+      border-radius: 16px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1rem;
+      display: flex;
+      gap: 0.85rem;
+      align-items: flex-start;
+    }
+
+    .analogy-icon {
+      font-size: 1.6rem;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .analogy-text {
+      font-size: 0.88rem;
+      color: var(--text-body);
+      line-height: 1.5;
+    }
+
+    .analogy-text strong {
+      color: var(--brand-blue);
+      font-family: var(--font-heading);
+    }
+
+    /* Metrics Pills */
+    .metrics-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.5rem;
+      margin-top: auto;
+      padding-top: 0.85rem;
+      border-top: 1px solid var(--border-light);
+      text-align: center;
+    }
+
+    .metric-pill {
+      background: var(--bg-card-subtle);
+      border: 1px solid var(--border-light);
+      border-radius: 10px;
+      padding: 0.4rem 0.2rem;
+    }
+
+    .metric-pill label {
+      display: block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .metric-pill span {
+      font-size: 0.82rem;
+      font-weight: 800;
+      font-family: var(--font-heading);
+    }
+
+    /* Simulator Styles */
+    .sim-box {
+      background: #ffffff;
+      border: 1.5px solid var(--border-light);
+      border-radius: 20px;
+      padding: 1.75rem;
+      margin-top: 1.5rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .sim-controls {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+      background: var(--bg-card-subtle);
+      padding: 1rem;
+      border-radius: 16px;
+      border: 1px solid var(--border-light);
+    }
+
+    .sim-btn {
+      background: linear-gradient(135deg, var(--brand-blue), var(--brand-indigo));
+      color: #ffffff;
+      border: none;
+      padding: 0.65rem 1.4rem;
+      border-radius: 12px;
+      font-family: var(--font-heading);
+      font-weight: 800;
+      font-size: 0.92rem;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+      transition: all 0.2s ease;
+    }
+
+    .sim-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(37, 99, 235, 0.3);
+    }
+
+    .sim-btn-danger {
+      background: linear-gradient(135deg, var(--brand-rose), #b91c1c);
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
+    }
+
+    .sim-btn-secondary {
+      background: #ffffff;
+      color: var(--text-heading);
+      border: 1.5px solid var(--border-light);
+      box-shadow: none;
+    }
+
+    .sim-btn-secondary:hover {
+      background: var(--bg-card-subtle);
+      border-color: var(--border-hover);
+    }
+
+    /* Live Deployment Visual Canvas */
+    .deploy-canvas {
+      background: #0f172a;
+      border-radius: 18px;
+      padding: 1.75rem;
+      color: #ffffff;
+      min-height: 280px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .router-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 0.85rem 1.25rem;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .router-title {
+      font-family: var(--font-heading);
+      font-weight: 700;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .traffic-split {
+      display: flex;
+      gap: 1rem;
+      font-family: var(--font-code);
+      font-size: 0.85rem;
+    }
+
+    .split-v1 { color: #38bdf8; font-weight: 700; }
+    .split-v2 { color: #4ade80; font-weight: 700; }
+
+    .servers-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+
+    .server-node {
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px solid rgba(255, 255, 255, 0.15);
+      border-radius: 14px;
+      padding: 1rem 0.75rem;
+      text-align: center;
+      transition: all 0.4s ease;
+      position: relative;
+    }
+
+    .server-node.v1 {
+      border-color: #38bdf8;
+      background: rgba(56, 189, 248, 0.12);
+    }
+
+    .server-node.v2 {
+      border-color: #4ade80;
+      background: rgba(74, 222, 128, 0.15);
+      box-shadow: 0 0 15px rgba(74, 222, 128, 0.3);
+    }
+
+    .server-node.deploying {
+      border-color: #fbbf24;
+      background: rgba(251, 191, 36, 0.15);
+      animation: pulse 1s infinite alternate;
+    }
+
+    .server-node.dead {
+      border-color: #f87171;
+      background: rgba(248, 113, 113, 0.1);
+      opacity: 0.4;
+    }
+
+    .server-icon {
+      font-size: 1.6rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .server-name {
+      font-family: var(--font-heading);
+      font-weight: 700;
+      font-size: 0.85rem;
+    }
+
+    .server-ver {
+      font-family: var(--font-code);
+      font-size: 0.75rem;
+      margin-top: 0.2rem;
+    }
+
+    .console-log {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+      font-family: var(--font-code);
+      font-size: 0.82rem;
+      color: #94a3b8;
+      min-height: 48px;
+    }
+
+    /* Comparison Table Component */
+    .table-container {
+      overflow-x: auto;
+      margin-top: 1.25rem;
+      border-radius: 16px;
+      border: 1px solid var(--border-light);
+    }
+
+    .custom-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #ffffff;
+      font-size: 0.9rem;
+      text-align: left;
+    }
+
+    .custom-table th {
+      background: var(--bg-card-subtle);
+      font-family: var(--font-heading);
+      font-weight: 700;
+      color: var(--text-heading);
+      padding: 0.9rem 1.1rem;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .custom-table td {
+      padding: 0.9rem 1.1rem;
+      border-bottom: 1px solid var(--border-light);
+      color: var(--text-body);
+    }
+
+    .custom-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .custom-table tr:hover td {
+      background: #fafafa;
+    }
+
+    /* Decision Assistant */
+    .decision-box {
+      background: var(--bg-card-subtle);
+      border: 1.5px solid var(--border-light);
+      border-radius: 20px;
+      padding: 1.75rem;
+      margin-top: 1.5rem;
+    }
+
+    .decision-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+      margin-top: 1.25rem;
+    }
+
+    .decision-opt {
+      background: #ffffff;
+      border: 1.5px solid var(--border-light);
+      border-radius: 14px;
+      padding: 1rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+    }
+
+    .decision-opt:hover {
+      border-color: var(--brand-blue);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .decision-opt.selected {
+      border-color: var(--brand-emerald);
+      background: var(--brand-emerald-light);
+    }
+
+    .decision-result-box {
+      background: #ffffff;
+      border: 1.5px solid var(--brand-blue-border);
+      border-radius: 16px;
+      padding: 1.25rem;
+      margin-top: 1.25rem;
+      display: none;
+    }
+
+    .decision-result-box.show {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    /* Quiz Box */
+    .quiz-container {
+      background: var(--bg-card-subtle);
+      border: 1.5px solid var(--border-light);
+      border-radius: 20px;
+      padding: 1.75rem;
+      margin-top: 1.25rem;
+    }
+
+    .quiz-q {
+      background: #ffffff;
+      border: 1px solid var(--border-light);
+      border-radius: 16px;
+      padding: 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .quiz-q:last-child {
+      margin-bottom: 0;
+    }
+
+    .quiz-q h5 {
+      font-family: var(--font-heading);
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 0.85rem;
+      color: var(--text-heading);
+    }
+
+    .quiz-options {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .quiz-opt {
+      padding: 0.7rem 1rem;
+      border-radius: 10px;
+      border: 1px solid var(--border-light);
+      background: var(--bg-main);
+      font-size: 0.9rem;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s ease;
+      font-family: var(--font-primary);
+    }
+
+    .quiz-opt:hover {
+      background: var(--brand-blue-light);
+      border-color: var(--brand-blue-border);
+      color: var(--brand-blue);
+    }
+
+    .quiz-opt.correct {
+      background: var(--brand-emerald-light) !important;
+      border-color: var(--brand-emerald) !important;
+      color: var(--brand-emerald) !important;
+      font-weight: 700;
+    }
+
+    .quiz-opt.wrong {
+      background: var(--brand-rose-light) !important;
+      border-color: var(--brand-rose) !important;
+      color: var(--brand-rose) !important;
+    }
+
+    .quiz-exp {
+      font-size: 0.88rem;
+      margin-top: 0.75rem;
+      padding: 0.65rem 0.9rem;
+      border-radius: 10px;
+      display: none;
+      line-height: 1.5;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 0.6; }
+      100% { opacity: 1; }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 768px) {
+      .hero-title { font-size: 2.1rem; }
+      .metrics-row { grid-template-columns: repeat(2, 1fr); gap: 0.5rem; }
+      .navbar { padding: 0.8rem 1rem; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <a href="../fsd_crashcourse.html" class="brand">
+      <div class="brand-logo">🚀</div>
+      <span class="brand-title">DevOps Deployment Strategies</span>
+    </a>
+    <div class="nav-links">
+      <a href="devops_intro.html" class="nav-btn">⚙️ DevOps Fundamentals</a>
+      <a href="../fsd_crashcourse.html" class="nav-btn">← Course Hub</a>
+    </div>
+  </nav>
+
+  <div class="container">
+
+    <!-- Hero Section -->
+    <header class="hero">
+      <div class="hero-badge">
+        <span>⚙️</span> DevOps &amp; CI/CD Advanced Architecture
+      </div>
+      <h1 class="hero-title">Famous Deployment Strategies Explained</h1>
+      <p class="hero-subtitle">
+        How modern engineering teams release software updates without crashing servers or annoying users — 
+        master <strong>Blue-Green</strong>, <strong>Canary</strong>, <strong>Rolling</strong>, <strong>Recreate</strong>, 
+        and <strong>Shadow Deployments</strong> through interactive visualizers and decision frameworks.
+      </p>
+      <span class="hand-note">~ "Zero downtime isn't magic, it's smart traffic routing!" 🔀</span>
+
+      <!-- Interactive Search Bar -->
+      <div class="search-box-container">
+        <div class="search-wrapper">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="stratSearchInput" class="search-input" placeholder="Search strategy (e.g. Canary, Blue-Green, Rollback, Downtime, Shadow...)" onkeyup="filterStrategies()">
+        </div>
+      </div>
+    </header>
+
+    <!-- Quick Jump Navigation Chips -->
+    <div class="toc-bar">
+      <a href="#simulator" class="toc-chip">🎮 Interactive Simulator</a>
+      <a href="#bluegreen" class="toc-chip">🔵🟢 Blue-Green</a>
+      <a href="#canary" class="toc-chip">🐤 Canary</a>
+      <a href="#rolling" class="toc-chip">🔄 Rolling</a>
+      <a href="#recreate" class="toc-chip">🔴 Recreate</a>
+      <a href="#shadow" class="toc-chip">👻 Shadow</a>
+      <a href="#abtesting" class="toc-chip">🧪 A/B Testing</a>
+      <a href="#matrix" class="toc-chip">📊 Comparison Matrix</a>
+      <a href="#assistant" class="toc-chip">🧠 Strategy Finder</a>
+      <a href="#quiz" class="toc-chip">🎯 Knowledge Quiz</a>
+    </div>
+
+    <!-- Section 1: Interactive Strategy Simulator -->
+    <section id="simulator" class="section-card">
+      <div class="section-header">
+        <div class="section-icon" style="background: var(--brand-blue-light); color: var(--brand-blue);">🎮</div>
+        <h2 class="section-title">1. Live Deployment Strategy Simulator</h2>
+      </div>
+
+      <p>
+        Select a strategy and watch how traffic router switches, servers spin up/down, and Version 1 (v1.0 Blue) transitions to Version 2 (v2.0 Green) in real-time!
+      </p>
+
+      <div class="sim-box">
+        <div class="sim-controls">
+          <label style="font-weight: 700; font-family: var(--font-heading); font-size: 0.95rem;">Select Strategy:</label>
+          <select id="simStrategySelect" onchange="resetSim()" style="padding: 0.55rem 1rem; border-radius: 10px; border: 1.5px solid var(--border-light); font-family: var(--font-primary); font-size: 0.9rem; font-weight: 600; outline: none;">
+            <option value="bluegreen">🔵🟢 Blue-Green Deployment (Instant Switch)</option>
+            <option value="canary">🐤 Canary Deployment (Gradual 10% ➔ 50% ➔ 100%)</option>
+            <option value="rolling">🔄 Rolling Deployment (Incremental Replace)</option>
+            <option value="recreate">🔴 Recreate Deployment (All Stop ➔ All Start)</option>
+            <option value="shadow">👻 Shadow Deployment (Duplicate Parallel Traffic)</option>
+          </select>
+
+          <button class="sim-btn" onclick="stepSim()">▶️ Next Step</button>
+          <button class="sim-btn sim-btn-danger" onclick="rollbackSim()">⏪ Trigger Rollback</button>
+          <button class="sim-btn sim-btn-secondary" onclick="resetSim()">🔄 Reset</button>
+        </div>
+
+        <!-- Live Visual Canvas -->
+        <div class="deploy-canvas">
+          <div class="router-bar">
+            <div class="router-title">
+              <span>🔀 Load Balancer Router</span>
+              <span id="simStatusBadge" class="strategy-badge badge-blue">Ready</span>
+            </div>
+            <div class="traffic-split">
+              <span class="split-v1">v1.0 Traffic: <span id="v1Traffic">100%</span></span>
+              <span class="split-v2">v2.0 Traffic: <span id="v2Traffic">0%</span></span>
+            </div>
+          </div>
+
+          <div class="servers-grid" id="serversContainer">
+            <!-- Rendered by JS -->
+          </div>
+
+          <div class="console-log" id="simLog">
+            Status: Idle. Click "Next Step" to initiate deployment sequence.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 2: Detailed Strategy Breakdown Cards -->
+    <section class="section-card">
+      <div class="section-header">
+        <div class="section-icon" style="background: var(--brand-indigo-light); color: var(--brand-indigo);">📚</div>
+        <h2 class="section-title">2. Famous Deployment Strategies Deep-Dive</h2>
+      </div>
+
+      <div class="grid-2col">
+        <!-- 1. Blue-Green -->
+        <div id="bluegreen" class="strategy-card searchable-item">
+          <div class="strategy-card-header">
+            <h4>🔵🟢 Blue-Green Deployment</h4>
+            <span class="strategy-badge badge-emerald">Zero Downtime</span>
+          </div>
+          <p>
+            Maintains <strong>two identical physical/cloud environments</strong>: 
+            <strong>Blue</strong> (Current Active Production) and <strong>Green</strong> (Idle / New Version). 
+            Version 2 is deployed &amp; tested fully in Green. Once verified, the Load Balancer router flips traffic instantly to Green!
+          </p>
+
+          <div class="analogy-box">
+            <div class="analogy-icon">✈️</div>
+            <div class="analogy-text">
+              <strong>Analogy:</strong> Building a brand new identical airport runway alongside the old one. Once completed, air traffic control flips one switch to land all planes on the new runway.
+            </div>
+          </div>
+
+          <ul style="font-size: 0.88rem; color: var(--text-body); margin-left: 1.2rem; margin-bottom: 1rem; line-height: 1.55;">
+            <li><strong>Pros:</strong> Instant rollback (&lt;1 sec switch back to Blue), zero downtime, safe testing on real production environment.</li>
+            <li><strong>Cons:</strong> High cost (requires 2x infrastructure during release), database schema migrations must be backward-compatible.</li>
+          </ul>
+
+          <div class="metrics-row">
+            <div class="metric-pill">
+              <label>Downtime</label>
+              <span style="color: var(--brand-emerald);">0 Sec</span>
+            </div>
+            <div class="metric-pill">
+              <label>Cost</label>
+              <span style="color: var(--brand-rose);">High ($$$)</span>
+            </div>
+            <div class="metric-pill">
+              <label>Rollback</label>
+              <span style="color: var(--brand-emerald);">&lt; 1 Sec</span>
+            </div>
+            <div class="metric-pill">
+              <label>Risk</label>
+              <span style="color: var(--brand-emerald);">Very Low</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Canary Deployment -->
+        <div id="canary" class="strategy-card searchable-item">
+          <div class="strategy-card-header">
+            <h4>🐤 Canary Deployment</h4>
+            <span class="strategy-badge badge-purple">Blast Radius Control</span>
+          </div>
+          <p>
+            Releases Version 2 to a <strong>small subset of users first (e.g. 5% or 10%)</strong> while 90% remain on v1. 
+            DevOps teams monitor error rates, CPU, and latency via Prometheus/Grafana. If metrics are healthy, traffic is gradually increased (10% ➔ 25% ➔ 50% ➔ 100%).
+          </p>
+
+          <div class="analogy-box">
+            <div class="analogy-icon">🐥</div>
+            <div class="analogy-text">
+              <strong>Analogy:</strong> Coal miners taking a canary bird into toxic gas mines. If the bird survived, it was safe for human miners to enter.
+            </div>
+          </div>
+
+          <ul style="font-size: 0.88rem; color: var(--text-body); margin-left: 1.2rem; margin-bottom: 1rem; line-height: 1.55;">
+            <li><strong>Pros:</strong> Minimal blast radius (only 5% of users affected if v2 has bugs), real production traffic testing, auto-rollback triggers.</li>
+            <li><strong>Cons:</strong> Requires complex traffic routing (Istio / Nginx / AWS ALB), takes longer to complete 100% rollout.</li>
+          </ul>
+
+          <div class="metrics-row">
+            <div class="metric-pill">
+              <label>Downtime</label>
+              <span style="color: var(--brand-emerald);">0 Sec</span>
+            </div>
+            <div class="metric-pill">
+              <label>Cost</label>
+              <span style="color: var(--brand-amber);">Medium ($$)</span>
+            </div>
+            <div class="metric-pill">
+              <label>Rollback</label>
+              <span style="color: var(--brand-emerald);">Fast</span>
+            </div>
+            <div class="metric-pill">
+              <label>Risk</label>
+              <span style="color: var(--brand-emerald);">Minimal</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Rolling Deployment -->
+        <div id="rolling" class="strategy-card searchable-item">
+          <div class="strategy-card-header">
+            <h4>🔄 Rolling Deployment</h4>
+            <span class="strategy-badge badge-blue">Kubernetes Default</span>
+          </div>
+          <p>
+            Gradually replaces old server instances with new server instances <strong>one by one or in batches</strong> (e.g. 25% at a time). 
+            The Load Balancer takes one server offline, upgrades it to v2, verifies health check, and brings it back online before moving to the next.
+          </p>
+
+          <div class="analogy-box">
+            <div class="analogy-icon">🏟️</div>
+            <div class="analogy-text">
+              <strong>Analogy:</strong> Upgrading stadium seats section by section while a live match is ongoing without stopping the game.
+            </div>
+          </div>
+
+          <ul style="font-size: 0.88rem; color: var(--text-body); margin-left: 1.2rem; margin-bottom: 1rem; line-height: 1.55;">
+            <li><strong>Pros:</strong> Zero downtime, no extra server costs (uses existing infrastructure pool), standard for Kubernetes RollingUpdate.</li>
+            <li><strong>Cons:</strong> Rollback takes time (must undo instance by instance), temporary period where both v1 and v2 coexist simultaneously.</li>
+          </ul>
+
+          <div class="metrics-row">
+            <div class="metric-pill">
+              <label>Downtime</label>
+              <span style="color: var(--brand-emerald);">0 Sec</span>
+            </div>
+            <div class="metric-pill">
+              <label>Cost</label>
+              <span style="color: var(--brand-emerald);">Low ($)</span>
+            </div>
+            <div class="metric-pill">
+              <label>Rollback</label>
+              <span style="color: var(--brand-amber);">Medium</span>
+            </div>
+            <div class="metric-pill">
+              <label>Risk</label>
+              <span style="color: var(--brand-amber);">Moderate</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Recreate Deployment -->
+        <div id="recreate" class="strategy-card searchable-item">
+          <div class="strategy-card-header">
+            <h4>🔴 Recreate (Big Bang)</h4>
+            <span class="strategy-badge badge-rose">Downtime Window</span>
+          </div>
+          <p>
+            Completely shuts down all Version 1 servers ➔ System goes offline ➔ Deploys Version 2 ➔ Boots all servers back up. 
+            Simplest approach, but causes noticeable service downtime.
+          </p>
+
+          <div class="analogy-box">
+            <div class="analogy-icon">🛠️</div>
+            <div class="analogy-text">
+              <strong>Analogy:</strong> Closing a restaurant completely for 2 weeks to renovate the kitchen before reopening.
+            </div>
+          </div>
+
+          <ul style="font-size: 0.88rem; color: var(--text-body); margin-left: 1.2rem; margin-bottom: 1rem; line-height: 1.55;">
+            <li><strong>Pros:</strong> Easiest setup, no backward compatibility issues (no mixed v1/v2 state), zero extra infrastructure cost.</li>
+            <li><strong>Cons:</strong> Planned downtime required, high risk if v2 fails during boot up.</li>
+          </ul>
+
+          <div class="metrics-row">
+            <div class="metric-pill">
+              <label>Downtime</label>
+              <span style="color: var(--brand-rose);">Required</span>
+            </div>
+            <div class="metric-pill">
+              <label>Cost</label>
+              <span style="color: var(--brand-emerald);">Low ($)</span>
+            </div>
+            <div class="metric-pill">
+              <label>Rollback</label>
+              <span style="color: var(--brand-rose);">Slow</span>
+            </div>
+            <div class="metric-pill">
+              <label>Risk</label>
+              <span style="color: var(--brand-rose);">High</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. Shadow / Dark Deployment -->
+        <div id="shadow" class="strategy-card searchable-item">
+          <div class="strategy-card-header">
+            <h4>👻 Shadow / Dark Deployment</h4>
+            <span class="strategy-badge badge-amber">Silent Production Test</span>
+          </div>
+          <p>
+            Version 2 is deployed alongside Version 1. The Load Balancer <strong>duplicates incoming live production traffic</strong> and sends an exact copy asynchronously to v2. 
+            v2's responses are discarded and never returned to real users. Used to test load, memory leaks &amp; performance under true production traffic!
+          </p>
+
+          <div class="analogy-box">
+            <div class="analogy-icon">👨‍🍳</div>
+            <div class="analogy-text">
+              <strong>Analogy:</strong> A shadow chef in a back room cooking every customer order in parallel to test cooking speed, but throwing the extra food away.
+            </div>
+          </div>
+
+          <ul style="font-size: 0.88rem; color: var(--text-body); margin-left: 1.2rem; margin-bottom: 1rem; line-height: 1.55;">
+            <li><strong>Pros:</strong> Zero user impact, 100% realistic production load testing without risk.</li>
+            <li><strong>Cons:</strong> Expensive, side-effects MUST be mocked/disabled (e.g. don't send duplicate emails or double-charge credit cards!).</li>
+          </ul>
+
+          <div class="metrics-row">
+            <div class="metric-pill">
+              <label>Downtime</label>
+              <span style="color: var(--brand-emerald);">0 Sec</span>
+            </div>
+            <div class="metric-pill">
+              <label>Cost</label>
+              <span style="color: var(--brand-rose);">High ($$$)</span>
+            </div>
+            <div class="metric-pill">
+              <label>Rollback</label>
+              <span style="color: var(--brand-emerald);">Instant</span>
+            </div>
+            <div class="metric-pill">
+              <label>Risk</label>
+              <span style="color: var(--brand-emerald);">Zero User Impact</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 6. A/B Testing -->
+        <div id="abtesting" class="strategy-card searchable-item">
+          <div class="strategy-card-header">
+            <h4>🧪 A/B Testing Deployment</h4>
+            <span class="strategy-badge badge-teal">Business Metric Split</span>
+          </div>
+          <p>
+            Routes targeted subsets of users based on <strong>cookies, geolocation, user ID, or HTTP headers</strong> to Version A vs Version B to evaluate business metrics (e.g., checkout conversion rate).
+          </p>
+
+          <div class="analogy-box">
+            <div class="analogy-icon">📋</div>
+            <div class="analogy-text">
+              <strong>Analogy:</strong> Giving half your restaurant guests Menu A and half Menu B to test which menu design generates higher sales.
+            </div>
+          </div>
+
+          <ul style="font-size: 0.88rem; color: var(--text-body); margin-left: 1.2rem; margin-bottom: 1rem; line-height: 1.55;">
+            <li><strong>Pros:</strong> Data-driven product decisions, precise targeting, feature flag integration.</li>
+            <li><strong>Cons:</strong> Requires analytics tracking infrastructure &amp; complex routing rules.</li>
+          </ul>
+
+          <div class="metrics-row">
+            <div class="metric-pill">
+              <label>Downtime</label>
+              <span style="color: var(--brand-emerald);">0 Sec</span>
+            </div>
+            <div class="metric-pill">
+              <label>Cost</label>
+              <span style="color: var(--brand-amber);">Medium ($$)</span>
+            </div>
+            <div class="metric-pill">
+              <label>Rollback</label>
+              <span style="color: var(--brand-emerald);">Instant</span>
+            </div>
+            <div class="metric-pill">
+              <label>Risk</label>
+              <span style="color: var(--brand-emerald);">Low</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 3: Comparison Matrix Table -->
+    <section id="matrix" class="section-card searchable-section">
+      <div class="section-header">
+        <div class="section-icon" style="background: var(--brand-teal-light); color: var(--brand-teal);">📊</div>
+        <h2 class="section-title">3. DevOps Strategy Comparison Matrix</h2>
+      </div>
+
+      <p>Quick reference summary table for architecture reviews and interview preparation:</p>
+
+      <div class="table-container">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>Strategy</th>
+              <th>Downtime</th>
+              <th>Infrastructure Cost</th>
+              <th>Rollback Speed</th>
+              <th>Blast Radius</th>
+              <th>Best Used For</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>🔴 Recreate</strong></td>
+              <td><span style="color: var(--brand-rose); font-weight: 700;">Yes (Minutes/Hours)</span></td>
+              <td><code>Low ($)</code></td>
+              <td>Slow (Re-deploy v1)</td>
+              <td>100% of Users</td>
+              <td>Development/Staging environments, non-critical batch apps.</td>
+            </tr>
+            <tr>
+              <td><strong>🔄 Rolling</strong></td>
+              <td><span style="color: var(--brand-emerald); font-weight: 700;">Zero Downtime</span></td>
+              <td><code>Low ($)</code></td>
+              <td>Medium (Instance by instance)</td>
+              <td>Partial Users</td>
+              <td>Standard microservices, Kubernetes stateless applications.</td>
+            </tr>
+            <tr>
+              <td><strong>🔵🟢 Blue-Green</strong></td>
+              <td><span style="color: var(--brand-emerald); font-weight: 700;">Zero Downtime</span></td>
+              <td><code style="color: var(--brand-rose);">High ($$$)</code></td>
+              <td><strong style="color: var(--brand-emerald);">&lt; 1 Second Switch</strong></td>
+              <td>All or None</td>
+              <td>Mission-critical banking, payment gateways, major release cutovers.</td>
+            </tr>
+            <tr>
+              <td><strong>🐤 Canary</strong></td>
+              <td><span style="color: var(--brand-emerald); font-weight: 700;">Zero Downtime</span></td>
+              <td><code>Medium ($$)</code></td>
+              <td>Fast (Route back to v1)</td>
+              <td><strong style="color: var(--brand-emerald);">Confined (5% - 10%)</strong></td>
+              <td>High-traffic platforms (Netflix, Swiggy, Uber) testing new features.</td>
+            </tr>
+            <tr>
+              <td><strong>👻 Shadow</strong></td>
+              <td><span style="color: var(--brand-emerald); font-weight: 700;">Zero Downtime</span></td>
+              <td><code style="color: var(--brand-rose);">High ($$$)</code></td>
+              <td>Instant (Stop duplicate)</td>
+              <td><strong style="color: var(--brand-emerald);">0 Users (Silent)</strong></td>
+              <td>Performance load testing, algorithm upgrades under real load.</td>
+            </tr>
+            <tr>
+              <td><strong>🧪 A/B Testing</strong></td>
+              <td><span style="color: var(--brand-emerald); font-weight: 700;">Zero Downtime</span></td>
+              <td><code>Medium ($$)</code></td>
+              <td>Instant (Toggle Flag)</td>
+              <td>Target Segment</td>
+              <td>Product experimentation, UI redesigns, conversion optimization.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Section 4: Interactive Decision Tree Helper -->
+    <section id="assistant" class="section-card">
+      <div class="section-header">
+        <div class="section-icon" style="background: var(--brand-amber-light); color: var(--brand-amber);">🧠</div>
+        <h2 class="section-title">4. Interactive Strategy Decision Helper</h2>
+      </div>
+
+      <p>Select your project's primary engineering constraint to find the best deployment strategy:</p>
+
+      <div class="decision-box">
+        <div class="decision-grid">
+          <div class="decision-opt" onclick="selectConstraint('budget')">
+            <div style="font-size: 1.8rem;">💰</div>
+            <strong style="font-family: var(--font-heading);">Strict Budget Constraint</strong>
+            <span style="display: block; font-size: 0.82rem; color: var(--text-muted); margin-top: 0.3rem;">Cannot afford 2x servers</span>
+          </div>
+
+          <div class="decision-opt" onclick="selectConstraint('instant_rollback')">
+            <div style="font-size: 1.8rem;">⚡</div>
+            <strong style="font-family: var(--font-heading);">Instant Rollback Needed</strong>
+            <span style="display: block; font-size: 0.82rem; color: var(--text-muted); margin-top: 0.3rem;">Must undo in &lt;1 second</span>
+          </div>
+
+          <div class="decision-opt" onclick="selectConstraint('blast_radius')">
+            <div style="font-size: 1.8rem;">🛡️</div>
+            <strong style="font-family: var(--font-heading);">Limit Blast Radius</strong>
+            <span style="display: block; font-size: 0.82rem; color: var(--text-muted); margin-top: 0.3rem;">Affect max 5% users on bug</span>
+          </div>
+
+          <div class="decision-opt" onclick="selectConstraint('load_test')">
+            <div style="font-size: 1.8rem;">👻</div>
+            <strong style="font-family: var(--font-heading);">Real Traffic Load Test</strong>
+            <span style="display: block; font-size: 0.82rem; color: var(--text-muted); margin-top: 0.3rem;">Test performance silently</span>
+          </div>
+        </div>
+
+        <div id="decisionResult" class="decision-result-box">
+          <h4 id="decisionTitle" style="font-family: var(--font-heading); color: var(--brand-blue); margin-bottom: 0.4rem;">Selection</h4>
+          <p id="decisionDesc" style="font-size: 0.93rem; color: var(--text-body); line-height: 1.6;"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 5: Knowledge Check Quiz -->
+    <section id="quiz" class="section-card">
+      <div class="section-header">
+        <div class="section-icon" style="background: var(--brand-purple-light); color: var(--brand-purple);">🎯</div>
+        <h2 class="section-title">5. Self-Assessment Quiz</h2>
+      </div>
+
+      <div class="quiz-container">
+        <!-- Q1 -->
+        <div class="quiz-q">
+          <h5>Q1: Which deployment strategy offers INSTANT (&lt;1 sec) rollback by switching router traffic between two complete environments?</h5>
+          <div class="quiz-options">
+            <button class="quiz-opt" onclick="checkQuiz(this, false, 'q1')">A) Rolling Deployment</button>
+            <button class="quiz-opt" onclick="checkQuiz(this, true, 'q1')">B) Blue-Green Deployment</button>
+            <button class="quiz-opt" onclick="checkQuiz(this, false, 'q1')">C) Recreate Deployment</button>
+          </div>
+          <div id="q1-exp" class="quiz-exp"></div>
+        </div>
+
+        <!-- Q2 -->
+        <div class="quiz-q">
+          <h5>Q2: What is the main advantage of Canary Deployments?</h5>
+          <div class="quiz-options">
+            <button class="quiz-opt" onclick="checkQuiz(this, true, 'q2')">A) It confines the blast radius of a buggy release to a small percentage (e.g. 5%) of users.</button>
+            <button class="quiz-opt" onclick="checkQuiz(this, false, 'q2')">B) It requires zero load balancers.</button>
+            <button class="quiz-opt" onclick="checkQuiz(this, false, 'q2')">C) It is the cheapest deployment strategy with no cloud costs.</button>
+          </div>
+          <div id="q2-exp" class="quiz-exp"></div>
+        </div>
+
+        <!-- Q3 -->
+        <div class="quiz-q">
+          <h5>Q3: In a Shadow Deployment, what happens to the responses generated by the new Version 2?</h5>
+          <div class="quiz-options">
+            <button class="quiz-opt" onclick="checkQuiz(this, false, 'q3')">A) They are shown to 50% of real users.</button>
+            <button class="quiz-opt" onclick="checkQuiz(this, true, 'q3')">B) They are silently discarded and never returned to the real users.</button>
+            <button class="quiz-opt" onclick="checkQuiz(this, false, 'q3')">C) They overwrite the database production tables immediately.</button>
+          </div>
+          <div id="q3-exp" class="quiz-exp"></div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- JavaScript Interactive Engine -->
+  <script>
+    // Simulator State Management
+    let simState = {
+      strategy: 'bluegreen',
+      step: 0,
+      v1Traffic: 100,
+      v2Traffic: 0
+    };
+
+    const simConfigs = {
+      bluegreen: [
+        { status: 'Ready', v1: 100, v2: 0, log: 'Stage 0: Production running on Blue (v1.0). Green (v2.0) is idle.', nodes: ['v1','v1','v1','v1'] },
+        { status: 'Deploying Green', v1: 100, v2: 0, log: 'Stage 1: Deploying v2.0 code to Green environment. Running automated smoke tests...', nodes: ['v1','v1','deploying','deploying'] },
+        { status: 'Green Ready', v1: 100, v2: 0, log: 'Stage 2: Green (v2.0) tests PASSED! Ready for router switch.', nodes: ['v1','v1','v2','v2'] },
+        { status: 'Switched!', v1: 0, v2: 100, log: 'Stage 3: ⚡ Load balancer router flipped! 100% traffic now live on Green (v2.0).', nodes: ['dead','dead','v2','v2'] }
+      ],
+      canary: [
+        { status: 'Ready', v1: 100, v2: 0, log: 'Stage 0: 100% traffic on v1.0.', nodes: ['v1','v1','v1','v1'] },
+        { status: '10% Canary', v1: 90, v2: 10, log: 'Stage 1: Deploying v2.0 to Canary node. Routing 10% traffic. Monitoring error logs...', nodes: ['v1','v1','v1','v2'] },
+        { status: '50% Ramp Up', v1: 50, v2: 50, log: 'Stage 2: APM metrics HEALTHY! Ramping up canary traffic to 50%.', nodes: ['v1','v1','v2','v2'] },
+        { status: '100% Rollout', v1: 0, v2: 100, log: 'Stage 3: Canary successful! 100% of servers upgraded to v2.0.', nodes: ['v2','v2','v2','v2'] }
+      ],
+      rolling: [
+        { status: 'Ready', v1: 100, v2: 0, log: 'Stage 0: 4 instances running v1.0.', nodes: ['v1','v1','v1','v1'] },
+        { status: 'Instance 1 Upgrade', v1: 75, v2: 25, log: 'Stage 1: Instance #1 taken offline, upgraded to v2.0, passed health check.', nodes: ['v2','v1','v1','v1'] },
+        { status: 'Instance 2 & 3 Upgrade', v1: 25, v2: 75, log: 'Stage 2: Rolling update proceeding. Instances #2 & #3 upgraded to v2.0.', nodes: ['v2','v2','v2','v1'] },
+        { status: 'Rolling Complete', v1: 0, v2: 100, log: 'Stage 3: Rolling deployment complete! All 4 instances updated seamlessly.', nodes: ['v2','v2','v2','v2'] }
+      ],
+      recreate: [
+        { status: 'Ready', v1: 100, v2: 0, log: 'Stage 0: v1.0 live in production.', nodes: ['v1','v1','v1','v1'] },
+        { status: 'ALL STOP (Downtime)', v1: 0, v2: 0, log: 'Stage 1: 🛑 SHUTTING DOWN all v1.0 servers. System OFFLINE (Downtime window active).', nodes: ['dead','dead','dead','dead'] },
+        { status: 'Booting v2.0', v1: 0, v2: 0, log: 'Stage 2: Installing & booting v2.0 binaries across all nodes...', nodes: ['deploying','deploying','deploying','deploying'] },
+        { status: 'ALL START', v1: 0, v2: 100, log: 'Stage 3: ✅ System BACK ONLINE! 100% traffic serving v2.0.', nodes: ['v2','v2','v2','v2'] }
+      ],
+      shadow: [
+        { status: 'Ready', v1: 100, v2: 0, log: 'Stage 0: Production running v1.0.', nodes: ['v1','v1','v1','v1'] },
+        { status: 'Shadow Live', v1: 100, v2: 0, log: 'Stage 1: 👻 Shadow v2.0 deployed. Load balancer asynchronously duplicating 100% live traffic to v2.0 (Responses discarded).', nodes: ['v1','v1','v2','v2'] },
+        { status: 'Load Test Verified', v1: 100, v2: 0, log: 'Stage 2: Memory & CPU metrics under shadow load look stable!', nodes: ['v1','v1','v2','v2'] },
+        { status: 'Promoted to Live', v1: 0, v2: 100, log: 'Stage 3: Shadow v2.0 promoted to real live traffic endpoint!', nodes: ['v2','v2','v2','v2'] }
+      ]
+    };
+
+    function renderSim() {
+      const strat = document.getElementById('simStrategySelect').value;
+      const config = simConfigs[strat][simState.step];
+
+      document.getElementById('simStatusBadge').innerText = config.status;
+      document.getElementById('v1Traffic').innerText = config.v1 + '%';
+      document.getElementById('v2Traffic').innerText = config.v2 + '%';
+      document.getElementById('simLog').innerText = config.log;
+
+      const container = document.getElementById('serversContainer');
+      container.innerHTML = '';
+
+      config.nodes.forEach((nodeType, idx) => {
+        const div = document.createElement('div');
+        let icon = '🖥️';
+        let verText = 'v1.0 Blue';
+
+        if (nodeType === 'v2') {
+          icon = '🚀';
+          verText = 'v2.0 Green';
+        } else if (nodeType === 'deploying') {
+          icon = '⚙️';
+          verText = 'Deploying...';
+        } else if (nodeType === 'dead') {
+          icon = '❌';
+          verText = 'Offline';
+        }
+
+        div.className = `server-node ${nodeType}`;
+        div.innerHTML = `
+          <div class="server-icon">${icon}</div>
+          <div class="server-name">Server #${idx + 1}</div>
+          <div class="server-ver">${verText}</div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function stepSim() {
+      const strat = document.getElementById('simStrategySelect').value;
+      const maxSteps = simConfigs[strat].length - 1;
+      if (simState.step < maxSteps) {
+        simState.step++;
+      } else {
+        simState.step = 0;
+      }
+      renderSim();
+    }
+
+    function rollbackSim() {
+      simState.step = 0;
+      renderSim();
+      document.getElementById('simLog').innerText = '⏪ ROLLBACK EXECUTED! All traffic immediately restored to safe v1.0 state.';
+      document.getElementById('simStatusBadge').innerText = 'Rolled Back';
+    }
+
+    function resetSim() {
+      simState.step = 0;
+      renderSim();
+    }
+
+    // Interactive Decision Helper
+    const constraintData = {
+      budget: {
+        title: "Recommended: Rolling Deployment or Recreate",
+        desc: "Since you cannot afford duplicate server infrastructure, <strong>Rolling Deployment</strong> upgrades your existing servers incrementally with 0 downtime. If downtime is acceptable, <strong>Recreate</strong> has zero extra cost."
+      },
+      instant_rollback: {
+        title: "Recommended: Blue-Green Deployment",
+        desc: "<strong>Blue-Green Deployment</strong> keeps the complete Blue (v1) environment warm. If a bug is detected in Green (v2), the load balancer flips back to Blue in less than 1 second."
+      },
+      blast_radius: {
+        title: "Recommended: Canary Deployment",
+        desc: "<strong>Canary Deployment</strong> routes only 5% of users to v2 first. If a critical bug exists, only 5% of your audience experiences it before auto-rollback protects the remaining 95%."
+      },
+      load_test: {
+        title: "Recommended: Shadow / Dark Deployment",
+        desc: "<strong>Shadow Deployment</strong> duplicates live production traffic asynchronously to v2 without returning its responses to users. Perfect for stress-testing new algorithms under real load."
+      }
+    };
+
+    function selectConstraint(type) {
+      document.querySelectorAll('.decision-opt').forEach(el => el.classList.remove('selected'));
+      event.currentTarget.classList.add('selected');
+
+      const resultBox = document.getElementById('decisionResult');
+      const title = document.getElementById('decisionTitle');
+      const desc = document.getElementById('decisionDesc');
+
+      title.innerHTML = constraintData[type].title;
+      desc.innerHTML = constraintData[type].desc;
+      resultBox.classList.add('show');
+    }
+
+    // Search Filter
+    function filterStrategies() {
+      const query = document.getElementById('stratSearchInput').value.toLowerCase().trim();
+      const items = document.querySelectorAll('.searchable-item');
+
+      items.forEach(item => {
+        const text = item.innerText.toLowerCase();
+        if (!query || text.includes(query)) {
+          item.style.display = '';
+        } else {
+          item.style.display = 'none';
+        }
+      });
+    }
+
+    // Quiz Verification
+    function checkQuiz(btn, isCorrect, qId) {
+      const exp = document.getElementById(`${qId}-exp`);
+      const opts = btn.parentElement.querySelectorAll('.quiz-opt');
+      opts.forEach(o => o.classList.remove('correct', 'wrong'));
+
+      if (isCorrect) {
+        btn.classList.add('correct');
+        exp.style.display = 'block';
+        exp.style.background = 'var(--brand-emerald-light)';
+        exp.style.color = 'var(--brand-emerald)';
+        exp.innerHTML = '<strong>Correct!</strong> 🎉 Excellent understanding of DevOps deployment patterns.';
+      } else {
+        btn.classList.add('wrong');
+        exp.style.display = 'block';
+        exp.style.background = 'var(--brand-rose-light)';
+        exp.style.color = 'var(--brand-rose)';
+        exp.innerHTML = '<strong>Not quite!</strong> Re-read the strategy breakdown above and try again.';
+      }
+    }
+
+    // Initialize Simulator on Load
+    document.addEventListener('DOMContentLoaded', () => {
+      renderSim();
+    });
+  </script>
+
+</body>
+
+</html>
