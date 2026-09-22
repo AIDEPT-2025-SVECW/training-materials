@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Array Assignments & Method Passing (Pass-by-Value) | Java Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --secondary: #0284c7;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f1f5f9 100%);
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 10px 25px rgba(79, 70, 229, 0.07);
+      --shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient); min-height: 100vh; color: var(--text-main);
+      padding: 24px 16px; line-height: 1.6;
+    }
+    .container { max-width: 1100px; margin: 0 auto; }
+    
+    .top-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 8px; background: #ffffff; color: var(--primary-dark);
+      text-decoration: none; padding: 10px 20px; border-radius: 30px; font-weight: 600; font-size: 0.95rem;
+      border: 1px solid var(--card-border); box-shadow: var(--shadow-sm); transition: all 0.25s ease;
+    }
+    .back-btn:hover { background: var(--primary); color: #ffffff; transform: translateX(-4px); }
+    .nav-tag { color: var(--text-muted); font-weight: 600; font-size: 0.9rem; background: rgba(255, 255, 255, 0.8); padding: 6px 14px; border-radius: 20px; border: 1px solid var(--card-border); }
+
+    .hero {
+      background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%); color: #ffffff;
+      border-radius: 20px; padding: 40px 32px; text-align: center; box-shadow: var(--shadow-lg); margin-bottom: 32px;
+    }
+    .hero h1 { font-size: 2.5rem; font-weight: 800; margin-bottom: 12px; }
+    .hero p { font-size: 1.15rem; opacity: 0.95; max-width: 780px; margin: 0 auto 20px auto; }
+    .hero-badges { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+    .hero-badge { background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(8px); padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+
+    .card { background: var(--card-bg); border-radius: 18px; padding: 32px; margin-bottom: 32px; box-shadow: var(--shadow-md); border: 1px solid var(--card-border); }
+    .section-title { font-size: 1.5rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 18px; display: flex; align-items: center; gap: 12px; }
+    .section-title .icon { font-size: 1.5rem; background: #eef2ff; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 12px; color: var(--primary); }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    /* Interactive Container */
+    .interactive-container { background: #0f172a; color: #f8fafc; border-radius: 16px; padding: 24px; border: 1px solid #334155; }
+    .btn { padding: 10px 20px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; transition: all 0.2s; font-size: 0.9rem; }
+    .btn-active { background: var(--accent-green) !important; color: white !important; }
+
+    .stack-heap-sim { display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px; margin-top: 20px; }
+    @media (max-width: 768px) { .stack-heap-sim { grid-template-columns: 1fr; } }
+    .box-frame { background: #1e293b; padding: 16px; border-radius: 10px; border: 1px solid #475569; }
+    .box-frame h4 { color: #38bdf8; margin-bottom: 12px; font-size: 0.95rem; }
+
+    /* Code Block */
+    .code-block { background: #0f172a; border-radius: 12px; padding: 20px; color: #e2e8f0; font-family: 'Fira Code', monospace; font-size: 0.9rem; overflow-x: auto; border: 1px solid #1e293b; }
+    .code-block header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #334155; padding-bottom: 8px; color: #94a3b8; font-size: 0.8rem; }
+    .kw { color: #c084fc; font-weight: 600; }
+    .type { color: #38bdf8; font-weight: 600; }
+    .num { color: #f43f5e; }
+    .str { color: #4ade80; }
+    .cmt { color: #64748b; font-style: italic; }
+
+    .quiz-option { background: #f1f5f9; padding: 14px 18px; border-radius: 10px; margin-bottom: 10px; cursor: pointer; border: 1px solid #cbd5e1; transition: all 0.2s; font-weight: 500; }
+    .quiz-option:hover { background: #e2e8f0; border-color: var(--primary); }
+    .quiz-option.correct { background: #dcfce7; border-color: var(--accent-green); color: #166534; }
+    .quiz-option.incorrect { background: #fee2e2; border-color: #ef4444; color: #991b1b; }
+  
+    .copy-btn { background: rgba(255, 255, 255, 0.1); color: #e2e8f0; border: 1px solid #475569; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s ease; font-family: inherit; }
+    .copy-btn:hover { background: #4f46e5; color: #ffffff; border-color: #4f46e5; transform: translateY(-1px); }
+    .copy-btn.copied { background: #10b981 !important; color: #ffffff !important; border-color: #10b981 !important; }
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="top-nav">
+      <a href="../index.html" class="back-btn">⬅ Back to Java Index</a>
+      <span class="nav-tag">Topic 6 of 12 • Arrays</span>
+    </div>
+
+    <header class="hero">
+      <h1>Array Assignments & Passing Arrays in Methods</h1>
+      <p>Demystify reference assignment, shallow copies vs deep copies, and Java's "Pass-by-Value" of reference pointers.</p>
+      <div class="hero-badges">
+        <span class="hero-badge">🔗 Reference Copy</span>
+        <span class="hero-badge">🎯 Pass-by-Value in Java</span>
+        <span class="hero-badge">🧬 Element Mutation vs Reassignment</span>
+      </div>
+    </header>
+
+    <!-- SECTION 1: Concept Explanation -->
+    <section class="card">
+      <h2 class="section-title">
+        <span class="icon">💡</span>
+        Understanding Array Assignment & Method Passing
+      </h2>
+
+      <div class="grid-2">
+        <div style="background: #f8fafc; padding: 20px; border-radius: 12px; border-left: 4px solid #ec4899;">
+          <h3 style="color: #be185d; margin-bottom: 8px;">1. Array Assignment (`int[] b = a;`)</h3>
+          <p style="font-size: 0.9rem;">Executing <code>int[] b = a;</code> does NOT copy the elements! It copies the <strong>reference address</strong>. Both <code>a</code> and <code>b</code> now point to the exact same array in Heap memory. Modifying <code>b[0]</code> changes <code>a[0]</code>!</p>
+        </div>
+
+        <div style="background: #f8fafc; padding: 20px; border-radius: 12px; border-left: 4px solid #8b5cf6;">
+          <h3 style="color: #6b21a8; margin-bottom: 8px;">2. Pass-by-Value of Reference</h3>
+          <p style="font-size: 0.9rem;">Java is <strong>strictly Pass-by-Value</strong>. When passing an array to a method, Java passes a copy of the reference address:
+            <br>• Modifying elements inside method ➔ <strong>Affects caller!</strong>
+            <br>• Reassigning method variable (<code>arr = new int[5]</code>) ➔ <strong>Does NOT affect caller!</strong>
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2: Interactive Method Pass Simulator -->
+    <section class="card">
+      <h2 class="section-title">
+        <span class="icon">🎮</span>
+        Interactive Method Call Simulator
+      </h2>
+      <p style="margin-bottom: 16px; color: var(--text-muted);">
+        Test what happens when a method mutates elements versus when a method reassigns the local array variable!
+      </p>
+
+      <div class="interactive-container">
+        <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px;">
+          <button id="btnMutate" class="btn btn-active" onclick="runScenario('mutate')">Scenario A: Modify Elements inside Method</button>
+          <button id="btnReassign" class="btn" style="background: #334155; color: white;" onclick="runScenario('reassign')">Scenario B: Reassign Reference inside Method</button>
+        </div>
+
+        <div id="scenarioDescription" style="background: #1e293b; padding: 12px; border-radius: 8px; font-family: 'Fira Code'; font-size: 0.85rem; color: #38bdf8; margin-bottom: 16px;"></div>
+
+        <div class="stack-heap-sim">
+          <div class="box-frame">
+            <h4>📚 Stack Memory Frames</h4>
+            <div id="stackFrames"></div>
+          </div>
+
+          <div class="box-frame">
+            <h4>🏔️ Heap Objects</h4>
+            <div id="heapObjects"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 3: Code Example -->
+    <section class="card">
+      <h2 class="section-title">
+        <span class="icon">💻</span>
+        Runnable Java Example
+      </h2>
+
+      <h3 style="color: var(--primary-dark); margin-bottom: 12px; font-size: 1.1rem;">1. Primitive Array References in Methods</h3>
+      <div class="code-block" style="margin-bottom: 24px;">
+        <header>
+          <span>ArrayPassingDemo.java</span>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+            <span>Java 17+</span>
+          </div>
+        </header>
+        <pre><code><span class="kw">public class</span> <span class="type">ArrayPassingDemo</span> {
+    <span class="kw">public static void</span> main(<span class="type">String</span>[] args) {
+        <span class="type">int</span>[] original = {<span class="num">10</span>, <span class="num">20</span>, <span class="num">30</span>};
+
+        <span class="type">System</span>.out.println(<span class="str">"Original before method: "</span> + original[<span class="num">0</span>]); <span class="cmt">// 10</span>
+
+        <span class="cmt">// 1. Method that modifies array elements</span>
+        modifyArrayElements(original);
+        <span class="type">System</span>.out.println(<span class="str">"Original after modifyArrayElements: "</span> + original[<span class="num">0</span>]); <span class="cmt">// 99 (MUTATED!)</span>
+
+        <span class="cmt">// 2. Method that reassigns local reference</span>
+        reassignArrayReference(original);
+        <span class="type">System</span>.out.println(<span class="str">"Original after reassignArrayReference: "</span> + original[<span class="num">0</span>]); <span class="cmt">// Still 99!</span>
+    }
+
+    <span class="kw">public static void</span> modifyArrayElements(<span class="type">int</span>[] arr) {
+        arr[<span class="num">0</span>] = <span class="num">99</span>; <span class="cmt">// Modifies Heap object referenced by original!</span>
+    }
+
+    <span class="kw">public static void</span> reassignArrayReference(<span class="type">int</span>[] arr) {
+        arr = <span class="kw">new</span> <span class="type">int</span>[]{<span class="num">500</span>, <span class="num">600</span>, <span class="num">700</span>}; <span class="cmt">// Points arr to NEW object; original untouched!</span>
+    }
+}</code></pre>
+        <div style="margin-top: 12px; background: #0f172a; padding: 14px; border-radius: 8px; color: #38bdf8; font-family: 'Fira Code', monospace; font-size: 0.85rem;">
+          <strong>🖥️ Output:</strong><br>
+          Original before method: 10<br>
+          Original after modifyArrayElements: 99<br>
+          Original after reassignArrayReference: 99
+        </div>
+      </div>
+
+      <h3 style="color: var(--primary-dark); margin-bottom: 12px; font-size: 1.1rem;">2. Passing & Returning Object Arrays in Methods</h3>
+      <p style="margin-bottom: 12px; font-size: 0.95rem; color: var(--text-muted);">
+        When an array of custom class objects is passed to a method, mutating object attributes inside the method updates the actual shared Heap objects. Methods can also process, filter, and return new object arrays.
+      </p>
+
+      <div class="code-block">
+        <header>
+          <span>ObjectArrayPassingDemo.java</span>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+            <span>Java 17+</span>
+          </div>
+        </header>
+        <pre><code><span class="cmt">// Custom Employee Class</span>
+<span class="kw">class</span> <span class="type">Employee</span> {
+    <span class="type">String</span> name;
+    <span class="type">double</span> salary;
+
+    <span class="type">Employee</span>(<span class="type">String</span> name, <span class="type">double</span> salary) {
+        <span class="kw">this</span>.name = name;
+        <span class="kw">this</span>.salary = salary;
+    }
+
+    <span class="kw">void</span> display() {
+        <span class="type">System</span>.out.printf(<span class="str">"Employee: %-8s | Salary: ₹%.2f%n"</span>, name, salary);
+    }
+}
+
+<span class="kw">public class</span> <span class="type">ObjectArrayPassingDemo</span> {
+    <span class="kw">public static void</span> main(<span class="type">String</span>[] args) {
+        <span class="type">Employee</span>[] staff = {
+            <span class="kw">new</span> <span class="type">Employee</span>(<span class="str">"Anil"</span>, <span class="num">50000</span>),
+            <span class="kw">new</span> <span class="type">Employee</span>(<span class="str">"Sunita"</span>, <span class="num">65000</span>),
+            <span class="kw">new</span> <span class="type">Employee</span>(<span class="str">"Rajesh"</span>, <span class="num">48000</span>)
+        };
+
+        <span class="type">System</span>.out.println(<span class="str">"=== Staff Before Salary Raise ==="</span>);
+        <span class="kw">for</span> (<span class="type">Employee</span> e : staff) e.display();
+
+        <span class="cmt">// 1. Pass object array to method (Mutates internal objects on Heap)</span>
+        giveSalaryRaise(staff, <span class="num">10.0</span>);
+
+        <span class="type">System</span>.out.println(<span class="str">"\n=== Staff After 10% Raise ==="</span>);
+        <span class="kw">for</span> (<span class="type">Employee</span> e : staff) e.display();
+
+        <span class="cmt">// 2. Method returning a newly created & filtered Object Array</span>
+        <span class="type">Employee</span>[] highEarners = filterHighEarners(staff, <span class="num">60000</span>);
+
+        <span class="type">System</span>.out.println(<span class="str">"\n=== High Earners (> ₹60,000) ==="</span>);
+        <span class="kw">for</span> (<span class="type">Employee</span> e : highEarners) e.display();
+    }
+
+    <span class="cmt">// Mutates object properties inside the passed array</span>
+    <span class="kw">public static void</span> giveSalaryRaise(<span class="type">Employee</span>[] employees, <span class="type">double</span> percentage) {
+        <span class="kw">for</span> (<span class="type">Employee</span> e : employees) {
+            <span class="kw">if</span> (e != <span class="kw">null</span>) {
+                e.salary += e.salary * (percentage / <span class="num">100.0</span>);
+            }
+        }
+    }
+
+    <span class="cmt">// Filters objects and returns a new Object Array</span>
+    <span class="kw">public static</span> <span class="type">Employee</span>[] filterHighEarners(<span class="type">Employee</span>[] employees, <span class="type">double</span> minSalary) {
+        <span class="type">int</span> count = <span class="num">0</span>;
+        <span class="kw">for</span> (<span class="type">Employee</span> e : employees) {
+            <span class="kw">if</span> (e != <span class="kw">null</span> && e.salary >= minSalary) count++;
+        }
+
+        <span class="type">Employee</span>[] result = <span class="kw">new</span> <span class="type">Employee</span>[count];
+        <span class="type">int</span> idx = <span class="num">0</span>;
+        <span class="kw">for</span> (<span class="type">Employee</span> e : employees) {
+            <span class="kw">if</span> (e != <span class="kw">null</span> && e.salary >= minSalary) {
+                result[idx++] = e;
+            }
+        }
+        <span class="kw">return</span> result;
+    }
+}</code></pre>
+        <div style="margin-top: 12px; background: #0f172a; padding: 14px; border-radius: 8px; color: #38bdf8; font-family: 'Fira Code', monospace; font-size: 0.85rem;">
+          <strong>🖥️ Output:</strong><br>
+          === Staff Before Salary Raise ===<br>
+          Employee: Anil     | Salary: ₹50000.00<br>
+          Employee: Sunita   | Salary: ₹65000.00<br>
+          Employee: Rajesh   | Salary: ₹48000.00<br>
+          <br>
+          === Staff After 10% Raise ===<br>
+          Employee: Anil     | Salary: ₹55000.00<br>
+          Employee: Sunita   | Salary: ₹71500.00<br>
+          Employee: Rajesh   | Salary: ₹52800.00<br>
+          <br>
+          === High Earners (> ₹60,000) ===<br>
+          Employee: Sunita   | Salary: ₹71500.00
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 4: Quiz -->
+    <section class="card">
+      <h2 class="section-title">
+        <span class="icon">🧪</span>
+        Quick Knowledge Check
+      </h2>
+      <p style="margin-bottom: 16px;">If you assign <code>int[] b = a;</code> and modify <code>b[0] = 77;</code>, what will <code>a[0]</code> evaluate to?</p>
+      <div id="quizOptions">
+        <div class="quiz-option" onclick="checkQuiz(this, true)">A) 77 (Because both variables point to the same array object on the Heap)</div>
+        <div class="quiz-option" onclick="checkQuiz(this, false)">B) Original value of a[0] (Because assignment creates a deep copy)</div>
+        <div class="quiz-option" onclick="checkQuiz(this, false)">C) Null</div>
+        <div class="quiz-option" onclick="checkQuiz(this, false)">D) Throws a NullPointerException</div>
+      </div>
+      <div id="quizFeedback" style="margin-top: 12px; font-weight: 600; display: none;"></div>
+    </section>
+  </div>
+
+  <script>
+    function runScenario(mode) {
+      document.getElementById('btnMutate').className = `btn ${mode==='mutate'?'btn-active':''}`;
+      document.getElementById('btnMutate').style.background = mode==='mutate'?'var(--accent-green)':'#334155';
+      document.getElementById('btnReassign').className = `btn ${mode==='reassign'?'btn-active':''}`;
+      document.getElementById('btnReassign').style.background = mode==='reassign'?'var(--accent-green)':'#334155';
+
+      const desc = document.getElementById('scenarioDescription');
+      const stack = document.getElementById('stackFrames');
+      const heap = document.getElementById('heapObjects');
+
+      if (mode === 'mutate') {
+        desc.innerHTML = `<code>modifyArrayElements(arr)</code> executed <code>arr[0] = 99;</code>.<br>Result: Mutates element inside the <strong>same Heap object 0x3000</strong>. Caller's <code>original[0]</code> changes to 99!`;
+        stack.innerHTML = `
+          <div style="background: rgba(56,189,248,0.1); border: 1px solid #38bdf8; padding: 10px; border-radius: 6px; margin-bottom: 8px;">
+            <div style="color: #94a3b8; font-size: 0.75rem;">main() frame:</div>
+            <div>original ➔ <strong style="color: #4ade80;">0x3000</strong></div>
+          </div>
+          <div style="background: rgba(192,132,252,0.1); border: 1px solid #c084fc; padding: 10px; border-radius: 6px;">
+            <div style="color: #94a3b8; font-size: 0.75rem;">modifyArrayElements() frame:</div>
+            <div>arr (copy of ref) ➔ <strong style="color: #4ade80;">0x3000</strong></div>
+          </div>
+        `;
+        heap.innerHTML = `
+          <div style="background: rgba(16,185,129,0.15); border: 2px solid #10b981; padding: 14px; border-radius: 8px;">
+            <div style="color: #10b981; font-weight: bold; margin-bottom: 4px;">Heap Object @ 0x3000</div>
+            <div style="font-family: 'Fira Code'; color: white; font-size: 1.1rem;">[ <strong>99</strong>, 20, 30 ]</div>
+            <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 4px;">Index 0 mutated in-place!</div>
+          </div>
+        `;
+      } else {
+        desc.innerHTML = `<code>reassignArrayReference(arr)</code> executed <code>arr = new int[]{500, 600, 700};</code>.<br>Result: Creates a <strong>NEW Heap object 0x7000</strong> for local <code>arr</code>. Caller's <code>original</code> remains pointing to 0x3000!`;
+        stack.innerHTML = `
+          <div style="background: rgba(56,189,248,0.1); border: 1px solid #38bdf8; padding: 10px; border-radius: 6px; margin-bottom: 8px;">
+            <div style="color: #94a3b8; font-size: 0.75rem;">main() frame:</div>
+            <div>original ➔ <strong style="color: #4ade80;">0x3000</strong></div>
+          </div>
+          <div style="background: rgba(192,132,252,0.1); border: 1px solid #c084fc; padding: 10px; border-radius: 6px;">
+            <div style="color: #94a3b8; font-size: 0.75rem;">reassignArrayReference() frame:</div>
+            <div>arr (reassigned) ➔ <strong style="color: #f43f5e;">0x7000</strong></div>
+          </div>
+        `;
+        heap.innerHTML = `
+          <div style="background: rgba(56,189,248,0.15); border: 1px solid #38bdf8; padding: 10px; border-radius: 8px; margin-bottom: 8px;">
+            <div style="color: #38bdf8; font-weight: bold;">Heap Object @ 0x3000 (Original)</div>
+            <div style="font-family: 'Fira Code'; color: white;">[ 10, 20, 30 ]</div>
+          </div>
+          <div style="background: rgba(244,63,94,0.15); border: 1px dashed #f43f5e; padding: 10px; border-radius: 8px;">
+            <div style="color: #f43f5e; font-weight: bold;">Heap Object @ 0x7000 (New Local)</div>
+            <div style="font-family: 'Fira Code'; color: white;">[ 500, 600, 700 ]</div>
+          </div>
+        `;
+      }
+    }
+
+    function checkQuiz(element, isCorrect) {
+      const options = document.querySelectorAll('.quiz-option');
+      options.forEach(opt => opt.classList.remove('correct', 'incorrect'));
+      const feedback = document.getElementById('quizFeedback');
+      if (isCorrect) {
+        element.classList.add('correct');
+        feedback.style.color = '#166534';
+        feedback.innerHTML = '🎉 Correct! Reference assignment (int[] b = a) does not clone array elements. Both variables point to the exact same memory object on the Heap.';
+      } else {
+        element.classList.add('incorrect');
+        feedback.style.color = '#991b1b';
+        feedback.innerHTML = '❌ Incorrect. Reference assignment copies the reference pointer, not element values.';
+      }
+      feedback.style.display = 'block';
+    }
+
+    runScenario('mutate');
+  </script>
+
+  <script>
+    function copyCode(btn) {
+      let codeEl;
+      const codeBlock = btn.closest('.code-block') || btn.closest('.code-container') || btn.closest('pre');
+      if (codeBlock) {
+        codeEl = codeBlock.querySelector('code') || codeBlock.querySelector('pre');
+      }
+      if (!codeEl) {
+        codeEl = btn.parentElement.querySelector('code, pre') || btn.nextElementSibling;
+      }
+      const textToCopy = codeEl ? (codeEl.innerText || codeEl.textContent) : '';
+      if (textToCopy) {
+        navigator.clipboard.writeText(textToCopy).then(() => {
+          showCopiedFeedback(btn);
+        }).catch(() => {
+          const textarea = document.createElement('textarea');
+          textarea.value = textToCopy;
+          document.body.appendChild(textarea);
+          textarea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textarea);
+          showCopiedFeedback(btn);
+        });
+      }
+    }
+
+    function showCopiedFeedback(btn) {
+      const origText = btn.innerHTML;
+      btn.innerHTML = '✓ Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.innerHTML = origText;
+        btn.classList.remove('copied');
+      }, 2000);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('pre').forEach(pre => {
+        if (pre.closest('.code-block') && pre.closest('.code-block').querySelector('.copy-btn')) return;
+        if (pre.querySelector('.copy-btn')) return;
+        pre.style.position = 'relative';
+        const btn = document.createElement('button');
+        btn.className = 'copy-btn';
+        btn.style.cssText = 'position: absolute; top: 10px; right: 10px; z-index: 10;';
+        btn.innerHTML = '📋 Copy';
+        btn.onclick = () => copyCode(btn);
+        pre.appendChild(btn);
+      });
+    });
+  </script>
+
+
+  <script>
+    if (typeof copyCode !== 'function') {
+      function copyCode(btn) {
+        let codeEl;
+        const codeBlock = btn.closest('.code-block') || btn.closest('.code-container') || btn.closest('pre');
+        if (codeBlock) {
+          codeEl = codeBlock.querySelector('code') || codeBlock.querySelector('pre');
+        }
+        if (!codeEl) {
+          codeEl = btn.parentElement.querySelector('code, pre') || btn.nextElementSibling;
+        }
+        const textToCopy = codeEl ? (codeEl.innerText || codeEl.textContent) : '';
+        if (textToCopy) {
+          navigator.clipboard.writeText(textToCopy).then(() => {
+            showCopiedFeedback(btn);
+          }).catch(() => {
+            const textarea = document.createElement('textarea');
+            textarea.value = textToCopy;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            showCopiedFeedback(btn);
+          });
+        }
+      }
+
+      function showCopiedFeedback(btn) {
+        const origText = btn.innerHTML;
+        btn.innerHTML = '✓ Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.innerHTML = origText;
+          btn.classList.remove('copied');
+        }, 2000);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('pre').forEach(pre => {
+        if (pre.closest('.code-block') && pre.closest('.code-block').querySelector('.copy-btn')) return;
+        if (pre.querySelector('.copy-btn')) return;
+        pre.style.position = 'relative';
+        const btn = document.createElement('button');
+        btn.className = 'copy-btn';
+        btn.style.cssText = 'position: absolute; top: 10px; right: 10px; z-index: 10;';
+        btn.innerHTML = '📋 Copy';
+        btn.onclick = () => copyCode(btn);
+        pre.appendChild(btn);
+      });
+    });
+  </script>
+
+</body>
+</html>

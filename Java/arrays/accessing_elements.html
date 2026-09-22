@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Accessing Array Elements & Index Boundaries | Java Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --secondary: #0284c7;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-red: #ef4444;
+      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f1f5f9 100%);
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 10px 25px rgba(79, 70, 229, 0.07);
+      --shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient); min-height: 100vh; color: var(--text-main);
+      padding: 24px 16px; line-height: 1.6;
+    }
+    .container { max-width: 1100px; margin: 0 auto; }
+    
+    .top-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 8px; background: #ffffff; color: var(--primary-dark);
+      text-decoration: none; padding: 10px 20px; border-radius: 30px; font-weight: 600; font-size: 0.95rem;
+      border: 1px solid var(--card-border); box-shadow: var(--shadow-sm); transition: all 0.25s ease;
+    }
+    .back-btn:hover { background: var(--primary); color: #ffffff; transform: translateX(-4px); }
+    .nav-tag { color: var(--text-muted); font-weight: 600; font-size: 0.9rem; background: rgba(255, 255, 255, 0.8); padding: 6px 14px; border-radius: 20px; border: 1px solid var(--card-border); }
+
+    .hero {
+      background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%); color: #ffffff;
+      border-radius: 20px; padding: 40px 32px; text-align: center; box-shadow: var(--shadow-lg); margin-bottom: 32px;
+    }
+    .hero h1 { font-size: 2.5rem; font-weight: 800; margin-bottom: 12px; }
+    .hero p { font-size: 1.15rem; opacity: 0.95; max-width: 780px; margin: 0 auto 20px auto; }
+    .hero-badges { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+    .hero-badge { background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(8px); padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+
+    .card { background: var(--card-bg); border-radius: 18px; padding: 32px; margin-bottom: 32px; box-shadow: var(--shadow-md); border: 1px solid var(--card-border); }
+    .section-title { font-size: 1.5rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 18px; display: flex; align-items: center; gap: 12px; }
+    .section-title .icon { font-size: 1.5rem; background: #eef2ff; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 12px; color: var(--primary); }
+
+    /* Playground */
+    .interactive-container { background: #0f172a; color: #f8fafc; border-radius: 16px; padding: 24px; border: 1px solid #334155; }
+    .array-bar { display: flex; gap: 12px; overflow-x: auto; padding: 20px 0; justify-content: center; }
+    .array-item { width: 90px; height: 100px; background: #1e293b; border: 2px solid #3b82f6; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 0.3s; cursor: pointer; }
+    .array-item.selected { border-color: var(--accent-green); background: rgba(16, 185, 129, 0.15); transform: scale(1.05); }
+    .array-item .idx-tag { font-size: 0.8rem; color: #94a3b8; font-family: 'Fira Code', monospace; }
+    .array-item .val-tag { font-size: 1.3rem; font-weight: bold; color: #38bdf8; font-family: 'Fira Code', monospace; }
+
+    .exception-box { background: #450a0a; border: 2px solid #ef4444; color: #fca5a5; padding: 16px; border-radius: 10px; font-family: 'Fira Code', monospace; font-size: 0.85rem; margin-top: 16px; display: none; }
+
+    /* Code Block */
+    .code-block { background: #0f172a; border-radius: 12px; padding: 20px; color: #e2e8f0; font-family: 'Fira Code', monospace; font-size: 0.9rem; overflow-x: auto; border: 1px solid #1e293b; }
+    .code-block header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #334155; padding-bottom: 8px; color: #94a3b8; font-size: 0.8rem; }
+    .kw { color: #c084fc; font-weight: 600; }
+    .type { color: #38bdf8; font-weight: 600; }
+    .num { color: #f43f5e; }
+    .str { color: #4ade80; }
+    .cmt { color: #64748b; font-style: italic; }
+
+    .quiz-option { background: #f1f5f9; padding: 14px 18px; border-radius: 10px; margin-bottom: 10px; cursor: pointer; border: 1px solid #cbd5e1; transition: all 0.2s; font-weight: 500; }
+    .quiz-option:hover { background: #e2e8f0; border-color: var(--primary); }
+    .quiz-option.correct { background: #dcfce7; border-color: var(--accent-green); color: #166534; }
+    .quiz-option.incorrect { background: #fee2e2; border-color: #ef4444; color: #991b1b; }
+  
+    .copy-btn { background: rgba(255, 255, 255, 0.1); color: #e2e8f0; border: 1px solid #475569; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s ease; font-family: inherit; }
+    .copy-btn:hover { background: #4f46e5; color: #ffffff; border-color: #4f46e5; transform: translateY(-1px); }
+    .copy-btn.copied { background: #10b981 !important; color: #ffffff !important; border-color: #10b981 !important; }
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="top-nav">
+      <a href="../index.html" class="back-btn">⬅ Back to Java Index</a>
+      <span class="nav-tag">Topic 4 of 12 • Arrays</span>
+    </div>
+
+    <header class="hero">
+      <h1>Accessing Array Elements & Index Boundaries</h1>
+      <p>Master zero-based indexing, element modification, the <code>length</code> property, and handling <code>ArrayIndexOutOfBoundsException</code> safely.</p>
+      <div class="hero-badges">
+        <span class="hero-badge">0️⃣ Zero-Based Index</span>
+        <span class="hero-badge">📏 arr.length Field</span>
+        <span class="hero-badge">⚠️ ArrayIndexOutOfBoundsException</span>
+      </div>
+    </header>
+
+    <!-- SECTION 1: Index Rules -->
+    <section class="card">
+      <h2 class="section-title">
+        <span class="icon">🔍</span>
+        Core Rules of Accessing Array Elements
+      </h2>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+        <div style="background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0;">
+          <h3 style="color: var(--primary); margin-bottom: 8px;">1. Zero-Based Indexing</h3>
+          <p style="font-size: 0.9rem;">First element is at index <code>0</code>, second at <code>1</code>, and the last element is always at index <code>arr.length - 1</code>.</p>
+        </div>
+
+        <div style="background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0;">
+          <h3 style="color: var(--primary); margin-bottom: 8px;">2. Array Length Property</h3>
+          <p style="font-size: 0.9rem;"><code>arr.length</code> returns total number of elements. Notice it has <strong>no parentheses</strong> (unlike <code>String.length()</code>)!</p>
+        </div>
+
+        <div style="background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0;">
+          <h3 style="color: var(--accent-red); margin-bottom: 8px;">3. Boundary Violation</h3>
+          <p style="font-size: 0.9rem;">Accessing index <code>< 0</code> or <code>>= arr.length</code> throws runtime error: <code>java.lang.ArrayIndexOutOfBoundsException</code>.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2: Interactive Boundary Explorer -->
+    <section class="card">
+      <h2 class="section-title">
+        <span class="icon">🎮</span>
+        Interactive Index Access & Exception Explorer
+      </h2>
+      <p style="margin-bottom: 16px; color: var(--text-muted);">
+        Try accessing valid indices or test invalid out-of-bounds indices (-1, 5, etc.) to trigger the JVM Exception stack trace!
+      </p>
+
+      <div class="interactive-container">
+        <div class="array-bar" id="arrayDisplay">
+          <!-- Rendered by JS -->
+        </div>
+
+        <div style="display: flex; gap: 16px; align-items: center; justify-content: center; flex-wrap: wrap; margin-top: 16px;">
+          <label for="inputIdx">Index to Access:</label>
+          <input type="number" id="inputIdx" value="2" style="width: 80px; padding: 8px 12px; border-radius: 8px; background: #1e293b; color: white; border: 1px solid #475569; font-family: 'Fira Code';" />
+          
+          <button onclick="readElement()" style="padding: 10px 20px; border-radius: 8px; border: none; background: var(--primary); color: white; font-weight: bold; cursor: pointer;">📖 Read Value</button>
+          
+          <input type="number" id="inputVal" placeholder="New Val" style="width: 100px; padding: 8px 12px; border-radius: 8px; background: #1e293b; color: white; border: 1px solid #475569; font-family: 'Fira Code';" />
+          <button onclick="writeElement()" style="padding: 10px 20px; border-radius: 8px; border: none; background: var(--accent-green); color: white; font-weight: bold; cursor: pointer;">✏️ Update Value</button>
+        </div>
+
+        <div id="outputConsole" style="margin-top: 20px; background: #1e293b; padding: 14px; border-radius: 8px; font-family: 'Fira Code'; font-size: 0.9rem; color: #38bdf8;">
+          Click "Read Value" or "Update Value" above to test index boundaries.
+        </div>
+
+        <div id="exceptionModal" class="exception-box">
+          <strong>💥 Exception in thread "main" java.lang.ArrayIndexOutOfBoundsException:</strong> Index <span id="errIdx">-1</span> out of bounds for length 5<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;at AccessingElementsDemo.main(AccessingElementsDemo.java:14)
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 3: Code Example -->
+    <section class="card">
+      <h2 class="section-title">
+        <span class="icon">💻</span>
+        Runnable Java Program Example
+      </h2>
+      <div class="code-block">
+        <header>
+          <span>AccessingElementsDemo.java</span>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+            <span>Java 17+</span>
+          </div>
+        </header>
+        <pre><code><span class="kw">public class</span> <span class="type">AccessingElementsDemo</span> {
+    <span class="kw">public static void</span> main(<span class="type">String</span>[] args) {
+        <span class="type">int</span>[] numbers = {<span class="num">10</span>, <span class="num">20</span>, <span class="num">30</span>, <span class="num">40</span>, <span class="num">50</span>};
+
+        <span class="cmt">// 1. Reading first and last element</span>
+        <span class="type">System</span>.out.println(<span class="str">"First element [0]: "</span> + numbers[<span class="num">0</span>]);
+        <span class="type">System</span>.out.println(<span class="str">"Last element [length-1]: "</span> + numbers[numbers.length - <span class="num">1</span>]);
+
+        <span class="cmt">// 2. Modifying an element value</span>
+        numbers[<span class="num">2</span>] = <span class="num">99</span>;
+        <span class="type">System</span>.out.println(<span class="str">"Updated index 2: "</span> + numbers[<span class="num">2</span>]);
+
+        <span class="cmt">// 3. Handling Out-Of-Bounds exception gracefully</span>
+        <span class="kw">try</span> {
+            <span class="type">int</span> invalid = numbers[<span class="num">10</span>]; <span class="cmt">// Throws exception</span>
+        } <span class="kw">catch</span> (<span class="type">ArrayIndexOutOfBoundsException</span> e) {
+            <span class="type">System</span>.err.println(<span class="str">"Caught Error: "</span> + e.getMessage());
+        }
+    }
+}</code></pre>
+      </div>
+
+      <div style="margin-top: 16px; background: #0f172a; padding: 16px; border-radius: 10px; color: #38bdf8; font-family: 'Fira Code', monospace; font-size: 0.85rem;">
+        <strong>🖥️ Program Output:</strong><br>
+        First element [0]: 10<br>
+        Last element [length-1]: 50<br>
+        Updated index 2: 99<br>
+        Caught Error: Index 10 out of bounds for length 5
+      </div>
+    </section>
+
+    <!-- SECTION 4: Quiz -->
+    <section class="card">
+      <h2 class="section-title">
+        <span class="icon">🧪</span>
+        Quick Knowledge Check
+      </h2>
+      <p style="margin-bottom: 16px;">If an array is created as <code>int[] arr = new int[5];</code>, what is the valid range of indices you can access?</p>
+      <div id="quizOptions">
+        <div class="quiz-option" onclick="checkQuiz(this, false)">A) 1 to 5</div>
+        <div class="quiz-option" onclick="checkQuiz(this, true)">B) 0 to 4 (i.e. 0 to arr.length - 1)</div>
+        <div class="quiz-option" onclick="checkQuiz(this, false)">C) 0 to 5</div>
+        <div class="quiz-option" onclick="checkQuiz(this, false)">D) -1 to 4</div>
+      </div>
+      <div id="quizFeedback" style="margin-top: 12px; font-weight: 600; display: none;"></div>
+    </section>
+  </div>
+
+  <script>
+    let arrData = [10, 20, 30, 40, 50];
+
+    function renderArray() {
+      const container = document.getElementById('arrayDisplay');
+      container.innerHTML = '';
+      arrData.forEach((val, idx) => {
+        const item = document.createElement('div');
+        item.className = 'array-item';
+        item.id = `item-${idx}`;
+        item.innerHTML = `
+          <div class="idx-tag">numbers[${idx}]</div>
+          <div class="val-tag"> ₹{val}</div>
+        `;
+        item.onclick = () => {
+          document.getElementById('inputIdx').value = idx;
+          readElement();
+        };
+        container.appendChild(item);
+      });
+    }
+
+    function readElement() {
+      const idx = parseInt(document.getElementById('inputIdx').value);
+      const consoleDiv = document.getElementById('outputConsole');
+      const errBox = document.getElementById('exceptionModal');
+      
+      document.querySelectorAll('.array-item').forEach(el => el.classList.remove('selected'));
+      errBox.style.display = 'none';
+
+      if (idx >= 0 && idx < arrData.length) {
+        document.getElementById(`item-${idx}`).classList.add('selected');
+        consoleDiv.innerHTML = `✅ Successful Read: <code>numbers[${idx}]</code> returned value <strong> ₹{arrData[idx]}</strong>`;
+      } else {
+        consoleDiv.innerHTML = `<span style="color:#ef4444;">❌ Out of bounds access attempted for index ${idx}!</span>`;
+        document.getElementById('errIdx').textContent = idx;
+        errBox.style.display = 'block';
+      }
+    }
+
+    function writeElement() {
+      const idx = parseInt(document.getElementById('inputIdx').value);
+      const val = parseInt(document.getElementById('inputVal').value);
+      const consoleDiv = document.getElementById('outputConsole');
+      const errBox = document.getElementById('exceptionModal');
+
+      errBox.style.display = 'none';
+      if (isNaN(val)) {
+        consoleDiv.innerHTML = '⚠️ Please enter a new numerical value to update.';
+        return;
+      }
+
+      if (idx >= 0 && idx < arrData.length) {
+        const oldVal = arrData[idx];
+        arrData[idx] = val;
+        renderArray();
+        document.getElementById(`item-${idx}`).classList.add('selected');
+        consoleDiv.innerHTML = `✏️ Updated: <code>numbers[${idx}]</code> changed from <strong> ₹{oldVal}</strong> to <strong> ₹{val}</strong>`;
+      } else {
+        consoleDiv.innerHTML = `<span style="color:#ef4444;">❌ Out of bounds update attempted for index ${idx}!</span>`;
+        document.getElementById('errIdx').textContent = idx;
+        errBox.style.display = 'block';
+      }
+    }
+
+    function checkQuiz(element, isCorrect) {
+      const options = document.querySelectorAll('.quiz-option');
+      options.forEach(opt => opt.classList.remove('correct', 'incorrect'));
+      const feedback = document.getElementById('quizFeedback');
+      if (isCorrect) {
+        element.classList.add('correct');
+        feedback.style.color = '#166534';
+        feedback.innerHTML = '🎉 Correct! Indices in Java start at 0 and go up to length - 1 (for length 5, indices are 0, 1, 2, 3, 4).';
+      } else {
+        element.classList.add('incorrect');
+        feedback.style.color = '#991b1b';
+        feedback.innerHTML = '❌ Incorrect. Array indices in Java are 0-based.';
+      }
+      feedback.style.display = 'block';
+    }
+
+    renderArray();
+  </script>
+
+  <script>
+    function copyCode(btn) {
+      let codeEl;
+      const codeBlock = btn.closest('.code-block') || btn.closest('.code-container') || btn.closest('pre');
+      if (codeBlock) {
+        codeEl = codeBlock.querySelector('code') || codeBlock.querySelector('pre');
+      }
+      if (!codeEl) {
+        codeEl = btn.parentElement.querySelector('code, pre') || btn.nextElementSibling;
+      }
+      const textToCopy = codeEl ? (codeEl.innerText || codeEl.textContent) : '';
+      if (textToCopy) {
+        navigator.clipboard.writeText(textToCopy).then(() => {
+          showCopiedFeedback(btn);
+        }).catch(() => {
+          const textarea = document.createElement('textarea');
+          textarea.value = textToCopy;
+          document.body.appendChild(textarea);
+          textarea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textarea);
+          showCopiedFeedback(btn);
+        });
+      }
+    }
+
+    function showCopiedFeedback(btn) {
+      const origText = btn.innerHTML;
+      btn.innerHTML = '✓ Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.innerHTML = origText;
+        btn.classList.remove('copied');
+      }, 2000);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('pre').forEach(pre => {
+        if (pre.closest('.code-block') && pre.closest('.code-block').querySelector('.copy-btn')) return;
+        if (pre.querySelector('.copy-btn')) return;
+        pre.style.position = 'relative';
+        const btn = document.createElement('button');
+        btn.className = 'copy-btn';
+        btn.style.cssText = 'position: absolute; top: 10px; right: 10px; z-index: 10;';
+        btn.innerHTML = '📋 Copy';
+        btn.onclick = () => copyCode(btn);
+        pre.appendChild(btn);
+      });
+    });
+  </script>
+
+
+  <script>
+    if (typeof copyCode !== 'function') {
+      function copyCode(btn) {
+        let codeEl;
+        const codeBlock = btn.closest('.code-block') || btn.closest('.code-container') || btn.closest('pre');
+        if (codeBlock) {
+          codeEl = codeBlock.querySelector('code') || codeBlock.querySelector('pre');
+        }
+        if (!codeEl) {
+          codeEl = btn.parentElement.querySelector('code, pre') || btn.nextElementSibling;
+        }
+        const textToCopy = codeEl ? (codeEl.innerText || codeEl.textContent) : '';
+        if (textToCopy) {
+          navigator.clipboard.writeText(textToCopy).then(() => {
+            showCopiedFeedback(btn);
+          }).catch(() => {
+            const textarea = document.createElement('textarea');
+            textarea.value = textToCopy;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            showCopiedFeedback(btn);
+          });
+        }
+      }
+
+      function showCopiedFeedback(btn) {
+        const origText = btn.innerHTML;
+        btn.innerHTML = '✓ Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.innerHTML = origText;
+          btn.classList.remove('copied');
+        }, 2000);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('pre').forEach(pre => {
+        if (pre.closest('.code-block') && pre.closest('.code-block').querySelector('.copy-btn')) return;
+        if (pre.querySelector('.copy-btn')) return;
+        pre.style.position = 'relative';
+        const btn = document.createElement('button');
+        btn.className = 'copy-btn';
+        btn.style.cssText = 'position: absolute; top: 10px; right: 10px; z-index: 10;';
+        btn.innerHTML = '📋 Copy';
+        btn.onclick = () => copyCode(btn);
+        pre.appendChild(btn);
+      });
+    });
+  </script>
+
+</body>
+</html>

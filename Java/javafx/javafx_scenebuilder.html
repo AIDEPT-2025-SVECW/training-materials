@@ -319,7 +319,12 @@
           padding: 20px;
         }
       }
-    </style>
+    
+    .copy-btn { background: rgba(255, 255, 255, 0.1); color: #e2e8f0; border: 1px solid #475569; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s ease; font-family: inherit; }
+    .copy-btn:hover { background: #4f46e5; color: #ffffff; border-color: #4f46e5; transform: translateY(-1px); }
+    .copy-btn.copied { background: #10b981 !important; color: #ffffff !important; border-color: #10b981 !important; }
+
+  </style>
   </head>
   <body>
     <div class="container">
@@ -1001,7 +1006,7 @@ root.getChildren().addAll(label, nameField, submitBtn);</pre>
         const componentDiv = document.createElement("div");
         componentDiv.className = "dropped-component";
         componentDiv.innerHTML = `
-                <span><strong>${type}</strong> (fx:id="${id}")</span>
+                <span><strong> ₹{type}</strong> (fx:id="${id}")</span>
                 <button class="remove-btn" onclick="removeComponent('${id}')">Remove</button>
             `;
 
@@ -1028,7 +1033,7 @@ root.getChildren().addAll(label, nameField, submitBtn);</pre>
             const componentDiv = document.createElement("div");
             componentDiv.className = "dropped-component";
             componentDiv.innerHTML = `
-                        <span><strong>${comp.type}</strong> (fx:id="${comp.id}")</span>
+                        <span><strong> ₹{comp.type}</strong> (fx:id="${comp.id}")</span>
                         <button class="remove-btn" onclick="removeComponent('${comp.id}')">Remove</button>
                     `;
             dropZone.appendChild(componentDiv);
@@ -1080,7 +1085,7 @@ root.getChildren().addAll(label, nameField, submitBtn);</pre>
 
         const output = document.getElementById("fxmlOutput");
         output.style.display = "block";
-        output.innerHTML = `<strong>✅ Generated FXML Code:</strong><pre style="background:#2d2d2d; color:#f8f8f2; padding:15px; border-radius:5px; margin-top:10px;">${fxmlCode}</pre>`;
+        output.innerHTML = `<strong>✅ Generated FXML Code:</strong><pre style="background:#2d2d2d; color:#f8f8f2; padding:15px; border-radius:5px; margin-top:10px;"> ₹{fxmlCode}</pre>`;
       }
 
       // Simulate FXML loading
@@ -1276,5 +1281,111 @@ private void goToDashboard(ActionEvent event) {
         }
       });
     </script>
-  </body>
+  
+  <script>
+    function copyCode(btn) {
+      let codeEl;
+      const codeBlock = btn.closest('.code-block') || btn.closest('.code-container') || btn.closest('pre');
+      if (codeBlock) {
+        codeEl = codeBlock.querySelector('code') || codeBlock.querySelector('pre');
+      }
+      if (!codeEl) {
+        codeEl = btn.parentElement.querySelector('code, pre') || btn.nextElementSibling;
+      }
+      const textToCopy = codeEl ? (codeEl.innerText || codeEl.textContent) : '';
+      if (textToCopy) {
+        navigator.clipboard.writeText(textToCopy).then(() => {
+          showCopiedFeedback(btn);
+        }).catch(() => {
+          const textarea = document.createElement('textarea');
+          textarea.value = textToCopy;
+          document.body.appendChild(textarea);
+          textarea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textarea);
+          showCopiedFeedback(btn);
+        });
+      }
+    }
+
+    function showCopiedFeedback(btn) {
+      const origText = btn.innerHTML;
+      btn.innerHTML = '✓ Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.innerHTML = origText;
+        btn.classList.remove('copied');
+      }, 2000);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('pre').forEach(pre => {
+        if (pre.closest('.code-block') && pre.closest('.code-block').querySelector('.copy-btn')) return;
+        if (pre.querySelector('.copy-btn')) return;
+        pre.style.position = 'relative';
+        const btn = document.createElement('button');
+        btn.className = 'copy-btn';
+        btn.style.cssText = 'position: absolute; top: 10px; right: 10px; z-index: 10;';
+        btn.innerHTML = '📋 Copy';
+        btn.onclick = () => copyCode(btn);
+        pre.appendChild(btn);
+      });
+    });
+  </script>
+
+
+  <script>
+    if (typeof copyCode !== 'function') {
+      function copyCode(btn) {
+        let codeEl;
+        const codeBlock = btn.closest('.code-block') || btn.closest('.code-container') || btn.closest('pre');
+        if (codeBlock) {
+          codeEl = codeBlock.querySelector('code') || codeBlock.querySelector('pre');
+        }
+        if (!codeEl) {
+          codeEl = btn.parentElement.querySelector('code, pre') || btn.nextElementSibling;
+        }
+        const textToCopy = codeEl ? (codeEl.innerText || codeEl.textContent) : '';
+        if (textToCopy) {
+          navigator.clipboard.writeText(textToCopy).then(() => {
+            showCopiedFeedback(btn);
+          }).catch(() => {
+            const textarea = document.createElement('textarea');
+            textarea.value = textToCopy;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            showCopiedFeedback(btn);
+          });
+        }
+      }
+
+      function showCopiedFeedback(btn) {
+        const origText = btn.innerHTML;
+        btn.innerHTML = '✓ Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.innerHTML = origText;
+          btn.classList.remove('copied');
+        }, 2000);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('pre').forEach(pre => {
+        if (pre.closest('.code-block') && pre.closest('.code-block').querySelector('.copy-btn')) return;
+        if (pre.querySelector('.copy-btn')) return;
+        pre.style.position = 'relative';
+        const btn = document.createElement('button');
+        btn.className = 'copy-btn';
+        btn.style.cssText = 'position: absolute; top: 10px; right: 10px; z-index: 10;';
+        btn.innerHTML = '📋 Copy';
+        btn.onclick = () => copyCode(btn);
+        pre.appendChild(btn);
+      });
+    });
+  </script>
+
+</body>
 </html>

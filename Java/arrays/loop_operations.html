@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Array Operations: For Loop vs For-Each Loop | Java Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --secondary: #0284c7;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f1f5f9 100%);
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 10px 25px rgba(79, 70, 229, 0.07);
+      --shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient); min-height: 100vh; color: var(--text-main);
+      padding: 24px 16px; line-height: 1.6;
+    }
+    .container { max-width: 1100px; margin: 0 auto; }
+    
+    .top-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 8px; background: #ffffff; color: var(--primary-dark);
+      text-decoration: none; padding: 10px 20px; border-radius: 30px; font-weight: 600; font-size: 0.95rem;
+      border: 1px solid var(--card-border); box-shadow: var(--shadow-sm); transition: all 0.25s ease;
+    }
+    .back-btn:hover { background: var(--primary); color: #ffffff; transform: translateX(-4px); }
+    .nav-tag { color: var(--text-muted); font-weight: 600; font-size: 0.9rem; background: rgba(255, 255, 255, 0.8); padding: 6px 14px; border-radius: 20px; border: 1px solid var(--card-border); }
+
+    .hero {
+      background: linear-gradient(135deg, #10b981 0%, #0284c7 100%); color: #ffffff;
+      border-radius: 20px; padding: 40px 32px; text-align: center; box-shadow: var(--shadow-lg); margin-bottom: 32px;
+    }
+    .hero h1 { font-size: 2.5rem; font-weight: 800; margin-bottom: 12px; }
+    .hero p { font-size: 1.15rem; opacity: 0.95; max-width: 780px; margin: 0 auto 20px auto; }
+    .hero-badges { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+    .hero-badge { background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(8px); padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+
+    .card { background: var(--card-bg); border-radius: 18px; padding: 32px; margin-bottom: 32px; box-shadow: var(--shadow-md); border: 1px solid var(--card-border); }
+    .section-title { font-size: 1.5rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 18px; display: flex; align-items: center; gap: 12px; }
+    .section-title .icon { font-size: 1.5rem; background: #eef2ff; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 12px; color: var(--primary); }
+
+    /* Tables */
+    .table-wrapper { overflow-x: auto; margin-top: 16px; }
+    .styled-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.95rem; }
+    .styled-table th { background: #f1f5f9; color: var(--primary-dark); padding: 12px 16px; border-bottom: 2px solid #cbd5e1; }
+    .styled-table td { padding: 12px 16px; border-bottom: 1px solid #e2e8f0; }
+    .styled-table code { background: #eef2ff; color: var(--primary); padding: 2px 6px; border-radius: 4px; font-family: 'Fira Code', monospace; }
+
+    /* Interactive Execution Visualizer */
+    .interactive-container { background: #0f172a; color: #f8fafc; border-radius: 16px; padding: 24px; border: 1px solid #334155; }
+    .controls-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 20px; }
+
+    .pointer-grid { display: flex; gap: 12px; overflow-x: auto; padding: 20px 0; justify-content: center; position: relative; }
+    .cell-unit { width: 85px; height: 95px; background: #1e293b; border: 2px solid #475569; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 0.3s; }
+    .cell-unit.active { border-color: var(--accent-green); background: rgba(16, 185, 129, 0.2); transform: translateY(-6px); box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3); }
+
+    .state-panel { background: #1e293b; border-radius: 10px; padding: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; font-family: 'Fira Code', monospace; font-size: 0.9rem; margin-top: 16px; }
+
+    /* Code Block */
+    .code-block { background: #0f172a; border-radius: 12px; padding: 20px; color: #e2e8f0; font-family: 'Fira Code', monospace; font-size: 0.9rem; overflow-x: auto; border: 1px solid #1e293b; }
+    .code-block header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #334155; padding-bottom: 8px; color: #94a3b8; font-size: 0.8rem; }
+    .kw { color: #c084fc; font-weight: 600; }
+    .type { color: #38bdf8; font-weight: 600; }
+    .num { color: #f43f5e; }
+    .str { color: #4ade80; }
+    .cmt { color: #64748b; font-style: italic; }
+
+    .quiz-option { background: #f1f5f9; padding: 14px 18px; border-radius: 10px; margin-bottom: 10px; cursor: pointer; border: 1px solid #cbd5e1; transition: all 0.2s; font-weight: 500; }
+    .quiz-option:hover { background: #e2e8f0; border-color: var(--primary); }
+    .quiz-option.correct { background: #dcfce7; border-color: var(--accent-green); color: #166534; }
+    .quiz-option.incorrect { background: #fee2e2; border-color: #ef4444; color: #991b1b; }
+  
+    .copy-btn { background: rgba(255, 255, 255, 0.1); color: #e2e8f0; border: 1px solid #475569; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s ease; font-family: inherit; }
+    .copy-btn:hover { background: #4f46e5; color: #ffffff; border-color: #4f46e5; transform: translateY(-1px); }
+    .copy-btn.copied { background: #10b981 !important; color: #ffffff !important; border-color: #10b981 !important; }
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="top-nav">
+      <a href="../index.html" class="back-btn">⬅ Back to Java Index</a>
+      <span class="nav-tag">Topic 5 of 12 • Arrays</span>
+    </div>
+
+    <header class="hero">
+      <h1>Operations on Array Elements (For vs For-Each Loop)</h1>
+      <p>Compare traditional index-controlled <code>for</code> loops against modern enhanced <code>for-each</code> loops with live execution tracing.</p>
+      <div class="hero-badges">
+        <span class="hero-badge">🔄 Traditional for Loop</span>
+        <span class="hero-badge">✨ Enhanced for-each Loop</span>
+        <span class="hero-badge">⚡ Element Mutation vs Read-Only</span>
+      </div>
+    </header>
+
+    <!-- SECTION 1: Comparison Table -->
+    <section class="card">
+      <h2 class="section-title">
+        <span class="icon">⚖️</span>
+        Traditional for Loop vs. Enhanced for-each Loop
+      </h2>
+
+      <div class="table-wrapper">
+        <table class="styled-table">
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th>Traditional <code>for</code> Loop</th>
+              <th>Enhanced <code>for-each</code> Loop</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Syntax</strong></td>
+              <td><code>for (int i = 0; i < arr.length; i++)</code></td>
+              <td><code>for (int num : arr)</code></td>
+            </tr>
+            <tr>
+              <td><strong>Index Access</strong></td>
+              <td>Explicit index variable <code>i</code> available</td>
+              <td>No index access (only element value)</td>
+            </tr>
+            <tr>
+              <td><strong>Element Mutation</strong></td>
+              <td>Can modify array: <code>arr[i] = val;</code></td>
+              <td>Cannot modify original array (loop variable is a copy!)</td>
+            </tr>
+            <tr>
+              <td><strong>Traversal Direction</strong></td>
+              <td>Forward, backward, or step by N (e.g. <code>i+=2</code>)</td>
+              <td>Strictly forward (0 to length-1)</td>
+            </tr>
+            <tr>
+              <td><strong>Best Used For</strong></td>
+              <td>Modifying elements, multi-array indexing, reverse loops</td>
+              <td>Simple read-only printing, summing, searching</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- SECTION 2: Interactive Step Animator -->
+    <section class="card">
+      <h2 class="section-title">
+        <span class="icon">🎬</span>
+        Interactive Step-by-Step Loop Trace Simulator
+      </h2>
+      <p style="margin-bottom: 16px; color: var(--text-muted);">
+        Step through loop execution to observe pointer movement and variable accumulator updates in real-time.
+      </p>
+
+      <div class="interactive-container">
+        <div class="controls-row">
+          <span>Choose Loop Type:</span>
+          <button id="btnTraditional" class="btn" style="background: var(--primary); color: white;" onclick="setLoopType('traditional')">Traditional for Loop</button>
+          <button id="btnForEach" class="btn" style="background: #334155; color: white;" onclick="setLoopType('foreach')">Enhanced for-each Loop</button>
+
+          <div style="margin-left: auto; display: flex; gap: 8px;">
+            <button onclick="stepLoop(-1)" class="btn" style="background: #334155; color: white;">⏮ Prev Step</button>
+            <button onclick="stepLoop(1)" class="btn" style="background: var(--accent-green); color: white;">⏭ Next Step</button>
+            <button onclick="resetLoop()" class="btn" style="background: #475569; color: white;">🔄 Reset</button>
+          </div>
+        </div>
+
+        <div id="codeSnippetDisplay" style="background: #1e293b; padding: 12px; border-radius: 8px; font-family: 'Fira Code'; font-size: 0.85rem; color: #38bdf8; margin-bottom: 16px;"></div>
+
+        <div class="pointer-grid" id="pointerGrid">
+          <!-- Rendered by JS -->
+        </div>
+
+        <div class="state-panel">
+          <div><span style="color: #94a3b8;">Current Step:</span> <strong id="stateStep" style="color: white;">0 / 5</strong></div>
+          <div><span style="color: #94a3b8;">Active Pointer:</span> <strong id="statePointer" style="color: #38bdf8;">i = 0</strong></div>
+          <div><span style="color: #94a3b8;">Current Element:</span> <strong id="stateElem" style="color: #4ade80;">15</strong></div>
+          <div><span style="color: #94a3b8;">Accumulated Sum:</span> <strong id="stateSum" style="color: #f59e0b;">0</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 3: Code Examples -->
+    <section class="card">
+      <h2 class="section-title">
+        <span class="icon">💻</span>
+        Runnable Java Examples
+      </h2>
+
+      <h3 style="color: var(--primary-dark); margin-bottom: 12px; font-size: 1.1rem;">1. Looping Over Primitive Arrays</h3>
+      <div class="code-block" style="margin-bottom: 24px;">
+        <header>
+          <span>LoopOperationsDemo.java</span>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+            <span>Java 17+</span>
+          </div>
+        </header>
+        <pre><code><span class="kw">public class</span> <span class="type">LoopOperationsDemo</span> {
+    <span class="kw">public static void</span> main(<span class="type">String</span>[] args) {
+        <span class="type">int</span>[] numbers = {<span class="num">15</span>, <span class="num">42</span>, <span class="num">8</span>, <span class="num">23</span>, <span class="num">99</span>};
+
+        <span class="cmt">// EXAMPLE 1: Traditional for loop (Sum, Max, Element Mutation)</span>
+        <span class="type">System</span>.out.println(<span class="str">"=== Example 1: Traditional For Loop ==="</span>);
+        <span class="type">int</span> sum = <span class="num">0</span>;
+        <span class="type">int</span> max = numbers[<span class="num">0</span>];
+
+        <span class="kw">for</span> (<span class="type">int</span> i = <span class="num">0</span>; i < numbers.length; i++) {
+            sum += numbers[i];
+            <span class="kw">if</span> (numbers[i] > max) {
+                max = numbers[i];
+            }
+            <span class="cmt">// Modifying elements: double each value</span>
+            numbers[i] = numbers[i] * <span class="num">2</span>;
+        }
+        <span class="type">System</span>.out.println(<span class="str">"Total Sum (original): "</span> + sum);
+        <span class="type">System</span>.out.println(<span class="str">"Max Value: "</span> + max);
+
+        <span class="cmt">// EXAMPLE 2: Enhanced for-each loop (Read-Only Traversal)</span>
+        <span class="type">System</span>.out.println(<span class="str">"\n=== Example 2: Enhanced For-Each Loop ==="</span>);
+        <span class="type">System</span>.out.print(<span class="str">"Doubled Elements: "</span>);
+        <span class="kw">for</span> (<span class="type">int</span> val : numbers) {
+            <span class="type">System</span>.out.print(val + <span class="str">" "</span>);
+        }
+        <span class="type">System</span>.out.println();
+    }
+}</code></pre>
+        <div style="margin-top: 12px; background: #0f172a; padding: 14px; border-radius: 8px; color: #38bdf8; font-family: 'Fira Code', monospace; font-size: 0.85rem;">
+          <strong>🖥️ Output:</strong><br>
+          === Example 1: Traditional For Loop ===<br>
+          Total Sum (original): 187<br>
+          Max Value: 99<br>
+          <br>
+          === Example 2: Enhanced For-Each Loop ===<br>
+          Doubled Elements: 30 84 16 46 198
+        </div>
+      </div>
+
+      <h3 style="color: var(--primary-dark); margin-bottom: 12px; font-size: 1.1rem;">2. Looping Over Array of Objects (Custom Class)</h3>
+      <p style="margin-bottom: 12px; font-size: 0.95rem; color: var(--text-muted);">
+        Iterating over object arrays allows calling instance methods, mutating member properties, checking for <code>null</code> elements safely, and performing aggregations across objects.
+      </p>
+
+      <div class="code-block">
+        <header>
+          <span>ObjectArrayLoopDemo.java</span>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+            <span>Java 17+</span>
+          </div>
+        </header>
+        <pre><code><span class="cmt">// Custom Book Class</span>
+<span class="kw">class</span> <span class="type">Book</span> {
+    <span class="type">String</span> title;
+    <span class="type">double</span> price;
+
+    <span class="type">Book</span>(<span class="type">String</span> title, <span class="type">double</span> price) {
+        <span class="kw">this</span>.title = title;
+        <span class="kw">this</span>.price = price;
+    }
+}
+
+<span class="kw">public class</span> <span class="type">ObjectArrayLoopDemo</span> {
+    <span class="kw">public static void</span> main(<span class="type">String</span>[] args) {
+        <span class="type">Book</span>[] catalog = {
+            <span class="kw">new</span> <span class="type">Book</span>(<span class="str">"Java Programming"</span>, <span class="num">50.00</span>),
+            <span class="kw">new</span> <span class="type">Book</span>(<span class="str">"Data Structures"</span>, <span class="num">60.00</span>),
+            <span class="kw">new</span> <span class="type">Book</span>(<span class="str">"Clean Code"</span>, <span class="num">40.00</span>),
+            <span class="kw">null</span> <span class="cmt">// Uninitialized slot (null safety example)</span>
+        };
+
+        <span class="cmt">// 1. Traditional for loop: Modifying object fields (10% Discount)</span>
+        <span class="type">System</span>.out.println(<span class="str">"=== 1. Traditional For Loop (Updating Object Fields) ==="</span>);
+        <span class="kw">for</span> (<span class="type">int</span> i = <span class="num">0</span>; i < catalog.length; i++) {
+            <span class="kw">if</span> (catalog[i] != <span class="kw">null</span>) { <span class="cmt">// Null Check</span>
+                catalog[i].price *= <span class="num">0.90</span>; <span class="cmt">// Mutate property inside Heap object</span>
+                <span class="type">System</span>.out.println(<span class="str">"Index ["</span> + i + <span class="str">"]: "</span> + catalog[i].title + <span class="str">" - Discounted: ₹"</span> + catalog[i].price);
+            }
+        }
+
+        <span class="cmt">// 2. Enhanced for-each loop: Accumulating total inventory value</span>
+        <span class="type">System</span>.out.println(<span class="str">"\n=== 2. Enhanced For-Each Loop (Aggregation & Null Safety) ==="</span>);
+        <span class="type">double</span> totalValue = <span class="num">0.0</span>;
+        <span class="kw">for</span> (<span class="type">Book</span> b : catalog) {
+            <span class="kw">if</span> (b != <span class="kw">null</span>) {
+                <span class="type">System</span>.out.println(<span class="str">"- "</span> + b.title + <span class="str">" (₹"</span> + b.price + <span class="str">")"</span>);
+                totalValue += b.price;
+            }
+        }
+        <span class="type">System</span>.out.println(<span class="str">"Total Inventory Value: ₹"</span> + totalValue);
+    }
+}</code></pre>
+        <div style="margin-top: 12px; background: #0f172a; padding: 14px; border-radius: 8px; color: #38bdf8; font-family: 'Fira Code', monospace; font-size: 0.85rem;">
+          <strong>🖥️ Output:</strong><br>
+          === 1. Traditional For Loop (Updating Object Fields) ===<br>
+          Index [0]: Java Programming - Discounted: ₹45.0<br>
+          Index [1]: Data Structures - Discounted: ₹54.0<br>
+          Index [2]: Clean Code - Discounted: ₹36.0<br>
+          <br>
+          === 2. Enhanced For-Each Loop (Aggregation & Null Safety) ===<br>
+          - Java Programming (₹45.0)<br>
+          - Data Structures (₹54.0)<br>
+          - Clean Code (₹36.0)<br>
+          Total Inventory Value: ₹135.0
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 4: Quiz -->
+    <section class="card">
+      <h2 class="section-title">
+        <span class="icon">🧪</span>
+        Quick Knowledge Check
+      </h2>
+      <p style="margin-bottom: 16px;">What happens if you execute <code>for (int x : arr) { x = 0; }</code> on an array <code>int[] arr = {5, 10, 15};</code>?</p>
+      <div id="quizOptions">
+        <div class="quiz-option" onclick="checkQuiz(this, false)">A) All elements in arr become 0: {0, 0, 0}</div>
+        <div class="quiz-option" onclick="checkQuiz(this, true)">B) Original array remains UNCHANGED: {5, 10, 15} because x is a local copy variable!</div>
+        <div class="quiz-option" onclick="checkQuiz(this, false)">C) It throws a Compilation Error</div>
+        <div class="quiz-option" onclick="checkQuiz(this, false)">D) It throws an ArrayIndexOutOfBoundsException</div>
+      </div>
+      <div id="quizFeedback" style="margin-top: 12px; font-weight: 600; display: none;"></div>
+    </section>
+  </div>
+
+  <script>
+    const sampleArr = [15, 42, 8, 23, 99];
+    let loopMode = 'traditional';
+    let currentStep = 0;
+
+    function setLoopType(mode) {
+      loopMode = mode;
+      document.getElementById('btnTraditional').style.background = mode === 'traditional' ? 'var(--primary)' : '#334155';
+      document.getElementById('btnForEach').style.background = mode === 'foreach' ? 'var(--primary)' : '#334155';
+      resetLoop();
+    }
+
+    function resetLoop() {
+      currentStep = 0;
+      updateVisuals();
+    }
+
+    function stepLoop(delta) {
+      currentStep = Math.max(0, Math.min(sampleArr.length, currentStep + delta));
+      updateVisuals();
+    }
+
+    function updateVisuals() {
+      const grid = document.getElementById('pointerGrid');
+      const snippet = document.getElementById('codeSnippetDisplay');
+      grid.innerHTML = '';
+
+      if (loopMode === 'traditional') {
+        snippet.innerHTML = `<span style="color:#c084fc;">int</span> sum = <span style="color:#f43f5e;">0</span>;<br><span style="color:#c084fc;">for</span> (<span style="color:#c084fc;">int</span> i = <span style="color:#f43f5e;">0</span>; i &lt; arr.length; i++) { sum += arr[i]; }`;
+      } else {
+        snippet.innerHTML = `<span style="color:#c084fc;">int</span> sum = <span style="color:#f43f5e;">0</span>;<br><span style="color:#c084fc;">for</span> (<span style="color:#c084fc;">int</span> elem : arr) { sum += elem; }`;
+      }
+
+      let runningSum = 0;
+      for (let i = 0; i < currentStep; i++) {
+        runningSum += sampleArr[i];
+      }
+
+      sampleArr.forEach((val, idx) => {
+        const cell = document.createElement('div');
+        const isActive = (idx === currentStep && currentStep < sampleArr.length);
+        cell.className = `cell-unit ${isActive ? 'active' : ''}`;
+        cell.innerHTML = `
+          <div style="font-size: 0.75rem; color: #94a3b8;">[${idx}]</div>
+          <div style="font-size: 1.2rem; font-weight: bold; color: ${isActive ? '#10b981' : '#38bdf8'};"> ₹{val}</div>
+          <div style="font-size: 0.7rem; color: var(--accent-amber);"> ₹{isActive ? (loopMode==='traditional'?'i='+idx:'elem='+val) : ''}</div>
+        `;
+        grid.appendChild(cell);
+      });
+
+      document.getElementById('stateStep').textContent = `${currentStep} / ${sampleArr.length}`;
+      if (currentStep < sampleArr.length) {
+        document.getElementById('statePointer').textContent = loopMode === 'traditional' ? `i = ${currentStep}` : `elem = ${sampleArr[currentStep]}`;
+        document.getElementById('stateElem').textContent = sampleArr[currentStep];
+      } else {
+        document.getElementById('statePointer').textContent = 'Loop Finished';
+        document.getElementById('stateElem').textContent = 'N/A';
+      }
+      document.getElementById('stateSum').textContent = runningSum;
+    }
+
+    function checkQuiz(element, isCorrect) {
+      const options = document.querySelectorAll('.quiz-option');
+      options.forEach(opt => opt.classList.remove('correct', 'incorrect'));
+      const feedback = document.getElementById('quizFeedback');
+      if (isCorrect) {
+        element.classList.add('correct');
+        feedback.style.color = '#166534';
+        feedback.innerHTML = '🎉 Correct! In an enhanced for-each loop, the loop variable (x) is a local copy of each element value. Reassigning x does NOT affect the original array!';
+      } else {
+        element.classList.add('incorrect');
+        feedback.style.color = '#991b1b';
+        feedback.innerHTML = '❌ Incorrect. Enhanced for-each loop variables are read-only copies of array elements.';
+      }
+      feedback.style.display = 'block';
+    }
+
+    updateVisuals();
+  </script>
+
+  <script>
+    function copyCode(btn) {
+      let codeEl;
+      const codeBlock = btn.closest('.code-block') || btn.closest('.code-container') || btn.closest('pre');
+      if (codeBlock) {
+        codeEl = codeBlock.querySelector('code') || codeBlock.querySelector('pre');
+      }
+      if (!codeEl) {
+        codeEl = btn.parentElement.querySelector('code, pre') || btn.nextElementSibling;
+      }
+      const textToCopy = codeEl ? (codeEl.innerText || codeEl.textContent) : '';
+      if (textToCopy) {
+        navigator.clipboard.writeText(textToCopy).then(() => {
+          showCopiedFeedback(btn);
+        }).catch(() => {
+          const textarea = document.createElement('textarea');
+          textarea.value = textToCopy;
+          document.body.appendChild(textarea);
+          textarea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textarea);
+          showCopiedFeedback(btn);
+        });
+      }
+    }
+
+    function showCopiedFeedback(btn) {
+      const origText = btn.innerHTML;
+      btn.innerHTML = '✓ Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.innerHTML = origText;
+        btn.classList.remove('copied');
+      }, 2000);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('pre').forEach(pre => {
+        if (pre.closest('.code-block') && pre.closest('.code-block').querySelector('.copy-btn')) return;
+        if (pre.querySelector('.copy-btn')) return;
+        pre.style.position = 'relative';
+        const btn = document.createElement('button');
+        btn.className = 'copy-btn';
+        btn.style.cssText = 'position: absolute; top: 10px; right: 10px; z-index: 10;';
+        btn.innerHTML = '📋 Copy';
+        btn.onclick = () => copyCode(btn);
+        pre.appendChild(btn);
+      });
+    });
+  </script>
+
+
+  <script>
+    if (typeof copyCode !== 'function') {
+      function copyCode(btn) {
+        let codeEl;
+        const codeBlock = btn.closest('.code-block') || btn.closest('.code-container') || btn.closest('pre');
+        if (codeBlock) {
+          codeEl = codeBlock.querySelector('code') || codeBlock.querySelector('pre');
+        }
+        if (!codeEl) {
+          codeEl = btn.parentElement.querySelector('code, pre') || btn.nextElementSibling;
+        }
+        const textToCopy = codeEl ? (codeEl.innerText || codeEl.textContent) : '';
+        if (textToCopy) {
+          navigator.clipboard.writeText(textToCopy).then(() => {
+            showCopiedFeedback(btn);
+          }).catch(() => {
+            const textarea = document.createElement('textarea');
+            textarea.value = textToCopy;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            showCopiedFeedback(btn);
+          });
+        }
+      }
+
+      function showCopiedFeedback(btn) {
+        const origText = btn.innerHTML;
+        btn.innerHTML = '✓ Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.innerHTML = origText;
+          btn.classList.remove('copied');
+        }, 2000);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('pre').forEach(pre => {
+        if (pre.closest('.code-block') && pre.closest('.code-block').querySelector('.copy-btn')) return;
+        if (pre.querySelector('.copy-btn')) return;
+        pre.style.position = 'relative';
+        const btn = document.createElement('button');
+        btn.className = 'copy-btn';
+        btn.style.cssText = 'position: absolute; top: 10px; right: 10px; z-index: 10;';
+        btn.innerHTML = '📋 Copy';
+        btn.onclick = () => copyCode(btn);
+        pre.appendChild(btn);
+      });
+    });
+  </script>
+
+</body>
+</html>

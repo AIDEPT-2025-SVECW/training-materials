@@ -492,6 +492,35 @@
         grid-column: span 1 !important;
       }
     }
+
+    .copy-btn {
+      background: rgba(255, 255, 255, 0.1);
+      color: #e2e8f0;
+      border: 1px solid #475569;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+
+    .copy-btn:hover {
+      background: #4f46e5;
+      color: #ffffff;
+      border-color: #4f46e5;
+      transform: translateY(-1px);
+    }
+
+    .copy-btn.copied {
+      background: #10b981 !important;
+      color: #ffffff !important;
+      border-color: #10b981 !important;
+    }
   </style>
 </head>
 
@@ -587,7 +616,7 @@
 
   <script>
     // === Ready topics: only topics listed here will have clickable subtopics ===
-    const READY_TOPICS = ["intro", "basics", "classes", "constructors", "jdbc", "javafx", "polymorphism", "jdk", "encapsulation"];
+    const READY_TOPICS = ["intro", "basics", "arrays", "classes", "constructors", "jdbc", "javafx"];
 
     // === Topics + Subtopics (full list), each topic has a github placeholder ===
     const TOPICS = {
@@ -657,6 +686,39 @@
           "classesObjects/misc_classes_objects_demo.html",
           "classesObjects/memory_management_demo.html"
         ]
+      },
+      arrays: {
+        title: "Arrays in Java",
+        subtopics: [
+          "Arrays Introduction & Purpose of Arrays in Programming",
+          "Declaration and Initialization of Arrays (Primitive Array Types)",
+          "Storage of Arrays in Memory (Stack vs Heap)",
+          "Accessing Array Elements & Index Boundaries",
+          "Operations on Array Elements (For Loop & For-Each Loop Examples)",
+          "Assigning Arrays & Passing Arrays in Methods (Pass-by-Value vs Reference)",
+          "Array Size Deep Dive & Dynamically Changing Array Size",
+          "java.util.Arrays Class Utilities Explorer",
+          "Sorting Arrays (Bubble Sort, Selection Sort, Arrays.sort)",
+          "Searching for Values in Arrays (Linear Search vs Binary Search)",
+
+          "2D & 3D Arrays Declaration, Memory & Traversing",
+          "Arrays of Varying Length (Ragged Arrays) & Arrays as Vectors"
+        ],
+        files: [
+          "arrays/arrays_intro.html",
+          "arrays/declaration_initialization.html",
+          "arrays/memory_storage.html",
+          "arrays/accessing_elements.html",
+          "arrays/loop_operations.html",
+          "arrays/assignment_method_passing.html",
+          "arrays/array_size_deep_dive.html",
+          "arrays/class_arrays.html",
+          "arrays/sorting_arrays.html",
+          "arrays/searching_arrays.html",
+
+          "arrays/multidimensional_arrays.html",
+          "arrays/ragged_arrays_vectors.html"
+        ],
       },
       collections: {
         title: "Collections Framework",
@@ -833,7 +895,7 @@
       // header
       const header = document.createElement("div");
       header.className = "topic-title";
-      header.innerHTML = `<div>${topic.title}</div><div class="meta">${isReady
+      header.innerHTML = `<div> ₹{topic.title}</div><div class="meta"> ₹{isReady
         ? "Ready — subtopics clickable (except optional ones)"
         : "Not ready — subtopics shown but not clickable"
         }</div>`;
@@ -916,7 +978,7 @@
       if (topic.github && topic.github.trim() !== "") {
         const gh = document.createElement("div");
         gh.className = "github-section";
-        gh.innerHTML = `<strong>GitHub Project:</strong><br/><a href="${topic.github}" target="_blank" rel="noopener">${topic.github}</a>`;
+        gh.innerHTML = `<strong>GitHub Project:</strong><br/><a href="${topic.github}" target="_blank" rel="noopener"> ₹{topic.github}</a>`;
         subtopicsArea.appendChild(gh);
       }
 
@@ -969,6 +1031,112 @@
       }
     });
   </script>
+
+  <script>
+    function copyCode(btn) {
+      let codeEl;
+      const codeBlock = btn.closest('.code-block') || btn.closest('.code-container') || btn.closest('pre');
+      if (codeBlock) {
+        codeEl = codeBlock.querySelector('code') || codeBlock.querySelector('pre');
+      }
+      if (!codeEl) {
+        codeEl = btn.parentElement.querySelector('code, pre') || btn.nextElementSibling;
+      }
+      const textToCopy = codeEl ? (codeEl.innerText || codeEl.textContent) : '';
+      if (textToCopy) {
+        navigator.clipboard.writeText(textToCopy).then(() => {
+          showCopiedFeedback(btn);
+        }).catch(() => {
+          const textarea = document.createElement('textarea');
+          textarea.value = textToCopy;
+          document.body.appendChild(textarea);
+          textarea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textarea);
+          showCopiedFeedback(btn);
+        });
+      }
+    }
+
+    function showCopiedFeedback(btn) {
+      const origText = btn.innerHTML;
+      btn.innerHTML = '✓ Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.innerHTML = origText;
+        btn.classList.remove('copied');
+      }, 2000);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('pre').forEach(pre => {
+        if (pre.closest('.code-block') && pre.closest('.code-block').querySelector('.copy-btn')) return;
+        if (pre.querySelector('.copy-btn')) return;
+        pre.style.position = 'relative';
+        const btn = document.createElement('button');
+        btn.className = 'copy-btn';
+        btn.style.cssText = 'position: absolute; top: 10px; right: 10px; z-index: 10;';
+        btn.innerHTML = '📋 Copy';
+        btn.onclick = () => copyCode(btn);
+        pre.appendChild(btn);
+      });
+    });
+  </script>
+
+
+  <script>
+    if (typeof copyCode !== 'function') {
+      function copyCode(btn) {
+        let codeEl;
+        const codeBlock = btn.closest('.code-block') || btn.closest('.code-container') || btn.closest('pre');
+        if (codeBlock) {
+          codeEl = codeBlock.querySelector('code') || codeBlock.querySelector('pre');
+        }
+        if (!codeEl) {
+          codeEl = btn.parentElement.querySelector('code, pre') || btn.nextElementSibling;
+        }
+        const textToCopy = codeEl ? (codeEl.innerText || codeEl.textContent) : '';
+        if (textToCopy) {
+          navigator.clipboard.writeText(textToCopy).then(() => {
+            showCopiedFeedback(btn);
+          }).catch(() => {
+            const textarea = document.createElement('textarea');
+            textarea.value = textToCopy;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            showCopiedFeedback(btn);
+          });
+        }
+      }
+
+      function showCopiedFeedback(btn) {
+        const origText = btn.innerHTML;
+        btn.innerHTML = '✓ Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.innerHTML = origText;
+          btn.classList.remove('copied');
+        }, 2000);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('pre').forEach(pre => {
+        if (pre.closest('.code-block') && pre.closest('.code-block').querySelector('.copy-btn')) return;
+        if (pre.querySelector('.copy-btn')) return;
+        pre.style.position = 'relative';
+        const btn = document.createElement('button');
+        btn.className = 'copy-btn';
+        btn.style.cssText = 'position: absolute; top: 10px; right: 10px; z-index: 10;';
+        btn.innerHTML = '📋 Copy';
+        btn.onclick = () => copyCode(btn);
+        pre.appendChild(btn);
+      });
+    });
+  </script>
+
 </body>
 
 </html>

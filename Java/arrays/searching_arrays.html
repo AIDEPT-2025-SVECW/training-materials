@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Searching Values in Arrays (Linear vs Binary Search) | Java Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --secondary: #0284c7;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f1f5f9 100%);
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 10px 25px rgba(79, 70, 229, 0.07);
+      --shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient); min-height: 100vh; color: var(--text-main);
+      padding: 24px 16px; line-height: 1.6;
+    }
+    .container { max-width: 1100px; margin: 0 auto; }
+    
+    .top-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 8px; background: #ffffff; color: var(--primary-dark);
+      text-decoration: none; padding: 10px 20px; border-radius: 30px; font-weight: 600; font-size: 0.95rem;
+      border: 1px solid var(--card-border); box-shadow: var(--shadow-sm); transition: all 0.25s ease;
+    }
+    .back-btn:hover { background: var(--primary); color: #ffffff; transform: translateX(-4px); }
+    .nav-tag { color: var(--text-muted); font-weight: 600; font-size: 0.9rem; background: rgba(255, 255, 255, 0.8); padding: 6px 14px; border-radius: 20px; border: 1px solid var(--card-border); }
+
+    .hero {
+      background: linear-gradient(135deg, #0284c7 0%, #4f46e5 100%); color: #ffffff;
+      border-radius: 20px; padding: 40px 32px; text-align: center; box-shadow: var(--shadow-lg); margin-bottom: 32px;
+    }
+    .hero h1 { font-size: 2.5rem; font-weight: 800; margin-bottom: 12px; }
+    .hero p { font-size: 1.15rem; opacity: 0.95; max-width: 780px; margin: 0 auto 20px auto; }
+    .hero-badges { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+    .hero-badge { background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(8px); padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+
+    .card { background: var(--card-bg); border-radius: 18px; padding: 32px; margin-bottom: 32px; box-shadow: var(--shadow-md); border: 1px solid var(--card-border); }
+    .section-title { font-size: 1.5rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 18px; display: flex; align-items: center; gap: 12px; }
+    .section-title .icon { font-size: 1.5rem; background: #eef2ff; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 12px; color: var(--primary); }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    /* Interactive Dual Visualizer */
+    .interactive-container { background: #0f172a; color: #f8fafc; border-radius: 16px; padding: 24px; border: 1px solid #334155; }
+    .search-strip { display: flex; gap: 8px; overflow-x: auto; padding: 16px 0; }
+    .strip-cell { min-width: 65px; height: 75px; background: #1e293b; border: 2px solid #475569; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 0.2s; font-family: 'Fira Code'; }
+    .strip-cell.checked { border-color: var(--accent-amber); background: rgba(245,158,11,0.2); }
+    .strip-cell.found { border-color: var(--accent-green); background: rgba(16,185,129,0.3); transform: scale(1.1); }
+
+    /* Code Block */
+    .code-block { background: #0f172a; border-radius: 12px; padding: 20px; color: #e2e8f0; font-family: 'Fira Code', monospace; font-size: 0.9rem; overflow-x: auto; border: 1px solid #1e293b; }
+    .code-block header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #334155; padding-bottom: 8px; color: #94a3b8; font-size: 0.8rem; }
+    .kw { color: #c084fc; font-weight: 600; }
+    .type { color: #38bdf8; font-weight: 600; }
+    .num { color: #f43f5e; }
+    .str { color: #4ade80; }
+    .cmt { color: #64748b; font-style: italic; }
+
+    .quiz-option { background: #f1f5f9; padding: 14px 18px; border-radius: 10px; margin-bottom: 10px; cursor: pointer; border: 1px solid #cbd5e1; transition: all 0.2s; font-weight: 500; }
+    .quiz-option:hover { background: #e2e8f0; border-color: var(--primary); }
+    .quiz-option.correct { background: #dcfce7; border-color: var(--accent-green); color: #166534; }
+    .quiz-option.incorrect { background: #fee2e2; border-color: #ef4444; color: #991b1b; }
+  
+    .copy-btn { background: rgba(255, 255, 255, 0.1); color: #e2e8f0; border: 1px solid #475569; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s ease; font-family: inherit; }
+    .copy-btn:hover { background: #4f46e5; color: #ffffff; border-color: #4f46e5; transform: translateY(-1px); }
+    .copy-btn.copied { background: #10b981 !important; color: #ffffff !important; border-color: #10b981 !important; }
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="top-nav">
+      <a href="../index.html" class="back-btn">⬅ Back to Java Index</a>
+      <span class="nav-tag">Topic 9 of 12 • Arrays</span>
+    </div>
+
+    <header class="hero">
+      <h1>Searching Values in Arrays</h1>
+      <p>Compare Linear Search O(N) against Binary Search O(log N) and master Java's <code>Arrays.binarySearch()</code> utility.</p>
+      <div class="hero-badges">
+        <span class="hero-badge">🔎 Linear Search O(N)</span>
+        <span class="hero-badge">⚡ Binary Search O(log N)</span>
+        <span class="hero-badge">🎯 Arrays.binarySearch()</span>
+      </div>
+    </header>
+
+    <!-- SECTION 1: Concept -->
+    <section class="card">
+      <h2 class="section-title">
+        <span class="icon">💡</span>
+        Linear Search vs. Binary Search Comparison
+      </h2>
+
+      <div class="grid-2">
+        <div style="background: #f8fafc; padding: 20px; border-radius: 12px; border-left: 4px solid #0284c7;">
+          <h3 style="color: #0369a1; margin-bottom: 8px;">1. Linear Search</h3>
+          <p style="font-size: 0.9rem;">
+            Checks each element sequentially from index 0 to length-1 until target is found or end of array is reached.
+            <br>• <strong>Array Condition:</strong> Works on ANY array (sorted or unsorted).
+            <br>• <strong>Time Complexity:</strong> O(N) worst case (e.g. 1,000,000 steps for 1M elements).
+          </p>
+        </div>
+
+        <div style="background: #f8fafc; padding: 20px; border-radius: 12px; border-left: 4px solid var(--accent-green);">
+          <h3 style="color: #15803d; margin-bottom: 8px;">2. Binary Search</h3>
+          <p style="font-size: 0.9rem;">
+            Repeatedly splits search interval in half by comparing target with middle element.
+            <br>• <strong>Array Condition:</strong> Array MUST BE SORTED beforehand!
+            <br>• <strong>Time Complexity:</strong> O(log N) logarithmic time (e.g. max 20 steps for 1M elements!).
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2: Interactive Search Visualizer -->
+    <section class="card">
+      <h2 class="section-title">
+        <span class="icon">🎮</span>
+        Interactive Search Dual-Visualizer
+      </h2>
+      <p style="margin-bottom: 16px; color: var(--text-muted);">
+        Enter a target number to search in a sorted 10-element array. Run Linear vs Binary Search to compare step counts!
+      </p>
+
+      <div class="interactive-container">
+        <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 20px; flex-wrap: wrap;">
+          <label>Target Value:</label>
+          <input type="number" id="targetVal" value="45" style="width: 80px; padding: 8px 12px; border-radius: 8px; background: #1e293b; color: white; border: 1px solid #475569; font-family: 'Fira Code';" />
+          
+          <button onclick="runLinearSearch()" class="btn" style="background: var(--secondary); color: white;">🔎 Run Linear Search</button>
+          <button onclick="runBinarySearch()" class="btn" style="background: var(--accent-green); color: white;">⚡ Run Binary Search</button>
+        </div>
+
+        <div id="searchLog" style="background: #1e293b; padding: 12px; border-radius: 8px; font-family: 'Fira Code'; font-size: 0.85rem; color: #38bdf8; margin-bottom: 16px;">
+          Select an algorithm above to visualize steps.
+        </div>
+
+        <div class="search-strip" id="searchStrip"></div>
+      </div>
+    </section>
+
+    <!-- SECTION 3: Code Example -->
+    <section class="card">
+      <h2 class="section-title">
+        <span class="icon">💻</span>
+        Runnable Java Example
+      </h2>
+      <div class="code-block">
+        <header>
+          <span>ArraySearchingDemo.java</span>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+            <span>Java 17+</span>
+          </div>
+        </header>
+        <pre><code><span class="kw">import</span> java.util.<span class="type">Arrays</span>;
+
+<span class="kw">public class</span> <span class="type">ArraySearchingDemo</span> {
+    <span class="kw">public static void</span> main(<span class="type">String</span>[] args) {
+        <span class="type">int</span>[] numbers = {<span class="num">12</span>, <span class="num">18</span>, <span class="num">25</span>, <span class="num">33</span>, <span class="num">45</span>, <span class="num">58</span>, <span class="num">72</span>, <span class="num">89</span>, <span class="num">94</span>};
+        <span class="type">int</span> target = <span class="num">45</span>;
+
+        <span class="cmt">// 1. Custom Linear Search</span>
+        <span class="type">int</span> linearIdx = linearSearch(numbers, target);
+        <span class="type">System</span>.out.println(<span class="str">"Linear Search Index: "</span> + linearIdx);
+
+        <span class="cmt">// 2. Built-in Arrays.binarySearch()</span>
+        <span class="type">int</span> binaryIdx = <span class="type">Arrays</span>.binarySearch(numbers, target);
+        <span class="type">System</span>.out.println(<span class="str">"Arrays.binarySearch() Index: "</span> + binaryIdx);
+
+        <span class="cmt">// 3. Searching non-existent value</span>
+        <span class="type">int</span> missingIdx = <span class="type">Arrays</span>.binarySearch(numbers, <span class="num">50</span>);
+        <span class="type">System</span>.out.println(<span class="str">"Missing element 50 return value: "</span> + missingIdx);
+    }
+
+    <span class="kw">public static int</span> linearSearch(<span class="type">int</span>[] arr, <span class="type">int</span> key) {
+        <span class="kw">for</span> (<span class="type">int</span> i = <span class="num">0</span>; i < arr.length; i++) {
+            <span class="kw">if</span> (arr[i] == key) <span class="kw">return</span> i;
+        }
+        <span class="kw">return</span> -<span class="num">1</span>;
+    }
+}</code></pre>
+      </div>
+
+      <div style="margin-top: 16px; background: #0f172a; padding: 16px; border-radius: 10px; color: #38bdf8; font-family: 'Fira Code', monospace; font-size: 0.85rem;">
+        <strong>🖥️ Program Output:</strong><br>
+        Linear Search Index: 4<br>
+        Arrays.binarySearch() Index: 4<br>
+        Missing element 50 return value: -6
+      </div>
+    </section>
+
+    <!-- SECTION 4: Quiz -->
+    <section class="card">
+      <h2 class="section-title">
+        <span class="icon">🧪</span>
+        Quick Knowledge Check
+      </h2>
+      <p style="margin-bottom: 16px;">What strict precondition must be met before calling <code>Arrays.binarySearch()</code> on an array?</p>
+      <div id="quizOptions">
+        <div class="quiz-option" onclick="checkQuiz(this, false)">A) The array must contain no duplicate values</div>
+        <div class="quiz-option" onclick="checkQuiz(this, true)">B) The array must be sorted in ascending order</div>
+        <div class="quiz-option" onclick="checkQuiz(this, false)">C) The array length must be an even number</div>
+        <div class="quiz-option" onclick="checkQuiz(this, false)">D) The array must be stored on the Stack</div>
+      </div>
+      <div id="quizFeedback" style="margin-top: 12px; font-weight: 600; display: none;"></div>
+    </section>
+  </div>
+
+  <script>
+    const sortedArray = [12, 18, 25, 33, 45, 58, 72, 89, 94, 100];
+
+    function renderStrip(checkedIndices = [], foundIndex = -1) {
+      const container = document.getElementById('searchStrip');
+      container.innerHTML = '';
+
+      sortedArray.forEach((val, idx) => {
+        const cell = document.createElement('div');
+        cell.className = 'strip-cell';
+        if (checkedIndices.includes(idx)) cell.classList.add('checked');
+        if (idx === foundIndex) cell.classList.add('found');
+
+        cell.innerHTML = `
+          <div style="font-size: 0.65rem; color: #94a3b8;">[${idx}]</div>
+          <div style="font-weight: bold; color: white;"> ₹{val}</div>
+        `;
+        container.appendChild(cell);
+      });
+    }
+
+    async function runLinearSearch() {
+      const target = parseInt(document.getElementById('targetVal').value);
+      const log = document.getElementById('searchLog');
+      let checked = [];
+      let found = -1;
+
+      for (let i = 0; i < sortedArray.length; i++) {
+        checked.push(i);
+        renderStrip(checked, found);
+        log.textContent = `Linear Search Step ${i+1}: Checking index [${i}] = ${sortedArray[i]}`;
+        await new Promise(r => setTimeout(r, 400));
+
+        if (sortedArray[i] === target) {
+          found = i;
+          renderStrip(checked, found);
+          log.innerHTML = `🎉 Target ${target} FOUND at index <strong>[${i}]</strong> in <strong> ₹{i+1} total steps</strong>!`;
+          return;
+        }
+      }
+      log.innerHTML = `❌ Target ${target} NOT FOUND after checking all ${sortedArray.length} elements!`;
+    }
+
+    async function runBinarySearch() {
+      const target = parseInt(document.getElementById('targetVal').value);
+      const log = document.getElementById('searchLog');
+      let low = 0, high = sortedArray.length - 1;
+      let step = 0;
+      let checked = [];
+
+      while (low <= high) {
+        step++;
+        let mid = Math.floor((low + high) / 2);
+        checked.push(mid);
+        renderStrip(checked, -1);
+        log.textContent = `Binary Search Step ${step}: low=${low}, high=${high} ➔ mid=[${mid}] (val=${sortedArray[mid]})`;
+        await new Promise(r => setTimeout(r, 600));
+
+        if (sortedArray[mid] === target) {
+          renderStrip(checked, mid);
+          log.innerHTML = `🎉 Target ${target} FOUND at index <strong>[${mid}]</strong> in only <strong> ₹{step} steps</strong>!`;
+          return;
+        } else if (sortedArray[mid] < target) {
+          low = mid + 1;
+        } else {
+          high = mid - 1;
+        }
+      }
+      log.innerHTML = `❌ Target ${target} NOT FOUND after ${step} steps!`;
+    }
+
+    function checkQuiz(element, isCorrect) {
+      const options = document.querySelectorAll('.quiz-option');
+      options.forEach(opt => opt.classList.remove('correct', 'incorrect'));
+      const feedback = document.getElementById('quizFeedback');
+      if (isCorrect) {
+        element.classList.add('correct');
+        feedback.style.color = '#166534';
+        feedback.innerHTML = '🎉 Correct! Binary search relies on comparing the midpoint of a sorted range. Searching an unsorted array yields undefined results!';
+      } else {
+        element.classList.add('incorrect');
+        feedback.style.color = '#991b1b';
+        feedback.innerHTML = '❌ Incorrect. The array MUST be pre-sorted for binary search to work.';
+      }
+      feedback.style.display = 'block';
+    }
+
+    renderStrip();
+  </script>
+
+  <script>
+    function copyCode(btn) {
+      let codeEl;
+      const codeBlock = btn.closest('.code-block') || btn.closest('.code-container') || btn.closest('pre');
+      if (codeBlock) {
+        codeEl = codeBlock.querySelector('code') || codeBlock.querySelector('pre');
+      }
+      if (!codeEl) {
+        codeEl = btn.parentElement.querySelector('code, pre') || btn.nextElementSibling;
+      }
+      const textToCopy = codeEl ? (codeEl.innerText || codeEl.textContent) : '';
+      if (textToCopy) {
+        navigator.clipboard.writeText(textToCopy).then(() => {
+          showCopiedFeedback(btn);
+        }).catch(() => {
+          const textarea = document.createElement('textarea');
+          textarea.value = textToCopy;
+          document.body.appendChild(textarea);
+          textarea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textarea);
+          showCopiedFeedback(btn);
+        });
+      }
+    }
+
+    function showCopiedFeedback(btn) {
+      const origText = btn.innerHTML;
+      btn.innerHTML = '✓ Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.innerHTML = origText;
+        btn.classList.remove('copied');
+      }, 2000);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('pre').forEach(pre => {
+        if (pre.closest('.code-block') && pre.closest('.code-block').querySelector('.copy-btn')) return;
+        if (pre.querySelector('.copy-btn')) return;
+        pre.style.position = 'relative';
+        const btn = document.createElement('button');
+        btn.className = 'copy-btn';
+        btn.style.cssText = 'position: absolute; top: 10px; right: 10px; z-index: 10;';
+        btn.innerHTML = '📋 Copy';
+        btn.onclick = () => copyCode(btn);
+        pre.appendChild(btn);
+      });
+    });
+  </script>
+
+
+  <script>
+    if (typeof copyCode !== 'function') {
+      function copyCode(btn) {
+        let codeEl;
+        const codeBlock = btn.closest('.code-block') || btn.closest('.code-container') || btn.closest('pre');
+        if (codeBlock) {
+          codeEl = codeBlock.querySelector('code') || codeBlock.querySelector('pre');
+        }
+        if (!codeEl) {
+          codeEl = btn.parentElement.querySelector('code, pre') || btn.nextElementSibling;
+        }
+        const textToCopy = codeEl ? (codeEl.innerText || codeEl.textContent) : '';
+        if (textToCopy) {
+          navigator.clipboard.writeText(textToCopy).then(() => {
+            showCopiedFeedback(btn);
+          }).catch(() => {
+            const textarea = document.createElement('textarea');
+            textarea.value = textToCopy;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            showCopiedFeedback(btn);
+          });
+        }
+      }
+
+      function showCopiedFeedback(btn) {
+        const origText = btn.innerHTML;
+        btn.innerHTML = '✓ Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.innerHTML = origText;
+          btn.classList.remove('copied');
+        }, 2000);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('pre').forEach(pre => {
+        if (pre.closest('.code-block') && pre.closest('.code-block').querySelector('.copy-btn')) return;
+        if (pre.querySelector('.copy-btn')) return;
+        pre.style.position = 'relative';
+        const btn = document.createElement('button');
+        btn.className = 'copy-btn';
+        btn.style.cssText = 'position: absolute; top: 10px; right: 10px; z-index: 10;';
+        btn.innerHTML = '📋 Copy';
+        btn.onclick = () => copyCode(btn);
+        pre.appendChild(btn);
+      });
+    });
+  </script>
+
+</body>
+</html>

@@ -603,6 +603,11 @@
       color: #92400e;
       margin-top: 20px;
     }
+  
+    .copy-btn { background: rgba(255, 255, 255, 0.1); color: #e2e8f0; border: 1px solid #475569; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s ease; font-family: inherit; }
+    .copy-btn:hover { background: #4f46e5; color: #ffffff; border-color: #4f46e5; transform: translateY(-1px); }
+    .copy-btn.copied { background: #10b981 !important; color: #ffffff !important; border-color: #10b981 !important; }
+
   </style>
 </head>
 <body>
@@ -744,7 +749,7 @@
       </div>
       <div class="section-card">
         <p style="color: var(--text-muted); margin-bottom: 18px;">
-          <strong>The Most Common Java Confusion:</strong> Declaring <code>final Person p = new Person("Alice");</code> locks the <em>pointer in Stack memory</em>, NOT the internal fields in Heap memory! Test the actions below:
+          <strong>The Most Common Java Confusion:</strong> Declaring <code>final Person p = new Person("JP");</code> locks the <em>pointer in Stack memory</em>, NOT the internal fields in Heap memory! Test the actions below:
         </p>
 
         <div class="sim-controls">
@@ -752,10 +757,10 @@
             <span>🏁 1. Initial State</span>
           </button>
           <button class="sim-btn" id="btn-reassign-ref" onclick="setSimState('reassign-ref')">
-            <span>❌ 2. Reassign Reference (p = new Person("Bob"))</span>
+            <span>❌ 2. Reassign Reference (p = new Person("Rahul"))</span>
           </button>
           <button class="sim-btn" id="btn-mutate-field" onclick="setSimState('mutate-field')">
-            <span>✅ 3. Mutate Field (p.name = "Bob")</span>
+            <span>✅ 3. Mutate Field (p.name = "Rahul")</span>
           </button>
           <button class="sim-btn" id="btn-reassign-prim" onclick="setSimState('reassign-prim')">
             <span>❌ 4. Reassign Primitive final int</span>
@@ -785,7 +790,7 @@
                 </div>
                 <div>
                   <span style="color: #475569;">name: </span>
-                  <span style="color: #b45309; font-weight: 700;" id="obj-name-val">"Alice"</span>
+                  <span style="color: #b45309; font-weight: 700;" id="obj-name-val">"JP"</span>
                 </div>
               </div>
             </div>
@@ -795,7 +800,7 @@
           <div class="sim-console">
             <div class="console-header">Compiler Evaluation & Memory Status</div>
             <div class="code-box" id="console-code">
-              <span class="kw">final Person</span> p = <span class="kw">new</span> <span class="cls">Person</span>(<span class="str">"Alice"</span>);
+              <span class="kw">final Person</span> p = <span class="kw">new</span> <span class="cls">Person</span>(<span class="str">"JP"</span>);
             </div>
             <div class="console-status status-success" id="console-status">
               ✅ Line compiled successfully. Pointer 0x4A10 assigned to final variable 'p'.
@@ -1041,9 +1046,9 @@
         stackAddr.innerText = 'Pointer: 0x4A10';
         stackBox.style.borderColor = '#4f46e5';
         heapBox.style.borderColor = '#10b981';
-        objNameVal.innerText = '"Alice"';
+        objNameVal.innerText = '"JP"';
 
-        consoleCode.innerHTML = `<span class="kw">final Person</span> p = <span class="kw">new</span> <span class="cls">Person</span>(<span class="str">"Alice"</span>);`;
+        consoleCode.innerHTML = `<span class="kw">final Person</span> p = <span class="kw">new</span> <span class="cls">Person</span>(<span class="str">"JP"</span>);`;
         consoleStatus.className = 'console-status status-success';
         consoleStatus.innerText = '✅ Initialized: Reference variable p locks memory pointer 0x4A10.';
         consoleExp.innerText = 'The variable p is stored in Stack memory and points to the Person object on Heap at 0x4A10.';
@@ -1053,7 +1058,7 @@
         stackAddr.innerText = 'Pointer: 0x4A10 (BLOCKED -> 0x8F99)';
         stackBox.style.borderColor = '#f43f5e';
 
-        consoleCode.innerHTML = `p = <span class="kw">new</span> <span class="cls">Person</span>(<span class="str">"Bob"</span>); <span class="err">❌ COMPILE ERROR</span>`;
+        consoleCode.innerHTML = `p = <span class="kw">new</span> <span class="cls">Person</span>(<span class="str">"Rahul"</span>); <span class="err">❌ COMPILE ERROR</span>`;
         consoleStatus.className = 'console-status status-error';
         consoleStatus.innerText = '❌ Error: cannot assign a value to final variable p';
         consoleExp.innerText = 'Java Compiler REJECTS reassigning p because final reference variables CANNOT point to a new memory address once bound!';
@@ -1063,9 +1068,9 @@
         stackAddr.innerText = 'Pointer: 0x4A10 (Unchanged)';
         stackBox.style.borderColor = '#4f46e5';
         heapBox.style.borderColor = '#0284c7';
-        objNameVal.innerText = '"Bob" (Updated!)';
+        objNameVal.innerText = '"Rahul" (Updated!)';
 
-        consoleCode.innerHTML = `p.setName(<span class="str">"Bob"</span>); <span class="cm">// Modifying internal Heap object state</span>`;
+        consoleCode.innerHTML = `p.setName(<span class="str">"Rahul"</span>); <span class="cm">// Modifying internal Heap object state</span>`;
         consoleStatus.className = 'console-status status-success';
         consoleStatus.innerText = '✅ SUCCESS: Heap object mutated! Pointer 0x4A10 was NOT changed.';
         consoleExp.innerText = 'Valid Java code! final locks the REFERENCE POINTER (0x4A10), NOT the internal fields inside the Heap object!';
@@ -1100,5 +1105,111 @@
       }
     }
   </script>
+
+  <script>
+    function copyCode(btn) {
+      let codeEl;
+      const codeBlock = btn.closest('.code-block') || btn.closest('.code-container') || btn.closest('pre');
+      if (codeBlock) {
+        codeEl = codeBlock.querySelector('code') || codeBlock.querySelector('pre');
+      }
+      if (!codeEl) {
+        codeEl = btn.parentElement.querySelector('code, pre') || btn.nextElementSibling;
+      }
+      const textToCopy = codeEl ? (codeEl.innerText || codeEl.textContent) : '';
+      if (textToCopy) {
+        navigator.clipboard.writeText(textToCopy).then(() => {
+          showCopiedFeedback(btn);
+        }).catch(() => {
+          const textarea = document.createElement('textarea');
+          textarea.value = textToCopy;
+          document.body.appendChild(textarea);
+          textarea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textarea);
+          showCopiedFeedback(btn);
+        });
+      }
+    }
+
+    function showCopiedFeedback(btn) {
+      const origText = btn.innerHTML;
+      btn.innerHTML = '✓ Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.innerHTML = origText;
+        btn.classList.remove('copied');
+      }, 2000);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('pre').forEach(pre => {
+        if (pre.closest('.code-block') && pre.closest('.code-block').querySelector('.copy-btn')) return;
+        if (pre.querySelector('.copy-btn')) return;
+        pre.style.position = 'relative';
+        const btn = document.createElement('button');
+        btn.className = 'copy-btn';
+        btn.style.cssText = 'position: absolute; top: 10px; right: 10px; z-index: 10;';
+        btn.innerHTML = '📋 Copy';
+        btn.onclick = () => copyCode(btn);
+        pre.appendChild(btn);
+      });
+    });
+  </script>
+
+
+  <script>
+    if (typeof copyCode !== 'function') {
+      function copyCode(btn) {
+        let codeEl;
+        const codeBlock = btn.closest('.code-block') || btn.closest('.code-container') || btn.closest('pre');
+        if (codeBlock) {
+          codeEl = codeBlock.querySelector('code') || codeBlock.querySelector('pre');
+        }
+        if (!codeEl) {
+          codeEl = btn.parentElement.querySelector('code, pre') || btn.nextElementSibling;
+        }
+        const textToCopy = codeEl ? (codeEl.innerText || codeEl.textContent) : '';
+        if (textToCopy) {
+          navigator.clipboard.writeText(textToCopy).then(() => {
+            showCopiedFeedback(btn);
+          }).catch(() => {
+            const textarea = document.createElement('textarea');
+            textarea.value = textToCopy;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            showCopiedFeedback(btn);
+          });
+        }
+      }
+
+      function showCopiedFeedback(btn) {
+        const origText = btn.innerHTML;
+        btn.innerHTML = '✓ Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.innerHTML = origText;
+          btn.classList.remove('copied');
+        }, 2000);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('pre').forEach(pre => {
+        if (pre.closest('.code-block') && pre.closest('.code-block').querySelector('.copy-btn')) return;
+        if (pre.querySelector('.copy-btn')) return;
+        pre.style.position = 'relative';
+        const btn = document.createElement('button');
+        btn.className = 'copy-btn';
+        btn.style.cssText = 'position: absolute; top: 10px; right: 10px; z-index: 10;';
+        btn.innerHTML = '📋 Copy';
+        btn.onclick = () => copyCode(btn);
+        pre.appendChild(btn);
+      });
+    });
+  </script>
+
 </body>
 </html>

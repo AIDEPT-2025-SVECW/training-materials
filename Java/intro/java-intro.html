@@ -711,6 +711,11 @@
       .intro-grid, .feature-card-body, .code-interactive-grid { grid-template-columns: 1fr; }
       .card { padding: 22px; }
     }
+  
+    .copy-btn { background: rgba(255, 255, 255, 0.1); color: #e2e8f0; border: 1px solid #475569; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s ease; font-family: inherit; }
+    .copy-btn:hover { background: #4f46e5; color: #ffffff; border-color: #4f46e5; transform: translateY(-1px); }
+    .copy-btn.copied { background: #10b981 !important; color: #ffffff !important; border-color: #10b981 !important; }
+
   </style>
 </head>
 <body>
@@ -750,7 +755,7 @@
             <strong>Java</strong> is a high-level, class-based, object-oriented programming language designed to have as few implementation dependencies as possible.
           </p>
           <p>
-            Originally created by <strong>James Gosling</strong> and his team (known as the <em>Green Team</em>) at <strong>Sun Microsystems</strong> in 1995 (later acquired by Oracle Corporation), Java was built with a revolutionary goal: <strong>Write Once, Run Anywhere (WORA)</strong>.
+            Originally created by <strong>Vijay Gosling</strong> and his team (known as the <em>Green Team</em>) at <strong>Sun Microsystems</strong> in 1995 (later acquired by Oracle Corporation), Java was built with a revolutionary goal: <strong>Write Once, Run Anywhere (WORA)</strong>.
           </p>
           <p>
             Unlike traditional languages like C and C++ which compile directly into platform-specific machine code, Java compiles into <strong>Bytecode</strong>, which executes inside a virtual runtime environment called the <strong>JVM (Java Virtual Machine)</strong>.
@@ -896,7 +901,7 @@ numbers[<span class="num">10</span>] = <span class="num">50</span>; <span class=
           </div>
           <div class="code-box">
 <span class="cmt">// Object created on Heap</span>
-<span class="cls">Customer</span> c = <span class="kw">new</span> <span class="cls">Customer</span>(<span class="str">"Alice"</span>);
+<span class="cls">Customer</span> c = <span class="kw">new</span> <span class="cls">Customer</span>(<span class="str">"JP"</span>);
 c = <span class="kw">null</span>; <span class="cmt">// Object becomes eligible for Garbage Collection</span>
 <span class="cmt">// JVM automatically reclaims memory silently!</span>
           </div>
@@ -1167,8 +1172,8 @@ c = <span class="kw">null</span>; <span class="cmt">// Object becomes eligible f
       const box = document.getElementById('pipelineDetail');
       box.innerHTML = `
         <div class="detail-head">✨ ${data.title}</div>
-        <div class="detail-desc" style="margin-bottom: 12px;">${data.desc}</div>
-        <div class="code-box">${escapeHtml(data.code)}</div>
+        <div class="detail-desc" style="margin-bottom: 12px;"> ₹{data.desc}</div>
+        <div class="code-box"> ₹{escapeHtml(data.code)}</div>
       `;
     }
 
@@ -1190,7 +1195,7 @@ c = <span class="kw">null</span>; <span class="cmt">// Object becomes eligible f
 
     // --- Code Explanation Tokens ---
     function explainToken(tokenKey, text) {
-      document.getElementById('explTitle').innerHTML = `💡 Explanation: <code>${tokenKey}</code>`;
+      document.getElementById('explTitle').innerHTML = `💡 Explanation: <code> ₹{tokenKey}</code>`;
       document.getElementById('explBody').innerHTML = text;
 
       const tokens = document.querySelectorAll('.token-clickable');
@@ -1321,5 +1326,111 @@ c = <span class="kw">null</span>; <span class="cmt">// Object becomes eligible f
     showPipelineStep(1);
     renderQuestion();
   </script>
+
+  <script>
+    function copyCode(btn) {
+      let codeEl;
+      const codeBlock = btn.closest('.code-block') || btn.closest('.code-container') || btn.closest('pre');
+      if (codeBlock) {
+        codeEl = codeBlock.querySelector('code') || codeBlock.querySelector('pre');
+      }
+      if (!codeEl) {
+        codeEl = btn.parentElement.querySelector('code, pre') || btn.nextElementSibling;
+      }
+      const textToCopy = codeEl ? (codeEl.innerText || codeEl.textContent) : '';
+      if (textToCopy) {
+        navigator.clipboard.writeText(textToCopy).then(() => {
+          showCopiedFeedback(btn);
+        }).catch(() => {
+          const textarea = document.createElement('textarea');
+          textarea.value = textToCopy;
+          document.body.appendChild(textarea);
+          textarea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textarea);
+          showCopiedFeedback(btn);
+        });
+      }
+    }
+
+    function showCopiedFeedback(btn) {
+      const origText = btn.innerHTML;
+      btn.innerHTML = '✓ Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.innerHTML = origText;
+        btn.classList.remove('copied');
+      }, 2000);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('pre').forEach(pre => {
+        if (pre.closest('.code-block') && pre.closest('.code-block').querySelector('.copy-btn')) return;
+        if (pre.querySelector('.copy-btn')) return;
+        pre.style.position = 'relative';
+        const btn = document.createElement('button');
+        btn.className = 'copy-btn';
+        btn.style.cssText = 'position: absolute; top: 10px; right: 10px; z-index: 10;';
+        btn.innerHTML = '📋 Copy';
+        btn.onclick = () => copyCode(btn);
+        pre.appendChild(btn);
+      });
+    });
+  </script>
+
+
+  <script>
+    if (typeof copyCode !== 'function') {
+      function copyCode(btn) {
+        let codeEl;
+        const codeBlock = btn.closest('.code-block') || btn.closest('.code-container') || btn.closest('pre');
+        if (codeBlock) {
+          codeEl = codeBlock.querySelector('code') || codeBlock.querySelector('pre');
+        }
+        if (!codeEl) {
+          codeEl = btn.parentElement.querySelector('code, pre') || btn.nextElementSibling;
+        }
+        const textToCopy = codeEl ? (codeEl.innerText || codeEl.textContent) : '';
+        if (textToCopy) {
+          navigator.clipboard.writeText(textToCopy).then(() => {
+            showCopiedFeedback(btn);
+          }).catch(() => {
+            const textarea = document.createElement('textarea');
+            textarea.value = textToCopy;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            showCopiedFeedback(btn);
+          });
+        }
+      }
+
+      function showCopiedFeedback(btn) {
+        const origText = btn.innerHTML;
+        btn.innerHTML = '✓ Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.innerHTML = origText;
+          btn.classList.remove('copied');
+        }, 2000);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('pre').forEach(pre => {
+        if (pre.closest('.code-block') && pre.closest('.code-block').querySelector('.copy-btn')) return;
+        if (pre.querySelector('.copy-btn')) return;
+        pre.style.position = 'relative';
+        const btn = document.createElement('button');
+        btn.className = 'copy-btn';
+        btn.style.cssText = 'position: absolute; top: 10px; right: 10px; z-index: 10;';
+        btn.innerHTML = '📋 Copy';
+        btn.onclick = () => copyCode(btn);
+        pre.appendChild(btn);
+      });
+    });
+  </script>
+
 </body>
 </html>

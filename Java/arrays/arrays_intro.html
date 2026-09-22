@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Arrays Introduction & Purpose | Java Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --secondary: #0284c7;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f1f5f9 100%);
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 10px 25px rgba(79, 70, 229, 0.07);
+      --shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      color: var(--text-main);
+      padding: 24px 16px;
+      line-height: 1.6;
+    }
+    .container { max-width: 1100px; margin: 0 auto; }
+    
+    .top-nav {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;
+    }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 8px; background: #ffffff; color: var(--primary-dark);
+      text-decoration: none; padding: 10px 20px; border-radius: 30px; font-weight: 600; font-size: 0.95rem;
+      border: 1px solid var(--card-border); box-shadow: var(--shadow-sm); transition: all 0.25s ease;
+    }
+    .back-btn:hover { background: var(--primary); color: #ffffff; transform: translateX(-4px); }
+    .nav-tag {
+      color: var(--text-muted); font-weight: 600; font-size: 0.9rem; background: rgba(255, 255, 255, 0.8);
+      padding: 6px 14px; border-radius: 20px; border: 1px solid var(--card-border);
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #4f46e5 0%, #0284c7 100%); color: #ffffff;
+      border-radius: 20px; padding: 40px 32px; text-align: center; box-shadow: var(--shadow-lg); margin-bottom: 32px;
+    }
+    .hero h1 { font-size: 2.5rem; font-weight: 800; margin-bottom: 12px; }
+    .hero p { font-size: 1.15rem; opacity: 0.95; max-width: 780px; margin: 0 auto 20px auto; }
+    .hero-badges { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+    .hero-badge { background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(8px); padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+
+    .card {
+      background: var(--card-bg); border-radius: 18px; padding: 32px; margin-bottom: 32px;
+      box-shadow: var(--shadow-md); border: 1px solid var(--card-border);
+    }
+    .section-title {
+      font-size: 1.5rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 18px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .section-title .icon {
+      font-size: 1.5rem; background: #eef2ff; width: 44px; height: 44px;
+      display: flex; align-items: center; justify-content: center; border-radius: 12px; color: var(--primary);
+    }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    .concept-box {
+      background: #f8fafc; border-left: 4px solid var(--primary); padding: 20px; border-radius: 0 12px 12px 0;
+    }
+    .concept-box h3 { font-size: 1.1rem; color: var(--primary-dark); margin-bottom: 8px; }
+
+    /* Interactive Demo */
+    .interactive-container {
+      background: #0f172a; color: #f8fafc; border-radius: 16px; padding: 24px; border: 1px solid #334155;
+    }
+    .controls-row { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; margin-bottom: 20px; }
+    .btn {
+      padding: 10px 20px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer;
+      transition: all 0.2s; font-size: 0.9rem;
+    }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-secondary { background: #334155; color: white; }
+    .btn-secondary:hover { background: #475569; }
+    .btn-active { background: var(--accent-green) !important; }
+
+    .memory-grid {
+      display: flex; gap: 12px; overflow-x: auto; padding: 16px 0; align-items: center;
+    }
+    .memory-cell {
+      min-width: 80px; height: 90px; background: #1e293b; border: 2px dashed #475569; border-radius: 10px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 0.3s ease;
+    }
+    .memory-cell.array-cell {
+      border: 2px solid var(--primary); background: rgba(79, 70, 229, 0.15);
+    }
+    .memory-cell .index { font-size: 0.75rem; color: #94a3b8; margin-bottom: 4px; font-family: 'Fira Code', monospace; }
+    .memory-cell .val { font-size: 1.1rem; font-weight: 700; color: #38bdf8; font-family: 'Fira Code', monospace; }
+    .memory-cell .var-name { font-size: 0.75rem; color: var(--accent-amber); font-weight: 600; margin-top: 4px; }
+
+    /* Code Block */
+    .code-block {
+      background: #0f172a; border-radius: 12px; padding: 20px; color: #e2e8f0; font-family: 'Fira Code', monospace;
+      font-size: 0.9rem; overflow-x: auto; position: relative; border: 1px solid #1e293b;
+    }
+    .code-block header {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #334155; padding-bottom: 8px; color: #94a3b8; font-size: 0.8rem;
+    }
+    .kw { color: #c084fc; font-weight: 600; }
+    .type { color: #38bdf8; font-weight: 600; }
+    .num { color: #f43f5e; }
+    .str { color: #4ade80; }
+    .cmt { color: #64748b; font-style: italic; }
+
+    .quiz-option {
+      background: #f1f5f9; padding: 14px 18px; border-radius: 10px; margin-bottom: 10px; cursor: pointer;
+      border: 1px solid #cbd5e1; transition: all 0.2s; font-weight: 500;
+    }
+    .quiz-option:hover { background: #e2e8f0; border-color: var(--primary); }
+    .quiz-option.correct { background: #dcfce7; border-color: var(--accent-green); color: #166534; }
+    .quiz-option.incorrect { background: #fee2e2; border-color: #ef4444; color: #991b1b; }
+  
+    .copy-btn { background: rgba(255, 255, 255, 0.1); color: #e2e8f0; border: 1px solid #475569; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s ease; font-family: inherit; }
+    .copy-btn:hover { background: #4f46e5; color: #ffffff; border-color: #4f46e5; transform: translateY(-1px); }
+    .copy-btn.copied { background: #10b981 !important; color: #ffffff !important; border-color: #10b981 !important; }
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="top-nav">
+      <a href="../index.html" class="back-btn">⬅ Back to Java Index</a>
+      <span class="nav-tag">Topic 1 of 12 • Arrays</span>
+    </div>
+
+    <header class="hero">
+      <h1>Arrays Introduction & Purpose</h1>
+      <p>Master why arrays are the foundational data structure in computer science for organizing related fixed-size data efficiently in memory.</p>
+      <div class="hero-badges">
+        <span class="hero-badge">📦 Contiguous Memory</span>
+        <span class="hero-badge">⚡ O(1) Instant Access</span>
+        <span class="hero-badge">🎯 Fixed Length</span>
+        <span class="hero-badge">🧬 Homogeneous Types</span>
+      </div>
+    </header>
+
+    <!-- SECTION 1: Concepts -->
+    <section class="card">
+      <h2 class="section-title">
+        <span class="icon">💡</span>
+        What is an Array and Why Do We Need It?
+      </h2>
+      <div class="grid-2">
+        <div class="concept-box">
+          <h3>❌ Problem: Without Arrays</h3>
+          <p>Imagine storing exam scores for 5 students without arrays. You must declare 5 separate variable names:</p>
+          <div style="background: #ffffff; padding: 12px; border-radius: 8px; margin-top: 8px; font-family: 'Fira Code', monospace; font-size: 0.85rem;">
+            int score1 = 85;<br>
+            int score2 = 92;<br>
+            int score3 = 78;<br>
+            int score4 = 90;<br>
+            int score5 = 88;
+          </div>
+          <p style="margin-top: 8px; font-size: 0.9rem; color: #dc2626;"><strong>Drawbacks:</strong> Unscalable! Storing 1,000 students requires 1,000 variable names. You cannot easily loop through them!</p>
+        </div>
+
+        <div class="concept-box" style="border-left-color: var(--accent-green);">
+          <h3>✅ Solution: With Arrays</h3>
+          <p>An array stores all 5 scores under a single container name with indices <code>0</code> through <code>4</code>:</p>
+          <div style="background: #ffffff; padding: 12px; border-radius: 8px; margin-top: 8px; font-family: 'Fira Code', monospace; font-size: 0.85rem;">
+            int[] scores = {85, 92, 78, 90, 88};
+          </div>
+          <p style="margin-top: 8px; font-size: 0.9rem; color: #166534;"><strong>Advantages:</strong> Single variable name, easy loop traversal, fixed memory block, O(1) direct access time.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2: Interactive Demo -->
+    <section class="card">
+      <h2 class="section-title">
+        <span class="icon">🎮</span>
+        Interactive Memory Visualizer: Variables vs. Array
+      </h2>
+      <p style="margin-bottom: 16px; color: var(--text-muted);">
+        Compare how variables are stored in memory scattered across RAM versus an Array stored as a single contiguous block!
+      </p>
+
+      <div class="interactive-container">
+        <div class="controls-row">
+          <span>Choose Storage Mode:</span>
+          <button class="btn btn-secondary btn-active" id="btnModeArray" onclick="setMode('array')">📦 Array Storage (Contiguous)</button>
+          <button class="btn btn-secondary" id="btnModeVar" onclick="setMode('vars')">🔀 Separate Variables (Scattered)</button>
+          <div style="margin-left: auto;">
+            <label for="studentCount" style="margin-right: 8px;">Items Count:</label>
+            <select id="studentCount" onchange="updateVisualizer()" style="padding: 6px 12px; border-radius: 6px; background: #1e293b; color: white; border: 1px solid #475569;">
+              <option value="3">3 Elements</option>
+              <option value="5" selected>5 Elements</option>
+              <option value="7">7 Elements</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="visualizerExplanation" style="margin-bottom: 16px; padding: 12px; background: rgba(79, 70, 229, 0.2); border-radius: 8px; font-size: 0.9rem;">
+          Array Mode: Elements are allocated in <strong>contiguous adjacent memory cells</strong>. Base Address: <code>0x1000</code>.
+        </div>
+
+        <div class="memory-grid" id="memoryGrid">
+          <!-- Rendered via JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 3: Code Example -->
+    <section class="card">
+      <h2 class="section-title">
+        <span class="icon">💻</span>
+        Complete Java Program Example
+      </h2>
+      <div class="code-block">
+        <header>
+          <span>ArraysIntroDemo.java</span>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+            <span>Java 17+</span>
+          </div>
+        </header>
+        <pre><code><span class="kw">public class</span> <span class="type">ArraysIntroDemo</span> {
+    <span class="kw">public static void</span> main(<span class="type">String</span>[] args) {
+        <span class="cmt">// 1. Storing data in an array</span>
+        <span class="type">int</span>[] studentScores = {<span class="num">85</span>, <span class="num">92</span>, <span class="num">78</span>, <span class="num">90</span>, <span class="num">88</span>};
+
+        <span class="cmt">// 2. Displaying total elements using .length property</span>
+        <span class="type">System</span>.out.println(<span class="str">"Total Students: "</span> + studentScores.length);
+
+        <span class="cmt">// 3. Accessing elements by 0-based index</span>
+        <span class="type">System</span>.out.println(<span class="str">"First Student Score [0]: "</span> + studentScores[<span class="num">0</span>]);
+        <span class="type">System</span>.out.println(<span class="str">"Third Student Score [2]: "</span> + studentScores[<span class="num">2</span>]);
+
+        <span class="cmt">// 4. Calculating total score using loop</span>
+        <span class="type">int</span> total = <span class="num">0</span>;
+        <span class="kw">for</span> (<span class="type">int</span> score : studentScores) {
+            total += score;
+        }
+
+        <span class="type">double</span> average = (<span class="type">double</span>) total / studentScores.length;
+        <span class="type">System</span>.out.println(<span class="str">"Class Average: "</span> + average);
+    }
+}</code></pre>
+      </div>
+
+      <div style="margin-top: 16px; background: #0f172a; padding: 16px; border-radius: 10px; color: #38bdf8; font-family: 'Fira Code', monospace; font-size: 0.85rem;">
+        <strong>🖥️ Program Output:</strong><br>
+        Total Students: 5<br>
+        First Student Score [0]: 85<br>
+        Third Student Score [2]: 78<br>
+        Class Average: 86.6
+      </div>
+    </section>
+
+    <!-- SECTION 4: Quiz -->
+    <section class="card">
+      <h2 class="section-title">
+        <span class="icon">🧪</span>
+        Quick Knowledge Check
+      </h2>
+      <p style="margin-bottom: 16px;">What is the primary benefit of storing elements in contiguous memory in an array?</p>
+      <div id="quizOptions">
+        <div class="quiz-option" onclick="checkQuiz(this, false)">A) Allows elements to be of different data types (e.g. String & int together)</div>
+        <div class="quiz-option" onclick="checkQuiz(this, true)">B) Enables constant O(1) instant direct memory address calculation via index math</div>
+        <div class="quiz-option" onclick="checkQuiz(this, false)">C) Allows the array to dynamically grow in size automatically when full</div>
+        <div class="quiz-option" onclick="checkQuiz(this, false)">D) Prevents any memory allocation on the Heap</div>
+      </div>
+      <div id="quizFeedback" style="margin-top: 12px; font-weight: 600; display: none;"></div>
+    </section>
+  </div>
+
+  <script>
+    let currentMode = 'array';
+    const sampleScores = [85, 92, 78, 90, 88, 95, 82];
+
+    function setMode(mode) {
+      currentMode = mode;
+      document.getElementById('btnModeArray').classList.toggle('btn-active', mode === 'array');
+      document.getElementById('btnModeVar').classList.toggle('btn-active', mode === 'vars');
+      updateVisualizer();
+    }
+
+    function updateVisualizer() {
+      const count = parseInt(document.getElementById('studentCount').value);
+      const grid = document.getElementById('memoryGrid');
+      const exp = document.getElementById('visualizerExplanation');
+      grid.innerHTML = '';
+
+      if (currentMode === 'array') {
+        exp.innerHTML = `<strong>📦 Contiguous Array Memory Layout:</strong> All ${count} elements are stored side-by-side starting at memory address <code>0x1000</code>. Offset for index <em>i</em> is <code>0x1000 + (i * 4 bytes)</code>.`;
+        for (let i = 0; i < count; i++) {
+          const hexAddr = '0x' + (0x1000 + i * 4).toString(16).toUpperCase();
+          const cell = document.createElement('div');
+          cell.className = 'memory-cell array-cell';
+          cell.innerHTML = `
+            <div class="index">scores[${i}]</div>
+            <div class="val"> ₹{sampleScores[i]}</div>
+            <div class="var-name" style="color: #94a3b8; font-size: 0.65rem;"> ₹{hexAddr}</div>
+          `;
+          grid.appendChild(cell);
+        }
+      } else {
+        exp.innerHTML = `<strong>🔀 Separate Variables Memory Layout:</strong> Variables <code>score1</code>, <code>score2</code> ... are allocated at random scattered locations in memory!`;
+        const addresses = ['0x104A', '0x20BC', '0x1F80', '0x3012', '0x29E4', '0x4102', '0x12DF'];
+        for (let i = 0; i < count; i++) {
+          const cell = document.createElement('div');
+          cell.className = 'memory-cell';
+          cell.innerHTML = `
+            <div class="index" style="color: var(--accent-amber);">score${i+1}</div>
+            <div class="val" style="color: #f43f5e;"> ₹{sampleScores[i]}</div>
+            <div class="var-name" style="font-size: 0.65rem; color: #94a3b8;"> ₹{addresses[i]}</div>
+          `;
+          grid.appendChild(cell);
+        }
+      }
+    }
+
+    function checkQuiz(element, isCorrect) {
+      const options = document.querySelectorAll('.quiz-option');
+      options.forEach(opt => opt.classList.remove('correct', 'incorrect'));
+      const feedback = document.getElementById('quizFeedback');
+      if (isCorrect) {
+        element.classList.add('correct');
+        feedback.style.color = '#166534';
+        feedback.innerHTML = '🎉 Correct! Contiguous allocation allows exact memory address computation in constant O(1) time: Address = BaseAddress + (Index * ElementSize).';
+      } else {
+        element.classList.add('incorrect');
+        feedback.style.color = '#991b1b';
+        feedback.innerHTML = '❌ Incorrect. Try again! Hint: Think about index math and direct memory calculations.';
+      }
+      feedback.style.display = 'block';
+    }
+
+    // Initialize
+    updateVisualizer();
+  </script>
+
+  <script>
+    function copyCode(btn) {
+      let codeEl;
+      const codeBlock = btn.closest('.code-block') || btn.closest('.code-container') || btn.closest('pre');
+      if (codeBlock) {
+        codeEl = codeBlock.querySelector('code') || codeBlock.querySelector('pre');
+      }
+      if (!codeEl) {
+        codeEl = btn.parentElement.querySelector('code, pre') || btn.nextElementSibling;
+      }
+      const textToCopy = codeEl ? (codeEl.innerText || codeEl.textContent) : '';
+      if (textToCopy) {
+        navigator.clipboard.writeText(textToCopy).then(() => {
+          showCopiedFeedback(btn);
+        }).catch(() => {
+          const textarea = document.createElement('textarea');
+          textarea.value = textToCopy;
+          document.body.appendChild(textarea);
+          textarea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textarea);
+          showCopiedFeedback(btn);
+        });
+      }
+    }
+
+    function showCopiedFeedback(btn) {
+      const origText = btn.innerHTML;
+      btn.innerHTML = '✓ Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.innerHTML = origText;
+        btn.classList.remove('copied');
+      }, 2000);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('pre').forEach(pre => {
+        if (pre.closest('.code-block') && pre.closest('.code-block').querySelector('.copy-btn')) return;
+        if (pre.querySelector('.copy-btn')) return;
+        pre.style.position = 'relative';
+        const btn = document.createElement('button');
+        btn.className = 'copy-btn';
+        btn.style.cssText = 'position: absolute; top: 10px; right: 10px; z-index: 10;';
+        btn.innerHTML = '📋 Copy';
+        btn.onclick = () => copyCode(btn);
+        pre.appendChild(btn);
+      });
+    });
+  </script>
+
+
+  <script>
+    if (typeof copyCode !== 'function') {
+      function copyCode(btn) {
+        let codeEl;
+        const codeBlock = btn.closest('.code-block') || btn.closest('.code-container') || btn.closest('pre');
+        if (codeBlock) {
+          codeEl = codeBlock.querySelector('code') || codeBlock.querySelector('pre');
+        }
+        if (!codeEl) {
+          codeEl = btn.parentElement.querySelector('code, pre') || btn.nextElementSibling;
+        }
+        const textToCopy = codeEl ? (codeEl.innerText || codeEl.textContent) : '';
+        if (textToCopy) {
+          navigator.clipboard.writeText(textToCopy).then(() => {
+            showCopiedFeedback(btn);
+          }).catch(() => {
+            const textarea = document.createElement('textarea');
+            textarea.value = textToCopy;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            showCopiedFeedback(btn);
+          });
+        }
+      }
+
+      function showCopiedFeedback(btn) {
+        const origText = btn.innerHTML;
+        btn.innerHTML = '✓ Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.innerHTML = origText;
+          btn.classList.remove('copied');
+        }, 2000);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('pre').forEach(pre => {
+        if (pre.closest('.code-block') && pre.closest('.code-block').querySelector('.copy-btn')) return;
+        if (pre.querySelector('.copy-btn')) return;
+        pre.style.position = 'relative';
+        const btn = document.createElement('button');
+        btn.className = 'copy-btn';
+        btn.style.cssText = 'position: absolute; top: 10px; right: 10px; z-index: 10;';
+        btn.innerHTML = '📋 Copy';
+        btn.onclick = () => copyCode(btn);
+        pre.appendChild(btn);
+      });
+    });
+  </script>
+
+</body>
+</html>

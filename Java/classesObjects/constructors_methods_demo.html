@@ -477,6 +477,11 @@
 
     footer { text-align: center; color: var(--text-muted); font-size: 0.88rem; padding: 24px 0; }
     footer a { color: var(--primary); text-decoration: none; font-weight: 600; }
+  
+    .copy-btn { background: rgba(255, 255, 255, 0.1); color: #e2e8f0; border: 1px solid #475569; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s ease; font-family: inherit; }
+    .copy-btn:hover { background: #4f46e5; color: #ffffff; border-color: #4f46e5; transform: translateY(-1px); }
+    .copy-btn.copied { background: #10b981 !important; color: #ffffff !important; border-color: #10b981 !important; }
+
   </style>
 </head>
 <body>
@@ -845,13 +850,13 @@
             </div>
 
             <div class="tweak-input-group" id="groupBalance">
-              <label style="color:#cbd5e1;">balance ($):</label>
+              <label style="color:#cbd5e1;">balance (₹):</label>
               <input type="number" id="sbBalance" class="tweak-input" value="2500" style="width: 90px;">
             </div>
 
             <div class="tweak-input-group" id="groupOwner" style="display:none;">
               <label style="color:#cbd5e1;">owner:</label>
-              <input type="text" id="sbOwner" class="tweak-input" value="Alice Smith" style="width: 120px;">
+              <input type="text" id="sbOwner" class="tweak-input" value="JP Sharma" style="width: 120px;">
             </div>
 
             <div class="tweak-input-group" id="groupActive" style="display:none;">
@@ -888,14 +893,14 @@
               </div>
 
               <div class="tweak-input-group" id="groupParamAmt">
-                <label style="color:#cbd5e1;">amount ($):</label>
+                <label style="color:#cbd5e1;">amount (₹):</label>
                 <input type="number" id="sbParamAmt" class="tweak-input" value="500" style="width: 80px;">
               </div>
 
               <div class="tweak-input-group" id="groupParamFee" style="display:none;">
                 <label style="color:#cbd5e1;">applyFee:</label>
                 <select id="sbParamFee" class="tweak-input">
-                  <option value="true">true ($2.50 fee)</option>
+                  <option value="true">true (₹2.50 fee)</option>
                   <option value="false">false (no fee)</option>
                 </select>
               </div>
@@ -1046,8 +1051,8 @@
       });
       const data = NEW_STEPS[stepNum];
       document.getElementById('stepBox').innerHTML = `
-        <div style="font-weight:700; color:#38bdf8; font-size:1rem;">${data.title}</div>
-        <div style="font-size:0.88rem; color:#cbd5e1; line-height:1.5;">${data.desc}</div>
+        <div style="font-weight:700; color:#38bdf8; font-size:1rem;"> ₹{data.title}</div>
+        <div style="font-size:0.88rem; color:#cbd5e1; line-height:1.5;"> ₹{data.desc}</div>
       `;
       document.getElementById('stackVisual').innerHTML = data.stack;
       document.getElementById('heapVisual').innerHTML = data.heap;
@@ -1124,7 +1129,7 @@
       } else if (type === 'fourParam') {
         accountNumber = document.getElementById('sbAccNo').value.trim() || "ACC-101";
         balance = parseFloat(document.getElementById('sbBalance').value) || 0.0;
-        ownerName = document.getElementById('sbOwner').value.trim() || "Alice Smith";
+        ownerName = document.getElementById('sbOwner').value.trim() || "JP Sharma";
         isActive = (document.getElementById('sbActive').value === 'true');
       }
 
@@ -1148,12 +1153,12 @@
       if (method === 'deposit1') {
         const amt = parseFloat(document.getElementById('sbParamAmt').value) || 0.0;
         obj.balance += amt;
-        logSandbox(`🚀 Executed: ${obj.refName}.deposit(${amt}) -> New Balance: $${obj.balance.toFixed(2)}`);
+        logSandbox(`🚀 Executed: ${obj.refName}.deposit(₹{amt}) -> New Balance: $${obj.balance.toFixed(2)}`);
       } else if (method === 'deposit2') {
         const amt = parseFloat(document.getElementById('sbParamAmt').value) || 0.0;
         const fee = (document.getElementById('sbParamFee').value === 'true') ? 2.50 : 0.0;
         obj.balance += (amt - fee);
-        logSandbox(`🚀 Executed: ${obj.refName}.deposit(${amt}, applyFee=${fee > 0}) [Fee: $${fee.toFixed(2)}] -> New Balance: $${obj.balance.toFixed(2)}`);
+        logSandbox(`🚀 Executed: ${obj.refName}.deposit(₹{amt}, applyFee=${fee > 0}) [Fee: $${fee.toFixed(2)}] -> New Balance: $${obj.balance.toFixed(2)}`);
       } else if (method === 'interest') {
         const months = parseInt(document.getElementById('sbParamMonths').value) || 12;
         const rate = parseFloat(document.getElementById('sbParamRate').value) || 5.0;
@@ -1174,19 +1179,19 @@
         return;
       }
 
-      select.innerHTML = sbObjects.map(o => `<option value="${o.id}">${o.refName} (${o.hexAddr} - $${o.balance.toFixed(2)})</option>`).join('');
+      select.innerHTML = sbObjects.map(o => `<option value="${o.id}"> ₹{o.refName} (₹{o.hexAddr} - $${o.balance.toFixed(2)})</option>`).join('');
 
       grid.innerHTML = sbObjects.map(o => `
         <div class="topic-card" style="border-top: 4px solid var(--secondary);">
           <div class="topic-card-head">
-            <span style="font-family:'Fira Code',monospace; font-weight:700; color:var(--primary-dark);">${o.refName}</span>
+            <span style="font-family:'Fira Code',monospace; font-weight:700; color:var(--primary-dark);"> ₹{o.refName}</span>
             <span class="topic-badge" style="background:#e0f2fe; color:#0284c7;">Addr: ${o.hexAddr}</span>
           </div>
           <div style="font-family:'Fira Code',monospace; font-size:0.83rem; color:var(--text-muted); line-height:1.6;">
             <div>accountNumber: <strong style="color:var(--primary);">"${o.accountNumber}"</strong></div>
-            <div>balance: <strong style="color:var(--accent-green);">$${o.balance.toFixed(2)}</strong></div>
+            <div>balance: <strong style="color:var(--accent-green);"> ₹${o.balance.toFixed(2)}</strong></div>
             <div>ownerName: <strong style="color:var(--accent-purple);">"${o.ownerName}"</strong></div>
-            <div>isActive: <strong style="color:${o.isActive ? '#059669':'#dc2626'};">${o.isActive}</strong></div>
+            <div>isActive: <strong style="color:${o.isActive ? '#059669':'#dc2626'};"> ₹{o.isActive}</strong></div>
           </div>
         </div>
       `).join('');
@@ -1221,5 +1226,111 @@
       renderSandboxHeap();
     });
   </script>
+
+  <script>
+    function copyCode(btn) {
+      let codeEl;
+      const codeBlock = btn.closest('.code-block') || btn.closest('.code-container') || btn.closest('pre');
+      if (codeBlock) {
+        codeEl = codeBlock.querySelector('code') || codeBlock.querySelector('pre');
+      }
+      if (!codeEl) {
+        codeEl = btn.parentElement.querySelector('code, pre') || btn.nextElementSibling;
+      }
+      const textToCopy = codeEl ? (codeEl.innerText || codeEl.textContent) : '';
+      if (textToCopy) {
+        navigator.clipboard.writeText(textToCopy).then(() => {
+          showCopiedFeedback(btn);
+        }).catch(() => {
+          const textarea = document.createElement('textarea');
+          textarea.value = textToCopy;
+          document.body.appendChild(textarea);
+          textarea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textarea);
+          showCopiedFeedback(btn);
+        });
+      }
+    }
+
+    function showCopiedFeedback(btn) {
+      const origText = btn.innerHTML;
+      btn.innerHTML = '✓ Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.innerHTML = origText;
+        btn.classList.remove('copied');
+      }, 2000);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('pre').forEach(pre => {
+        if (pre.closest('.code-block') && pre.closest('.code-block').querySelector('.copy-btn')) return;
+        if (pre.querySelector('.copy-btn')) return;
+        pre.style.position = 'relative';
+        const btn = document.createElement('button');
+        btn.className = 'copy-btn';
+        btn.style.cssText = 'position: absolute; top: 10px; right: 10px; z-index: 10;';
+        btn.innerHTML = '📋 Copy';
+        btn.onclick = () => copyCode(btn);
+        pre.appendChild(btn);
+      });
+    });
+  </script>
+
+
+  <script>
+    if (typeof copyCode !== 'function') {
+      function copyCode(btn) {
+        let codeEl;
+        const codeBlock = btn.closest('.code-block') || btn.closest('.code-container') || btn.closest('pre');
+        if (codeBlock) {
+          codeEl = codeBlock.querySelector('code') || codeBlock.querySelector('pre');
+        }
+        if (!codeEl) {
+          codeEl = btn.parentElement.querySelector('code, pre') || btn.nextElementSibling;
+        }
+        const textToCopy = codeEl ? (codeEl.innerText || codeEl.textContent) : '';
+        if (textToCopy) {
+          navigator.clipboard.writeText(textToCopy).then(() => {
+            showCopiedFeedback(btn);
+          }).catch(() => {
+            const textarea = document.createElement('textarea');
+            textarea.value = textToCopy;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            showCopiedFeedback(btn);
+          });
+        }
+      }
+
+      function showCopiedFeedback(btn) {
+        const origText = btn.innerHTML;
+        btn.innerHTML = '✓ Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.innerHTML = origText;
+          btn.classList.remove('copied');
+        }, 2000);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('pre').forEach(pre => {
+        if (pre.closest('.code-block') && pre.closest('.code-block').querySelector('.copy-btn')) return;
+        if (pre.querySelector('.copy-btn')) return;
+        pre.style.position = 'relative';
+        const btn = document.createElement('button');
+        btn.className = 'copy-btn';
+        btn.style.cssText = 'position: absolute; top: 10px; right: 10px; z-index: 10;';
+        btn.innerHTML = '📋 Copy';
+        btn.onclick = () => copyCode(btn);
+        pre.appendChild(btn);
+      });
+    });
+  </script>
+
 </body>
 </html>

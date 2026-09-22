@@ -326,6 +326,11 @@
       align-items: center;
       gap: 8px;
     }
+  
+    .copy-btn { background: rgba(255, 255, 255, 0.1); color: #e2e8f0; border: 1px solid #475569; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s ease; font-family: inherit; }
+    .copy-btn:hover { background: #4f46e5; color: #ffffff; border-color: #4f46e5; transform: translateY(-1px); }
+    .copy-btn.copied { background: #10b981 !important; color: #ffffff !important; border-color: #10b981 !important; }
+
   </style>
 </head>
 <body>
@@ -408,9 +413,9 @@
           <div class="concept-card">
             <div class="concept-title">2. Reassigning Reference</div>
             <div class="code-box">
-              <span class="cls">Student</span> s1 = <span class="kw">new</span> <span class="cls">Student</span>(<span class="str">"Alice"</span>);<br/>
-              <span class="cls">Student</span> s2 = <span class="kw">new</span> <span class="cls">Student</span>(<span class="str">"Bob"</span>);<br/>
-              s1 = s2; <span class="cm">// "Alice" object is now unreachable!</span>
+              <span class="cls">Student</span> s1 = <span class="kw">new</span> <span class="cls">Student</span>(<span class="str">"JP"</span>);<br/>
+              <span class="cls">Student</span> s2 = <span class="kw">new</span> <span class="cls">Student</span>(<span class="str">"Rahul"</span>);<br/>
+              s1 = s2; <span class="cm">// "JP" object is now unreachable!</span>
             </div>
           </div>
 
@@ -459,7 +464,7 @@
 
             <div class="obj-card obj-active" id="obj-s1">
               <div>
-                <strong>Student Object 1 ("Alice")</strong><br/>
+                <strong>Student Object 1 ("JP")</strong><br/>
                 <span style="font-size: 0.78rem;">Address: 0x10A | Reference: s1</span>
               </div>
               <span style="font-weight: 700;">🟢 ACTIVE</span>
@@ -467,7 +472,7 @@
 
             <div class="obj-card obj-active" id="obj-s2">
               <div>
-                <strong>Student Object 2 ("Bob")</strong><br/>
+                <strong>Student Object 2 ("Rahul")</strong><br/>
                 <span style="font-size: 0.78rem;">Address: 0x20B | Reference: s2</span>
               </div>
               <span style="font-weight: 700;">🟢 ACTIVE</span>
@@ -478,7 +483,7 @@
           <div class="sim-console">
             <div class="console-header">JVM Garbage Collection Console Log</div>
             <div class="console-log" id="gc-log">
-              ▶️ Both s1 ("Alice") and s2 ("Bob") have live references pointing to them from Stack.
+              ▶️ Both s1 ("JP") and s2 ("Rahul") have live references pointing to them from Stack.
             </div>
           </div>
         </div>
@@ -532,7 +537,7 @@
       objS1.className = 'obj-card obj-active';
       objS1.innerHTML = `
         <div>
-          <strong>Student Object 1 ("Alice")</strong><br/>
+          <strong>Student Object 1 ("JP")</strong><br/>
           <span style="font-size: 0.78rem;">Address: 0x10A | Reference: s1</span>
         </div>
         <span style="font-weight: 700;">🟢 ACTIVE</span>`;
@@ -540,7 +545,7 @@
       objS2.style.display = 'flex';
       objS2.className = 'obj-card obj-active';
 
-      gcLog.innerHTML = '▶️ Both s1 ("Alice") and s2 ("Bob") have live references pointing to them from Stack.';
+      gcLog.innerHTML = '▶️ Both s1 ("JP") and s2 ("Rahul") have live references pointing to them from Stack.';
     }
 
     function nullifyRef() {
@@ -553,12 +558,12 @@
       objS1.className = 'obj-card obj-orphaned';
       objS1.innerHTML = `
         <div>
-          <strong>Student Object 1 ("Alice")</strong><br/>
+          <strong>Student Object 1 ("JP")</strong><br/>
           <span style="font-size: 0.78rem;">Address: 0x10A | Reference: NULL (Unreachable!)</span>
         </div>
         <span style="font-weight: 700;">⚠️ ELIGIBLE FOR GC</span>`;
 
-      gcLog.innerHTML = '⚠️ Line executed: s1 = null;<br/>Object "Alice" at 0x10A has 0 references! It is now ORPHANED and marked eligible for Garbage Collection.';
+      gcLog.innerHTML = '⚠️ Line executed: s1 = null;<br/>Object "JP" at 0x10A has 0 references! It is now ORPHANED and marked eligible for Garbage Collection.';
     }
 
     function runGC() {
@@ -570,11 +575,117 @@
       } else if (!isCollected) {
         isCollected = true;
         objS1.style.display = 'none';
-        gcLog.innerHTML = '🧹 Garbage Collector Executed!<br/>Swept away orphaned Student Object 1 ("Alice") from Heap memory. Reclaimed memory address 0x10A!';
+        gcLog.innerHTML = '🧹 Garbage Collector Executed!<br/>Swept away orphaned Student Object 1 ("JP") from Heap memory. Reclaimed memory address 0x10A!';
       } else {
         gcLog.innerHTML = '✅ Heap memory is already clean. 0 unreachable objects remaining.';
       }
     }
   </script>
+
+  <script>
+    function copyCode(btn) {
+      let codeEl;
+      const codeBlock = btn.closest('.code-block') || btn.closest('.code-container') || btn.closest('pre');
+      if (codeBlock) {
+        codeEl = codeBlock.querySelector('code') || codeBlock.querySelector('pre');
+      }
+      if (!codeEl) {
+        codeEl = btn.parentElement.querySelector('code, pre') || btn.nextElementSibling;
+      }
+      const textToCopy = codeEl ? (codeEl.innerText || codeEl.textContent) : '';
+      if (textToCopy) {
+        navigator.clipboard.writeText(textToCopy).then(() => {
+          showCopiedFeedback(btn);
+        }).catch(() => {
+          const textarea = document.createElement('textarea');
+          textarea.value = textToCopy;
+          document.body.appendChild(textarea);
+          textarea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textarea);
+          showCopiedFeedback(btn);
+        });
+      }
+    }
+
+    function showCopiedFeedback(btn) {
+      const origText = btn.innerHTML;
+      btn.innerHTML = '✓ Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.innerHTML = origText;
+        btn.classList.remove('copied');
+      }, 2000);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('pre').forEach(pre => {
+        if (pre.closest('.code-block') && pre.closest('.code-block').querySelector('.copy-btn')) return;
+        if (pre.querySelector('.copy-btn')) return;
+        pre.style.position = 'relative';
+        const btn = document.createElement('button');
+        btn.className = 'copy-btn';
+        btn.style.cssText = 'position: absolute; top: 10px; right: 10px; z-index: 10;';
+        btn.innerHTML = '📋 Copy';
+        btn.onclick = () => copyCode(btn);
+        pre.appendChild(btn);
+      });
+    });
+  </script>
+
+
+  <script>
+    if (typeof copyCode !== 'function') {
+      function copyCode(btn) {
+        let codeEl;
+        const codeBlock = btn.closest('.code-block') || btn.closest('.code-container') || btn.closest('pre');
+        if (codeBlock) {
+          codeEl = codeBlock.querySelector('code') || codeBlock.querySelector('pre');
+        }
+        if (!codeEl) {
+          codeEl = btn.parentElement.querySelector('code, pre') || btn.nextElementSibling;
+        }
+        const textToCopy = codeEl ? (codeEl.innerText || codeEl.textContent) : '';
+        if (textToCopy) {
+          navigator.clipboard.writeText(textToCopy).then(() => {
+            showCopiedFeedback(btn);
+          }).catch(() => {
+            const textarea = document.createElement('textarea');
+            textarea.value = textToCopy;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            showCopiedFeedback(btn);
+          });
+        }
+      }
+
+      function showCopiedFeedback(btn) {
+        const origText = btn.innerHTML;
+        btn.innerHTML = '✓ Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.innerHTML = origText;
+          btn.classList.remove('copied');
+        }, 2000);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('pre').forEach(pre => {
+        if (pre.closest('.code-block') && pre.closest('.code-block').querySelector('.copy-btn')) return;
+        if (pre.querySelector('.copy-btn')) return;
+        pre.style.position = 'relative';
+        const btn = document.createElement('button');
+        btn.className = 'copy-btn';
+        btn.style.cssText = 'position: absolute; top: 10px; right: 10px; z-index: 10;';
+        btn.innerHTML = '📋 Copy';
+        btn.onclick = () => copyCode(btn);
+        pre.appendChild(btn);
+      });
+    });
+  </script>
+
 </body>
 </html>

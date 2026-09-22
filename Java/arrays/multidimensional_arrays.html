@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>2D & 3D Multi-Dimensional Arrays & Traversing | Java Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --secondary: #0284c7;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f1f5f9 100%);
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 10px 25px rgba(79, 70, 229, 0.07);
+      --shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient); min-height: 100vh; color: var(--text-main);
+      padding: 24px 16px; line-height: 1.6;
+    }
+    .container { max-width: 1100px; margin: 0 auto; }
+    
+    .top-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 8px; background: #ffffff; color: var(--primary-dark);
+      text-decoration: none; padding: 10px 20px; border-radius: 30px; font-weight: 600; font-size: 0.95rem;
+      border: 1px solid var(--card-border); box-shadow: var(--shadow-sm); transition: all 0.25s ease;
+    }
+    .back-btn:hover { background: var(--primary); color: #ffffff; transform: translateX(-4px); }
+    .nav-tag { color: var(--text-muted); font-weight: 600; font-size: 0.9rem; background: rgba(255, 255, 255, 0.8); padding: 6px 14px; border-radius: 20px; border: 1px solid var(--card-border); }
+
+    .hero {
+      background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%); color: #ffffff;
+      border-radius: 20px; padding: 40px 32px; text-align: center; box-shadow: var(--shadow-lg); margin-bottom: 32px;
+    }
+    .hero h1 { font-size: 2.5rem; font-weight: 800; margin-bottom: 12px; }
+    .hero p { font-size: 1.15rem; opacity: 0.95; max-width: 780px; margin: 0 auto 20px auto; }
+    .hero-badges { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+    .hero-badge { background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(8px); padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+
+    .card { background: var(--card-bg); border-radius: 18px; padding: 32px; margin-bottom: 32px; box-shadow: var(--shadow-md); border: 1px solid var(--card-border); }
+    .section-title { font-size: 1.5rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 18px; display: flex; align-items: center; gap: 12px; }
+    .section-title .icon { font-size: 1.5rem; background: #eef2ff; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 12px; color: var(--primary); }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    /* Interactive Matrix Container */
+    .interactive-container { background: #0f172a; color: #f8fafc; border-radius: 16px; padding: 24px; border: 1px solid #334155; }
+    .controls-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 20px; }
+    .btn { padding: 10px 18px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; transition: all 0.2s; font-size: 0.9rem; }
+
+    .matrix-grid { display: grid; grid-template-columns: repeat(4, 75px); gap: 10px; justify-content: center; padding: 20px 0; }
+    .grid-cell { width: 75px; height: 75px; background: #1e293b; border: 2px solid #475569; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: 'Fira Code'; transition: all 0.3s; }
+    .grid-cell.active { border-color: var(--accent-green); background: rgba(16, 185, 129, 0.25); transform: scale(1.1); box-shadow: 0 0 15px rgba(16, 185, 129, 0.4); }
+
+    /* Code Block */
+    .code-block { background: #0f172a; border-radius: 12px; padding: 20px; color: #e2e8f0; font-family: 'Fira Code', monospace; font-size: 0.9rem; overflow-x: auto; border: 1px solid #1e293b; }
+    .code-block header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #334155; padding-bottom: 8px; color: #94a3b8; font-size: 0.8rem; }
+    .kw { color: #c084fc; font-weight: 600; }
+    .type { color: #38bdf8; font-weight: 600; }
+    .num { color: #f43f5e; }
+    .str { color: #4ade80; }
+    .cmt { color: #64748b; font-style: italic; }
+
+    .quiz-option { background: #f1f5f9; padding: 14px 18px; border-radius: 10px; margin-bottom: 10px; cursor: pointer; border: 1px solid #cbd5e1; transition: all 0.2s; font-weight: 500; }
+    .quiz-option:hover { background: #e2e8f0; border-color: var(--primary); }
+    .quiz-option.correct { background: #dcfce7; border-color: var(--accent-green); color: #166534; }
+    .quiz-option.incorrect { background: #fee2e2; border-color: #ef4444; color: #991b1b; }
+  
+    .copy-btn { background: rgba(255, 255, 255, 0.1); color: #e2e8f0; border: 1px solid #475569; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s ease; font-family: inherit; }
+    .copy-btn:hover { background: #4f46e5; color: #ffffff; border-color: #4f46e5; transform: translateY(-1px); }
+    .copy-btn.copied { background: #10b981 !important; color: #ffffff !important; border-color: #10b981 !important; }
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="top-nav">
+      <a href="../index.html" class="back-btn">⬅ Back to Java Index</a>
+      <span class="nav-tag">Topic 11 of 12 • Arrays</span>
+    </div>
+
+    <header class="hero">
+      <h1>2D & 3D Multi-Dimensional Arrays & Traversing</h1>
+      <p>Understand "Array of Arrays" architecture, matrix grid indexing, and nested loop traversal strategies in 2D & 3D space.</p>
+      <div class="hero-badges">
+        <span class="hero-badge">▦ 2D Grid [row][col]</span>
+        <span class="hero-badge">🧊 3D Block [layer][row][col]</span>
+        <span class="hero-badge">🔄 Nested Loop Traversing</span>
+      </div>
+    </header>
+
+    <!-- SECTION 1: Architecture -->
+    <section class="card">
+      <h2 class="section-title">
+        <span class="icon">💡</span>
+        Java Multi-Dimensional Array Architecture
+      </h2>
+
+      <div class="grid-2">
+        <div style="background: #f8fafc; padding: 20px; border-radius: 12px; border-left: 4px solid var(--primary);">
+          <h3 style="color: var(--primary-dark); margin-bottom: 8px;">1. 2D Arrays (Matrix / Grid)</h3>
+          <p style="font-size: 0.9rem;">
+            Declared as <code>int[][] grid = new int[rows][cols];</code>.
+            <br>• <code>grid.length</code> = total number of rows.
+            <br>• <code>grid[r].length</code> = total columns in row <em>r</em>.
+            <br>• Access element at row <code>r</code>, column <code>c</code>: <code>grid[r][c]</code>.
+          </p>
+        </div>
+
+        <div style="background: #f8fafc; padding: 20px; border-radius: 12px; border-left: 4px solid #8b5cf6;">
+          <h3 style="color: #6b21a8; margin-bottom: 8px;">2. 3D Arrays (Cube / Spatial)</h3>
+          <p style="font-size: 0.9rem;">
+            Declared as <code>int[][][] cube = new int[depth][rows][cols];</code>.
+            <br>• Represents a stack of 2D matrices (layers/depth).
+            <br>• Traversed using 3 nested loops: <code>for(d) -> for(r) -> for(c)</code>.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2: Interactive Matrix Traverser -->
+    <section class="card">
+      <h2 class="section-title">
+        <span class="icon">🎮</span>
+        Interactive 2D Matrix Traversal Simulator
+      </h2>
+      <p style="margin-bottom: 16px; color: var(--text-muted);">
+        Watch animated nested loops scan through a 3×4 matrix row-by-row in real-time!
+      </p>
+
+      <div class="interactive-container">
+        <div class="controls-row">
+          <button onclick="startMatrixTraversal()" class="btn" style="background: var(--accent-green); color: white;" id="btnTraverse">▶ Run Row-Major Traversal</button>
+          <button onclick="resetMatrix()" class="btn" style="background: #475569; color: white;">🔄 Reset Grid</button>
+          <div style="margin-left: auto; font-family: 'Fira Code'; font-size: 0.85rem;" id="matrixLog">
+            Row (r): 0 | Col (c): 0 | Active: matrix[0][0] = 10
+          </div>
+        </div>
+
+        <div class="matrix-grid" id="matrixGrid"></div>
+      </div>
+    </section>
+
+    <!-- SECTION 3: Code Example -->
+    <section class="card">
+      <h2 class="section-title">
+        <span class="icon">💻</span>
+        Runnable Java Example: 2D & 3D Traversal
+      </h2>
+      <div class="code-block">
+        <header>
+          <span>MultiDimensionalArrayDemo.java</span>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+            <span>Java 17+</span>
+          </div>
+        </header>
+        <pre><code><span class="kw">public class</span> <span class="type">MultiDimensionalArrayDemo</span> {
+    <span class="kw">public static void</span> main(<span class="type">String</span>[] args) {
+        <span class="cmt">// 1. Creating and traversing a 2D Array (3x3 Matrix)</span>
+        <span class="type">int</span>[][] matrix = {
+            {<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>},
+            {<span class="num">4</span>, <span class="num">5</span>, <span class="num">6</span>},
+            {<span class="num">7</span>, <span class="num">8</span>, <span class="num">9</span>}
+        };
+
+        <span class="type">System</span>.out.println(<span class="str">"=== 2D Matrix Traversal ==="</span>);
+        <span class="kw">for</span> (<span class="type">int</span> r = <span class="num">0</span>; r < matrix.length; r++) {
+            <span class="kw">for</span> (<span class="type">int</span> c = <span class="num">0</span>; c < matrix[r].length; c++) {
+                <span class="type">System</span>.out.print(matrix[r][c] + <span class="str">"\t"</span>);
+            }
+            <span class="type">System</span>.out.println();
+        }
+
+        <span class="cmt">// 2. Creating and traversing a 3D Array (2 layers, 2 rows, 3 cols)</span>
+        <span class="type">int</span>[][][] cube = {
+            { {<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>}, {<span class="num">4</span>, <span class="num">5</span>, <span class="num">6</span>} },
+            { {<span class="num">7</span>, <span class="num">8</span>, <span class="num">9</span>}, {<span class="num">10</span>, <span class="num">11</span>, <span class="num">12</span>} }
+        };
+
+        <span class="type">System</span>.out.println(<span class="str">"\n=== 3D Cube Layer 0 Traversal ==="</span>);
+        <span class="kw">for</span> (<span class="type">int</span> r = <span class="num">0</span>; r < cube[<span class="num">0</span>].length; r++) {
+            <span class="kw">for</span> (<span class="type">int</span> c = <span class="num">0</span>; c < cube[<span class="num">0</span>][r].length; c++) {
+                <span class="type">System</span>.out.print(cube[<span class="num">0</span>][r][c] + <span class="str">" "</span>);
+            }
+            <span class="type">System</span>.out.println();
+        }
+    }
+}</code></pre>
+      </div>
+
+      <div style="margin-top: 16px; background: #0f172a; padding: 16px; border-radius: 10px; color: #38bdf8; font-family: 'Fira Code', monospace; font-size: 0.85rem;">
+        <strong>🖥️ Program Output:</strong><br>
+        === 2D Matrix Traversal ===<br>
+        1	2	3	<br>
+        4	5	6	<br>
+        7	8	9	<br>
+        <br>
+        === 3D Cube Layer 0 Traversal ===<br>
+        1 2 3 <br>
+        4 5 6 
+      </div>
+    </section>
+
+    <!-- SECTION 4: Quiz -->
+    <section class="card">
+      <h2 class="section-title">
+        <span class="icon">🧪</span>
+        Quick Knowledge Check
+      </h2>
+      <p style="margin-bottom: 16px;">In a 2D array <code>int[][] grid = new int[4][5];</code>, what expression returns the total number of columns in row 0?</p>
+      <div id="quizOptions">
+        <div class="quiz-option" onclick="checkQuiz(this, false)">A) grid.length</div>
+        <div class="quiz-option" onclick="checkQuiz(this, true)">B) grid[0].length</div>
+        <div class="quiz-option" onclick="checkQuiz(this, false)">C) grid.columns()</div>
+        <div class="quiz-option" onclick="checkQuiz(this, false)">D) grid[0][0].length</div>
+      </div>
+      <div id="quizFeedback" style="margin-top: 12px; font-weight: 600; display: none;"></div>
+    </section>
+  </div>
+
+  <script>
+    const sampleMatrix = [
+      [10, 20, 30, 40],
+      [50, 60, 70, 80],
+      [90, 95, 99, 100]
+    ];
+    let isTraversing = false;
+
+    function renderMatrix(activeR = -1, activeC = -1) {
+      const grid = document.getElementById('matrixGrid');
+      grid.innerHTML = '';
+
+      for (let r = 0; r < 3; r++) {
+        for (let c = 0; c < 4; c++) {
+          const cell = document.createElement('div');
+          const isActive = (r === activeR && c === activeC);
+          cell.className = `grid-cell ${isActive ? 'active' : ''}`;
+          cell.innerHTML = `
+            <div style="font-size:0.65rem; color:#94a3b8;">[${r}][${c}]</div>
+            <div style="font-weight:bold; color:${isActive?'#10b981':'#38bdf8'};"> ₹{sampleMatrix[r][c]}</div>
+          `;
+          grid.appendChild(cell);
+        }
+      }
+    }
+
+    async function startMatrixTraversal() {
+      if (isTraversing) return;
+      isTraversing = true;
+      document.getElementById('btnTraverse').disabled = true;
+      const log = document.getElementById('matrixLog');
+
+      for (let r = 0; r < 3; r++) {
+        for (let c = 0; c < 4; c++) {
+          renderMatrix(r, c);
+          log.innerHTML = `Scanning: Row <strong>r=${r}</strong>, Col <strong>c=${c}</strong> ➔ <code>matrix[${r}][${c}] = ${sampleMatrix[r][c]}</code>`;
+          await new Promise(res => setTimeout(res, 450));
+        }
+      }
+
+      renderMatrix();
+      log.textContent = '🎉 Row-Major Traversal Complete!';
+      isTraversing = false;
+      document.getElementById('btnTraverse').disabled = false;
+    }
+
+    function resetMatrix() {
+      if (isTraversing) return;
+      renderMatrix();
+      document.getElementById('matrixLog').textContent = 'Grid Reset. Click Run Traversal.';
+    }
+
+    function checkQuiz(element, isCorrect) {
+      const options = document.querySelectorAll('.quiz-option');
+      options.forEach(opt => opt.classList.remove('correct', 'incorrect'));
+      const feedback = document.getElementById('quizFeedback');
+      if (isCorrect) {
+        element.classList.add('correct');
+        feedback.style.color = '#166534';
+        feedback.innerHTML = '🎉 Correct! grid[0] accesses the 1D array representing row 0, and .length returns its column size (5).';
+      } else {
+        element.classList.add('incorrect');
+        feedback.style.color = '#991b1b';
+        feedback.innerHTML = '❌ Incorrect. grid.length returns the number of rows (4). grid[0].length returns column size.';
+      }
+      feedback.style.display = 'block';
+    }
+
+    renderMatrix();
+  </script>
+
+  <script>
+    function copyCode(btn) {
+      let codeEl;
+      const codeBlock = btn.closest('.code-block') || btn.closest('.code-container') || btn.closest('pre');
+      if (codeBlock) {
+        codeEl = codeBlock.querySelector('code') || codeBlock.querySelector('pre');
+      }
+      if (!codeEl) {
+        codeEl = btn.parentElement.querySelector('code, pre') || btn.nextElementSibling;
+      }
+      const textToCopy = codeEl ? (codeEl.innerText || codeEl.textContent) : '';
+      if (textToCopy) {
+        navigator.clipboard.writeText(textToCopy).then(() => {
+          showCopiedFeedback(btn);
+        }).catch(() => {
+          const textarea = document.createElement('textarea');
+          textarea.value = textToCopy;
+          document.body.appendChild(textarea);
+          textarea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textarea);
+          showCopiedFeedback(btn);
+        });
+      }
+    }
+
+    function showCopiedFeedback(btn) {
+      const origText = btn.innerHTML;
+      btn.innerHTML = '✓ Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.innerHTML = origText;
+        btn.classList.remove('copied');
+      }, 2000);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('pre').forEach(pre => {
+        if (pre.closest('.code-block') && pre.closest('.code-block').querySelector('.copy-btn')) return;
+        if (pre.querySelector('.copy-btn')) return;
+        pre.style.position = 'relative';
+        const btn = document.createElement('button');
+        btn.className = 'copy-btn';
+        btn.style.cssText = 'position: absolute; top: 10px; right: 10px; z-index: 10;';
+        btn.innerHTML = '📋 Copy';
+        btn.onclick = () => copyCode(btn);
+        pre.appendChild(btn);
+      });
+    });
+  </script>
+
+
+  <script>
+    if (typeof copyCode !== 'function') {
+      function copyCode(btn) {
+        let codeEl;
+        const codeBlock = btn.closest('.code-block') || btn.closest('.code-container') || btn.closest('pre');
+        if (codeBlock) {
+          codeEl = codeBlock.querySelector('code') || codeBlock.querySelector('pre');
+        }
+        if (!codeEl) {
+          codeEl = btn.parentElement.querySelector('code, pre') || btn.nextElementSibling;
+        }
+        const textToCopy = codeEl ? (codeEl.innerText || codeEl.textContent) : '';
+        if (textToCopy) {
+          navigator.clipboard.writeText(textToCopy).then(() => {
+            showCopiedFeedback(btn);
+          }).catch(() => {
+            const textarea = document.createElement('textarea');
+            textarea.value = textToCopy;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            showCopiedFeedback(btn);
+          });
+        }
+      }
+
+      function showCopiedFeedback(btn) {
+        const origText = btn.innerHTML;
+        btn.innerHTML = '✓ Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.innerHTML = origText;
+          btn.classList.remove('copied');
+        }, 2000);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('pre').forEach(pre => {
+        if (pre.closest('.code-block') && pre.closest('.code-block').querySelector('.copy-btn')) return;
+        if (pre.querySelector('.copy-btn')) return;
+        pre.style.position = 'relative';
+        const btn = document.createElement('button');
+        btn.className = 'copy-btn';
+        btn.style.cssText = 'position: absolute; top: 10px; right: 10px; z-index: 10;';
+        btn.innerHTML = '📋 Copy';
+        btn.onclick = () => copyCode(btn);
+        pre.appendChild(btn);
+      });
+    });
+  </script>
+
+</body>
+</html>

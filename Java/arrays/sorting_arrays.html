@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sorting Arrays in Java | Java Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --secondary: #0284c7;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-red: #ef4444;
+      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f1f5f9 100%);
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 10px 25px rgba(79, 70, 229, 0.07);
+      --shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient); min-height: 100vh; color: var(--text-main);
+      padding: 24px 16px; line-height: 1.6;
+    }
+    .container { max-width: 1100px; margin: 0 auto; }
+    
+    .top-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 8px; background: #ffffff; color: var(--primary-dark);
+      text-decoration: none; padding: 10px 20px; border-radius: 30px; font-weight: 600; font-size: 0.95rem;
+      border: 1px solid var(--card-border); box-shadow: var(--shadow-sm); transition: all 0.25s ease;
+    }
+    .back-btn:hover { background: var(--primary); color: #ffffff; transform: translateX(-4px); }
+    .nav-tag { color: var(--text-muted); font-weight: 600; font-size: 0.9rem; background: rgba(255, 255, 255, 0.8); padding: 6px 14px; border-radius: 20px; border: 1px solid var(--card-border); }
+
+    .hero {
+      background: linear-gradient(135deg, #8b5cf6 0%, #4f46e5 100%); color: #ffffff;
+      border-radius: 20px; padding: 40px 32px; text-align: center; box-shadow: var(--shadow-lg); margin-bottom: 32px;
+    }
+    .hero h1 { font-size: 2.5rem; font-weight: 800; margin-bottom: 12px; }
+    .hero p { font-size: 1.15rem; opacity: 0.95; max-width: 780px; margin: 0 auto 20px auto; }
+    .hero-badges { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+    .hero-badge { background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(8px); padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+
+    .card { background: var(--card-bg); border-radius: 18px; padding: 32px; margin-bottom: 32px; box-shadow: var(--shadow-md); border: 1px solid var(--card-border); }
+    .section-title { font-size: 1.5rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 18px; display: flex; align-items: center; gap: 12px; }
+    .section-title .icon { font-size: 1.5rem; background: #eef2ff; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 12px; color: var(--primary); }
+
+    /* Visualizer Canvas */
+    .interactive-container { background: #0f172a; color: #f8fafc; border-radius: 16px; padding: 24px; border: 1px solid #334155; }
+    .controls-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 20px; }
+    .btn { padding: 10px 18px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; transition: all 0.2s; font-size: 0.9rem; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .bar-chart { display: flex; align-items: flex-end; justify-content: center; height: 220px; gap: 12px; padding: 20px 0; border-bottom: 1px solid #334155; }
+    .bar { width: 44px; background: #38bdf8; border-radius: 8px 8px 0 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 8px; font-family: 'Fira Code'; font-weight: bold; color: #0f172a; transition: height 0.2s ease, background-color 0.2s, transform 0.2s; }
+    .bar.comparing { background: #f59e0b !important; transform: scaleX(1.05); }
+    .bar.min-found { background: #c084fc !important; color: #ffffff !important; transform: scaleX(1.08); box-shadow: 0 0 10px rgba(192, 132, 252, 0.5); }
+    .bar.swapping { background: #ef4444 !important; transform: translateY(-6px); }
+    .bar.sorted { background: #10b981 !important; }
+
+    /* Code Block */
+    .code-block { background: #0f172a; border-radius: 12px; padding: 20px; color: #e2e8f0; font-family: 'Fira Code', monospace; font-size: 0.9rem; overflow-x: auto; border: 1px solid #1e293b; }
+    .code-block header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #334155; padding-bottom: 8px; color: #94a3b8; font-size: 0.8rem; }
+    .kw { color: #c084fc; font-weight: 600; }
+    .type { color: #38bdf8; font-weight: 600; }
+    .num { color: #f43f5e; }
+    .str { color: #4ade80; }
+    .cmt { color: #64748b; font-style: italic; }
+
+    .quiz-option { background: #f1f5f9; padding: 14px 18px; border-radius: 10px; margin-bottom: 10px; cursor: pointer; border: 1px solid #cbd5e1; transition: all 0.2s; font-weight: 500; }
+    .quiz-option:hover { background: #e2e8f0; border-color: var(--primary); }
+    .quiz-option.correct { background: #dcfce7; border-color: var(--accent-green); color: #166534; }
+    .quiz-option.incorrect { background: #fee2e2; border-color: #ef4444; color: #991b1b; }
+  
+    .copy-btn { background: rgba(255, 255, 255, 0.1); color: #e2e8f0; border: 1px solid #475569; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s ease; font-family: inherit; }
+    .copy-btn:hover { background: #4f46e5; color: #ffffff; border-color: #4f46e5; transform: translateY(-1px); }
+    .copy-btn.copied { background: #10b981 !important; color: #ffffff !important; border-color: #10b981 !important; }
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="top-nav">
+      <a href="../index.html" class="back-btn">⬅ Back to Java Index</a>
+      <span class="nav-tag">Topic 8 of 12 • Arrays</span>
+    </div>
+
+    <header class="hero">
+      <h1>Sorting Arrays in Java</h1>
+      <p>Master sorting algorithms including Bubble Sort, Selection Sort, and Java's built-in optimized <code>Arrays.sort()</code>.</p>
+      <div class="hero-badges">
+        <span class="hero-badge">🫧 Bubble Sort O(N²)</span>
+        <span class="hero-badge">🎯 Selection Sort</span>
+        <span class="hero-badge">⚡ Arrays.sort() O(N log N)</span>
+      </div>
+    </header>
+
+    <!-- SECTION 1: Algorithms Breakdown -->
+    <section class="card">
+      <h2 class="section-title">
+        <span class="icon">📊</span>
+        Sorting Algorithms Overview
+      </h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+        <div style="background: #f8fafc; padding: 20px; border-radius: 12px; border-left: 4px solid var(--accent-amber);">
+          <h3 style="color: #b45309; margin-bottom: 8px;">1. Bubble Sort</h3>
+          <p style="font-size: 0.9rem;">Repeatedly steps through array comparing adjacent elements and swapping them if out of order. Larger values "bubble up" to the end.</p>
+        </div>
+
+        <div style="background: #f8fafc; padding: 20px; border-radius: 12px; border-left: 4px solid var(--secondary);">
+          <h3 style="color: #0369a1; margin-bottom: 8px;">2. Selection Sort</h3>
+          <p style="font-size: 0.9rem;">Finds the minimum element from the unsorted region and places it at the beginning of the array.</p>
+        </div>
+
+        <div style="background: #f8fafc; padding: 20px; border-radius: 12px; border-left: 4px solid var(--accent-green);">
+          <h3 style="color: #15803d; margin-bottom: 8px;">3. Java Arrays.sort()</h3>
+          <p style="font-size: 0.9rem;">Built-in Dual-Pivot Quicksort algorithm. Blazing fast <strong>O(N log N)</strong> average time performance!</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2: Interactive Sorting Visualizer -->
+    <section class="card">
+      <h2 class="section-title">
+        <span class="icon">🎮</span>
+        Interactive Animated Sorting Visualizer
+      </h2>
+      <p style="margin-bottom: 16px; color: var(--text-muted);">
+        Watch <strong>Bubble Sort</strong> or <strong>Selection Sort</strong> step through element comparisons (Yellow), minimum finding (Purple), and swaps (Red) until the array is fully sorted (Green)!
+      </p>
+
+      <div class="interactive-container">
+        <div class="controls-row">
+          <button onclick="startBubbleSort()" class="btn" style="background: var(--accent-amber); color: white;" id="btnBubble">🫧 Play Bubble Sort</button>
+          <button onclick="startSelectionSort()" class="btn" style="background: var(--secondary); color: white;" id="btnSelection">🎯 Play Selection Sort</button>
+          <button onclick="resetArray()" class="btn" style="background: #475569; color: white;" id="btnReset">🔀 Shuffle Array</button>
+          <div style="margin-left: auto; font-family: 'Fira Code'; font-size: 0.85rem;" id="sortStatus">Status: Ready to Sort</div>
+        </div>
+
+        <div class="bar-chart" id="barChart"></div>
+
+        <div class="legend-row" style="display: flex; gap: 16px; margin-top: 16px; flex-wrap: wrap; font-size: 0.85rem; color: #94a3b8; justify-content: center;">
+          <div style="display: flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 12px; background: #38bdf8; border-radius: 3px; display: inline-block;"></span> Unsorted</div>
+          <div style="display: flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 12px; background: #f59e0b; border-radius: 3px; display: inline-block;"></span> Comparing</div>
+          <div style="display: flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 12px; background: #c084fc; border-radius: 3px; display: inline-block;"></span> Min Found (Selection Sort)</div>
+          <div style="display: flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 12px; background: #ef4444; border-radius: 3px; display: inline-block;"></span> Swapping</div>
+          <div style="display: flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 12px; background: #10b981; border-radius: 3px; display: inline-block;"></span> Sorted</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 3: Code Example -->
+    <section class="card">
+      <h2 class="section-title">
+        <span class="icon">💻</span>
+        Runnable Java Example
+      </h2>
+      <div class="code-block">
+        <header>
+          <span>ArraySortingDemo.java</span>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+            <span>Java 17+</span>
+          </div>
+        </header>
+        <pre><code><span class="kw">import</span> java.util.<span class="type">Arrays</span>;
+<span class="kw">import</span> java.util.<span class="type">Collections</span>;
+
+<span class="kw">public class</span> <span class="type">ArraySortingDemo</span> {
+    <span class="kw">public static void</span> main(<span class="type">String</span>[] args) {
+        <span class="type">int</span>[] numbers = {<span class="num">64</span>, <span class="num">34</span>, <span class="num">25</span>, <span class="num">12</span>, <span class="num">22</span>, <span class="num">11</span>, <span class="num">90</span>};
+
+        <span class="cmt">// 1. Custom Bubble Sort (Ascending)</span>
+        bubbleSort(numbers);
+        <span class="type">System</span>.out.println(<span class="str">"Bubble Sorted: "</span> + <span class="type">Arrays</span>.toString(numbers));
+
+        <span class="cmt">// 2. Custom Selection Sort (Ascending)</span>
+        <span class="type">int</span>[] selectionData = {<span class="num">64</span>, <span class="num">25</span>, <span class="num">12</span>, <span class="num">22</span>, <span class="num">11</span>};
+        selectionSort(selectionData);
+        <span class="type">System</span>.out.println(<span class="str">"Selection Sorted: "</span> + <span class="type">Arrays</span>.toString(selectionData));
+
+        <span class="cmt">// 3. Built-in Arrays.sort()</span>
+        <span class="type">int</span>[] data = {<span class="num">9</span>, <span class="num">3</span>, <span class="num">7</span>, <span class="num">1</span>, <span class="num">5</span>};
+        <span class="type">Arrays</span>.sort(data);
+        <span class="type">System</span>.out.println(<span class="str">"Arrays.sort(): "</span> + <span class="type">Arrays</span>.toString(data));
+
+        <span class="cmt">// 4. Descending Order using Collections.reverseOrder()</span>
+        <span class="type">Integer</span>[] boxedData = {<span class="num">9</span>, <span class="num">3</span>, <span class="num">7</span>, <span class="num">1</span>, <span class="num">5</span>};
+        <span class="type">Arrays</span>.sort(boxedData, <span class="type">Collections</span>.reverseOrder());
+        <span class="type">System</span>.out.println(<span class="str">"Descending Sort: "</span> + <span class="type">Arrays</span>.toString(boxedData));
+    }
+
+    <span class="kw">public static void</span> bubbleSort(<span class="type">int</span>[] arr) {
+        <span class="type">int</span> n = arr.length;
+        <span class="kw">for</span> (<span class="type">int</span> i = <span class="num">0</span>; i < n - <span class="num">1</span>; i++) {
+            <span class="kw">for</span> (<span class="type">int</span> j = <span class="num">0</span>; j < n - i - <span class="num">1</span>; j++) {
+                <span class="kw">if</span> (arr[j] > arr[j + <span class="num">1</span>]) {
+                    <span class="type">int</span> temp = arr[j];
+                    arr[j] = arr[j + <span class="num">1</span>];
+                    arr[j + <span class="num">1</span>] = temp;
+                }
+            }
+        }
+    }
+
+    <span class="kw">public static void</span> selectionSort(<span class="type">int</span>[] arr) {
+        <span class="type">int</span> n = arr.length;
+        <span class="kw">for</span> (<span class="type">int</span> i = <span class="num">0</span>; i < n - <span class="num">1</span>; i++) {
+            <span class="type">int</span> minIdx = i;
+            <span class="kw">for</span> (<span class="type">int</span> j = i + <span class="num">1</span>; j < n; j++) {
+                <span class="kw">if</span> (arr[j] < arr[minIdx]) {
+                    minIdx = j;
+                }
+            }
+            <span class="type">int</span> temp = arr[minIdx];
+            arr[minIdx] = arr[i];
+            arr[i] = temp;
+        }
+    }
+}</code></pre>
+      </div>
+
+      <div style="margin-top: 16px; background: #0f172a; padding: 16px; border-radius: 10px; color: #38bdf8; font-family: 'Fira Code', monospace; font-size: 0.85rem;">
+        <strong>🖥️ Program Output:</strong><br>
+        Bubble Sorted: [11, 12, 22, 25, 34, 64, 90]<br>
+        Selection Sorted: [11, 12, 22, 25, 64]<br>
+        Arrays.sort(): [1, 3, 5, 7, 9]<br>
+        Descending Sort: [9, 7, 5, 3, 1]
+      </div>
+    </section>
+
+    <!-- SECTION 4: Quiz -->
+    <section class="card">
+      <h2 class="section-title">
+        <span class="icon">🧪</span>
+        Quick Knowledge Check
+      </h2>
+      <p style="margin-bottom: 16px;">What is the average time complexity of Java's built-in <code>Arrays.sort()</code> for primitive arrays?</p>
+      <div id="quizOptions">
+        <div class="quiz-option" onclick="checkQuiz(this, false)">A) O(N²)</div>
+        <div class="quiz-option" onclick="checkQuiz(this, true)">B) O(N log N) (Dual-Pivot Quicksort)</div>
+        <div class="quiz-option" onclick="checkQuiz(this, false)">C) O(N)</div>
+        <div class="quiz-option" onclick="checkQuiz(this, false)">D) O(1)</div>
+      </div>
+      <div id="quizFeedback" style="margin-top: 12px; font-weight: 600; display: none;"></div>
+    </section>
+  </div>
+
+  <script>
+    let rawValues = [45, 12, 89, 23, 67, 9, 34];
+    let isSorting = false;
+
+    function renderBars(state = {}) {
+      const { comparing = [], minIdx = -1, swapping = [], sorted = [] } = state;
+      const chart = document.getElementById('barChart');
+      chart.innerHTML = '';
+
+      rawValues.forEach((val, idx) => {
+        const bar = document.createElement('div');
+        bar.className = 'bar';
+        if (sorted.includes(idx)) bar.classList.add('sorted');
+        else if (swapping.includes(idx)) bar.classList.add('swapping');
+        else if (idx === minIdx) bar.classList.add('min-found');
+        else if (comparing.includes(idx)) bar.classList.add('comparing');
+
+        bar.style.height = `${val * 2}px`;
+        bar.textContent = val;
+        chart.appendChild(bar);
+      });
+    }
+
+    function disableButtons(disabled) {
+      document.getElementById('btnBubble').disabled = disabled;
+      document.getElementById('btnSelection').disabled = disabled;
+      document.getElementById('btnReset').disabled = disabled;
+    }
+
+    async function startBubbleSort() {
+      if (isSorting) return;
+      isSorting = true;
+      disableButtons(true);
+      const status = document.getElementById('sortStatus');
+      status.textContent = 'Status: Bubble Sort in progress...';
+
+      let arr = [...rawValues];
+      let n = arr.length;
+      let sortedIndices = [];
+
+      for (let i = 0; i < n - 1; i++) {
+        for (let j = 0; j < n - i - 1; j++) {
+          renderBars({ comparing: [j, j + 1], sorted: sortedIndices });
+          await new Promise(r => setTimeout(r, 400));
+
+          if (arr[j] > arr[j + 1]) {
+            renderBars({ swapping: [j, j + 1], sorted: sortedIndices });
+            await new Promise(r => setTimeout(r, 350));
+            let tmp = arr[j];
+            arr[j] = arr[j + 1];
+            arr[j + 1] = tmp;
+            rawValues = [...arr];
+            renderBars({ comparing: [j, j + 1], sorted: sortedIndices });
+          }
+        }
+        sortedIndices.push(n - 1 - i);
+      }
+      sortedIndices = Array.from({length: n}, (_, k) => k);
+      renderBars({ sorted: sortedIndices });
+      status.textContent = 'Status: 🎉 Bubble Sort Complete!';
+      isSorting = false;
+      disableButtons(false);
+    }
+
+    async function startSelectionSort() {
+      if (isSorting) return;
+      isSorting = true;
+      disableButtons(true);
+      const status = document.getElementById('sortStatus');
+      status.textContent = 'Status: Selection Sort in progress...';
+
+      let arr = [...rawValues];
+      let n = arr.length;
+      let sortedIndices = [];
+
+      for (let i = 0; i < n - 1; i++) {
+        let minIdx = i;
+        status.textContent = `Status: Searching for min starting at index ${i}...`;
+        renderBars({ minIdx: minIdx, sorted: sortedIndices });
+        await new Promise(r => setTimeout(r, 450));
+
+        for (let j = i + 1; j < n; j++) {
+          renderBars({ comparing: [j], minIdx: minIdx, sorted: sortedIndices });
+          await new Promise(r => setTimeout(r, 400));
+
+          if (arr[j] < arr[minIdx]) {
+            minIdx = j;
+            status.textContent = `Status: New minimum value ${arr[j]} found at index ${j}!`;
+            renderBars({ minIdx: minIdx, sorted: sortedIndices });
+            await new Promise(r => setTimeout(r, 400));
+          }
+        }
+
+        if (minIdx !== i) {
+          status.textContent = `Status: Swapping index ${i} (₹{arr[i]}) with minimum at index ${minIdx} (₹{arr[minIdx]})`;
+          renderBars({ swapping: [i, minIdx], sorted: sortedIndices });
+          await new Promise(r => setTimeout(r, 500));
+
+          let tmp = arr[i];
+          arr[i] = arr[minIdx];
+          arr[minIdx] = tmp;
+          rawValues = [...arr];
+        }
+
+        sortedIndices.push(i);
+        renderBars({ sorted: sortedIndices });
+        await new Promise(r => setTimeout(r, 300));
+      }
+
+      sortedIndices = Array.from({length: n}, (_, k) => k);
+      renderBars({ sorted: sortedIndices });
+      status.textContent = 'Status: 🎉 Selection Sort Complete!';
+      isSorting = false;
+      disableButtons(false);
+    }
+
+    function resetArray() {
+      if (isSorting) return;
+      rawValues = Array.from({length: 7}, () => Math.floor(Math.random() * 80) + 10);
+      document.getElementById('sortStatus').textContent = 'Status: Array Shuffled';
+      renderBars();
+    }
+
+    function checkQuiz(element, isCorrect) {
+      const options = document.querySelectorAll('.quiz-option');
+      options.forEach(opt => opt.classList.remove('correct', 'incorrect'));
+      const feedback = document.getElementById('quizFeedback');
+      if (isCorrect) {
+        element.classList.add('correct');
+        feedback.style.color = '#166534';
+        feedback.innerHTML = '🎉 Correct! Arrays.sort() uses Dual-Pivot Quicksort with O(N log N) performance.';
+      } else {
+        element.classList.add('incorrect');
+        feedback.style.color = '#991b1b';
+        feedback.innerHTML = '❌ Incorrect. Arrays.sort() operates in O(N log N) time.';
+      }
+      feedback.style.display = 'block';
+    }
+
+    renderBars();
+  </script>
+
+  <script>
+    function copyCode(btn) {
+      let codeEl;
+      const codeBlock = btn.closest('.code-block') || btn.closest('.code-container') || btn.closest('pre');
+      if (codeBlock) {
+        codeEl = codeBlock.querySelector('code') || codeBlock.querySelector('pre');
+      }
+      if (!codeEl) {
+        codeEl = btn.parentElement.querySelector('code, pre') || btn.nextElementSibling;
+      }
+      const textToCopy = codeEl ? (codeEl.innerText || codeEl.textContent) : '';
+      if (textToCopy) {
+        navigator.clipboard.writeText(textToCopy).then(() => {
+          showCopiedFeedback(btn);
+        }).catch(() => {
+          const textarea = document.createElement('textarea');
+          textarea.value = textToCopy;
+          document.body.appendChild(textarea);
+          textarea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textarea);
+          showCopiedFeedback(btn);
+        });
+      }
+    }
+
+    function showCopiedFeedback(btn) {
+      const origText = btn.innerHTML;
+      btn.innerHTML = '✓ Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.innerHTML = origText;
+        btn.classList.remove('copied');
+      }, 2000);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('pre').forEach(pre => {
+        if (pre.closest('.code-block') && pre.closest('.code-block').querySelector('.copy-btn')) return;
+        if (pre.querySelector('.copy-btn')) return;
+        pre.style.position = 'relative';
+        const btn = document.createElement('button');
+        btn.className = 'copy-btn';
+        btn.style.cssText = 'position: absolute; top: 10px; right: 10px; z-index: 10;';
+        btn.innerHTML = '📋 Copy';
+        btn.onclick = () => copyCode(btn);
+        pre.appendChild(btn);
+      });
+    });
+  </script>
+
+
+  <script>
+    if (typeof copyCode !== 'function') {
+      function copyCode(btn) {
+        let codeEl;
+        const codeBlock = btn.closest('.code-block') || btn.closest('.code-container') || btn.closest('pre');
+        if (codeBlock) {
+          codeEl = codeBlock.querySelector('code') || codeBlock.querySelector('pre');
+        }
+        if (!codeEl) {
+          codeEl = btn.parentElement.querySelector('code, pre') || btn.nextElementSibling;
+        }
+        const textToCopy = codeEl ? (codeEl.innerText || codeEl.textContent) : '';
+        if (textToCopy) {
+          navigator.clipboard.writeText(textToCopy).then(() => {
+            showCopiedFeedback(btn);
+          }).catch(() => {
+            const textarea = document.createElement('textarea');
+            textarea.value = textToCopy;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            showCopiedFeedback(btn);
+          });
+        }
+      }
+
+      function showCopiedFeedback(btn) {
+        const origText = btn.innerHTML;
+        btn.innerHTML = '✓ Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.innerHTML = origText;
+          btn.classList.remove('copied');
+        }, 2000);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('pre').forEach(pre => {
+        if (pre.closest('.code-block') && pre.closest('.code-block').querySelector('.copy-btn')) return;
+        if (pre.querySelector('.copy-btn')) return;
+        pre.style.position = 'relative';
+        const btn = document.createElement('button');
+        btn.className = 'copy-btn';
+        btn.style.cssText = 'position: absolute; top: 10px; right: 10px; z-index: 10;';
+        btn.innerHTML = '📋 Copy';
+        btn.onclick = () => copyCode(btn);
+        pre.appendChild(btn);
+      });
+    });
+  </script>
+
+</body>
+</html>

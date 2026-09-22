@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Storage of Arrays in Memory (Stack vs Heap) | Java Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --secondary: #0284c7;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f1f5f9 100%);
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 10px 25px rgba(79, 70, 229, 0.07);
+      --shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient); min-height: 100vh; color: var(--text-main);
+      padding: 24px 16px; line-height: 1.6;
+    }
+    .container { max-width: 1100px; margin: 0 auto; }
+    
+    .top-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 8px; background: #ffffff; color: var(--primary-dark);
+      text-decoration: none; padding: 10px 20px; border-radius: 30px; font-weight: 600; font-size: 0.95rem;
+      border: 1px solid var(--card-border); box-shadow: var(--shadow-sm); transition: all 0.25s ease;
+    }
+    .back-btn:hover { background: var(--primary); color: #ffffff; transform: translateX(-4px); }
+    .nav-tag { color: var(--text-muted); font-weight: 600; font-size: 0.9rem; background: rgba(255, 255, 255, 0.8); padding: 6px 14px; border-radius: 20px; border: 1px solid var(--card-border); }
+
+    .hero {
+      background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); color: #ffffff;
+      border-radius: 20px; padding: 40px 32px; text-align: center; box-shadow: var(--shadow-lg); margin-bottom: 32px;
+    }
+    .hero h1 { font-size: 2.5rem; font-weight: 800; margin-bottom: 12px; }
+    .hero p { font-size: 1.15rem; opacity: 0.95; max-width: 780px; margin: 0 auto 20px auto; }
+    .hero-badges { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+    .hero-badge { background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(8px); padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+
+    .card { background: var(--card-bg); border-radius: 18px; padding: 32px; margin-bottom: 32px; box-shadow: var(--shadow-md); border: 1px solid var(--card-border); }
+    .section-title { font-size: 1.5rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 18px; display: flex; align-items: center; gap: 12px; }
+    .section-title .icon { font-size: 1.5rem; background: #eef2ff; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 12px; color: var(--primary); }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    /* Stack vs Heap Visualization */
+    .memory-diagram { display: flex; gap: 24px; background: #0f172a; padding: 24px; border-radius: 16px; border: 1px solid #334155; color: white; flex-wrap: wrap; }
+    .stack-panel, .heap-panel { flex: 1; min-width: 280px; background: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #475569; }
+    .stack-panel h3 { color: #38bdf8; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+    .heap-panel h3 { color: #c084fc; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+    
+    .stack-box { background: rgba(56, 189, 248, 0.1); border: 1px solid #38bdf8; padding: 12px; border-radius: 8px; font-family: 'Fira Code', monospace; margin-bottom: 10px; }
+    .heap-box { background: rgba(192, 132, 252, 0.1); border: 1px solid #c084fc; padding: 16px; border-radius: 8px; font-family: 'Fira Code', monospace; }
+    .heap-elements { display: flex; gap: 8px; overflow-x: auto; margin-top: 12px; padding-top: 8px; border-top: 1px dashed #475569; }
+    .heap-cell { background: #0f172a; border: 1px solid #a855f7; padding: 8px 12px; border-radius: 6px; text-align: center; cursor: pointer; transition: all 0.2s; }
+    .heap-cell:hover { background: #a855f7; color: white; transform: translateY(-2px); }
+
+    .formula-card { background: #f0fdf4; border-left: 4px solid var(--accent-green); padding: 20px; border-radius: 0 12px 12px 0; margin-top: 20px; }
+
+    /* Code Block */
+    .code-block { background: #0f172a; border-radius: 12px; padding: 20px; color: #e2e8f0; font-family: 'Fira Code', monospace; font-size: 0.9rem; overflow-x: auto; border: 1px solid #1e293b; }
+    .code-block header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #334155; padding-bottom: 8px; color: #94a3b8; font-size: 0.8rem; }
+    .kw { color: #c084fc; font-weight: 600; }
+    .type { color: #38bdf8; font-weight: 600; }
+    .num { color: #f43f5e; }
+    .str { color: #4ade80; }
+    .cmt { color: #64748b; font-style: italic; }
+
+    .quiz-option { background: #f1f5f9; padding: 14px 18px; border-radius: 10px; margin-bottom: 10px; cursor: pointer; border: 1px solid #cbd5e1; transition: all 0.2s; font-weight: 500; }
+    .quiz-option:hover { background: #e2e8f0; border-color: var(--primary); }
+    .quiz-option.correct { background: #dcfce7; border-color: var(--accent-green); color: #166534; }
+    .quiz-option.incorrect { background: #fee2e2; border-color: #ef4444; color: #991b1b; }
+  
+    .copy-btn { background: rgba(255, 255, 255, 0.1); color: #e2e8f0; border: 1px solid #475569; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s ease; font-family: inherit; }
+    .copy-btn:hover { background: #4f46e5; color: #ffffff; border-color: #4f46e5; transform: translateY(-1px); }
+    .copy-btn.copied { background: #10b981 !important; color: #ffffff !important; border-color: #10b981 !important; }
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="top-nav">
+      <a href="../index.html" class="back-btn">⬅ Back to Java Index</a>
+      <span class="nav-tag">Topic 3 of 12 • Arrays</span>
+    </div>
+
+    <header class="hero">
+      <h1>Storage of Arrays in Memory</h1>
+      <p>Understand how JVM manages Stack and Heap memory for arrays, reference pointers, contiguous element layout, and O(1) index math.</p>
+      <div class="hero-badges">
+        <span class="hero-badge">🧠 Stack Reference</span>
+        <span class="hero-badge">🏔️ Heap Object</span>
+        <span class="hero-badge">📐 Address Offset Math</span>
+      </div>
+    </header>
+
+    <!-- SECTION 1: Stack vs Heap -->
+    <section class="card">
+      <h2 class="section-title">
+        <span class="icon">🏗️</span>
+        JVM Memory Architecture: Stack vs. Heap
+      </h2>
+      <p style="margin-bottom: 16px;">
+        In Java, arrays are <strong>Objects</strong>. Creating an array involves two distinct regions of JVM memory:
+      </p>
+
+      <div class="grid-2">
+        <div style="background: #f8fafc; padding: 20px; border-radius: 12px; border-left: 4px solid #38bdf8;">
+          <h3 style="color: #0284c7; margin-bottom: 8px;">1. Stack Memory (Reference Variable)</h3>
+          <ul style="padding-left: 20px; font-size: 0.95rem;">
+            <li>Stores the local variable <code>int[] arr</code>.</li>
+            <li>Contains the <strong>4-byte or 8-byte memory address pointer</strong> (reference) pointing to the Heap object.</li>
+            <li>Fast stack frame allocation, destroyed when method returns.</li>
+          </ul>
+        </div>
+
+        <div style="background: #f8fafc; padding: 20px; border-radius: 12px; border-left: 4px solid #a855f7;">
+          <h3 style="color: #7e22ce; margin-bottom: 8px;">2. Heap Memory (Array Object)</h3>
+          <ul style="padding-left: 20px; font-size: 0.95rem;">
+            <li>Stores the actual Array Object with Object Header + <code>length</code> field + contiguous array data.</li>
+            <li>Allocated dynamically at runtime using <code>new</code> keyword.</li>
+            <li>Garbage Collected when no reference on Stack points to it.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2: Interactive Memory Diagram & Offset Calculator -->
+    <section class="card">
+      <h2 class="section-title">
+        <span class="icon">🧮</span>
+        Interactive Stack & Heap Memory Calculator
+      </h2>
+      <p style="margin-bottom: 16px; color: var(--text-muted);">
+        Adjust parameters to calculate exact physical byte memory addresses for any element in an array!
+      </p>
+
+      <div class="memory-diagram">
+        <div class="stack-panel">
+          <h3><span>📚 Stack Memory</span> <span style="font-size:0.75rem; color:#94a3b8;">(Local Scope)</span></h3>
+          <div class="stack-box">
+            <div style="color: #94a3b8; font-size: 0.75rem;">Variable Name:</div>
+            <div style="font-size: 1.1rem; color: #38bdf8; font-weight: bold;">int[] arr</div>
+            <div style="margin-top: 8px; color: #94a3b8; font-size: 0.75rem;">Holds Reference Pointer:</div>
+            <div id="stackRefValue" style="color: #4ade80; font-weight: bold; font-size: 0.95rem;">0x3000</div>
+          </div>
+        </div>
+
+        <div class="heap-panel">
+          <h3><span>🏔️ Heap Memory</span> <span style="font-size:0.75rem; color:#94a3b8;">(Contiguous Allocation)</span></h3>
+          <div class="heap-box">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+              <span style="color: #c084fc; font-weight: bold;">Base Address: <span id="heapBaseAddrDisplay">0x3000</span></span>
+              <span style="color: #94a3b8; font-size: 0.8rem;">Object Header + Length: 16B</span>
+            </div>
+            <div style="font-size: 0.8rem; color: #cbd5e1; margin-bottom: 12px;">Click any element cell below to highlight its exact byte offset address computation:</div>
+            <div class="heap-elements" id="heapCellGrid"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="formula-card" id="formulaBox">
+        <h4 style="color: #166534; margin-bottom: 6px;">📐 Element Address Calculation Formula:</h4>
+        <div style="font-family: 'Fira Code', monospace; font-size: 1.05rem; color: #0f172a; margin: 8px 0;" id="formulaString">
+          Address(arr[i]) = BaseAddress + (i × ElementSize)
+        </div>
+        <div style="font-size: 0.9rem; color: #334155;" id="formulaDetails">
+          Click an element cell above to see calculation steps.
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 3: Code Example -->
+    <section class="card">
+      <h2 class="section-title">
+        <span class="icon">💻</span>
+        Runnable Java Program Example
+      </h2>
+      <div class="code-block">
+        <header>
+          <span>ArrayMemoryDemo.java</span>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+            <span>Java 17+</span>
+          </div>
+        </header>
+        <pre><code><span class="kw">public class</span> <span class="type">ArrayMemoryDemo</span> {
+    <span class="kw">public static void</span> main(<span class="type">String</span>[] args) {
+        <span class="cmt">// 1. Allocate array on Heap</span>
+        <span class="type">int</span>[] numbers = {<span class="num">100</span>, <span class="num">200</span>, <span class="num">300</span>, <span class="num">400</span>};
+
+        <span class="cmt">// 2. Print identity hashcode (Simulates memory address reference)</span>
+        <span class="type">int</span> referenceHashCode = <span class="type">System</span>.identityHashCode(numbers);
+        <span class="type">System</span>.out.println(<span class="str">"Stack Reference HashCode (Hex): 0x"</span> 
+                + <span class="type">Integer</span>.toHexString(referenceHashCode).toUpperCase());
+
+        <span class="cmt">// 3. Array length stored in Heap Object header</span>
+        <span class="type">System</span>.out.println(<span class="str">"Heap Object Length Field: "</span> + numbers.length);
+
+        <span class="cmt">// 4. Reassigning reference to null</span>
+        numbers = <span class="kw">null</span>; <span class="cmt">// Heap object is now eligible for Garbage Collection!</span>
+        <span class="type">System</span>.out.println(<span class="str">"Array reference is now null"</span>);
+    }
+}</code></pre>
+      </div>
+
+      <div style="margin-top: 16px; background: #0f172a; padding: 16px; border-radius: 10px; color: #38bdf8; font-family: 'Fira Code', monospace; font-size: 0.85rem;">
+        <strong>🖥️ Program Output:</strong><br>
+        Stack Reference HashCode (Hex): 0x7B92F090<br>
+        Heap Object Length Field: 4<br>
+        Array reference is now null
+      </div>
+    </section>
+
+    <!-- SECTION 4: Quiz -->
+    <section class="card">
+      <h2 class="section-title">
+        <span class="icon">🧪</span>
+        Quick Knowledge Check
+      </h2>
+      <p style="margin-bottom: 16px;">If an <code>int[]</code> array has base address <code>0x2000</code>, and each <code>int</code> takes 4 bytes, what is the memory address of index 3?</p>
+      <div id="quizOptions">
+        <div class="quiz-option" onclick="checkQuiz(this, false)">A) 0x2003</div>
+        <div class="quiz-option" onclick="checkQuiz(this, true)">B) 0x200C (0x2000 + 3 × 4 = 0x2000 + 12 decimal = 0x200C)</div>
+        <div class="quiz-option" onclick="checkQuiz(this, false)">C) 0x2012</div>
+        <div class="quiz-option" onclick="checkQuiz(this, false)">D) 0x2004</div>
+      </div>
+      <div id="quizFeedback" style="margin-top: 12px; font-weight: 600; display: none;"></div>
+    </section>
+  </div>
+
+  <script>
+    const sampleValues = [10, 20, 30, 40, 50];
+    const baseAddr = 0x3000;
+    const elemSize = 4; // int
+
+    function renderMemoryGrid() {
+      const grid = document.getElementById('heapCellGrid');
+      grid.innerHTML = '';
+
+      sampleValues.forEach((val, idx) => {
+        const addr = baseAddr + (idx * elemSize);
+        const hexAddr = '0x' + addr.toString(16).toUpperCase();
+        const cell = document.createElement('div');
+        cell.className = 'heap-cell';
+        cell.innerHTML = `
+          <div style="font-size: 0.7rem; color: #cbd5e1;">[${idx}]</div>
+          <div style="font-weight: bold; color: #38bdf8;"> ₹{val}</div>
+          <div style="font-size: 0.65rem; color: #c084fc;"> ₹{hexAddr}</div>
+        `;
+        cell.onclick = () => selectElement(idx, val, addr);
+        grid.appendChild(cell);
+      });
+      selectElement(0, sampleValues[0], baseAddr);
+    }
+
+    function selectElement(index, val, addr) {
+      const hexAddr = '0x' + addr.toString(16).toUpperCase();
+      const hexBase = '0x' + baseAddr.toString(16).toUpperCase();
+      const offsetDec = index * elemSize;
+
+      document.getElementById('formulaString').innerHTML = 
+        `Address(arr[${index}]) = ${hexBase} + (₹{index} × ${elemSize} bytes) = <strong> ₹{hexAddr}</strong>`;
+      document.getElementById('formulaDetails').innerHTML = 
+        `Selected Element: <code>arr[${index}] = ${val}</code>. Offset in memory is ${offsetDec} bytes from Base Address ${hexBase}. Direct memory pointer lookup completes in constant <strong>O(1) time</strong>!`;
+    }
+
+    function checkQuiz(element, isCorrect) {
+      const options = document.querySelectorAll('.quiz-option');
+      options.forEach(opt => opt.classList.remove('correct', 'incorrect'));
+      const feedback = document.getElementById('quizFeedback');
+      if (isCorrect) {
+        element.classList.add('correct');
+        feedback.style.color = '#166534';
+        feedback.innerHTML = '🎉 Correct! 0x2000 + (3 * 4) = 0x2000 + 12 = 0x200C in hexadecimal.';
+      } else {
+        element.classList.add('incorrect');
+        feedback.style.color = '#991b1b';
+        feedback.innerHTML = '❌ Incorrect. Multiply index (3) by element byte size (4 bytes) = 12 bytes = 0xC in hex.';
+      }
+      feedback.style.display = 'block';
+    }
+
+    renderMemoryGrid();
+  </script>
+
+  <script>
+    function copyCode(btn) {
+      let codeEl;
+      const codeBlock = btn.closest('.code-block') || btn.closest('.code-container') || btn.closest('pre');
+      if (codeBlock) {
+        codeEl = codeBlock.querySelector('code') || codeBlock.querySelector('pre');
+      }
+      if (!codeEl) {
+        codeEl = btn.parentElement.querySelector('code, pre') || btn.nextElementSibling;
+      }
+      const textToCopy = codeEl ? (codeEl.innerText || codeEl.textContent) : '';
+      if (textToCopy) {
+        navigator.clipboard.writeText(textToCopy).then(() => {
+          showCopiedFeedback(btn);
+        }).catch(() => {
+          const textarea = document.createElement('textarea');
+          textarea.value = textToCopy;
+          document.body.appendChild(textarea);
+          textarea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textarea);
+          showCopiedFeedback(btn);
+        });
+      }
+    }
+
+    function showCopiedFeedback(btn) {
+      const origText = btn.innerHTML;
+      btn.innerHTML = '✓ Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.innerHTML = origText;
+        btn.classList.remove('copied');
+      }, 2000);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('pre').forEach(pre => {
+        if (pre.closest('.code-block') && pre.closest('.code-block').querySelector('.copy-btn')) return;
+        if (pre.querySelector('.copy-btn')) return;
+        pre.style.position = 'relative';
+        const btn = document.createElement('button');
+        btn.className = 'copy-btn';
+        btn.style.cssText = 'position: absolute; top: 10px; right: 10px; z-index: 10;';
+        btn.innerHTML = '📋 Copy';
+        btn.onclick = () => copyCode(btn);
+        pre.appendChild(btn);
+      });
+    });
+  </script>
+
+
+  <script>
+    if (typeof copyCode !== 'function') {
+      function copyCode(btn) {
+        let codeEl;
+        const codeBlock = btn.closest('.code-block') || btn.closest('.code-container') || btn.closest('pre');
+        if (codeBlock) {
+          codeEl = codeBlock.querySelector('code') || codeBlock.querySelector('pre');
+        }
+        if (!codeEl) {
+          codeEl = btn.parentElement.querySelector('code, pre') || btn.nextElementSibling;
+        }
+        const textToCopy = codeEl ? (codeEl.innerText || codeEl.textContent) : '';
+        if (textToCopy) {
+          navigator.clipboard.writeText(textToCopy).then(() => {
+            showCopiedFeedback(btn);
+          }).catch(() => {
+            const textarea = document.createElement('textarea');
+            textarea.value = textToCopy;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            showCopiedFeedback(btn);
+          });
+        }
+      }
+
+      function showCopiedFeedback(btn) {
+        const origText = btn.innerHTML;
+        btn.innerHTML = '✓ Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.innerHTML = origText;
+          btn.classList.remove('copied');
+        }, 2000);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('pre').forEach(pre => {
+        if (pre.closest('.code-block') && pre.closest('.code-block').querySelector('.copy-btn')) return;
+        if (pre.querySelector('.copy-btn')) return;
+        pre.style.position = 'relative';
+        const btn = document.createElement('button');
+        btn.className = 'copy-btn';
+        btn.style.cssText = 'position: absolute; top: 10px; right: 10px; z-index: 10;';
+        btn.innerHTML = '📋 Copy';
+        btn.onclick = () => copyCode(btn);
+        pre.appendChild(btn);
+      });
+    });
+  </script>
+
+</body>
+</html>

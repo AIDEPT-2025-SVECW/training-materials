@@ -670,7 +670,12 @@
                 transition-duration: 0.001ms !important;
             }
         }
-    </style>
+    
+    .copy-btn { background: rgba(255, 255, 255, 0.1); color: #e2e8f0; border: 1px solid #475569; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s ease; font-family: inherit; }
+    .copy-btn:hover { background: #4f46e5; color: #ffffff; border-color: #4f46e5; transform: translateY(-1px); }
+    .copy-btn.copied { background: #10b981 !important; color: #ffffff !important; border-color: #10b981 !important; }
+
+  </style>
 </head>
 
 <body>
@@ -805,7 +810,7 @@
                     <span class="glyph">🍕</span>
                     <div class="name">Margherita Pizza</div>
                     <div class="kind food">FoodItem</div>
-                    <div class="price">$9.00 base</div>
+                    <div class="price">₹9.00 base</div>
                 </div>
                 <div class="menu-item" data-name="Paneer Tikka Wrap" data-kind="FoodItem" data-price="7.50"
                     data-rate="0.05" data-glyph="🌯">
@@ -813,7 +818,7 @@
                     <span class="glyph">🌯</span>
                     <div class="name">Paneer Tikka Wrap</div>
                     <div class="kind food">FoodItem</div>
-                    <div class="price">$7.50 base</div>
+                    <div class="price">₹7.50 base</div>
                 </div>
                 <div class="menu-item" data-name="Cold Coffee" data-kind="BeverageItem" data-price="4.00"
                     data-rate="0.12" data-glyph="🥤">
@@ -821,7 +826,7 @@
                     <span class="glyph">🥤</span>
                     <div class="name">Cold Coffee</div>
                     <div class="kind bev">BeverageItem</div>
-                    <div class="price">$4.00 base</div>
+                    <div class="price">₹4.00 base</div>
                 </div>
                 <div class="menu-item" data-name="Sparkling Cola" data-kind="BeverageItem" data-price="3.00"
                     data-rate="0.12" data-glyph="🧋">
@@ -829,7 +834,7 @@
                     <span class="glyph">🧋</span>
                     <div class="name">Sparkling Cola</div>
                     <div class="kind bev">BeverageItem</div>
-                    <div class="price">$3.00 base</div>
+                    <div class="price">₹3.00 base</div>
                 </div>
             </div>
 
@@ -961,7 +966,7 @@
 
             function next() {
                 if (i >= items.length) {
-                    totalEl.innerHTML = 'Loop finished — total tax across ' + items.length + ' item(s): <b>$' + total.toFixed(2) + '</b>. Every call was the identical line <code>item.calculateTax()</code>; the class that answered it changed each time.';
+                    totalEl.innerHTML = 'Loop finished — total tax across ' + items.length + ' item(s): <b> ₹' + total.toFixed(2) + '</b>. Every call was the identical line <code>item.calculateTax()</code>; the class that answered it changed each time.';
                     totalEl.style.display = 'block';
                     return;
                 }
@@ -978,7 +983,7 @@
                     '<span class="glyph">' + el.dataset.glyph + '</span>' +
                     '<span class="call">MenuItem ref → <span class="type">' + kind + '</span>.calculateTax()</span>' +
                     '<span class="resolved">' + (kind === 'FoodItem' ? '5% GST' : '12% bev tax') + '</span>' +
-                    '<span class="amount">$' + tax.toFixed(2) + '</span>';
+                    '<span class="amount"> ₹' + tax.toFixed(2) + '</span>';
                 log.appendChild(row);
                 i++;
                 setTimeout(next, 420);
@@ -986,6 +991,112 @@
             next();
         });
     </script>
+
+
+  <script>
+    function copyCode(btn) {
+      let codeEl;
+      const codeBlock = btn.closest('.code-block') || btn.closest('.code-container') || btn.closest('pre');
+      if (codeBlock) {
+        codeEl = codeBlock.querySelector('code') || codeBlock.querySelector('pre');
+      }
+      if (!codeEl) {
+        codeEl = btn.parentElement.querySelector('code, pre') || btn.nextElementSibling;
+      }
+      const textToCopy = codeEl ? (codeEl.innerText || codeEl.textContent) : '';
+      if (textToCopy) {
+        navigator.clipboard.writeText(textToCopy).then(() => {
+          showCopiedFeedback(btn);
+        }).catch(() => {
+          const textarea = document.createElement('textarea');
+          textarea.value = textToCopy;
+          document.body.appendChild(textarea);
+          textarea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textarea);
+          showCopiedFeedback(btn);
+        });
+      }
+    }
+
+    function showCopiedFeedback(btn) {
+      const origText = btn.innerHTML;
+      btn.innerHTML = '✓ Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.innerHTML = origText;
+        btn.classList.remove('copied');
+      }, 2000);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('pre').forEach(pre => {
+        if (pre.closest('.code-block') && pre.closest('.code-block').querySelector('.copy-btn')) return;
+        if (pre.querySelector('.copy-btn')) return;
+        pre.style.position = 'relative';
+        const btn = document.createElement('button');
+        btn.className = 'copy-btn';
+        btn.style.cssText = 'position: absolute; top: 10px; right: 10px; z-index: 10;';
+        btn.innerHTML = '📋 Copy';
+        btn.onclick = () => copyCode(btn);
+        pre.appendChild(btn);
+      });
+    });
+  </script>
+
+
+  <script>
+    if (typeof copyCode !== 'function') {
+      function copyCode(btn) {
+        let codeEl;
+        const codeBlock = btn.closest('.code-block') || btn.closest('.code-container') || btn.closest('pre');
+        if (codeBlock) {
+          codeEl = codeBlock.querySelector('code') || codeBlock.querySelector('pre');
+        }
+        if (!codeEl) {
+          codeEl = btn.parentElement.querySelector('code, pre') || btn.nextElementSibling;
+        }
+        const textToCopy = codeEl ? (codeEl.innerText || codeEl.textContent) : '';
+        if (textToCopy) {
+          navigator.clipboard.writeText(textToCopy).then(() => {
+            showCopiedFeedback(btn);
+          }).catch(() => {
+            const textarea = document.createElement('textarea');
+            textarea.value = textToCopy;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            showCopiedFeedback(btn);
+          });
+        }
+      }
+
+      function showCopiedFeedback(btn) {
+        const origText = btn.innerHTML;
+        btn.innerHTML = '✓ Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.innerHTML = origText;
+          btn.classList.remove('copied');
+        }, 2000);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('pre').forEach(pre => {
+        if (pre.closest('.code-block') && pre.closest('.code-block').querySelector('.copy-btn')) return;
+        if (pre.querySelector('.copy-btn')) return;
+        pre.style.position = 'relative';
+        const btn = document.createElement('button');
+        btn.className = 'copy-btn';
+        btn.style.cssText = 'position: absolute; top: 10px; right: 10px; z-index: 10;';
+        btn.innerHTML = '📋 Copy';
+        btn.onclick = () => copyCode(btn);
+        pre.appendChild(btn);
+      });
+    });
+  </script>
 
 </body>
 
