@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Express.js Role-Based Authorization (RBAC) - Step-by-Step Guide</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 50%, #f1f5f9 100%);
+            padding: 20px;
+            color: #1e293b;
+            line-height: 1.65;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08);
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+
+        header {
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            color: white;
+            padding: 35px 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        header h1 {
+            font-size: 2.3em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.95;
+            max-width: 800px;
+            margin: 0 auto 15px auto;
+        }
+
+        .github-ref-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.18);
+            color: white;
+            padding: 8px 18px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9em;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .github-ref-btn:hover {
+            background: white;
+            color: #0369a1;
+            transform: translateY(-2px);
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+            padding: 28px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            border-left: 5px solid #0284c7;
+        }
+
+        .section h2 {
+            color: #0c4a6e;
+            margin-bottom: 15px;
+            font-size: 1.7em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section h3 {
+            color: #334155;
+            margin-top: 22px;
+            margin-bottom: 12px;
+            font-size: 1.25em;
+        }
+
+        .concept {
+            background: #f0f9ff;
+            padding: 16px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #0284c7;
+            color: #0c4a6e;
+        }
+
+        .analogy {
+            background: #fffbe6;
+            padding: 16px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #d97706;
+            color: #78350f;
+        }
+
+        .analogy::before {
+            content: "💡 Real-World Analogy: ";
+            font-weight: bold;
+            color: #b45309;
+        }
+
+        pre {
+            background: #0f172a;
+            color: #f8fafc;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin: 16px 0;
+            font-size: 0.9em;
+            line-height: 1.5;
+            border: 1px solid #1e293b;
+        }
+
+        code {
+            font-family: 'Consolas', 'Courier New', Courier, monospace;
+        }
+
+        .interactive-demo {
+            background: white;
+            border: 2px solid #0284c7;
+            border-radius: 12px;
+            padding: 28px;
+            margin: 25px 0;
+            box-shadow: 0 8px 25px rgba(2, 132, 199, 0.08);
+        }
+
+        .demo-title {
+            color: #0369a1;
+            font-weight: bold;
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #334155;
+            font-size: 0.95em;
+        }
+
+        select {
+            width: 100%;
+            padding: 11px;
+            border: 2px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 0.95em;
+            transition: border-color 0.3s;
+            font-family: inherit;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #0284c7;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        button {
+            background: #0284c7;
+            color: white;
+            padding: 11px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: inherit;
+        }
+
+        button:hover {
+            background: #0369a1;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+        }
+
+        button.btn-admin {
+            background: #7c3aed;
+        }
+        button.btn-admin:hover {
+            background: #6d28d9;
+        }
+
+        .output-box {
+            background: #0f172a;
+            color: #38bdf8;
+            padding: 16px;
+            border-radius: 8px;
+            font-family: 'Consolas', monospace;
+            font-size: 0.85em;
+            min-height: 140px;
+            max-height: 260px;
+            overflow-y: auto;
+            border: 1px solid #1e293b;
+        }
+
+        .output-box-header {
+            font-weight: bold;
+            color: #94a3b8;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 6px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.8em;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .error { color: #f87171; }
+        .success { color: #4ade80; }
+        .forbidden { color: #fb923c; }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e2e8f0;
+            overflow-x: auto;
+        }
+
+        .tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: #64748b;
+            font-weight: 600;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+            font-family: inherit;
+            white-space: nowrap;
+        }
+
+        .tab.active {
+            color: #0284c7;
+            border-bottom-color: #0284c7;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .quiz {
+            background: white;
+            padding: 22px;
+            border-radius: 10px;
+            margin-top: 15px;
+            border: 1px solid #cbd5e1;
+        }
+
+        .quiz-option {
+            padding: 12px 16px;
+            margin: 10px 0;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.25s;
+            font-weight: 500;
+        }
+
+        .quiz-option:hover {
+            background: #f8fafc;
+            border-color: #0284c7;
+        }
+
+        .quiz-option.correct {
+            background: #dcfce7;
+            border-color: #22c55e;
+            color: #15803d;
+            font-weight: 600;
+        }
+
+        .quiz-option.incorrect {
+            background: #fee2e2;
+            border-color: #ef4444;
+            color: #b91c1c;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: #0284c7;
+            color: white;
+            border-radius: 15px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-right: 8px;
+        }
+
+        .status-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            font-size: 0.9em;
+        }
+
+        .status-table th, .status-table td {
+            padding: 10px 14px;
+            border: 1px solid #e2e8f0;
+            text-align: left;
+        }
+
+        .status-table th {
+            background: #e0f2fe;
+            color: #0369a1;
+            font-weight: 700;
+        }
+
+        .instructor-notes {
+            background: #f0fdf4;
+            border: 2px solid #22c55e;
+            border-radius: 12px;
+            padding: 22px;
+            margin-top: 30px;
+        }
+
+        .instructor-notes summary {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #15803d;
+            cursor: pointer;
+            padding: 8px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>🛡️ Role-Based Authorization (RBAC) in Express.js</h1>
+            <p>Continuation Guide: Restricting Route Access by User Roles (Admin, Instructor, Student)</p>
+            <a href="https://github.com/pradeepjuluri143/fsd2-demo/blob/master/express_project/stateful-app.js"
+                target="_blank" class="github-ref-btn">
+                <span>🔗 GitHub Reference Project: stateful-app.js</span>
+            </a>
+        </header>
+
+        <div class="content">
+            <!-- SECTION 1: OVERVIEW -->
+            <div class="section">
+                <h2>1. Authorization vs Authentication Recap</h2>
+
+                <div class="concept">
+                    <strong>Authentication (Who are you?):</strong> Handled in <code>session_cookie_login.html</code> via session login.<br>
+                    <strong>Authorization (What are you allowed to do?):</strong> Verifies whether the authenticated user possesses the required <strong>Role</strong> (e.g., <code>admin</code>, <code>instructor</code>, <code>student</code>) to access a specific resource.
+                </div>
+
+                <div class="analogy">
+                    Once your room key card proves you are a checked-in hotel guest (Authentication), you can enter your room. But if you try to open the <strong>Manager's Vault or Server Room (Admin Endpoint)</strong>, the door lock checks your clearance (Authorization). If you are a standard guest, access is denied with <strong>HTTP 403 Forbidden</strong>!
+                </div>
+
+                <!-- HTTP 401 VS 403 -->
+                <table class="status-table">
+                    <thead>
+                        <tr>
+                            <th>Status Code</th>
+                            <th>Meaning</th>
+                            <th>When to Return</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>HTTP 401 Unauthorized</strong></td>
+                            <td>User identity unknown / Not logged in</td>
+                            <td>Missing session cookie or invalid session</td>
+                        </tr>
+                        <tr>
+                            <td><strong>HTTP 403 Forbidden</strong></td>
+                            <td>User identified, but lacks role permission</td>
+                            <td>Student trying to access Admin panel</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- SECTION 2: STEP-BY-STEP IMPLEMENTATION -->
+            <div class="section">
+                <h2>2. Step-by-Step Authorization Setup</h2>
+
+                <div class="tabs">
+                    <button class="tab active" onclick="switchTab(event, 'auth1')">Step 1: Save Role in Session</button>
+                    <button class="tab" onclick="switchTab(event, 'auth2')">Step 2: Role Middleware</button>
+                    <button class="tab" onclick="switchTab(event, 'auth3')">Step 3: Secure Routes</button>
+                </div>
+
+                <!-- STEP 1 -->
+                <div id="auth1" class="tab-content active">
+                    <h3>Step 1: Store User Role in Session on Login</h3>
+                    <p>When user logs in, ensure their role is stored in <code>req.session.userRole</code>:</p>
+                    <pre><code>// Inside POST /login endpoint
+app.post('/login', (req, res) => {
+    const { email, password } = req.body;
+    const user = users.find(u => u.email === email && u.password === password);
+
+    if (!user) {
+        return res.status(401).json({ success: false, message: 'Invalid credentials' });
+    }
+
+    // Store user ID and ROLE in session
+    req.session.userId = user.id;
+    req.session.userRole = user.role; // e.g., 'admin', 'instructor', 'student'
+
+    res.json({ success: true, message: 'Login successful!', role: user.role });
+});</code></pre>
+                </div>
+
+                <!-- STEP 2 -->
+                <div id="auth2" class="tab-content">
+                    <h3>Step 2: Create Flexible Role Authorization Middleware</h3>
+                    <p>Create a higher-order middleware factory function <code>authorize(...allowedRoles)</code> that accepts allowed roles:</p>
+
+                    <pre><code>// Authorization Middleware Generator
+const authorize = (...allowedRoles) => {
+    return (req, res, next) => {
+        // 1. Check if user is authenticated first
+        if (!req.session || !req.session.userId) {
+            return res.status(401).json({
+                success: false,
+                message: '401 Unauthorized: Please log in first.'
+            });
+        }
+
+        // 2. Check if user's role is permitted
+        if (!allowedRoles.includes(req.session.userRole)) {
+            return res.status(403).json({
+                success: false,
+                message: `403 Forbidden: Role '${req.session.userRole}' is not allowed to access this resource!`
+            });
+        }
+
+        next(); // User has required role! Proceed to route handler
+    };
+};
+
+module.exports = authorize;</code></pre>
+                </div>
+
+                <!-- STEP 3 -->
+                <div id="auth3" class="tab-content">
+                    <h3>Step 3: Apply Authorization Middleware to Express Routes</h3>
+                    <p>Chain <code>isAuthenticated</code> and <code>authorize(...)</code> middleware on protected endpoints:</p>
+
+                    <pre><code>// 1. Student / Public Authenticated Route (Any logged in user)
+app.get('/student/dashboard', isAuthenticated, (req, res) => {
+    res.json({ message: 'Welcome Student Dashboard!' });
+});
+
+// 2. Instructor & Admin Only Route
+app.get('/course/edit', isAuthenticated, authorize('admin', 'instructor'), (req, res) => {
+    res.json({ message: 'Course Editor Access Granted!' });
+});
+
+// 3. Admin ONLY Route
+app.get('/admin/system-settings', isAuthenticated, authorize('admin'), (req, res) => {
+    res.json({ message: 'Welcome Admin Panel! Full System Access.' });
+});</code></pre>
+                </div>
+            </div>
+
+            <!-- SECTION 3: INTERACTIVE DEMO SIMULATOR -->
+            <div class="section">
+                <h2>3. 🧪 Interactive Authorization Simulator</h2>
+                <p>Select a user role and test route permission enforcement in real time:</p>
+
+                <div class="interactive-demo">
+                    <div class="demo-title">
+                        <span>Role Clearance Sandbox</span>
+                        <span id="roleBadge" class="badge" style="background: #0284c7;">Active Role: Student</span>
+                    </div>
+
+                    <div style="background: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px;">
+                        <div class="form-group">
+                            <label>Simulate Logged-in User Role:</label>
+                            <select id="simRoleSelect" onchange="updateRole()">
+                                <option value="student">Student (Role: 'student')</option>
+                                <option value="instructor">Instructor (Role: 'instructor')</option>
+                                <option value="admin">Admin (Role: 'admin')</option>
+                            </select>
+                        </div>
+
+                        <div class="btn-group">
+                            <button onclick="testRoute('student')">GET /student/profile (All Roles)</button>
+                            <button class="btn-secondary" onclick="testRoute('instructor')">GET /course/grades (Instructor & Admin)</button>
+                            <button class="btn-admin" onclick="testRoute('admin')">GET /admin/settings (Admin ONLY)</button>
+                        </div>
+                    </div>
+
+                    <!-- RESPONSE CONSOLE -->
+                    <div>
+                        <div class="output-box-header" style="background: #1e293b; padding: 8px 12px; border-radius: 6px 6px 0 0; margin-bottom: 0;">
+                            <span>📡 Server Response Console</span>
+                        </div>
+                        <div class="output-box" id="authTerminal" style="border-radius: 0 0 8px 8px; min-height: 120px;">
+                            <span class="success">Role set to 'student'. Click any endpoint button above to test HTTP status responses!</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 4: QUIZ -->
+            <div class="section">
+                <h2>🎯 Self-Assessment Quiz</h2>
+
+                <div class="quiz">
+                    <p style="font-weight: 600; font-size: 1.05em; margin-bottom: 12px;">Q1: What HTTP status code should be returned when a logged-in Student attempts to access an Admin-only route?</p>
+                    <div class="quiz-option" onclick="checkQuiz(this, false)">A. HTTP 200 OK</div>
+                    <div class="quiz-option" onclick="checkQuiz(this, false)">B. HTTP 401 Unauthorized</div>
+                    <div class="quiz-option" onclick="checkQuiz(this, true)">C. HTTP 403 Forbidden</div>
+                    <div class="quiz-option" onclick="checkQuiz(this, false)">D. HTTP 404 Not Found</div>
+                </div>
+
+                <div class="quiz">
+                    <p style="font-weight: 600; font-size: 1.05em; margin-bottom: 12px;">Q2: In Express.js, where is the user's role retrieved from during session-based authorization checks?</p>
+                    <div class="quiz-option" onclick="checkQuiz(this, true)">A. From the server session object (`req.session.userRole`) established during login.</div>
+                    <div class="quiz-option" onclick="checkQuiz(this, false)">B. From an unencrypted URL query parameter (`?role=admin`).</div>
+                    <div class="quiz-option" onclick="checkQuiz(this, false)">C. Hardcoded directly inside index.html.</div>
+                    <div class="quiz-option" onclick="checkQuiz(this, false)">D. From package.json scripts.</div>
+                </div>
+            </div>
+
+            <!-- INSTRUCTOR NOTES -->
+            <details class="instructor-notes">
+                <summary>👨‍🏫 Instructor Teaching Notes</summary>
+                <div style="margin-top: 15px; color: #1e293b;">
+                    <ul style="margin-left: 20px; line-height: 1.7;">
+                        <li><strong>401 vs 403 Clarity:</strong> Emphasize that 401 means "Unauthenticated (Login Required)", while 403 means "Authenticated, but Insufficient Permissions".</li>
+                        <li><strong>Middleware Chaining Order:</strong> Always place <code>isAuthenticated</code> BEFORE <code>authorize(...)</code> in route definitions to ensure <code>req.session.userId</code> exists!</li>
+                    </ul>
+                </div>
+            </details>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(evt, tabId) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+            evt.currentTarget.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        let currentRole = 'student';
+
+        function updateRole() {
+            currentRole = document.getElementById('simRoleSelect').value;
+            const badge = document.getElementById('roleBadge');
+            badge.innerText = 'Active Role: ' + currentRole.toUpperCase();
+            if (currentRole === 'admin') badge.style.background = '#7c3aed';
+            else if (currentRole === 'instructor') badge.style.background = '#0284c7';
+            else badge.style.background = '#0284c7';
+
+            document.getElementById('authTerminal').innerHTML = `<span class="success">Role updated to '${currentRole}'. Try accessing endpoints above!</span>`;
+        }
+
+        function testRoute(endpoint) {
+            const term = document.getElementById('authTerminal');
+            if (endpoint === 'student') {
+                term.innerHTML = `<span class="success">➔ HTTP 200 OK | GET /student/profile\nCheck: Role '${currentRole}' authorized for Student Profile.\nResponse: { success: true, data: "Profile Loaded" }</span>`;
+            } else if (endpoint === 'instructor') {
+                if (currentRole === 'instructor' || currentRole === 'admin') {
+                    term.innerHTML = `<span class="success">➔ HTTP 200 OK | GET /course/grades\nCheck: Role '${currentRole}' is in allowedRoles ['instructor', 'admin']. Access Granted!</span>`;
+                } else {
+                    term.innerHTML = `<span class="forbidden">⚠️ HTTP 403 Forbidden | GET /course/grades\nCheck: Role '${currentRole}' is NOT in allowedRoles ['instructor', 'admin'].\nResponse: { success: false, message: "Forbidden: Access Denied" }</span>`;
+                }
+            } else if (endpoint === 'admin') {
+                if (currentRole === 'admin') {
+                    term.innerHTML = `<span class="success">⚡ HTTP 200 OK | GET /admin/settings\nCheck: Role '${currentRole}' matches required 'admin' role! Access Granted!</span>`;
+                } else {
+                    term.innerHTML = `<span class="forbidden">⚠️ HTTP 403 Forbidden | GET /admin/settings\nCheck: Role '${currentRole}' is NOT allowed. Admin privileges required!\nResponse: { success: false, message: "Forbidden: Admin Access Only" }</span>`;
+                }
+            }
+        }
+
+        function checkQuiz(el, isCorrect) {
+            const parent = el.parentElement;
+            parent.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('correct', 'incorrect'));
+            if (isCorrect) el.classList.add('correct');
+            else el.classList.add('incorrect');
+        }
+    </script>
+</body>
+
+</html>

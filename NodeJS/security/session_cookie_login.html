@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Express JS Session & Cookie Authentication - Step-by-Step Guide</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 50%, #f1f5f9 100%);
+            padding: 20px;
+            color: #1e293b;
+            line-height: 1.65;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08);
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+
+        header {
+            background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
+            color: white;
+            padding: 35px 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        header h1 {
+            font-size: 2.3em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.95;
+            max-width: 800px;
+            margin: 0 auto 15px auto;
+        }
+
+        .github-ref-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.18);
+            color: white;
+            padding: 8px 18px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9em;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .github-ref-btn:hover {
+            background: white;
+            color: #3730a3;
+            transform: translateY(-2px);
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+            padding: 28px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            border-left: 5px solid #4f46e5;
+        }
+
+        .section h2 {
+            color: #1e1b4b;
+            margin-bottom: 15px;
+            font-size: 1.7em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section h3 {
+            color: #334155;
+            margin-top: 22px;
+            margin-bottom: 12px;
+            font-size: 1.25em;
+        }
+
+        .concept {
+            background: #eef2ff;
+            padding: 16px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #4338ca;
+            color: #1e1b4b;
+        }
+
+        .analogy {
+            background: #fffbe6;
+            padding: 16px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #d97706;
+            color: #78350f;
+        }
+
+        .analogy::before {
+            content: "💡 Real-World Analogy: ";
+            font-weight: bold;
+            color: #b45309;
+        }
+
+        pre {
+            background: #0f172a;
+            color: #f8fafc;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin: 16px 0;
+            font-size: 0.9em;
+            line-height: 1.5;
+            border: 1px solid #1e293b;
+        }
+
+        code {
+            font-family: 'Consolas', 'Courier New', Courier, monospace;
+        }
+
+        .interactive-demo {
+            background: white;
+            border: 2px solid #6366f1;
+            border-radius: 12px;
+            padding: 28px;
+            margin: 25px 0;
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.08);
+        }
+
+        .demo-title {
+            color: #4338ca;
+            font-weight: bold;
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #334155;
+            font-size: 0.95em;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        select {
+            width: 100%;
+            padding: 11px;
+            border: 2px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 0.95em;
+            transition: border-color 0.3s;
+            font-family: inherit;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: #4f46e5;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        button {
+            background: #4f46e5;
+            color: white;
+            padding: 11px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: inherit;
+        }
+
+        button:hover {
+            background: #4338ca;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+
+        button.btn-secondary {
+            background: #0284c7;
+        }
+
+        button.btn-secondary:hover {
+            background: #0369a1;
+        }
+
+        button.btn-danger {
+            background: #ef4444;
+        }
+
+        button.btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .output-panel {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .output-panel {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .output-box {
+            background: #0f172a;
+            color: #38bdf8;
+            padding: 16px;
+            border-radius: 8px;
+            font-family: 'Consolas', monospace;
+            font-size: 0.85em;
+            min-height: 140px;
+            max-height: 260px;
+            overflow-y: auto;
+            border: 1px solid #1e293b;
+        }
+
+        .output-box-header {
+            font-weight: bold;
+            color: #94a3b8;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 6px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.8em;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .error {
+            color: #f87171;
+        }
+
+        .success {
+            color: #4ade80;
+        }
+
+        .warning-text {
+            color: #facc15;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e2e8f0;
+            overflow-x: auto;
+        }
+
+        .tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: #64748b;
+            font-weight: 600;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+            font-family: inherit;
+            white-space: nowrap;
+        }
+
+        .tab.active {
+            color: #4f46e5;
+            border-bottom-color: #4f46e5;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .instructor-notes {
+            background: #f0fdf4;
+            border: 2px solid #22c55e;
+            border-radius: 12px;
+            padding: 22px;
+            margin-top: 30px;
+        }
+
+        .instructor-notes summary {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #15803d;
+            cursor: pointer;
+            padding: 8px 0;
+        }
+
+        .quiz {
+            background: white;
+            padding: 22px;
+            border-radius: 10px;
+            margin-top: 15px;
+            border: 1px solid #cbd5e1;
+        }
+
+        .quiz-option {
+            padding: 12px 16px;
+            margin: 10px 0;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.25s;
+            font-weight: 500;
+        }
+
+        .quiz-option:hover {
+            background: #f8fafc;
+            border-color: #6366f1;
+        }
+
+        .quiz-option.correct {
+            background: #dcfce7;
+            border-color: #22c55e;
+            color: #15803d;
+            font-weight: 600;
+        }
+
+        .quiz-option.incorrect {
+            background: #fee2e2;
+            border-color: #ef4444;
+            color: #b91c1c;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: #4f46e5;
+            color: white;
+            border-radius: 15px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-right: 8px;
+        }
+
+        .warning-box {
+            background: #fef2f2;
+            border-left: 4px solid #ef4444;
+            padding: 16px;
+            margin: 15px 0;
+            border-radius: 6px;
+            color: #991b1b;
+        }
+
+        .tip-box {
+            background: #f0fdf4;
+            border-left: 4px solid #22c55e;
+            padding: 16px;
+            margin: 15px 0;
+            border-radius: 6px;
+            color: #166534;
+        }
+
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #0f172a;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .flow-step {
+            background: #1e293b;
+            padding: 12px 18px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            text-align: center;
+            flex: 1;
+            min-width: 140px;
+            font-size: 0.9em;
+        }
+
+        .flow-arrow {
+            color: #38bdf8;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>🍪 Stateful Authentication in Express.js</h1>
+            <p>Step-by-Step Guide: Session & Cookie Authentication Setup</p>
+            <a href="https://github.com/pradeepjuluri143/fsd2-demo/blob/master/express_project/stateful-app.js"
+                target="_blank" class="github-ref-btn">
+                <span>🔗 GitHub Reference Project: stateful-app.js</span>
+            </a>
+        </header>
+
+        <div class="content">
+            <!-- OVERVIEW / CONCEPT -->
+            <div class="section">
+                <h2>1. Stateful Authentication Overview</h2>
+
+                <div class="concept">
+                    <strong>What is Stateful Authentication?</strong><br>
+                    In stateful authentication, the server generates a unique <strong>Session ID</strong> upon login,
+                    stores session state (user details, roles) in server memory or a database (like Redis / MongoDB),
+                    and sends the Session ID back to the browser stored securely inside an HTTP cookie
+                    (<code>connect.sid</code>).
+                </div>
+
+
+
+                <div class="flow-diagram">
+                    <div class="flow-step">1. POST /login<br><small>(Email + Pass)</small></div>
+                    <div class="flow-arrow">➔</div>
+                    <div class="flow-step">2. Server Validates<br><small>& Creates Session</small></div>
+                    <div class="flow-arrow">➔</div>
+                    <div class="flow-step">3. Set-Cookie<br><small>connect.sid (HttpOnly)</small></div>
+                    <div class="flow-arrow">➔</div>
+                    <div class="flow-step">4. Auto Cookie Sent<br><small>on next requests</small></div>
+                </div>
+            </div>
+
+            <!-- STEP-BY-STEP IMPLEMENTATION TABS -->
+            <div class="section">
+                <h2>2. Step-by-Step Setup Process</h2>
+
+                <div class="tabs">
+                    <button class="tab active" onclick="switchTab(event, 'step1')">Step 1: Install Packages</button>
+                    <button class="tab" onclick="switchTab(event, 'step2')">Step 2: Middleware Config</button>
+                    <button class="tab" onclick="switchTab(event, 'step3')">Step 3: Login Route</button>
+                    <button class="tab" onclick="switchTab(event, 'step4')">Step 4: Auth Middleware</button>
+                    <button class="tab" onclick="switchTab(event, 'step5')">Step 5: Protected Routes & Logout</button>
+                </div>
+
+                <!-- STEP 1 -->
+                <div id="step1" class="tab-content active">
+                    <h3>Step 1: Install Required NPM Dependencies</h3>
+                    <p>To implement stateful authentication in Express.js, we install <code>express-session</code> and
+                        <code>cookie-parser</code>:
+                    </p>
+                    <pre><code>npm install express express-session cookie-parser</code></pre>
+
+                    <div class="tip-box">
+                        <strong>Package Roles:</strong>
+                        <ul>
+                            <li><code>express-session</code>: Manages sessions in server memory / session store,
+                                generates Session IDs, and sets session cookies automatically.</li>
+                            <li><code>cookie-parser</code>: Parses cookies attached to incoming HTTP client request
+                                headers into <code>req.cookies</code>.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- STEP 2 -->
+                <div id="step2" class="tab-content">
+                    <h3>Step 2: Configure Session Middleware in Server</h3>
+                    <p>Configure <code>express-session</code> middleware in your main Express app file (e.g.
+                        <code>stateful-app.js</code> or <code>server.js</code>):
+                    </p>
+
+                    <pre><code>const express = require('express');
+const session = require('express-session');
+const cookieParser = require('cookie-parser');
+
+const app = express();
+
+// Body Parser & Cookie Parser Middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+
+// Configure Session Middleware
+app.use(session({
+    secret: 'mySuperSecretKey123', // Secret key to sign the session ID cookie
+    resave: false,                 // Don't save session if unmodified
+    saveUninitialized: false,      // Don't create session until something is stored
+    cookie: {
+        maxAge: 1000 * 60 * 60,   // Session expiration (1 hour in milliseconds)
+        httpOnly: true,           // Prevents client-side JS (XSS) from reading cookie
+        secure: false             // Set to true in production with HTTPS
+    }
+}));</code></pre>
+
+                    <div class="warning-box">
+                        <strong>🔒 Security Alert - HttpOnly Flag:</strong><br>
+                        Always keep <code>httpOnly: true</code> in session cookie configuration! This prevents malicious
+                        client-side JavaScript scripts from reading <code>document.cookie</code>, protecting your users
+                        against XSS session hijacking attacks.
+                    </div>
+                </div>
+
+                <!-- STEP 3 -->
+                <div id="step3" class="tab-content">
+                    <h3>Step 3: Implement Login Endpoint (POST /login)</h3>
+                    <p>When user submits credentials, validate them, store identity in <code>req.session</code>, and
+                        Express automatically sets the cookie:</p>
+
+                    <pre><code>// Mock Database
+const users = [
+    { id: 1, name: 'Pradeep Juluri', email: 'user@example.com', password: 'password123', role: 'admin' }
+];
+
+// POST /login - User Login Endpoint
+app.post('/login', (req, res) => {
+    const { email, password } = req.body;
+
+    // 1. Find user by email
+    const user = users.find(u => u.email === email);
+    if (!user) {
+        return res.status(401).json({ success: false, message: 'Invalid email or password' });
+    }
+
+    // 2. Validate password
+    if (user.password !== password) {
+        return res.status(401).json({ success: false, message: 'Invalid email or password' });
+    }
+
+    // 3. Store user details in session object
+    req.session.userId = user.id;
+    req.session.userEmail = user.email;
+    req.session.userRole = user.role;
+
+    // Express-session automatically creates session & sets Set-Cookie: connect.sid=...
+    res.json({
+        success: true,
+        message: 'Login successful! Session initialized.',
+        user: { id: user.id, name: user.name, email: user.email, role: user.role }
+    });
+});</code></pre>
+                </div>
+
+                <!-- STEP 4 -->
+                <div id="step4" class="tab-content">
+                    <h3>Step 4: Create Authentication Middleware (isAuthenticated)</h3>
+                    <p>Create a custom middleware to verify that incoming requests contain an active session before
+                        granting access to protected routes:</p>
+
+                    <pre><code>// Authentication Middleware
+const isAuthenticated = (req, res, next) => {
+    // Check if session object exists and contains userId
+    if (req.session && req.session.userId) {
+        return next(); // User authenticated! Proceed to route handler
+    }
+
+    // No active session found
+    res.status(401).json({
+        success: false,
+        message: 'Unauthorized access. Please log in first!'
+    });
+};
+
+module.exports = isAuthenticated;</code></pre>
+
+                    <div class="tip-box">
+                        <strong>How Session Lookup Works:</strong><br>
+                        When browser makes a request, it automatically includes
+                        <code>Cookie: connect.sid=s%3A...</code>. The <code>express-session</code> middleware extracts
+                        the ID, looks up the session in memory store, and populates <code>req.session</code>
+                        automatically before reaching <code>isAuthenticated</code>!
+                    </div>
+                </div>
+
+                <!-- STEP 5 -->
+                <div id="step5" class="tab-content">
+                    <h3>Step 5: Protected Routes & Logout Endpoint (POST /logout)</h3>
+                    <p>Apply <code>isAuthenticated</code> middleware to protected endpoints, and handle logout by
+                        destroying session and clearing cookies:</p>
+
+                    <pre><code>// GET /dashboard - Protected Route
+app.get('/dashboard', isAuthenticated, (req, res) => {
+    res.json({
+        success: true,
+        message: `Welcome to Secret Dashboard, ${req.session.userEmail}!`,
+        sessionDetails: {
+            userId: req.session.userId,
+            role: req.session.userRole,
+            sessionExpiry: req.session.cookie.maxAge / 1000 + ' seconds'
+        }
+    });
+});
+
+// POST /logout - Destroy Session & Clear Cookie
+app.post('/logout', (req, res) => {
+    // 1. Destroy session on server
+    req.session.destroy((err) => {
+        if (err) {
+            return res.status(500).json({ success: false, message: 'Could not log out' });
+        }
+
+        // 2. Clear connect.sid cookie on client browser
+        res.clearCookie('connect.sid');
+
+        res.json({
+            success: true,
+            message: 'Logged out successfully. Session destroyed and cookie cleared.'
+        });
+    });
+});</code></pre>
+                </div>
+            </div>
+
+            <!-- INTERACTIVE LIVE DEMO / SIMULATOR -->
+            <div class="section">
+                <h2>3. 🧪 Interactive Live Simulator</h2>
+                <p>Test the entire Stateful Session & Cookie lifecycle right here in your browser!</p>
+
+                <div class="interactive-demo">
+                    <div class="demo-title">
+                        <span>Authentication Sandbox Simulator</span>
+                        <span id="sessionBadge" class="badge" style="background: #64748b;">Status:
+                            Unauthenticated</span>
+                    </div>
+
+                    <!-- LOGIN FORM -->
+                    <div
+                        style="background: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px;">
+                        <h4 style="color: #334155; margin-bottom: 12px;">Step 1: Simulate Login Request (POST /login)
+                        </h4>
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+                            <div class="form-group">
+                                <label>Email Address:</label>
+                                <input type="email" id="simEmail" value="user@example.com">
+                            </div>
+                            <div class="form-group">
+                                <label>Password:</label>
+                                <input type="password" id="simPassword" value="password123">
+                            </div>
+                        </div>
+                        <div class="btn-group">
+                            <button onclick="simLogin()">🔑 Send POST /login</button>
+                            <button class="btn-secondary" onclick="simFetchDashboard()">🔒 Access GET
+                                /dashboard</button>
+                            <button class="btn-danger" onclick="simLogout()">🚪 Send POST /logout</button>
+                        </div>
+                    </div>
+
+                    <!-- LIVE STORAGE VISUALIZER -->
+                    <div class="output-panel">
+                        <!-- SERVER SESSION STORE -->
+                        <div>
+                            <div class="output-box-header">
+                                <span>🖥️ Server Session Store (Memory)</span>
+                                <span id="sessCount">0 Sessions</span>
+                            </div>
+                            <div class="output-box" id="serverSessionStore">
+                                <span class="warning-text">// Memory Session Store is currently EMPTY.
+                                    // Log in to initialize req.session object!</span>
+                            </div>
+                        </div>
+
+                        <!-- BROWSER COOKIES -->
+                        <div>
+                            <div class="output-box-header">
+                                <span>🌐 Browser Cookie Jar</span>
+                                <span id="cookieCount">0 Cookies</span>
+                            </div>
+                            <div class="output-box" id="browserCookieJar">
+                                <span class="warning-text">// No cookies stored.
+                                    // Server Set-Cookie header will appear here upon login.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RESPONSE TERMINAL LOG -->
+                    <div style="margin-top: 15px;">
+                        <div class="output-box-header"
+                            style="background: #1e293b; padding: 8px 12px; border-radius: 6px 6px 0 0; margin-bottom: 0;">
+                            <span>📡 HTTP Network Terminal Console</span>
+                        </div>
+                        <div class="output-box" id="terminalLog" style="border-radius: 0 0 8px 8px; min-height: 120px;">
+                            <span class="success">Ready. Click "Send POST /login" to simulate stateful authentication
+                                flow!</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GITHUB CODE REFERENCE SECTION -->
+            <div class="section" style="background: #eef2ff; border-color: #c7d2fe;">
+                <h2>📁 Code Reference & Practice Repository</h2>
+                <p>Students can review and clone the working reference implementation of Express.js Stateful
+                    Authentication on GitHub:</p>
+
+                <div
+                    style="margin-top: 15px; background: white; padding: 20px; border-radius: 10px; border: 1px solid #cbd5e1; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px;">
+                    <div>
+                        <h4 style="color: #3730a3; font-size: 1.1em; margin-bottom: 4px;">fsd2-demo / stateful-app.js
+                        </h4>
+                        <p style="color: #475569; font-size: 0.9em;">Complete Express.js server script featuring session
+                            setup, cookie handling, middleware protection, and authentication routes.</p>
+                    </div>
+                    <a href="https://github.com/pradeepjuluri143/fsd2-demo/blob/master/express_project/stateful-app.js"
+                        target="_blank" class="github-ref-btn" style="background: #4f46e5; padding: 10px 22px;">
+                        <span>View stateful-app.js on GitHub ➔</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- QUIZ SECTION -->
+            <div class="section">
+                <h2>🎯 Self-Assessment Quiz</h2>
+
+                <div class="quiz">
+                    <p style="font-weight: 600; font-size: 1.05em; margin-bottom: 12px;">Q1: What is stored in the
+                        client browser's cookie in Stateful Authentication?</p>
+                    <div class="quiz-option" onclick="checkQuiz(this, false)">A. The entire user database object
+                        including password hash.</div>
+                    <div class="quiz-option" onclick="checkQuiz(this, true)">B. Only the unique encrypted Session ID
+                        string (connect.sid).</div>
+                    <div class="quiz-option" onclick="checkQuiz(this, false)">C. A JWT access token signed with RS256
+                        algorithm.</div>
+                    <div class="quiz-option" onclick="checkQuiz(this, false)">D. The HTML source code of the dashboard
+                        page.</div>
+                </div>
+
+                <div class="quiz">
+                    <p style="font-weight: 600; font-size: 1.05em; margin-bottom: 12px;">Q2: What is the purpose of
+                        setting <code>httpOnly: true</code> in cookie options?</p>
+                    <div class="quiz-option" onclick="checkQuiz(this, true)">A. Prevents client-side JavaScript
+                        (document.cookie) from accessing the cookie, protecting against XSS attacks.</div>
+                    <div class="quiz-option" onclick="checkQuiz(this, false)">B. Forces the server to send responses in
+                        HTTP/2 protocol only.</div>
+                    <div class="quiz-option" onclick="checkQuiz(this, false)">C. Encrypts the user's password using
+                        AES-256 before saving to database.</div>
+                    <div class="quiz-option" onclick="checkQuiz(this, false)">D. Automatically logs the user out every 5
+                        seconds.</div>
+                </div>
+            </div>
+
+            <!-- INSTRUCTOR NOTES -->
+            <details class="instructor-notes">
+                <summary>👨‍🏫 Instructor Teaching Notes & Key Takeaways</summary>
+                <div style="margin-top: 15px; color: #1e293b;">
+                    <ul style="margin-left: 20px; line-height: 1.7;">
+                        <li><strong>Stateful vs Stateless Distinction:</strong> Emphasize that in stateful auth, the
+                            server MUST maintain state in memory/Redis. If server restarts, in-memory sessions are wiped
+                            (which is why Redis/Mongo store is used in production).</li>
+                        <li><strong>Cookie Security Parameters:</strong>
+                            <ul>
+                                <li><code>httpOnly: true</code> (Mitigates XSS)</li>
+                                <li><code>secure: true</code> (Requires HTTPS, set to false in local dev)</li>
+                                <li><code>sameSite: 'strict'</code> (Mitigates CSRF)</li>
+                            </ul>
+                        </li>
+                        <li><strong>Logout Handling:</strong> Show students that logging out requires BOTH destroying
+                            server session (<code>req.session.destroy()</code>) AND clearing client cookie
+                            (<code>res.clearCookie('connect.sid')</code>).</li>
+                    </ul>
+                </div>
+            </details>
+        </div>
+    </div>
+
+    <script>
+        // TAB SWITCHING
+        function switchTab(evt, tabId) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+            evt.currentTarget.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        // SIMULATOR STATE
+        let activeSession = null;
+
+        function simLogin() {
+            const email = document.getElementById('simEmail').value;
+            const password = document.getElementById('simPassword').value;
+            const term = document.getElementById('terminalLog');
+
+            if (email === 'user@example.com' && password === 'password123') {
+                const sessionID = 'sess:' + Math.random().toString(36).substring(2, 12);
+                activeSession = {
+                    id: sessionID,
+                    userId: 101,
+                    email: email,
+                    role: 'admin',
+                    createdAt: new Date().toLocaleTimeString()
+                };
+
+                // Update UI
+                document.getElementById('sessionBadge').innerText = 'Status: Authenticated (' + email + ')';
+                document.getElementById('sessionBadge').style.background = '#22c55e';
+
+                document.getElementById('sessCount').innerText = '1 Active Session';
+                document.getElementById('serverSessionStore').innerHTML = `
+<span class="success">{\n  sessionID: "${activeSession.id}",\n  userId: 101,\n  email: "${email}",\n  role: "admin",\n  cookie: { maxAge: 3600000, httpOnly: true }\n}</span>`;
+
+                document.getElementById('cookieCount').innerText = '1 Cookie';
+                document.getElementById('browserCookieJar').innerHTML = `
+<span class="success">Key: connect.sid\nValue: ${activeSession.id}\nHttpOnly: true\nPath: /\nExpires: In 1 hour</span>`;
+
+                term.innerHTML = `<span class="success">➔ HTTP 200 OK | POST /login\nHeader Set-Cookie: connect.sid=${activeSession.id}; Path=/; HttpOnly\nResponse Body: { success: true, message: "Login successful!" }</span>`;
+            } else {
+                term.innerHTML = `<span class="error">❌ HTTP 401 Unauthorized | POST /login\nResponse Body: { success: false, message: "Invalid email or password" }</span>`;
+            }
+        }
+
+        function simFetchDashboard() {
+            const term = document.getElementById('terminalLog');
+            if (activeSession) {
+                term.innerHTML = `<span class="success">➔ HTTP 200 OK | GET /dashboard\nRequest Header: Cookie: connect.sid=${activeSession.id}\nServer: Session verified for ${activeSession.email} (Role: ${activeSession.role})!\nResponse: Welcome to Secret Dashboard!</span>`;
+            } else {
+                term.innerHTML = `<span class="error">❌ HTTP 401 Unauthorized | GET /dashboard\nRequest Header: (No Cookie Attached)\nMiddleware isAuthenticated: Access Denied! Please log in first.</span>`;
+            }
+        }
+
+        function simLogout() {
+            const term = document.getElementById('terminalLog');
+            if (!activeSession) {
+                term.innerHTML = `<span class="warning-text">⚠️ No active session to log out.</span>`;
+                return;
+            }
+
+            activeSession = null;
+            document.getElementById('sessionBadge').innerText = 'Status: Unauthenticated';
+            document.getElementById('sessionBadge').style.background = '#64748b';
+
+            document.getElementById('sessCount').innerText = '0 Sessions';
+            document.getElementById('serverSessionStore').innerHTML = `<span class="warning-text">// Session destroyed on server (req.session.destroy()).</span>`;
+
+            document.getElementById('cookieCount').innerText = '0 Cookies';
+            document.getElementById('browserCookieJar').innerHTML = `<span class="warning-text">// Cookie cleared on browser (res.clearCookie('connect.sid')).</span>`;
+
+            term.innerHTML = `<span class="success">➔ HTTP 200 OK | POST /logout\nHeader Set-Cookie: connect.sid=; Expires=Thu, 01 Jan 1970 00:00:00 GMT\nResponse: Session destroyed and cookie cleared successfully.</span>`;
+        }
+
+        // QUIZ CHECKER
+        function checkQuiz(el, isCorrect) {
+            const parent = el.parentElement;
+            parent.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('correct', 'incorrect'));
+            if (isCorrect) {
+                el.classList.add('correct');
+            } else {
+                el.classList.add('incorrect');
+            }
+        }
+    </script>
+</body>
+
+</html>
