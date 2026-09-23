@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Upcasting & Reference Object Casting | Java Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --secondary: #0284c7;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #ef4444;
+      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f1f5f9 100%);
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 10px 25px rgba(79, 70, 229, 0.07);
+      --shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      color: var(--text-main);
+      padding: 24px 16px;
+      line-height: 1.65;
+    }
+    .container { max-width: 1100px; margin: 0 auto; }
+    
+    .top-nav {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+    }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 8px; background: #ffffff; color: var(--primary-dark);
+      text-decoration: none; padding: 10px 20px; border-radius: 30px; font-weight: 600; font-size: 0.95rem;
+      border: 1px solid var(--card-border); box-shadow: var(--shadow-sm); transition: all 0.25s ease;
+    }
+    .back-btn:hover { background: var(--primary); color: #ffffff; transform: translateX(-4px); }
+    .nav-tag {
+      color: var(--text-muted); font-weight: 600; font-size: 0.9rem; background: rgba(255, 255, 255, 0.9);
+      padding: 6px 16px; border-radius: 20px; border: 1px solid var(--card-border);
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #4f46e5 0%, #0284c7 100%); color: #ffffff;
+      border-radius: 20px; padding: 40px 32px; text-align: center; box-shadow: var(--shadow-lg); margin-bottom: 32px;
+    }
+    .hero h1 { font-size: 2.5rem; font-weight: 800; margin-bottom: 12px; }
+    .hero p { font-size: 1.15rem; opacity: 0.95; max-width: 780px; margin: 0 auto 20px auto; }
+    .hero-badges { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+    .hero-badge { background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(8px); padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+
+    .card {
+      background: var(--card-bg); border-radius: 18px; padding: 32px; margin-bottom: 32px;
+      box-shadow: var(--shadow-md); border: 1px solid var(--card-border);
+    }
+    .section-title {
+      font-size: 1.5rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 18px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .section-title .icon {
+      font-size: 1.4rem; background: #eef2ff; width: 44px; height: 44px;
+      display: flex; align-items: center; justify-content: center; border-radius: 12px; color: var(--primary);
+    }
+
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    @media (max-width: 768px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+
+    .concept-box {
+      background: #f8fafc; border: 1px solid var(--card-border); border-radius: 14px; padding: 20px;
+      border-top: 4px solid var(--primary);
+    }
+    .concept-box h3 { font-size: 1.15rem; color: var(--primary-dark); margin-bottom: 8px; }
+
+    .analogy-box {
+      background: linear-gradient(135deg, #fffbe6 0%, #fef3c7 100%);
+      border: 1px solid #fde68a; border-left: 5px solid var(--accent-amber);
+      border-radius: 14px; padding: 22px; margin: 20px 0;
+    }
+    .analogy-box h4 { color: #92400e; font-size: 1.15rem; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+
+    /* Comparison Table */
+    .comparison-table {
+      width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 0.95rem;
+    }
+    .comparison-table th, .comparison-table td {
+      padding: 12px 16px; border: 1px solid var(--card-border); text-align: left;
+    }
+    .comparison-table th {
+      background: #eef2ff; color: var(--primary-dark); font-weight: 700;
+    }
+    .comparison-table tr:nth-child(even) { background: #f8fafc; }
+
+    /* Interactive Visualizer */
+    .interactive-container {
+      background: #0f172a; color: #f8fafc; border-radius: 16px; padding: 28px; border: 1px solid #334155; margin-top: 16px;
+    }
+    .controls-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
+    .btn {
+      padding: 10px 18px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer;
+      transition: all 0.2s; font-size: 0.9rem; font-family: inherit; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-secondary { background: #334155; color: white; }
+    .btn-secondary:hover { background: #475569; }
+    .btn-active { background: var(--secondary) !important; color: white !important; ring: 2px solid #38bdf8; }
+    .btn-action { background: #10b981; color: white; }
+    .btn-action:hover { background: #059669; }
+    .btn-danger { background: #ef4444; color: white; }
+    .btn-danger:hover { background: #dc2626; }
+
+    /* Memory visualizer diagram */
+    .memory-visualizer {
+      display: flex; gap: 20px; align-items: stretch; margin: 20px 0; flex-wrap: wrap;
+    }
+    .memory-box {
+      flex: 1; min-width: 260px; background: #1e293b; border-radius: 12px; padding: 20px; border: 2px solid #334155;
+    }
+    .memory-title {
+      font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; font-weight: 700; margin-bottom: 12px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .pointer-arrow {
+      display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: #38bdf8; padding: 0 10px;
+    }
+    .member-pill {
+      display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-radius: 8px; margin-bottom: 8px;
+      font-family: 'Fira Code', monospace; font-size: 0.85rem; border: 1px solid transparent;
+    }
+    .member-accessible { background: rgba(52, 211, 153, 0.15); border-color: #34d399; color: #34d399; }
+    .member-blocked { background: rgba(244, 63, 94, 0.15); border-color: #f43f5e; color: #f43f5e; text-decoration: line-through; }
+
+    .terminal-output {
+      background: #020617; border-radius: 10px; padding: 16px; font-family: 'Fira Code', monospace; font-size: 0.85rem;
+      border: 1px solid #1e293b; min-height: 110px; margin-top: 16px; line-height: 1.6;
+    }
+    .term-success { color: #4ade80; }
+    .term-error { color: #f87171; }
+    .term-info { color: #38bdf8; }
+
+    /* Code Block */
+    .code-block {
+      background: #0f172a; border-radius: 12px; padding: 20px; color: #e2e8f0; font-family: 'Fira Code', monospace;
+      font-size: 0.9rem; overflow-x: auto; position: relative; border: 1px solid #1e293b; margin: 16px 0;
+    }
+    .code-block header {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #334155; padding-bottom: 8px; color: #94a3b8; font-size: 0.8rem;
+    }
+    .code-block code { white-space: pre; }
+    .kw { color: #c084fc; font-weight: 600; }
+    .type { color: #38bdf8; font-weight: 600; }
+    .num { color: #f43f5e; }
+    .str { color: #4ade80; }
+    .cmt { color: #64748b; font-style: italic; }
+    .fn { color: #facc15; }
+
+    .copy-btn {
+      background: rgba(255, 255, 255, 0.1); color: #e2e8f0; border: 1px solid #475569; padding: 4px 12px;
+      border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: inline-flex;
+      align-items: center; gap: 4px; transition: all 0.2s ease; font-family: inherit;
+    }
+    .copy-btn:hover { background: #4f46e5; color: #ffffff; border-color: #4f46e5; }
+    .copy-btn.copied { background: #10b981 !important; color: #ffffff !important; border-color: #10b981 !important; }
+
+    /* Quiz */
+    .quiz-card { background: #f8fafc; border-radius: 14px; padding: 24px; border: 1px solid var(--card-border); margin-bottom: 16px; }
+    .quiz-option {
+      background: #ffffff; padding: 14px 18px; border-radius: 10px; margin-bottom: 10px; cursor: pointer;
+      border: 1px solid #cbd5e1; transition: all 0.2s; font-weight: 500; display: flex; align-items: center; justify-content: space-between;
+    }
+    .quiz-option:hover { background: #f1f5f9; border-color: var(--primary); }
+    .quiz-option.correct { background: #dcfce7; border-color: var(--accent-green); color: #166534; font-weight: 600; }
+    .quiz-option.incorrect { background: #fee2e2; border-color: #ef4444; color: #991b1b; }
+
+    .nav-buttons { display: flex; justify-content: space-between; gap: 16px; margin-top: 40px; }
+    .nav-btn {
+      padding: 12px 24px; border-radius: 10px; font-weight: 600; text-decoration: none;
+      transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px;
+    }
+    .nav-btn-prev { background: #ffffff; color: var(--text-main); border: 1px solid var(--card-border); }
+    .nav-btn-prev:hover { background: #f1f5f9; }
+    .nav-btn-next { background: var(--primary); color: #ffffff; }
+    .nav-btn-next:hover { background: var(--primary-dark); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="top-nav">
+      <a href="../index.html" class="back-btn">⬅ Back to Java Index</a>
+      <span class="nav-tag">Inheritance in Java</span>
+    </div>
+
+    <header class="hero">
+      <h1>Upcasting & Reference Object Casting</h1>
+      <p>Understand how upcasting converts a child class instance into a parent class reference in Java automatically—enabling polymorphic design while enforcing compile-time access rules.</p>
+      <div class="hero-badges">
+        <span class="hero-badge">⬆️ Implicit Upcasting</span>
+        <span class="hero-badge">🛡️ 100% Type-Safe</span>
+        <span class="hero-badge">🔒 Reference Access Scope</span>
+        <span class="hero-badge">💳 PhonePe / Paytm Analogy</span>
+      </div>
+    </header>
+
+    <!-- SECTION 1: CORE TECHNICAL CONCEPTS -->
+    <div class="card">
+      <h2 class="section-title"><span class="icon">💡</span> What is Upcasting?</h2>
+      <p><strong>Upcasting</strong> is the process of assigning a subclass (child) object instance to a superclass (parent) reference variable.</p>
+
+      <div class="code-block" style="margin: 16px 0;">
+        <code><span class="cmt">// Upcasting Syntax: Superclass reference = Subclass instance</span>
+<span class="type">PaymentMethod</span> pay = <span class="kw">new</span> <span class="type">UPIPayment</span>(); <span class="cmt">// Implicitly Upcasted!</span></code>
+      </div>
+
+      <div class="grid-3" style="margin-top: 20px;">
+        <div class="concept-box">
+          <h3>1. Implicit & Automatic</h3>
+          <p>Since every <code>UPIPayment</code> <strong>IS-A</strong> <code>PaymentMethod</code>, Java performs upcasting automatically. No explicit typecast operator <code>(PaymentMethod)</code> is needed!</p>
+        </div>
+        <div class="concept-box">
+          <h3>2. 100% Type-Safe</h3>
+          <p>Upcasting can never cause a runtime error (like <code>ClassCastException</code>) because a child object contains all properties and behaviors guaranteed by its parent class.</p>
+        </div>
+        <div class="concept-box">
+          <h3>3. Reference Type Scope</h3>
+          <p>The compiler evaluates variable accessibility based on the <strong>Reference Type</strong> (<code>PaymentMethod</code>). Specialized child methods (like <code>scanUPIQRCode()</code>) cannot be called via <code>pay</code>!</p>
+        </div>
+      </div>
+
+      <!-- INDIAN ANALOGY -->
+      <div class="analogy-box">
+        <h4>💳 Real-World Indian Analogy: PhonePe & Paytm Payment Gateway</h4>
+        <p>Imagine Swiggy or Zomato's checkout system. The checkout engine only knows about a generic <code>PaymentMethod</code> interface with a method <code>processPayment(double amount)</code>.</p>
+        <p style="margin-top: 8px;">When you select UPI, Credit Card, or NetBanking, the app creates a <code>UPIPayment</code> instance and passes it as a generic <code>PaymentMethod</code> reference (Upcasting). Swiggy doesn't need to know individual bank APIs—it simply calls <code>payMethod.processPayment(amount)</code>!</p>
+      </div>
+
+      <!-- VISUAL DIAGRAM IMAGE -->
+      <div style="text-align: center; margin: 28px 0;">
+        <img src="upcasting_diagram.jpg" alt="Java Upcasting vs Downcasting Diagram" style="width: 100%; max-width: 900px; border-radius: 14px; box-shadow: var(--shadow-md); border: 1px solid var(--card-border);" />
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 8px;">Figure: Upcasting (Subclass ➔ Superclass) vs Downcasting (Superclass ➔ Subclass) Memory & Casting Flow</p>
+      </div>
+
+      <!-- DOWNCASTING ELABORATION -->
+      <div style="margin-top: 32px; background: #f8fafc; border-radius: 14px; padding: 24px; border: 1px solid var(--card-border); border-left: 5px solid var(--secondary);">
+        <h3 style="color: var(--primary-dark); font-size: 1.25rem; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+          <span>⬇️</span> Elaborating Downcasting: Syntax & Hierarchy Direction
+        </h3>
+        
+        <p><strong>Downcasting</strong> is the inverse of Upcasting. It converts a <strong>Superclass reference</strong> back down into a <strong>Subclass reference</strong> to regain access to subclass-specific methods and fields.</p>
+
+        <div class="code-block" style="margin: 14px 0;">
+          <code><span class="cmt">// Step 1: Upcasting (Implicit & Safe)</span>
+<span class="type">PaymentMethod</span> pay = <span class="kw">new</span> <span class="type">UPIPayment</span>(); 
+
+<span class="cmt">// Step 2: Downcasting (Explicit cast mandatory)</span>
+<span class="type">UPIPayment</span> upi = (<span class="type">UPIPayment</span>) pay; <span class="cmt">// Narrowing conversion</span>
+upi.<span class="fn">scanUPIQRCode</span>(); <span class="cmt">// Subclass-specific method is now ACCESSIBLE!</span></code>
+        </div>
+
+        <h4 style="color: var(--text-main); font-size: 1.05rem; margin: 16px 0 8px 0;">Why is Downcasting syntax & direction different?</h4>
+        <ul style="margin-left: 20px; line-height: 1.7; color: var(--text-muted);">
+          <li><strong>Direction (Moving Down the Tree):</strong> Inheritance is a tree hierarchy with <code>Object</code> at the top and specialized child classes at the bottom. <strong>Upcasting moves UP</strong> from Child to Parent (widening scope). <strong>Downcasting moves DOWN</strong> from Parent to Child (narrowing scope back to the specific type).</li>
+          <li><strong>Why Explicit Cast <code>(Child)</code> is Mandatory:</strong> The compiler only sees <code>pay</code> as a generic <code>PaymentMethod</code>. It cannot guarantee at compile-time whether <code>pay</code> actually holds a <code>UPIPayment</code>, <code>CreditCardPayment</code>, or <code>NetBankingPayment</code>. You must explicitly write <code>(UPIPayment)</code> to promise the compiler it is safe.</li>
+          <li><strong>The Danger of <code>ClassCastException</code>:</strong> If <code>pay</code> actually holds a <code>CreditCardPayment</code> object and you attempt <code>(UPIPayment) pay</code>, the Java compiler permits it, but the JVM will throw a <code>ClassCastException</code> at runtime!</li>
+        </ul>
+
+        <!-- INSTANCEOF OPERATOR DEEP DIVE FEATURE BOX -->
+        <div style="margin-top: 20px; background: #eef2ff; border: 1px solid #c7d2fe; border-left: 5px solid var(--primary); border-radius: 12px; padding: 20px;">
+          <h4 style="color: var(--primary-dark); font-size: 1.1rem; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+            <span>🛡️</span> The <code>instanceof</code> Operator: The Type Safety Shield for Downcasting
+          </h4>
+          <p style="font-size: 0.95rem; color: var(--text-main); line-height: 1.6;">
+            Before performing a downcast, you should <strong>ALWAYS</strong> check the object's actual type using the <code>instanceof</code> operator. It tests whether an object on the Heap is an instance of a specific class or subclass, returning <code>true</code> or <code>false</code>.
+          </p>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 16px;">
+            <!-- TRADITIONAL INSTANCEOF -->
+            <div style="background: #0f172a; border-radius: 10px; padding: 14px; border: 1px solid #334155;">
+              <span style="color: #facc15; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">1. Classic Pattern (Java 7 / 8)</span>
+              <pre style="font-family: 'Fira Code', monospace; font-size: 0.82rem; color: #e2e8f0; margin-top: 8px; white-space: pre-wrap;"><code><span class="kw">if</span> (pay <span class="kw">instanceof</span> <span class="type">UPIPayment</span>) {
+    <span class="cmt">// Explicit downcast required inside block</span>
+    <span class="type">UPIPayment</span> upi = (<span class="type">UPIPayment</span>) pay;
+    upi.<span class="fn">scanUPIQRCode</span>(); <span class="cmt">// 100% Safe!</span>
+}</code></pre>
+            </div>
+
+            <!-- MODERN PATTERN MATCHING INSTANCEOF -->
+            <div style="background: #0f172a; border-radius: 10px; padding: 14px; border: 1px solid #38bdf8;">
+              <span style="color: #38bdf8; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">2. Pattern Matching (Java 16+)</span>
+              <pre style="font-family: 'Fira Code', monospace; font-size: 0.82rem; color: #e2e8f0; margin-top: 8px; white-space: pre-wrap;"><code><span class="kw">if</span> (pay <span class="kw">instanceof</span> <span class="type">UPIPayment</span> upi) {
+    <span class="cmt">// Automatic cast & variable assignment!</span>
+    upi.<span class="fn">scanUPIQRCode</span>(); <span class="cmt">// Clean & Safe!</span>
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COMPARISON TABLE -->
+      <h3 style="margin-top: 24px; color: var(--primary-dark);">Upcasting vs Downcasting Comparison</h3>
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>Upcasting (Implicit)</th>
+            <th>Downcasting (Explicit)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Direction</strong></td>
+            <td>Child object ➔ Parent reference</td>
+            <td>Parent reference ➔ Child reference</td>
+          </tr>
+          <tr>
+            <td><strong>Syntax</strong></td>
+            <td><code>Parent p = new Child();</code></td>
+            <td><code>Child c = (Child) p;</code></td>
+          </tr>
+          <tr>
+            <td><strong>Operator Required</strong></td>
+            <td>Automatic (No cast operator required)</td>
+            <td>Explicit cast operator <code>(Child)</code> mandatory</td>
+          </tr>
+          <tr>
+            <td><strong>Safety</strong></td>
+            <td>Always 100% safe at runtime</td>
+            <td>Risky; can throw <code>ClassCastException</code> if unsafe</td>
+          </tr>
+          <tr>
+            <td><strong>Member Access</strong></td>
+            <td>Restricted strictly to Parent class members</td>
+            <td>Restored access to all Child specific members</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- SECTION 2: INTERACTIVE MEMORY & ACCESS SCOPE VISUALIZER -->
+    <div class="card">
+      <h2 class="section-title"><span class="icon">🧪</span> Interactive Simulator: Upcasting Scope & Method Access</h2>
+      <p>Select different reference types and object instances to see Stack vs Heap memory allocation and test compile-time method accessibility:</p>
+
+      <div class="interactive-container">
+        <div class="controls-row">
+          <span style="color: #cbd5e1; font-weight: 600; font-size: 0.9rem;">Assignment Mode:</span>
+          <button class="btn btn-secondary btn-active" onclick="setSimMode('upcast', this)">Upcasting: PaymentMethod pay = new UPIPayment()</button>
+          <button class="btn btn-secondary" onclick="setSimMode('direct', this)">Direct Child: UPIPayment pay = new UPIPayment()</button>
+          <button class="btn btn-secondary" onclick="setSimMode('parent', this)">Direct Parent: PaymentMethod pay = new PaymentMethod()</button>
+        </div>
+
+        <div class="memory-visualizer">
+          <!-- STACK MEMORY -->
+          <div class="memory-box">
+            <div class="memory-title">
+              <span>Stack Memory (Reference)</span>
+              <span style="color: #38bdf8;" id="stackRefType">PaymentMethod pay</span>
+            </div>
+            <div style="font-family: 'Fira Code', monospace; font-size: 0.85rem; color: #cbd5e1;">
+              Pointer Address: <span style="color: #facc15;">0x7A90</span>
+            </div>
+            <div style="margin-top: 12px; font-size: 0.8rem; color: #94a3b8;">
+              Determines compile-time method visibility!
+            </div>
+          </div>
+
+          <div class="pointer-arrow">➔</div>
+
+          <!-- HEAP MEMORY -->
+          <div class="memory-box">
+            <div class="memory-title">
+              <span>Heap Memory (Instance)</span>
+              <span style="color: #34d399;" id="heapInstType">new UPIPayment()</span>
+            </div>
+            <div id="heapMembers">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- ACTION BUTTONS -->
+        <div style="margin-top: 16px;">
+          <span style="color: #cbd5e1; font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 8px;">Test method calls & Downcasting safety:</span>
+          <div class="controls-row">
+            <button class="btn btn-action" onclick="invokeMethod('processPayment')">pay.processPayment(500)</button>
+            <button class="btn btn-danger" onclick="invokeMethod('scanUPIQRCode')">pay.scanUPIQRCode() [Direct Call - Compilation Error!]</button>
+            <button class="btn btn-primary" onclick="invokeMethod('safeDowncast')">🛡️ Safe Downcast: (if pay instanceof UPIPayment)</button>
+            <button class="btn btn-danger" onclick="invokeMethod('unsafeDowncast')">💥 Unsafe Cast: (UPIPayment) pay</button>
+          </div>
+        </div>
+
+        <!-- TERMINAL OUTPUT -->
+        <div class="terminal-output" id="termOut">
+          <span class="term-info">Simulating JVM Compilation & Execution... Select an action above.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 3: CODE EXAMPLE -->
+    <div class="card">
+      <h2 class="section-title"><span class="icon">💻</span> Complete Java Code: Upcasting & Polymorphic Parameters</h2>
+
+      <div class="code-block">
+        <header>
+          <span>UpcastingDemo.java</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+        </header>
+        <code><span class="kw">class</span> <span class="type">PaymentMethod</span> {
+    <span class="type">String</span> gatewayName = <span class="str">"Generic Gateway"</span>;
+
+    <span class="kw">public void</span> <span class="fn">processPayment</span>(<span class="type">double</span> amount) {
+        <span class="type">System</span>.out.<span class="fn">println</span>(<span class="str">"Processing general payment of ₹"</span> + amount);
+    }
+}
+
+<span class="kw">class</span> <span class="type">UPIPayment</span> <span class="kw">extends</span> <span class="type">PaymentMethod</span> {
+    <span class="type">String</span> upiId = <span class="str">"user@okaxis"</span>;
+
+    <span class="kw">@Override</span>
+    <span class="kw">public void</span> <span class="fn">processPayment</span>(<span class="type">double</span> amount) {
+        <span class="type">System</span>.out.<span class="fn">println</span>(<span class="str">"⚡ Instant UPI Payment of ₹"</span> + amount + <span class="str">" via VPA: "</span> + upiId);
+    }
+
+    <span class="cmt">// Subclass specific method</span>
+    <span class="kw">public void</span> <span class="fn">scanUPIQRCode</span>() {
+        <span class="type">System</span>.out.<span class="fn">println</span>(<span class="str">"Scanning UPI QR Code with Camera..."</span>);
+    }
+}
+
+<span class="kw">public class</span> <span class="type">UpcastingDemo</span> {
+
+    <span class="cmt">// Polymorphic Method demonstrating instanceof Safety Shield</span>
+    <span class="kw">public static void</span> <span class="fn">checkout</span>(<span class="type">PaymentMethod</span> payment, <span class="type">double</span> totalAmount) {
+        <span class="type">System</span>.out.<span class="fn">println</span>(<span class="str">"--- Initiating Checkout ---"</span>);
+        payment.<span class="fn">processPayment</span>(totalAmount); <span class="cmt">// Dynamic dispatch!</span>
+        
+        <span class="cmt">// payment.scanUPIQRCode(); // ❌ COMPILER ERROR: Cannot find symbol in PaymentMethod!</span>
+
+        <span class="cmt">// 🛡️ STRESSING INSTANCEOF FOR SAFE DOWNCASTING:</span>
+        <span class="kw">if</span> (payment <span class="kw">instanceof</span> <span class="type">UPIPayment</span> upi) {
+            <span class="type">System</span>.out.<span class="fn">println</span>(<span class="str">"✓ Verified via instanceof: Safe to downcast!"</span>);
+            upi.<span class="fn">scanUPIQRCode</span>(); <span class="cmt">// Safe access to child-specific method!</span>
+        } <span class="kw">else</span> {
+            <span class="type">System</span>.out.<span class="fn">println</span>(<span class="str">"ℹ️ Not a UPI payment. Skipping QR scan safely."</span>);
+        }
+    }
+
+    <span class="kw">public static void</span> <span class="fn">main</span>(<span class="type">String</span>[] args) {
+        <span class="cmt">// 1. Implicit Upcasting</span>
+        <span class="type">PaymentMethod</span> pay1 = <span class="kw">new</span> <span class="type">UPIPayment</span>(); 
+        <span class="type">PaymentMethod</span> pay2 = <span class="kw">new</span> <span class="type">PaymentMethod</span>();
+
+        <span class="cmt">// 2. Calling checkout with Upcasted UPIPayment (instanceof succeeds!)</span>
+        <span class="fn">checkout</span>(pay1, <span class="num">1250.00</span>);
+
+        <span class="cmt">// 3. Calling checkout with base PaymentMethod (instanceof prevents crash!)</span>
+        <span class="fn">checkout</span>(pay2, <span class="num">499.00</span>);
+    }
+}</code>
+      </div>
+    </div>
+
+    <!-- QUIZ -->
+    <div class="card">
+      <h2 class="section-title"><span class="icon">🎯</span> Interactive Quiz</h2>
+      
+      <div class="quiz-card">
+        <p style="font-weight: 600; margin-bottom: 16px;">Q1: Given <code>Vehicle v = new Car();</code> (where <code>Car extends Vehicle</code> and has a method <code>openSunroof()</code>), what happens when you call <code>v.openSunroof();</code>?</p>
+        <div class="quiz-option" onclick="checkAnswer(this, false)">Runs <code>Car.openSunroof()</code> normally.</div>
+        <div class="quiz-option" onclick="checkAnswer(this, true)">Compile-time Error: <code>Vehicle</code> reference does not know about <code>openSunroof()</code>.</div>
+        <div class="quiz-option" onclick="checkAnswer(this, false)">Throws <code>ClassCastException</code> at runtime.</div>
+        <div class="quiz-option" onclick="checkAnswer(this, false)">Throws <code>NullPointerException</code>.</div>
+      </div>
+
+      <div class="quiz-card">
+        <p style="font-weight: 600; margin-bottom: 16px;">Q2: Why does Java allow Upcasting implicitly without an explicit cast operator <code>(SuperClass)</code>?</p>
+        <div class="quiz-option" onclick="checkAnswer(this, true)">Because a subclass ALWAYS contains every method/field of its superclass, making it 100% type-safe.</div>
+        <div class="quiz-option" onclick="checkAnswer(this, false)">Because Upcasting creates a clone of the child object in memory.</div>
+        <div class="quiz-option" onclick="checkAnswer(this, false)">Because Java converts child objects into primitive types during compilation.</div>
+        <div class="quiz-option" onclick="checkAnswer(this, false)">Because method overriding only works when explicit casting is omitted.</div>
+      </div>
+
+      <div class="quiz-card">
+        <p style="font-weight: 600; margin-bottom: 16px;">Q3: Why is using the <code>instanceof</code> operator strongly recommended before performing downcasting in Java?</p>
+        <div class="quiz-option" onclick="checkAnswer(this, false)">It converts the object into a primitive data type automatically.</div>
+        <div class="quiz-option" onclick="checkAnswer(this, true)">It checks the actual object instance on the Heap at runtime to prevent <code>ClassCastException</code> crashes.</div>
+        <div class="quiz-option" onclick="checkAnswer(this, false)">It forces the JVM to execute static method binding instead of dynamic dispatch.</div>
+        <div class="quiz-option" onclick="checkAnswer(this, false)">It bypasses private field access restrictions.</div>
+      </div>
+    </div>
+
+
+  </div>
+
+  <script>
+    function copyCode(button) {
+      const codeBlock = button.closest('.code-block');
+      const codeText = codeBlock.querySelector('code').innerText;
+      navigator.clipboard.writeText(codeText).then(() => {
+        button.classList.add('copied');
+        button.innerHTML = '✓ Copied!';
+        setTimeout(() => {
+          button.classList.remove('copied');
+          button.innerHTML = '📋 Copy Code';
+        }, 2000);
+      });
+    }
+
+    let currentMode = 'upcast';
+
+    function setSimMode(mode, btn) {
+      currentMode = mode;
+      document.querySelectorAll('.controls-row .btn-secondary').forEach(b => b.classList.remove('btn-active'));
+      btn.classList.add('btn-active');
+
+      const stackRef = document.getElementById('stackRefType');
+      const heapInst = document.getElementById('heapInstType');
+      const heapMembers = document.getElementById('heapMembers');
+      const termOut = document.getElementById('termOut');
+
+      if (mode === 'upcast') {
+        stackRef.innerText = 'PaymentMethod pay';
+        heapInst.innerText = 'new UPIPayment()';
+        heapMembers.innerHTML = `
+          <div class="member-pill member-accessible"><span>✓ processPayment()</span> <small>(Overridden)</small></div>
+          <div class="member-pill member-accessible"><span>✓ validateTransaction()</span> <small>(Parent)</small></div>
+          <div class="member-pill member-blocked"><span>✗ scanUPIQRCode()</span> <small>(Child Only)</small></div>
+        `;
+        termOut.innerHTML = `<span class="term-info">[Upcasting Active]: Reference is 'PaymentMethod', Instance is 'UPIPayment'. Child specific method scanUPIQRCode() is BLOCKED by compiler!</span>`;
+      } else if (mode === 'direct') {
+        stackRef.innerText = 'UPIPayment pay';
+        heapInst.innerText = 'new UPIPayment()';
+        heapMembers.innerHTML = `
+          <div class="member-pill member-accessible"><span>✓ processPayment()</span> <small>(Overridden)</small></div>
+          <div class="member-pill member-accessible"><span>✓ validateTransaction()</span> <small>(Parent)</small></div>
+          <div class="member-pill member-accessible"><span>✓ scanUPIQRCode()</span> <small>(Child Only)</small></div>
+        `;
+        termOut.innerHTML = `<span class="term-info">[Direct Child Reference]: Reference is 'UPIPayment'. ALL parent and child methods are directly ACCESSIBLE!</span>`;
+      } else if (mode === 'parent') {
+        stackRef.innerText = 'PaymentMethod pay';
+        heapInst.innerText = 'new PaymentMethod()';
+        heapMembers.innerHTML = `
+          <div class="member-pill member-accessible"><span>✓ processPayment()</span> <small>(Parent)</small></div>
+          <div class="member-pill member-accessible"><span>✓ validateTransaction()</span> <small>(Parent)</small></div>
+        `;
+        termOut.innerHTML = `<span class="term-info">[Direct Parent Reference]: Reference is 'PaymentMethod', Instance is base 'PaymentMethod'. Base functionality only.</span>`;
+      }
+    }
+
+    function invokeMethod(methodName) {
+      const termOut = document.getElementById('termOut');
+      if (methodName === 'processPayment') {
+        if (currentMode === 'upcast' || currentMode === 'direct') {
+          termOut.innerHTML = `<span class="term-success">⚡ SUCCESS: Executed UPIPayment.processPayment(500)<br>Output: "Instant UPI Payment of ₹500 via VPA: user@okaxis"</span>`;
+        } else {
+          termOut.innerHTML = `<span class="term-success">✓ SUCCESS: Executed PaymentMethod.processPayment(500)<br>Output: "Processing general payment of ₹500"</span>`;
+        }
+      } else if (methodName === 'validateTransaction') {
+        termOut.innerHTML = `<span class="term-success">✓ SUCCESS: Executed PaymentMethod.validateTransaction()<br>Output: "Payment gateway connection active and secure."</span>`;
+      } else if (methodName === 'scanUPIQRCode') {
+        if (currentMode === 'upcast') {
+          termOut.innerHTML = `<span class="term-error">❌ COMPILATION ERROR:<br>UpcastingDemo.java:18: error: cannot find symbol<br>&nbsp;&nbsp;pay.scanUPIQRCode();<br>&nbsp;&nbsp;^<br>symbol: &nbsp;method scanUPIQRCode()<br>location: variable pay of type PaymentMethod</span>`;
+        } else if (currentMode === 'direct') {
+          termOut.innerHTML = `<span class="term-success">⚡ SUCCESS: Executed UPIPayment.scanUPIQRCode()<br>Output: "Scanning UPI QR Code with Camera..."</span>`;
+        } else {
+          termOut.innerHTML = `<span class="term-error">❌ COMPILATION ERROR: method scanUPIQRCode() does not exist in PaymentMethod class!</span>`;
+        }
+      } else if (methodName === 'safeDowncast') {
+        if (currentMode === 'upcast' || currentMode === 'direct') {
+          termOut.innerHTML = `<span class="term-info">🛡️ Step 1: Evaluating (pay instanceof UPIPayment)... <strong>true</strong>!</span><br><span class="term-success">✓ Step 2: Safe Downcast executed: <code>UPIPayment upi = (UPIPayment) pay;</code></span><br><span class="term-success">⚡ Step 3: Executed upi.scanUPIQRCode() -> "Scanning UPI QR Code with Camera..."</span>`;
+        } else {
+          termOut.innerHTML = `<span class="term-info">🛡️ Step 1: Evaluating (pay instanceof UPIPayment)... <strong>FALSE</strong>!</span><br><span class="term-error">🛑 Downcast BLOCKED by instanceof check! Saved program from crashing with ClassCastException at runtime.</span>`;
+        }
+      } else if (methodName === 'unsafeDowncast') {
+        if (currentMode === 'upcast' || currentMode === 'direct') {
+          termOut.innerHTML = `<span class="term-info">⚠️ Unsafe Downcast executed: <code>(UPIPayment) pay</code>.<br>Succeeded by coincidence because Heap instance actually was UPIPayment.</span>`;
+        } else {
+          termOut.innerHTML = `<span class="term-error">💥 FATAL RUNTIME EXCEPTION:<br>java.lang.ClassCastException: class PaymentMethod cannot be cast to class UPIPayment<br>&nbsp;&nbsp;at UpcastingDemo.main(UpcastingDemo.java:24)</span>`;
+        }
+      }
+    }
+
+    // Init default state
+    setSimMode('upcast', document.querySelectorAll('.controls-row .btn-secondary')[0]);
+
+    function checkAnswer(el, isCorrect) {
+      const parent = el.parentElement;
+      const options = parent.querySelectorAll('.quiz-option');
+      options.forEach(opt => opt.classList.remove('correct', 'incorrect'));
+      if (isCorrect) {
+        el.classList.add('correct');
+      } else {
+        el.classList.add('incorrect');
+      }
+    }
+  </script>
+</body>
+</html>

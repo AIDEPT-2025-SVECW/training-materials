@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dynamic Method Dispatch & Parent Reference | Java Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --secondary: #0284c7;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #ef4444;
+      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f1f5f9 100%);
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 10px 25px rgba(79, 70, 229, 0.07);
+      --shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      color: var(--text-main);
+      padding: 24px 16px;
+      line-height: 1.65;
+    }
+    .container { max-width: 1100px; margin: 0 auto; }
+    
+    .top-nav {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+    }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 8px; background: #ffffff; color: var(--primary-dark);
+      text-decoration: none; padding: 10px 20px; border-radius: 30px; font-weight: 600; font-size: 0.95rem;
+      border: 1px solid var(--card-border); box-shadow: var(--shadow-sm); transition: all 0.25s ease;
+    }
+    .back-btn:hover { background: var(--primary); color: #ffffff; transform: translateX(-4px); }
+    .nav-tag {
+      color: var(--text-muted); font-weight: 600; font-size: 0.9rem; background: rgba(255, 255, 255, 0.9);
+      padding: 6px 16px; border-radius: 20px; border: 1px solid var(--card-border);
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #0284c7 0%, #4f46e5 100%); color: #ffffff;
+      border-radius: 20px; padding: 40px 32px; text-align: center; box-shadow: var(--shadow-lg); margin-bottom: 32px;
+    }
+    .hero h1 { font-size: 2.5rem; font-weight: 800; margin-bottom: 12px; }
+    .hero p { font-size: 1.15rem; opacity: 0.95; max-width: 780px; margin: 0 auto 20px auto; }
+    .hero-badges { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+    .hero-badge { background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(8px); padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+
+    .card {
+      background: var(--card-bg); border-radius: 18px; padding: 32px; margin-bottom: 32px;
+      box-shadow: var(--shadow-md); border: 1px solid var(--card-border);
+    }
+    .section-title {
+      font-size: 1.5rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 18px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .section-title .icon {
+      font-size: 1.4rem; background: #eef2ff; width: 44px; height: 44px;
+      display: flex; align-items: center; justify-content: center; border-radius: 12px; color: var(--primary);
+    }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    .concept-box {
+      background: #f8fafc; border-left: 4px solid var(--primary); padding: 20px; border-radius: 0 12px 12px 0; margin-bottom: 16px;
+    }
+    .concept-box h3 { font-size: 1.1rem; color: var(--primary-dark); margin-bottom: 8px; }
+
+    .analogy-box {
+      background: linear-gradient(135deg, #fffbe6 0%, #fef3c7 100%);
+      border: 1px solid #fde68a; border-left: 5px solid var(--accent-amber);
+      border-radius: 14px; padding: 22px; margin: 20px 0;
+    }
+    .analogy-box h4 { color: #92400e; font-size: 1.15rem; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+
+    /* Interactive Sandbox */
+    .interactive-container {
+      background: #0f172a; color: #f8fafc; border-radius: 16px; padding: 28px; border: 1px solid #334155; margin-top: 16px;
+    }
+    .controls-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 20px; }
+    .btn {
+      padding: 10px 18px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer;
+      transition: all 0.2s; font-size: 0.9rem; font-family: inherit; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-secondary { background: #334155; color: white; }
+    .btn-secondary:hover { background: #475569; }
+    .btn-active { background: var(--primary) !important; color: white; }
+
+    .vtable-display {
+      background: #1e293b; border-radius: 12px; padding: 20px; border: 1px solid #334155; margin-top: 12px;
+      font-family: 'Fira Code', monospace; font-size: 0.88rem;
+    }
+    .res-highlight { color: #38bdf8; font-weight: 700; }
+    .field-highlight { color: #fde047; font-weight: 700; }
+
+    /* Code Block */
+    .code-block {
+      background: #0f172a; border-radius: 12px; padding: 20px; color: #e2e8f0; font-family: 'Fira Code', monospace;
+      font-size: 0.9rem; overflow-x: auto; position: relative; border: 1px solid #1e293b; margin: 16px 0;
+    }
+    .code-block header {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #334155; padding-bottom: 8px; color: #94a3b8; font-size: 0.8rem;
+    }
+    .code-block code { white-space: pre; }
+    .kw { color: #c084fc; font-weight: 600; }
+    .type { color: #38bdf8; font-weight: 600; }
+    .num { color: #f43f5e; }
+    .str { color: #4ade80; }
+    .cmt { color: #64748b; font-style: italic; }
+    .fn { color: #facc15; }
+
+    .copy-btn {
+      background: rgba(255, 255, 255, 0.1); color: #e2e8f0; border: 1px solid #475569; padding: 4px 12px;
+      border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: inline-flex;
+      align-items: center; gap: 4px; transition: all 0.2s ease; font-family: inherit;
+    }
+    .copy-btn:hover { background: #4f46e5; color: #ffffff; border-color: #4f46e5; }
+    .copy-btn.copied { background: #10b981 !important; color: #ffffff !important; border-color: #10b981 !important; }
+
+    .quiz-card { background: #f8fafc; border-radius: 14px; padding: 24px; border: 1px solid var(--card-border); }
+    .quiz-option {
+      background: #ffffff; padding: 14px 18px; border-radius: 10px; margin-bottom: 10px; cursor: pointer;
+      border: 1px solid #cbd5e1; transition: all 0.2s; font-weight: 500; display: flex; align-items: center; justify-content: space-between;
+    }
+    .quiz-option:hover { background: #f1f5f9; border-color: var(--primary); }
+    .quiz-option.correct { background: #dcfce7; border-color: var(--accent-green); color: #166534; font-weight: 600; }
+    .quiz-option.incorrect { background: #fee2e2; border-color: #ef4444; color: #991b1b; }
+
+    .nav-buttons { display: flex; justify-content: space-between; gap: 16px; margin-top: 40px; }
+    .nav-btn {
+      padding: 12px 24px; border-radius: 10px; font-weight: 600; text-decoration: none;
+      transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px;
+    }
+    .nav-btn-prev { background: #ffffff; color: var(--text-main); border: 1px solid var(--card-border); }
+    .nav-btn-prev:hover { background: #f1f5f9; }
+    .nav-btn-next { background: var(--primary); color: #ffffff; }
+    .nav-btn-next:hover { background: var(--primary-dark); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="top-nav">
+      <a href="../index.html" class="back-btn">⬅ Back to Java Index</a>
+      <span class="nav-tag">Inheritance in Java</span>
+    </div>
+
+    <header class="hero">
+      <h1>Dynamic Method Dispatch & Parent References</h1>
+      <p>Explore Dynamic Method Dispatch (DMD), Upcasting, Virtual Method Tables (VTable), and why field resolution uses Static Binding while method invocation uses Dynamic Binding.</p>
+      <div class="hero-badges">
+        <span class="hero-badge">⚡ Dynamic Method Dispatch</span>
+        <span class="hero-badge">⬆️ Upcasting</span>
+        <span class="hero-badge">📊 VTable Lookup</span>
+        <span class="hero-badge">🔍 Field vs Method Resolution</span>
+      </div>
+    </header>
+
+    <!-- SECTION 1: CORE TECHNICAL CONCEPTS -->
+    <div class="card">
+      <h2 class="section-title"><span class="icon">⚙️</span> Technical Mechanics: Parent Ref -> Child Object</h2>
+      <p>When you write: <code>Parent obj = new Child();</code>, two distinct types come into play:</p>
+      <ol style="margin-left: 20px; margin-top: 8px;">
+        <li><strong>Reference Type (<code>Parent</code>):</strong> Evaluated at COMPILE TIME. Determines which methods/fields are visible to the compiler.</li>
+        <li><strong>Instance/Object Type (<code>new Child()</code>):</strong> Created at RUNTIME on Heap. Determines which overridden method implementation actually executes!</li>
+      </ol>
+
+      <!-- INDIAN ANALOGY -->
+      <div class="analogy-box">
+        <h4>🚆 Real-World Indian Analogy: IRCTC Ticket Scanner & Passenger Types</h4>
+        <p>The <strong>TTE (Train Ticket Examiner)</strong> holds a generic reference <code>PassengerTicket ticket</code> on his tablet. At runtime, the passenger scans their phone containing a <code>SeniorCitizenTicket</code>, <code>TatkalTicket</code>, or <code>StudentTicket</code>.</p>
+        <p style="margin-top: 8px;">When TTE taps <code>ticket.calculateFare()</code>, JVM performs <strong>Dynamic Method Dispatch</strong> via VTable to invoke the exact fare calculation for Senior Citizen or Student based on the actual ticket instance on the passenger's screen!</p>
+      </div>
+
+      <div class="grid-2">
+        <div class="concept-box">
+          <h3>Methods: Dynamic Binding (Runtime)</h3>
+          <p>Overridden methods are resolved at <strong>RUNTIME</strong> using the object's Virtual Method Table (VTable). The method executed ALWAYS belongs to the actual object instance on the Heap!</p>
+        </div>
+        <div class="concept-box">
+          <h3>Fields: Static Binding (Compile-Time)</h3>
+          <p><strong>Variables/fields are NOT polymorphic!</strong> Field access is resolved at <strong>COMPILE TIME</strong> based strictly on the Reference Type (<code>Parent</code>).</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 2: INTERACTIVE DISPATCH SANDBOX -->
+    <div class="card">
+      <h2 class="section-title"><span class="icon">🧪</span> Interactive Playground: VTable & Reference Dispatch</h2>
+      <p>Select different instance assignments for reference variable <code>IRCTC_Ticket ticket</code>:</p>
+
+      <div class="interactive-container">
+        <div class="controls-row">
+          <span style="color: #cbd5e1; font-weight: 600; font-size: 0.9rem;">Reference Variable: <code>IRCTC_Ticket ticket</code></span>
+        </div>
+        <div class="controls-row">
+          <button class="btn btn-secondary btn-active" onclick="dispatch('base', this)">ticket = new IRCTC_Ticket()</button>
+          <button class="btn btn-secondary" onclick="dispatch('tatkal', this)">ticket = new TatkalTicket() [Upcasting]</button>
+          <button class="btn btn-secondary" onclick="dispatch('senior', this)">ticket = new SeniorCitizenTicket() [Upcasting]</button>
+        </div>
+
+        <div class="vtable-display" id="vtableOutput">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 3: CODE EXAMPLE WITH FIELD VS METHOD -->
+    <div class="card">
+      <h2 class="section-title"><span class="icon">💻</span> Complete Java Code: IRCTC Ticket Dispatch & Field Binding</h2>
+
+      <div class="code-block">
+        <header>
+          <span>IRCTC_DispatchDemo.java</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+        </header>
+        <code><span class="kw">class</span> <span class="type">IRCTC_Ticket</span> {
+    <span class="type">int</span> bookingFee = <span class="num">20</span>; <span class="cmt">// Parent Field</span>
+
+    <span class="kw">public void</span> <span class="fn">printTicketInfo</span>() {
+        <span class="type">System</span>.out.<span class="fn">println</span>(<span class="str">"Standard IRCTC Train Ticket"</span>);
+    }
+}
+
+<span class="kw">class</span> <span class="type">TatkalTicket</span> <span class="kw">extends</span> <span class="type">IRCTC_Ticket</span> {
+    <span class="type">int</span> bookingFee = <span class="num">200</span>; <span class="cmt">// Child Field (Shadowing)</span>
+
+    <span class="kw">@Override</span>
+    <span class="kw">public void</span> <span class="fn">printTicketInfo</span>() {
+        <span class="type">System</span>.out.<span class="fn">println</span>(<span class="str">"⚡ Tatkal Premium Guaranteed Ticket!"</span>);
+    }
+
+    <span class="kw">public void</span> <span class="fn">downloadTatkalPDF</span>() {
+        <span class="type">System</span>.out.<span class="fn">println</span>(<span class="str">"Downloading Tatkal PDF..."</span>);
+    }
+}
+
+<span class="kw">public class</span> <span class="type">DynamicDispatchDemo</span> {
+    <span class="kw">public static void</span> <span class="fn">main</span>(<span class="type">String</span>[] args) {
+        <span class="cmt">// Upcasting: Parent Reference -> Child Instance</span>
+        <span class="type">IRCTC_Ticket</span> ticket = <span class="kw">new</span> <span class="type">TatkalTicket</span>();
+
+        <span class="cmt">// 1. Method Invocation: Dynamic Binding (Runtime -> TatkalTicket.printTicketInfo)</span>
+        ticket.<span class="fn">printTicketInfo</span>(); <span class="cmt">// Output: ⚡ Tatkal Premium Guaranteed Ticket!</span>
+
+        <span class="cmt">// 2. Field Access: Static Binding (Compile-Time -> IRCTC_Ticket.bookingFee)</span>
+        <span class="type">System</span>.out.<span class="fn">println</span>(<span class="str">"Fee: ₹"</span> + ticket.bookingFee); <span class="cmt">// Output: ₹20 (Parent field!)</span>
+
+        <span class="cmt">// 3. Safe Downcasting using instanceof</span>
+        <span class="kw">if</span> (ticket <span class="kw">instanceof</span> <span class="type">TatkalTicket</span> t) {
+            t.<span class="fn">downloadTatkalPDF</span>(); <span class="cmt">// Accessing child-specific method!</span>
+        }
+    }
+}</code>
+      </div>
+    </div>
+
+    <!-- QUIZ -->
+    <div class="card">
+      <h2 class="section-title"><span class="icon">🎯</span> Interactive Quiz</h2>
+      <div class="quiz-card">
+        <p style="font-weight: 600; margin-bottom: 16px;">Q1: Given <code>Parent p = new Child();</code>, if both Parent and Child declare variable <code>int x</code>, which value does <code>p.x</code> return?</p>
+        <div class="quiz-option" onclick="checkAnswer(this, true)">Parent's <code>x</code> value (Fields use Static Binding based on reference type).</div>
+        <div class="quiz-option" onclick="checkAnswer(this, false)">Child's <code>x</code> value (Fields use Dynamic Binding).</div>
+        <div class="quiz-option" onclick="checkAnswer(this, false)">A NullPointerException occurs.</div>
+        <div class="quiz-option" onclick="checkAnswer(this, false)">Compilation error.</div>
+      </div>
+    </div>
+
+
+  </div>
+
+  <script>
+    function copyCode(button) {
+      const codeBlock = button.closest('.code-block');
+      const codeText = codeBlock.querySelector('code').innerText;
+      navigator.clipboard.writeText(codeText).then(() => {
+        button.classList.add('copied');
+        button.innerHTML = '✓ Copied!';
+        setTimeout(() => {
+          button.classList.remove('copied');
+          button.innerHTML = '📋 Copy Code';
+        }, 2000);
+      });
+    }
+
+    function dispatch(type, btn) {
+      document.querySelectorAll('.controls-row .btn').forEach(b => b.classList.remove('btn-active'));
+      btn.classList.add('btn-active');
+
+      const out = document.getElementById('vtableOutput');
+      if (type === 'base') {
+        out.innerHTML = `
+          <span>Compile-Time Reference: <strong>IRCTC_Ticket</strong></span><br>
+          <span>Runtime Object Instance: <strong>IRCTC_Ticket</strong></span><br><br>
+          <div style="background: #0f172a; padding: 12px; border-radius: 8px;">
+            <span>Method Resolution (VTable): <span class="res-highlight">IRCTC_Ticket.printTicketInfo()</span> -> "Standard IRCTC Train Ticket"</span><br>
+            <span>Field Resolution (Static): <span class="field-highlight">IRCTC_Ticket.bookingFee</span> -> ₹20</span>
+          </div>
+        `;
+      } else if (type === 'tatkal') {
+        out.innerHTML = `
+          <span>Compile-Time Reference: <strong>IRCTC_Ticket</strong></span><br>
+          <span>Runtime Object Instance: <strong>TatkalTicket (Upcasted!)</strong></span><br><br>
+          <div style="background: #0f172a; padding: 12px; border-radius: 8px;">
+            <span>Method Resolution (Dynamic Dispatch): <span class="res-highlight">TatkalTicket.printTicketInfo()</span> -> "⚡ Tatkal Premium Guaranteed Ticket!"</span><br>
+            <span>Field Resolution (Static Binding): <span class="field-highlight">IRCTC_Ticket.bookingFee</span> -> ₹20 (Parent field resolved!)</span>
+          </div>
+        `;
+      } else if (type === 'senior') {
+        out.innerHTML = `
+          <span>Compile-Time Reference: <strong>IRCTC_Ticket</strong></span><br>
+          <span>Runtime Object Instance: <strong>SeniorCitizenTicket (Upcasted!)</strong></span><br><br>
+          <div style="background: #0f172a; padding: 12px; border-radius: 8px;">
+            <span>Method Resolution (Dynamic Dispatch): <span class="res-highlight">SeniorCitizenTicket.printTicketInfo()</span> -> "👴 Senior Citizen 50% Concession Ticket"</span><br>
+            <span>Field Resolution (Static Binding): <span class="field-highlight">IRCTC_Ticket.bookingFee</span> -> ₹20</span>
+          </div>
+        `;
+      }
+    }
+
+    // Default
+    dispatch('tatkal', document.querySelectorAll('.controls-row .btn')[1]);
+
+    function checkAnswer(el, isCorrect) {
+      const parent = el.parentElement;
+      const options = parent.querySelectorAll('.quiz-option');
+      options.forEach(opt => opt.classList.remove('correct', 'incorrect'));
+      if (isCorrect) {
+        el.classList.add('correct');
+      } else {
+        el.classList.add('incorrect');
+      }
+    }
+  </script>
+</body>
+</html>

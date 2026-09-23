@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Polymorphism Deep Dive | Java Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --secondary: #0284c7;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #ef4444;
+      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f1f5f9 100%);
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 10px 25px rgba(79, 70, 229, 0.07);
+      --shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      color: var(--text-main);
+      padding: 24px 16px;
+      line-height: 1.65;
+    }
+    .container { max-width: 1100px; margin: 0 auto; }
+    
+    .top-nav {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+    }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 8px; background: #ffffff; color: var(--primary-dark);
+      text-decoration: none; padding: 10px 20px; border-radius: 30px; font-weight: 600; font-size: 0.95rem;
+      border: 1px solid var(--card-border); box-shadow: var(--shadow-sm); transition: all 0.25s ease;
+    }
+    .back-btn:hover { background: var(--primary); color: #ffffff; transform: translateX(-4px); }
+    .nav-tag {
+      color: var(--text-muted); font-weight: 600; font-size: 0.9rem; background: rgba(255, 255, 255, 0.9);
+      padding: 6px 16px; border-radius: 20px; border: 1px solid var(--card-border);
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #4f46e5 0%, #059669 100%); color: #ffffff;
+      border-radius: 20px; padding: 40px 32px; text-align: center; box-shadow: var(--shadow-lg); margin-bottom: 32px;
+    }
+    .hero h1 { font-size: 2.5rem; font-weight: 800; margin-bottom: 12px; }
+    .hero p { font-size: 1.15rem; opacity: 0.95; max-width: 780px; margin: 0 auto 20px auto; }
+    .hero-badges { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+    .hero-badge { background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(8px); padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+
+    .card {
+      background: var(--card-bg); border-radius: 18px; padding: 32px; margin-bottom: 32px;
+      box-shadow: var(--shadow-md); border: 1px solid var(--card-border);
+    }
+    .section-title {
+      font-size: 1.5rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 18px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .section-title .icon {
+      font-size: 1.4rem; background: #eef2ff; width: 44px; height: 44px;
+      display: flex; align-items: center; justify-content: center; border-radius: 12px; color: var(--primary);
+    }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    .concept-box {
+      background: #f8fafc; border-left: 4px solid var(--primary); padding: 20px; border-radius: 0 12px 12px 0; margin-bottom: 16px;
+    }
+    .concept-box h3 { font-size: 1.1rem; color: var(--primary-dark); margin-bottom: 8px; }
+
+    .analogy-box {
+      background: linear-gradient(135deg, #fffbe6 0%, #fef3c7 100%);
+      border: 1px solid #fde68a; border-left: 5px solid var(--accent-amber);
+      border-radius: 14px; padding: 22px; margin: 20px 0;
+    }
+    .analogy-box h4 { color: #92400e; font-size: 1.15rem; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+
+    /* Interactive Payment Sandbox */
+    .interactive-container {
+      background: #0f172a; color: #f8fafc; border-radius: 16px; padding: 28px; border: 1px solid #334155; margin-top: 16px;
+    }
+    .controls-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 20px; }
+    .btn {
+      padding: 10px 18px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer;
+      transition: all 0.2s; font-size: 0.9rem; font-family: inherit; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-secondary { background: #334155; color: white; }
+    .btn-secondary:hover { background: #475569; }
+    .btn-active { background: var(--accent-green) !important; color: white; }
+
+    .payment-console {
+      background: #1e293b; border-radius: 12px; padding: 20px; border: 1px solid #334155; margin-top: 12px;
+      font-family: 'Fira Code', monospace; font-size: 0.88rem; min-height: 140px;
+    }
+
+    /* Code Block */
+    .code-block {
+      background: #0f172a; border-radius: 12px; padding: 20px; color: #e2e8f0; font-family: 'Fira Code', monospace;
+      font-size: 0.9rem; overflow-x: auto; position: relative; border: 1px solid #1e293b; margin: 16px 0;
+    }
+    .code-block header {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #334155; padding-bottom: 8px; color: #94a3b8; font-size: 0.8rem;
+    }
+    .code-block code { white-space: pre; }
+    .kw { color: #c084fc; font-weight: 600; }
+    .type { color: #38bdf8; font-weight: 600; }
+    .num { color: #f43f5e; }
+    .str { color: #4ade80; }
+    .cmt { color: #64748b; font-style: italic; }
+    .fn { color: #facc15; }
+
+    .copy-btn {
+      background: rgba(255, 255, 255, 0.1); color: #e2e8f0; border: 1px solid #475569; padding: 4px 12px;
+      border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: inline-flex;
+      align-items: center; gap: 4px; transition: all 0.2s ease; font-family: inherit;
+    }
+    .copy-btn:hover { background: #4f46e5; color: #ffffff; border-color: #4f46e5; }
+    .copy-btn.copied { background: #10b981 !important; color: #ffffff !important; border-color: #10b981 !important; }
+
+    .quiz-card { background: #f8fafc; border-radius: 14px; padding: 24px; border: 1px solid var(--card-border); }
+    .quiz-option {
+      background: #ffffff; padding: 14px 18px; border-radius: 10px; margin-bottom: 10px; cursor: pointer;
+      border: 1px solid #cbd5e1; transition: all 0.2s; font-weight: 500; display: flex; align-items: center; justify-content: space-between;
+    }
+    .quiz-option:hover { background: #f1f5f9; border-color: var(--primary); }
+    .quiz-option.correct { background: #dcfce7; border-color: var(--accent-green); color: #166534; font-weight: 600; }
+    .quiz-option.incorrect { background: #fee2e2; border-color: #ef4444; color: #991b1b; }
+
+    .nav-buttons { display: flex; justify-content: space-between; gap: 16px; margin-top: 40px; }
+    .nav-btn {
+      padding: 12px 24px; border-radius: 10px; font-weight: 600; text-decoration: none;
+      transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px;
+    }
+    .nav-btn-prev { background: #ffffff; color: var(--text-main); border: 1px solid var(--card-border); }
+    .nav-btn-prev:hover { background: #f1f5f9; }
+    .nav-btn-next { background: var(--primary); color: #ffffff; }
+    .nav-btn-next:hover { background: var(--primary-dark); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="top-nav">
+      <a href="../index.html" class="back-btn">⬅ Back to Java Index</a>
+      <span class="nav-tag">Inheritance in Java</span>
+    </div>
+
+    <header class="hero">
+      <h1>Polymorphism Deep Dive</h1>
+      <p>Unpack the true architectural power of Polymorphism — from static vs dynamic binding to loose coupling, polymorphic arrays, and enterprise design patterns.</p>
+      <div class="hero-badges">
+        <span class="hero-badge">🎭 Many Forms (Polymorphism)</span>
+        <span class="hero-badge">🔌 Loose Coupling</span>
+        <span class="hero-badge">🛒 Payment Gateway Architecture</span>
+        <span class="hero-badge">📦 Polymorphic Collections</span>
+      </div>
+    </header>
+
+    <!-- SECTION 1: CORE ARCHITECTURE -->
+    <div class="card">
+      <h2 class="section-title"><span class="icon">🏛️</span> What makes Polymorphism so powerful?</h2>
+      <p>Polymorphism allows code to be written in terms of <strong>superclasses or interfaces</strong> rather than specific concrete implementations. This decouples the caller from concrete details.</p>
+
+      <!-- INDIAN ANALOGY -->
+      <div class="analogy-box">
+        <h4>🛍️ Real-World Indian Analogy: Amazon India Checkout Engine</h4>
+        <p>Imagine <strong>Amazon India</strong> checkout service. When a customer pays ₹1,499 for a Diwali order, Amazon's backend checkout engine calls a single unified method:</p>
+        <p style="margin-top: 6px; font-family: 'Fira Code', monospace; font-size: 0.9rem;"><code>public void processOrder(PaymentMethod payment, double amount) { payment.pay(amount); }</code></p>
+        <p style="margin-top: 8px;">Whether the customer selects <code>GooglePayUPI</code>, <code>PhonePeUPI</code>, <code>CRED_CreditCard</code>, or <code>PaytmWallet</code>, Amazon's code NEVER changes! Adding a new payment app (e.g. <code>WhatsAppPay</code>) requires 0 edits to Amazon's core checkout code!</p>
+      </div>
+
+      <div class="grid-2">
+        <div class="concept-box">
+          <h3>Compile-Time Polymorphism</h3>
+          <p>Achieved via <strong>Method Overloading</strong>. The decision of which method to call is made at compile time by checking parameter types and counts.</p>
+        </div>
+        <div class="concept-box">
+          <h3>Runtime Polymorphism</h3>
+          <p>Achieved via <strong>Method Overriding + Upcasting</strong>. The decision of which method to call is deferred to runtime using JVM VTable dynamic dispatch.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 2: INTERACTIVE PAYMENT ENGINE -->
+    <div class="card">
+      <h2 class="section-title"><span class="icon">🧪</span> Interactive Sandbox: Polymorphic Payment Engine</h2>
+      <p>Select a payment method and see how Amazon's generic <code>PaymentProcessor</code> processes it polymorphically:</p>
+
+      <div class="interactive-container">
+        <div class="controls-row">
+          <span style="color: #cbd5e1; font-weight: 600; font-size: 0.9rem;">Select Payment Subclass Instance:</span>
+          <button class="btn btn-secondary btn-active" onclick="pay('gpay', this)">GooglePay UPI</button>
+          <button class="btn btn-secondary" onclick="pay('phonepe', this)">PhonePe UPI</button>
+          <button class="btn btn-secondary" onclick="pay('card', this)">HDFC Credit Card</button>
+          <button class="btn btn-secondary" onclick="pay('crypto', this)">⚡ Add Custom WhatsAppPay Plugin</button>
+        </div>
+
+        <div class="payment-console" id="paymentOutput">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 3: CODE EXAMPLE -->
+    <div class="card">
+      <h2 class="section-title"><span class="icon">💻</span> Complete Java Code: Polymorphic Payment System</h2>
+
+      <div class="code-block">
+        <header>
+          <span>PolymorphicPaymentDemo.java</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+        </header>
+        <code><span class="cmt">// Abstract Superclass / Interface</span>
+<span class="kw">abstract class</span> <span class="type">PaymentMethod</span> {
+    <span class="kw">public abstract void</span> <span class="fn">pay</span>(<span class="type">double</span> amount);
+}
+
+<span class="cmt">// Concrete Subclass 1: Google Pay</span>
+<span class="kw">class</span> <span class="type">GooglePayUPI</span> <span class="kw">extends</span> <span class="type">PaymentMethod</span> {
+    <span class="kw">@Override</span>
+    <span class="kw">public void</span> <span class="fn">pay</span>(<span class="type">double</span> amount) {
+        <span class="type">System</span>.out.<span class="fn">println</span>(<span class="str">"Paid ₹"</span> + amount + <span class="str">" via Google Pay UPI (UPI ID: user@okaxis)"</span>);
+    }
+}
+
+<span class="cmt">// Concrete Subclass 2: PhonePe</span>
+<span class="kw">class</span> <span class="type">PhonePeUPI</span> <span class="kw">extends</span> <span class="type">PaymentMethod</span> {
+    <span class="kw">@Override</span>
+    <span class="kw">public void</span> <span class="fn">pay</span>(<span class="type">double</span> amount) {
+        <span class="type">System</span>.out.<span class="fn">println</span>(<span class="str">"Paid ₹"</span> + amount + <span class="str">" via PhonePe UPI (UPI ID: user@ybl)"</span>);
+    }
+}
+
+<span class="cmt">// Concrete Subclass 3: Credit Card</span>
+<span class="kw">class</span> <span class="type">HDFCCreditCard</span> <span class="kw">extends</span> <span class="type">PaymentMethod</span> {
+    <span class="kw">@Override</span>
+    <span class="kw">public void</span> <span class="fn">pay</span>(<span class="type">double</span> amount) {
+        <span class="type">System</span>.out.<span class="fn">println</span>(<span class="str">"Paid ₹"</span> + amount + <span class="str">" via HDFC Bank Credit Card ending in **** 4321"</span>);
+    }
+}
+
+<span class="cmt">// Amazon E-Commerce Checkout Engine (Loosely Coupled!)</span>
+<span class="kw">class</span> <span class="type">AmazonCheckoutEngine</span> {
+    <span class="cmt">// Accepts ANY subclass of PaymentMethod polymorphically!</span>
+    <span class="kw">public void</span> <span class="fn">checkoutOrder</span>(<span class="type">PaymentMethod</span> payment, <span class="type">double</span> orderAmount) {
+        <span class="type">System</span>.out.<span class="fn">println</span>(<span class="str">"--- Amazon Order Processing Started ---"</span>);
+        payment.<span class="fn">pay</span>(orderAmount); <span class="cmt">// Polymorphic Call!</span>
+        <span class="type">System</span>.out.<span class="fn">println</span>(<span class="str">"Order Confirmed! Dispatching item from Bangalore warehouse.\n"</span>);
+    }
+}
+
+<span class="kw">public class</span> <span class="type">PolymorphismDemo</span> {
+    <span class="kw">public static void</span> <span class="fn">main</span>(<span class="type">String</span>[] args) {
+        <span class="type">AmazonCheckoutEngine</span> amazon = <span class="kw">new</span> <span class="type">AmazonCheckoutEngine</span>();
+
+        <span class="cmt">// Polymorphic Array Collection</span>
+        <span class="type">PaymentMethod</span>[] myPaymentMethods = {
+            <span class="kw">new</span> <span class="type">GooglePayUPI</span>(),
+            <span class="kw">new</span> <span class="type">PhonePeUPI</span>(),
+            <span class="kw">new</span> <span class="type">HDFCCreditCard</span>()
+        };
+
+        <span class="cmt">// Loop polymorphically</span>
+        <span class="kw">for</span> (<span class="type">PaymentMethod</span> method : myPaymentMethods) {
+            amazon.<span class="fn">checkoutOrder</span>(method, <span class="num">1499.00</span>);
+        }
+    }
+}</code>
+      </div>
+    </div>
+
+    <!-- QUIZ -->
+    <div class="card">
+      <h2 class="section-title"><span class="icon">🎯</span> Interactive Quiz</h2>
+      <div class="quiz-card">
+        <p style="font-weight: 600; margin-bottom: 16px;">Q1: What is the main software engineering benefit of using Polymorphism in application design?</p>
+        <div class="quiz-option" onclick="checkAnswer(this, false)">It makes code run 10x faster by bypassing JVM memory allocations.</div>
+        <div class="quiz-option" onclick="checkAnswer(this, true)">It provides Loose Coupling and Extensibility (Open-Closed Principle).</div>
+        <div class="quiz-option" onclick="checkAnswer(this, false)">It eliminates the need for constructors.</div>
+        <div class="quiz-option" onclick="checkAnswer(this, false)">It prevents private variables from being accessed.</div>
+      </div>
+    </div>
+
+
+  </div>
+
+  <script>
+    function copyCode(button) {
+      const codeBlock = button.closest('.code-block');
+      const codeText = codeBlock.querySelector('code').innerText;
+      navigator.clipboard.writeText(codeText).then(() => {
+        button.classList.add('copied');
+        button.innerHTML = '✓ Copied!';
+        setTimeout(() => {
+          button.classList.remove('copied');
+          button.innerHTML = '📋 Copy Code';
+        }, 2000);
+      });
+    }
+
+    function pay(type, btn) {
+      document.querySelectorAll('.controls-row .btn').forEach(b => b.classList.remove('btn-active'));
+      btn.classList.add('btn-active');
+
+      const out = document.getElementById('paymentOutput');
+      if (type === 'gpay') {
+        out.innerHTML = `
+          <span style="color: #c084fc;">amazonEngine.checkoutOrder(new GooglePayUPI(), 1499.00);</span><br><br>
+          <span style="color: #34d399;">Output:</span><br>
+          <code>--- Amazon Order Processing Started ---</code><br>
+          <code>Paid ₹1499.0 via Google Pay UPI (UPI ID: rajesh@okaxis)</code><br>
+          <code>Order Confirmed! Dispatching item from Bangalore warehouse.</code>
+        `;
+      } else if (type === 'phonepe') {
+        out.innerHTML = `
+          <span style="color: #c084fc;">amazonEngine.checkoutOrder(new PhonePeUPI(), 2499.00);</span><br><br>
+          <span style="color: #34d399;">Output:</span><br>
+          <code>--- Amazon Order Processing Started ---</code><br>
+          <code>Paid ₹2499.0 via PhonePe UPI (UPI ID: rajesh@ybl)</code><br>
+          <code>Order Confirmed! Dispatching item from Mumbai warehouse.</code>
+        `;
+      } else if (type === 'card') {
+        out.innerHTML = `
+          <span style="color: #c084fc;">amazonEngine.checkoutOrder(new HDFCCreditCard(), 4999.00);</span><br><br>
+          <span style="color: #34d399;">Output:</span><br>
+          <code>--- Amazon Order Processing Started ---</code><br>
+          <code>Paid ₹4999.0 via HDFC Bank Credit Card ending in **** 4321</code><br>
+          <code>Order Confirmed! Dispatching item from Delhi warehouse.</code>
+        `;
+      } else if (type === 'crypto') {
+        out.innerHTML = `
+          <span style="color: #38bdf8;">class WhatsAppPayUPI extends PaymentMethod { ... }</span><br>
+          <span style="color: #c084fc;">amazonEngine.checkoutOrder(new WhatsAppPayUPI(), 799.00);</span><br><br>
+          <span style="color: #34d399;">Output (NO CHANGES TO AMAZON CORE CODE REQUIRED!):</span><br>
+          <code>--- Amazon Order Processing Started ---</code><br>
+          <code>Paid ₹799.0 via WhatsApp Pay UPI (Mobile: +91 9876543210)</code><br>
+          <code>Order Confirmed! Loose Coupling verified!</code>
+        `;
+      }
+    }
+
+    // Default
+    pay('gpay', document.querySelectorAll('.controls-row .btn')[0]);
+
+    function checkAnswer(el, isCorrect) {
+      const parent = el.parentElement;
+      const options = parent.querySelectorAll('.quiz-option');
+      options.forEach(opt => opt.classList.remove('correct', 'incorrect'));
+      if (isCorrect) {
+        el.classList.add('correct');
+      } else {
+        el.classList.add('incorrect');
+      }
+    }
+  </script>
+</body>
+</html>

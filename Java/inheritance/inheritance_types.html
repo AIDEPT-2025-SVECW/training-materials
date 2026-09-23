@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Types of Inheritance & The Diamond Problem | Java Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --secondary: #0284c7;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #ef4444;
+      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f1f5f9 100%);
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 10px 25px rgba(79, 70, 229, 0.07);
+      --shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      color: var(--text-main);
+      padding: 24px 16px;
+      line-height: 1.65;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .top-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #ffffff;
+      color: var(--primary-dark);
+      text-decoration: none;
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      border: 1px solid var(--card-border);
+      box-shadow: var(--shadow-sm);
+      transition: all 0.25s ease;
+    }
+
+    .back-btn:hover {
+      background: var(--primary);
+      color: #ffffff;
+      transform: translateX(-4px);
+    }
+
+    .nav-tag {
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.9rem;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 6px 16px;
+      border-radius: 20px;
+      border: 1px solid var(--card-border);
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #0284c7 0%, #4f46e5 100%);
+      color: #ffffff;
+      border-radius: 20px;
+      padding: 40px 32px;
+      text-align: center;
+      box-shadow: var(--shadow-lg);
+      margin-bottom: 32px;
+    }
+
+    .hero h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+
+    .hero p {
+      font-size: 1.15rem;
+      opacity: 0.95;
+      max-width: 780px;
+      margin: 0 auto 20px auto;
+    }
+
+    .hero-badges {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .hero-badge {
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(8px);
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 18px;
+      padding: 32px;
+      margin-bottom: 32px;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--card-border);
+    }
+
+    .section-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .section-title .icon {
+      font-size: 1.4rem;
+      background: #eef2ff;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      color: var(--primary);
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    @media (max-width: 768px) {
+
+      .grid-2,
+      .grid-3 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .type-card {
+      background: #f8fafc;
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 20px;
+      transition: all 0.2s ease;
+      border-top: 4px solid var(--primary);
+    }
+
+    .type-card.unsupported {
+      border-top-color: var(--accent-rose);
+      background: #fff5f5;
+    }
+
+    .type-card h3 {
+      font-size: 1.15rem;
+      color: var(--text-main);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .status-badge {
+      font-size: 0.75rem;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .status-supported {
+      background: #dcfce7;
+      color: #15803d;
+    }
+
+    .status-unsupported {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+
+    .analogy-box {
+      background: linear-gradient(135deg, #fffbe6 0%, #fef3c7 100%);
+      border: 1px solid #fde68a;
+      border-left: 5px solid var(--accent-amber);
+      border-radius: 14px;
+      padding: 22px;
+      margin: 20px 0;
+    }
+
+    .analogy-box h4 {
+      color: #92400e;
+      font-size: 1.15rem;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Interactive Demo */
+    .interactive-container {
+      background: #0f172a;
+      color: #f8fafc;
+      border-radius: 16px;
+      padding: 28px;
+      border: 1px solid #334155;
+      margin-top: 16px;
+    }
+
+    .controls-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .btn {
+      padding: 10px 18px;
+      border-radius: 8px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+      font-family: inherit;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-secondary {
+      background: #334155;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: #475569;
+    }
+
+    .btn-active {
+      background: var(--primary) !important;
+      color: white;
+    }
+
+    .btn-danger {
+      background: var(--accent-rose) !important;
+      color: white;
+    }
+
+    .diagram-display {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 24px;
+      min-height: 280px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+    }
+
+    .node-box {
+      background: #334155;
+      color: #38bdf8;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-family: 'Fira Code', monospace;
+      font-weight: 600;
+      border: 1px solid #475569;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      text-align: center;
+    }
+
+    .node-box.conflict {
+      border-color: #ef4444;
+      background: rgba(239, 68, 68, 0.2);
+      color: #fca5a5;
+    }
+
+    .node-row {
+      display: flex;
+      gap: 40px;
+    }
+
+    .arrow {
+      color: #94a3b8;
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+
+    /* Error Banner */
+    .error-banner {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid #ef4444;
+      color: #fca5a5;
+      padding: 16px;
+      border-radius: 10px;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+      margin-top: 16px;
+      display: none;
+    }
+
+    /* Code Block */
+    .code-block {
+      background: #0f172a;
+      border-radius: 12px;
+      padding: 20px;
+      color: #e2e8f0;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.9rem;
+      overflow-x: auto;
+      position: relative;
+      border: 1px solid #1e293b;
+      margin: 16px 0;
+    }
+
+    .code-block header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      border-bottom: 1px solid #334155;
+      padding-bottom: 8px;
+      color: #94a3b8;
+      font-size: 0.8rem;
+    }
+
+    .code-block code {
+      white-space: pre;
+    }
+
+    .kw {
+      color: #c084fc;
+      font-weight: 600;
+    }
+
+    .type {
+      color: #38bdf8;
+      font-weight: 600;
+    }
+
+    .num {
+      color: #f43f5e;
+    }
+
+    .str {
+      color: #4ade80;
+    }
+
+    .cmt {
+      color: #64748b;
+      font-style: italic;
+    }
+
+    .fn {
+      color: #facc15;
+    }
+
+    .copy-btn {
+      background: rgba(255, 255, 255, 0.1);
+      color: #e2e8f0;
+      border: 1px solid #475569;
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+
+    .copy-btn:hover {
+      background: #4f46e5;
+      color: #ffffff;
+      border-color: #4f46e5;
+    }
+
+    .copy-btn.copied {
+      background: #10b981 !important;
+      color: #ffffff !important;
+      border-color: #10b981 !important;
+    }
+
+    .quiz-card {
+      background: #f8fafc;
+      border-radius: 14px;
+      padding: 24px;
+      border: 1px solid var(--card-border);
+    }
+
+    .quiz-option {
+      background: #ffffff;
+      padding: 14px 18px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      border: 1px solid #cbd5e1;
+      transition: all 0.2s;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .quiz-option:hover {
+      background: #f1f5f9;
+      border-color: var(--primary);
+    }
+
+    .quiz-option.correct {
+      background: #dcfce7;
+      border-color: var(--accent-green);
+      color: #166534;
+      font-weight: 600;
+    }
+
+    .quiz-option.incorrect {
+      background: #fee2e2;
+      border-color: #ef4444;
+      color: #991b1b;
+    }
+
+    .nav-buttons {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      margin-top: 40px;
+    }
+
+    .nav-btn {
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-btn-prev {
+      background: #ffffff;
+      color: var(--text-main);
+      border: 1px solid var(--card-border);
+    }
+
+    .nav-btn-prev:hover {
+      background: #f1f5f9;
+    }
+
+    .nav-btn-next {
+      background: var(--primary);
+      color: #ffffff;
+    }
+
+    .nav-btn-next:hover {
+      background: var(--primary-dark);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="top-nav">
+      <a href="../index.html" class="back-btn">⬅ Back to Java Index</a>
+      <span class="nav-tag">Inheritance in Java</span>
+    </div>
+
+    <header class="hero">
+      <h1>Types of Inheritance & The Diamond Problem</h1>
+      <p>Explore Single, Multilevel, and Hierarchical inheritance supported by Java classes, and understand the
+        technical reasons why Multiple Inheritance of classes is forbidden!</p>
+      <div class="hero-badges">
+        <span class="hero-badge">1️⃣ Single Level</span>
+        <span class="hero-badge">🪜 Multilevel</span>
+        <span class="hero-badge">🌿 Hierarchical</span>
+        <span class="hero-badge">💎 Diamond Problem</span>
+      </div>
+    </header>
+
+    <!-- SECTION 1: TYPES OVERVIEW -->
+    <div class="card">
+      <h2 class="section-title"><span class="icon">📐</span> Classification of Inheritance Types</h2>
+      <p style="margin-bottom: 20px;">Inheritance types in computer science are fundamentally divided into two major
+        categories: <strong>Single-Parent Categories</strong> and the <strong>Multiple Inheritance Bucket</strong>
+        (having >1 parent).</p>
+
+      <!-- BUCKET 1: SINGLE PARENT -->
+      <div
+        style="background: #f1f5f9; border-radius: 14px; padding: 20px; margin-bottom: 24px; border-left: 5px solid var(--primary);">
+        <h3
+          style="color: var(--primary-dark); font-size: 1.2rem; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+          <span>1️⃣</span> Category A: Single-Parent Inheritance (1 Direct Parent)
+        </h3>
+        <div class="grid-3">
+          <div class="type-card">
+            <h3>Single Level <span class="status-badge status-supported">Class Supported</span></h3>
+            <p>A single child class extends a single parent class.</p>
+            <p style="margin-top: 8px; font-size: 0.85rem; color: var(--text-muted);">Example:
+              <code>Car extends Vehicle</code>
+            </p>
+          </div>
+          <div class="type-card">
+            <h3>Multilevel <span class="status-badge status-supported">Class Supported</span></h3>
+            <p>Sequential chain where each subclass extends 1 direct parent.</p>
+            <p style="margin-top: 8px; font-size: 0.85rem; color: var(--text-muted);">Example:
+              <code>NexonEV extends Car extends Vehicle</code>
+            </p>
+          </div>
+          <div class="type-card">
+            <h3>Hierarchical <span class="status-badge status-supported">Class Supported</span></h3>
+            <p>Multiple child classes each extend 1 common superclass.</p>
+            <p style="margin-top: 8px; font-size: 0.85rem; color: var(--text-muted);">Example:
+              <code>Bike extends Vehicle</code> & <code>Car extends Vehicle</code>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- BUCKET 2: MULTIPLE INHERITANCE FAMILY -->
+      <div style="background: #fff5f5; border-radius: 14px; padding: 20px; border-left: 5px solid var(--accent-rose);">
+        <h3
+          style="color: #991b1b; font-size: 1.2rem; margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
+          <span>🔄</span> Category B: The Multiple Inheritance Bucket (Multiple Direct Parents)
+        </h3>
+        <p style="font-size: 0.9rem; color: #7f1d1d; margin-bottom: 16px;">
+          <strong>Key Insight:</strong> Multiple Inheritance with Classes, Hybrid Inheritance, and Multiple Interface
+          Inheritance are ALL variants under the <em>Multiple Inheritance Family</em> because a child inherits from
+          <strong>more than 1 direct parent</strong>.
+        </p>
+
+        <div class="grid-3">
+          <div class="type-card unsupported">
+            <h3>Variant 1: Multiple (Classes) <span class="status-badge status-unsupported">Class Unsupported</span>
+            </h3>
+            <p>Child class extending multiple parent classes directly (<code>class C extends A, B</code>).</p>
+            <p style="margin-top: 8px; font-size: 0.85rem; color: #991b1b; font-weight: 600;">Forbidden in Java due to
+              Diamond Ambiguity!</p>
+          </div>
+          <div class="type-card unsupported">
+            <h3>Variant 2: Hybrid Inheritance <span class="status-badge status-unsupported">Class Unsupported</span>
+            </h3>
+            <p>Combination of multiple inheritance with single/multilevel trees.</p>
+            <p style="margin-top: 8px; font-size: 0.85rem; color: #991b1b; font-weight: 600;">Forbidden for classes;
+              supported via Interfaces!</p>
+          </div>
+          <div class="type-card" style="border-top-color: var(--accent-green);">
+            <h3>Variant 3: Multiple (Interfaces) <span class="status-badge status-supported">Interface Supported</span>
+            </h3>
+            <p>A class implementing multiple interface contracts (<code>implements A, B</code>).</p>
+            <p style="margin-top: 8px; font-size: 0.85rem; color: #15803d; font-weight: 600;">Fully Supported in Java!
+              (Contract Inheritance)</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 2: THE DIAMOND PROBLEM EXPLAINED -->
+    <div class="card">
+      <h2 class="section-title"><span class="icon">💎</span> Why Java Disallows Multiple Inheritance for Classes</h2>
+      <p>Suppose class <code>Child</code> could extend both <code>Father</code> and <code>Mother</code> classes, and
+        both parent classes had a method with the exact same signature: <code>void cookDinner()</code>.</p>
+
+      <div class="analogy-box">
+        <h4>🍛 Real-World Indian Analogy: Mother vs Father Cooking Conflict</h4>
+        <p>If <strong>Father</strong> cooks <em>Butter Chicken</em> and <strong>Mother</strong> cooks <em>Paneer Butter
+            Masala</em> under the exact same method signature <code>cookDinner()</code>, when the <strong>Child</strong>
+          object calls <code>child.cookDinner()</code>, which recipe should JVM execute? There is <strong>100%
+            ambiguity!</strong></p>
+        <p style="margin-top: 6px;">To prevent runtime confusion, memory layout conflicts, and diamond complexity, Java
+          creators completely prohibited <code>class Child extends Father, Mother</code>!</p>
+      </div>
+
+      <!-- INTERACTIVE DIAMOND PROBLEM SIMULATOR -->
+      <div class="interactive-container">
+        <div class="controls-row">
+          <span style="color: #cbd5e1; font-weight: 600; font-size: 0.9rem;">Select Structure to Visualize:</span>
+          <button class="btn btn-secondary btn-active" onclick="showTree('single', this)">Single Level</button>
+          <button class="btn btn-secondary" onclick="showTree('multilevel', this)">Multilevel</button>
+          <button class="btn btn-secondary" onclick="showTree('hierarchical', this)">Hierarchical</button>
+          <button class="btn btn-danger" onclick="showTree('diamond', this)">⚠️ Trigger Diamond Problem</button>
+        </div>
+
+        <div class="diagram-display" id="treeDisplay">
+          <!-- Rendered dynamically -->
+        </div>
+
+        <div class="error-banner" id="errorBanner">
+          ❌ <strong>Java Compiler Error:</strong><br>
+          <code>InheritanceTest.java:12: error: '{' expected / class Child extends Father, Mother</code><br>
+          <code>Syntax Error: Multiple inheritance is not allowed for classes in Java!</code>
+        </div>
+      </div>
+
+      <!-- NOTE: WHY MULTIPLE INHERITANCE WORKS WITH INTERFACES -->
+      <div
+        style="background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%); border: 1px solid #c7d2fe; border-left: 5px solid var(--primary); border-radius: 14px; padding: 22px; margin-top: 24px;">
+        <h4
+          style="color: var(--primary-dark); font-size: 1.15rem; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+          <span>💡</span> Deep Dive: Then Why Does Java Allow Multiple Inheritance using Interfaces?
+        </h4>
+
+        <p style="margin-bottom: 10px;">
+          <strong>What is an Interface?</strong> <em>(Brief Overview — we will explore Interfaces in extensive depth in
+            a dedicated upcoming module!)</em><br>
+          An <strong>Interface</strong> in Java is a pure contract that specifies <em>WHAT</em> a class must do, without
+          defining <em>HOW</em> to do it. Unlike classes, interfaces do NOT contain instance variables (state) or
+          constructors.
+        </p>
+
+        <!--<p style="margin-bottom: 10px;">
+          <strong>Why Multiple Inheritance Works Cleanly with Interfaces:</strong>
+        </p>
+        <ul style="margin-left: 22px; margin-bottom: 12px; line-height: 1.6;">
+          <li><strong>Zero State/Field Ambiguity:</strong> Interfaces do not hold instance fields on Heap memory. So there are no memory layout or field name collision issues!</li>
+          <li><strong>Single Unified Implementation:</strong> If <code>Interface A</code> and <code>Interface B</code> both declare abstract method <code>void connectToWiFi()</code>, when <code>class SmartTV implements A, B</code>, the child class writes a <strong>single concrete method body</strong> for <code>connectToWiFi()</code>. There is zero ambiguity because neither parent interface has a competing instance state!</li>
+          <li><strong>Default Method Conflicts:</strong> Even with Java 8+ <code>default</code> methods in interfaces, if two interfaces share identical default methods, the Java compiler forces the implementing class to explicitly override and resolve the conflict.</li>
+        </ul>-->
+
+        <p
+          style="font-size: 0.9rem; color: var(--primary-dark); font-weight: 600; background: #ffffff; padding: 10px 14px; border-radius: 8px; border: 1px solid #c7d2fe;">
+          📌 <strong>Key Golden Rule:</strong> Classes inherit <em>State + Behavior</em> (causing Diamond Ambiguity).
+          Interfaces inherit <em>Contracts Only</em> (safe & clean for Multiple Inheritance).
+        </p>
+      </div>
+    </div>
+
+    <!-- SECTION 3: CODE EXAMPLES FOR SUPPORTED TYPES -->
+    <div class="card">
+      <h2 class="section-title"><span class="icon">💻</span> Java Code: Single & Multilevel Inheritance</h2>
+
+      <div class="code-block">
+        <header>
+          <span>TataVehicleHierarchy.java</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+        </header>
+        <code><span class="cmt">// Base Superclass</span>
+<span class="kw">class</span> <span class="type">Vehicle</span> {
+    <span class="type">String</span> brand = <span class="str">"Tata Motors"</span>;
+    <span class="kw">public void</span> <span class="fn">startEngine</span>() {
+        <span class="type">System</span>.out.<span class="fn">println</span>(<span class="str">"Vehicle engine started..."</span>);
+    }
+}
+
+<span class="cmt">// Single Level Inheritance (Car extends Vehicle)</span>
+<span class="kw">class</span> <span class="type">Car</span> <span class="kw">extends</span> <span class="type">Vehicle</span> {
+    <span class="type">int</span> seatingCapacity = <span class="num">5</span>;
+    <span class="kw">public void</span> <span class="fn">drive</span>() {
+        <span class="type">System</span>.out.<span class="fn">println</span>(<span class="str">"Driving car on Indian highways."</span>);
+    }
+}
+
+<span class="cmt">// Multilevel Inheritance (NexonEV extends Car extends Vehicle)</span>
+<span class="kw">class</span> <span class="type">NexonEV</span> <span class="kw">extends</span> <span class="type">Car</span> {
+    <span class="type">int</span> batteryCapacityKWh = <span class="num">40</span>;
+    <span class="kw">public void</span> <span class="fn">chargeBattery</span>() {
+        <span class="type">System</span>.out.<span class="fn">println</span>(<span class="str">"Fast charging Nexon EV at Tata Power station!"</span>);
+    }
+}
+
+<span class="kw">public class</span> <span class="type">InheritanceTypesDemo</span> {
+    <span class="kw">public static void</span> <span class="fn">main</span>(<span class="type">String</span>[] args) {
+        <span class="type">NexonEV</span> myEv = <span class="kw">new</span> <span class="type">NexonEV</span>();
+
+        <span class="cmt">// Accessing Grandparent members</span>
+        <span class="type">System</span>.out.<span class="fn">println</span>(<span class="str">"Brand: "</span> + myEv.brand);
+        myEv.<span class="fn">startEngine</span>();
+
+        <span class="cmt">// Accessing Parent members</span>
+        <span class="type">System</span>.out.<span class="fn">println</span>(<span class="str">"Seats: "</span> + myEv.seatingCapacity);
+        myEv.<span class="fn">drive</span>();
+
+        <span class="cmt">// Accessing Child's own members</span>
+        myEv.<span class="fn">chargeBattery</span>();
+    }
+}</code>
+      </div>
+    </div>
+
+    <!-- QUIZ -->
+    <div class="card">
+      <h2 class="section-title"><span class="icon">🎯</span> Interactive Quiz</h2>
+      <div class="quiz-card">
+        <p style="font-weight: 600; margin-bottom: 16px;">Q1: Why does Java forbid class <code>C extends A, B</code>?
+        </p>
+        <div class="quiz-option" onclick="checkAnswer(this, false)">Because JVM doesn't have enough heap memory.</div>
+        <div class="quiz-option" onclick="checkAnswer(this, true)">To prevent method ambiguity (Diamond Problem).</div>
+        <div class="quiz-option" onclick="checkAnswer(this, false)">Because primitive types cannot be inherited.</div>
+        <div class="quiz-option" onclick="checkAnswer(this, false)">Multiple inheritance is allowed for classes in Java
+          21+.</div>
+      </div>
+    </div>
+
+
+  </div>
+
+  <script>
+    function copyCode(button) {
+      const codeBlock = button.closest('.code-block');
+      const codeText = codeBlock.querySelector('code').innerText;
+      navigator.clipboard.writeText(codeText).then(() => {
+        button.classList.add('copied');
+        button.innerHTML = '✓ Copied!';
+        setTimeout(() => {
+          button.classList.remove('copied');
+          button.innerHTML = '📋 Copy Code';
+        }, 2000);
+      });
+    }
+
+    function showTree(type, btn) {
+      document.querySelectorAll('.controls-row .btn').forEach(b => b.classList.remove('btn-active'));
+      btn.classList.add('btn-active');
+
+      const display = document.getElementById('treeDisplay');
+      const errorBanner = document.getElementById('errorBanner');
+      errorBanner.style.display = 'none';
+
+      if (type === 'single') {
+        display.innerHTML = `
+          <div class="node-box">Vehicle (Superclass)</div>
+          <div class="arrow">⬇ extends</div>
+          <div class="node-box">Car (Subclass)</div>
+        `;
+      } else if (type === 'multilevel') {
+        display.innerHTML = `
+          <div class="node-box">Vehicle (Grandparent)</div>
+          <div class="arrow">⬇ extends</div>
+          <div class="node-box">Car (Parent)</div>
+          <div class="arrow">⬇ extends</div>
+          <div class="node-box">NexonEV (Child)</div>
+        `;
+      } else if (type === 'hierarchical') {
+        display.innerHTML = `
+          <div class="node-box">Vehicle (Superclass)</div>
+          <div class="arrow">↙ extends &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; extends ↘</div>
+          <div class="node-row">
+            <div class="node-box">Car (Child A)</div>
+            <div class="node-box">Bike (Child B)</div>
+          </div>
+        `;
+      } else if (type === 'diamond') {
+        display.innerHTML = `
+          <div class="node-box">GrandparentClass</div>
+          <div class="arrow">↙ extends &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; extends ↘</div>
+          <div class="node-row">
+            <div class="node-box conflict">FatherClass (cookDinner)</div>
+            <div class="node-box conflict">MotherClass (cookDinner)</div>
+          </div>
+          <div class="arrow">↘ extends &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; extends ↙</div>
+          <div class="node-box conflict">ChildClass (Ambiguity! Which cookDinner()?)</div>
+        `;
+        errorBanner.style.display = 'block';
+      }
+    }
+
+    // Initialize default
+    showTree('single', document.querySelector('.controls-row .btn'));
+
+    function checkAnswer(el, isCorrect) {
+      const parent = el.parentElement;
+      const options = parent.querySelectorAll('.quiz-option');
+      options.forEach(opt => opt.classList.remove('correct', 'incorrect'));
+      if (isCorrect) {
+        el.classList.add('correct');
+      } else {
+        el.classList.add('incorrect');
+      }
+    }
+  </script>
+</body>
+
+</html>

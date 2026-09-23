@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Access Control with Inheritance Re-Visited | Java Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --secondary: #0284c7;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #ef4444;
+      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f1f5f9 100%);
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 10px 25px rgba(79, 70, 229, 0.07);
+      --shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      color: var(--text-main);
+      padding: 24px 16px;
+      line-height: 1.65;
+    }
+    .container { max-width: 1100px; margin: 0 auto; }
+    
+    .top-nav {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+    }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 8px; background: #ffffff; color: var(--primary-dark);
+      text-decoration: none; padding: 10px 20px; border-radius: 30px; font-weight: 600; font-size: 0.95rem;
+      border: 1px solid var(--card-border); box-shadow: var(--shadow-sm); transition: all 0.25s ease;
+    }
+    .back-btn:hover { background: var(--primary); color: #ffffff; transform: translateX(-4px); }
+    .nav-tag {
+      color: var(--text-muted); font-weight: 600; font-size: 0.9rem; background: rgba(255, 255, 255, 0.9);
+      padding: 6px 16px; border-radius: 20px; border: 1px solid var(--card-border);
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #059669 0%, #4f46e5 100%); color: #ffffff;
+      border-radius: 20px; padding: 40px 32px; text-align: center; box-shadow: var(--shadow-lg); margin-bottom: 32px;
+    }
+    .hero h1 { font-size: 2.5rem; font-weight: 800; margin-bottom: 12px; }
+    .hero p { font-size: 1.15rem; opacity: 0.95; max-width: 780px; margin: 0 auto 20px auto; }
+    .hero-badges { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+    .hero-badge { background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(8px); padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+
+    .card {
+      background: var(--card-bg); border-radius: 18px; padding: 32px; margin-bottom: 32px;
+      box-shadow: var(--shadow-md); border: 1px solid var(--card-border);
+    }
+    .section-title {
+      font-size: 1.5rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 18px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .section-title .icon {
+      font-size: 1.4rem; background: #eef2ff; width: 44px; height: 44px;
+      display: flex; align-items: center; justify-content: center; border-radius: 12px; color: var(--primary);
+    }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    .concept-box {
+      background: #f8fafc; border-left: 4px solid var(--primary); padding: 20px; border-radius: 0 12px 12px 0; margin-bottom: 16px;
+    }
+    .concept-box h3 { font-size: 1.1rem; color: var(--primary-dark); margin-bottom: 8px; }
+
+    .analogy-box {
+      background: linear-gradient(135deg, #fffbe6 0%, #fef3c7 100%);
+      border: 1px solid #fde68a; border-left: 5px solid var(--accent-amber);
+      border-radius: 14px; padding: 22px; margin: 20px 0;
+    }
+    .analogy-box h4 { color: #92400e; font-size: 1.15rem; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+
+    /* Interactive Matrix Sandbox */
+    .interactive-container {
+      background: #0f172a; color: #f8fafc; border-radius: 16px; padding: 28px; border: 1px solid #334155; margin-top: 16px;
+    }
+    .controls-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 20px; }
+    .btn {
+      padding: 10px 18px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer;
+      transition: all 0.2s; font-size: 0.9rem; font-family: inherit; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-secondary { background: #334155; color: white; }
+    .btn-secondary:hover { background: #475569; }
+    .btn-active { background: var(--primary) !important; color: white; }
+
+    .matrix-table {
+      width: 100%; border-collapse: collapse; margin-top: 16px; font-family: 'Fira Code', monospace; font-size: 0.88rem;
+    }
+    .matrix-table th, .matrix-table td {
+      padding: 12px 16px; text-align: center; border: 1px solid #334155;
+    }
+    .matrix-table th { background: #1e293b; color: #38bdf8; font-weight: 700; }
+    .matrix-table td { background: #0f172a; }
+    .badge-yes { background: rgba(16, 185, 129, 0.2); color: #34d399; font-weight: 700; padding: 4px 8px; border-radius: 4px; }
+    .badge-no { background: rgba(239, 68, 68, 0.2); color: #fca5a5; font-weight: 700; padding: 4px 8px; border-radius: 4px; }
+    .matrix-highlight { outline: 2px solid var(--accent-amber); }
+
+    /* Code Block */
+    .code-block {
+      background: #0f172a; border-radius: 12px; padding: 20px; color: #e2e8f0; font-family: 'Fira Code', monospace;
+      font-size: 0.9rem; overflow-x: auto; position: relative; border: 1px solid #1e293b; margin: 16px 0;
+    }
+    .code-block header {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #334155; padding-bottom: 8px; color: #94a3b8; font-size: 0.8rem;
+    }
+    .code-block code { white-space: pre; }
+    .kw { color: #c084fc; font-weight: 600; }
+    .type { color: #38bdf8; font-weight: 600; }
+    .num { color: #f43f5e; }
+    .str { color: #4ade80; }
+    .cmt { color: #64748b; font-style: italic; }
+    .fn { color: #facc15; }
+
+    .copy-btn {
+      background: rgba(255, 255, 255, 0.1); color: #e2e8f0; border: 1px solid #475569; padding: 4px 12px;
+      border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: inline-flex;
+      align-items: center; gap: 4px; transition: all 0.2s ease; font-family: inherit;
+    }
+    .copy-btn:hover { background: #4f46e5; color: #ffffff; border-color: #4f46e5; }
+    .copy-btn.copied { background: #10b981 !important; color: #ffffff !important; border-color: #10b981 !important; }
+
+    .quiz-card { background: #f8fafc; border-radius: 14px; padding: 24px; border: 1px solid var(--card-border); }
+    .quiz-option {
+      background: #ffffff; padding: 14px 18px; border-radius: 10px; margin-bottom: 10px; cursor: pointer;
+      border: 1px solid #cbd5e1; transition: all 0.2s; font-weight: 500; display: flex; align-items: center; justify-content: space-between;
+    }
+    .quiz-option:hover { background: #f1f5f9; border-color: var(--primary); }
+    .quiz-option.correct { background: #dcfce7; border-color: var(--accent-green); color: #166534; font-weight: 600; }
+    .quiz-option.incorrect { background: #fee2e2; border-color: #ef4444; color: #991b1b; }
+
+    .nav-buttons { display: flex; justify-content: space-between; gap: 16px; margin-top: 40px; }
+    .nav-btn {
+      padding: 12px 24px; border-radius: 10px; font-weight: 600; text-decoration: none;
+      transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px;
+    }
+    .nav-btn-prev { background: #ffffff; color: var(--text-main); border: 1px solid var(--card-border); }
+    .nav-btn-prev:hover { background: #f1f5f9; }
+    .nav-btn-next { background: var(--primary); color: #ffffff; }
+    .nav-btn-next:hover { background: var(--primary-dark); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="top-nav">
+      <a href="../index.html" class="back-btn">⬅ Back to Java Index</a>
+      <span class="nav-tag">Inheritance in Java</span>
+    </div>
+
+    <header class="hero">
+      <h1>Access Control with Inheritance Re-Visited</h1>
+      <p>Analyze how access modifiers (<code>private</code>, <code>default</code>, <code>protected</code>, <code>public</code>) govern member visibility when inheritance crosses package boundaries.</p>
+      <div class="hero-badges">
+        <span class="hero-badge">🔒 Private (Encapsulated)</span>
+        <span class="hero-badge">📦 Default (Package Only)</span>
+        <span class="hero-badge">🛡️ Protected (Inheritance Gate)</span>
+        <span class="hero-badge">🌐 Public (Universal)</span>
+      </div>
+    </header>
+
+    <!-- SECTION 1: ACCESS MODIFIERS IN INHERITANCE -->
+    <div class="card">
+      <h2 class="section-title"><span class="icon">🔑</span> Visibility Rules in Inheritance</h2>
+      
+      <!-- SHORT NOTE: WHAT IS A PACKAGE & WHY WE NEED IT -->
+      <div style="background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%); border: 1px solid #c7d2fe; border-left: 5px solid var(--primary); border-radius: 14px; padding: 20px; margin-bottom: 20px;">
+        <h4 style="color: var(--primary-dark); font-size: 1.15rem; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+          <span>📦</span> Quick Primer: What is a Package & Why Do We Need It?
+        </h4>
+        <p style="margin-bottom: 8px;">
+          <em>(Brief Overview — Packages will be covered in full detail in a dedicated module later!)</em>
+        </p>
+        <p style="margin-bottom: 10px;">
+          A <strong>Package</strong> in Java is essentially a directory folder on your disk that groups related classes, interfaces, and sub-packages together (e.g., <code>package com.bank.parent;</code>).
+        </p>
+        <ul style="margin-left: 20px; margin-bottom: 8px; line-height: 1.6;">
+          <li><strong>Prevents Naming Collisions:</strong> Two classes can share the exact same name as long as they live in different packages (e.g. <code>java.util.Date</code> vs <code>java.sql.Date</code>).</li>
+          <li><strong>Access Control Boundary:</strong> Access modifiers like <code>default</code> (package-private) and <code>protected</code> rely directly on package boundaries to restrict or allow visibility.</li>
+          <li><strong>Analogy:</strong> Packages are like <strong>Indian City Districts</strong> (e.g., <code>in.delhi</code> vs <code>in.hyderabad</code>). Both cities can have a <em>MG Road</em> without any postal delivery confusion!</li>
+        </ul>
+      </div>
+      
+      <!-- INDIAN ANALOGY BOX -->
+      <div class="analogy-box">
+        <h4>🏡 Real-World Indian Analogy: Ancestral Home Security</h4>
+        <ul style="margin-left: 20px; margin-top: 8px;">
+          <li><strong><code>private</code>:</strong> Personal Diary locked in Father's personal safe. Even though it is inside the house (memory), children cannot read it directly!</li>
+          <li><strong><code>default</code> (Package-Private):</strong> Living room Smart TV. Anyone living in the <em>same apartment complex (same package)</em> can use it. But relatives living in another city (different package) cannot!</li>
+          <li><strong><code>protected</code>:</strong> Ancestral Farmland & Secret Family Masala Recipe. Children can access it EVEN IF they move to another city (different package) via inheritance!</li>
+          <li><strong><code>public</code>:</strong> Sweet Shop counter on main road. Accessible to anyone anywhere.</li>
+        </ul>
+      </div>
+
+      <div class="grid-2">
+        <div class="concept-box">
+          <h3>Are Private members inherited?</h3>
+          <p><strong>YES in memory, NO in direct code!</strong> Private fields of a superclass are present inside the subclass object memory layout on heap, but the subclass code cannot access them directly by variable name. They must be accessed via inherited <code>public</code> or <code>protected</code> getter/setter methods.</p>
+        </div>
+        <div class="concept-box">
+          <h3>The Power of <code>protected</code></h3>
+          <p>The <code>protected</code> modifier is specially designed for inheritance! It allows a subclass in a <strong>different package</strong> to access the parent's protected members via inheritance (using <code>super</code> or direct field name inside subclass code).</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 2: INTERACTIVE MATRIX -->
+    <div class="card">
+      <h2 class="section-title"><span class="icon">🧪</span> Interactive Sandbox: Access Visibility Matrix</h2>
+      <p>Select context to highlight access permission across package and inheritance boundaries:</p>
+
+      <div class="interactive-container">
+        <div class="controls-row">
+          <span style="color: #cbd5e1; font-weight: 600; font-size: 0.9rem;">Select Caller Location:</span>
+          <button class="btn btn-secondary btn-active" onclick="filterMatrix('same-sub', this)">Same Package Subclass</button>
+          <button class="btn btn-secondary" onclick="filterMatrix('same-non', this)">Same Package Non-Subclass</button>
+          <button class="btn btn-secondary" onclick="filterMatrix('diff-sub', this)">Diff Package Subclass 🛡️</button>
+          <button class="btn btn-secondary" onclick="filterMatrix('diff-non', this)">Diff Package Non-Subclass</button>
+        </div>
+
+        <table class="matrix-table">
+          <thead>
+            <tr>
+              <th>Modifier</th>
+              <th>Same Class</th>
+              <th id="colSameSub">Same Pkg Subclass</th>
+              <th id="colSameNon">Same Pkg Non-Subclass</th>
+              <th id="colDiffSub">Diff Pkg Subclass</th>
+              <th id="colDiffNon">Diff Pkg Non-Subclass</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>private</code></td>
+              <td><span class="badge-yes">YES</span></td>
+              <td><span class="badge-no">NO</span></td>
+              <td><span class="badge-no">NO</span></td>
+              <td><span class="badge-no">NO</span></td>
+              <td><span class="badge-no">NO</span></td>
+            </tr>
+            <tr>
+              <td><code>default</code></td>
+              <td><span class="badge-yes">YES</span></td>
+              <td><span class="badge-yes">YES</span></td>
+              <td><span class="badge-yes">YES</span></td>
+              <td><span class="badge-no">NO</span></td>
+              <td><span class="badge-no">NO</span></td>
+            </tr>
+            <tr>
+              <td><code>protected</code></td>
+              <td><span class="badge-yes">YES</span></td>
+              <td><span class="badge-yes">YES</span></td>
+              <td><span class="badge-yes">YES</span></td>
+              <td><span class="badge-yes">YES 🛡️</span></td>
+              <td><span class="badge-no">NO</span></td>
+            </tr>
+            <tr>
+              <td><code>public</code></td>
+              <td><span class="badge-yes">YES</span></td>
+              <td><span class="badge-yes">YES</span></td>
+              <td><span class="badge-yes">YES</span></td>
+              <td><span class="badge-yes">YES</span></td>
+              <td><span class="badge-yes">YES</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SECTION 3: CODE EXAMPLE ACROSS PACKAGES -->
+    <div class="card">
+      <h2 class="section-title"><span class="icon">💻</span> Java Code: Cross-Package Inheritance</h2>
+
+      <div class="code-block">
+        <header>
+          <span>com/bank/parent/RBI_Guidelines.java</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+        </header>
+        <code><span class="kw">package</span> com.bank.parent;
+
+<span class="kw">public class</span> <span class="type">RBI_Guidelines</span> {
+    <span class="kw">private</span> <span class="type">String</span> secretVaultPin = <span class="str">"9999"</span>; <span class="cmt">// Private: Parent only</span>
+    <span class="type">String</span> defaultRegulation = <span class="str">"Repo Rate 6.5%"</span>; <span class="cmt">// Default: Same package only</span>
+    <span class="kw">protected</span> <span class="type">String</span> emergencyFundLimit = <span class="str">"₹500 Crores"</span>; <span class="cmt">// Protected: Subclasses anywhere</span>
+    <span class="kw">public</span> <span class="type">String</span> rbiName = <span class="str">"Reserve Bank of India"</span>; <span class="cmt">// Public: Everywhere</span>
+}</code>
+      </div>
+
+      <div class="code-block">
+        <header>
+          <span>com/bank/child/SBI_Branch.java (Different Package)</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+        </header>
+        <code><span class="kw">package</span> com.bank.child;
+<span class="kw">import</span> com.bank.parent.<span class="type">RBI_Guidelines</span>;
+
+<span class="kw">public class</span> <span class="type">SBI_Branch</span> <span class="kw">extends</span> <span class="type">RBI_Guidelines</span> {
+    <span class="kw">public void</span> <span class="fn">checkAccess</span>() {
+        <span class="cmt">// System.out.println(secretVaultPin); // ❌ COMPILER ERROR: private!</span>
+        <span class="cmt">// System.out.println(defaultRegulation); // ❌ COMPILER ERROR: default across package!</span>
+        
+        <span class="type">System</span>.out.<span class="fn">println</span>(emergencyFundLimit); <span class="cmt">// ✅ ALLOWED: protected via inheritance!</span>
+        <span class="type">System</span>.out.<span class="fn">println</span>(rbiName);            <span class="cmt">// ✅ ALLOWED: public!</span>
+    }
+}</code>
+      </div>
+    </div>
+
+    <!-- QUIZ -->
+    <div class="card">
+      <h2 class="section-title"><span class="icon">🎯</span> Interactive Quiz</h2>
+      <div class="quiz-card">
+        <p style="font-weight: 600; margin-bottom: 16px;">Q1: A class in <code>package B</code> extends a parent class in <code>package A</code>. Which non-public member of parent can it access directly?</p>
+        <div class="quiz-option" onclick="checkAnswer(this, false)"><code>private</code></div>
+        <div class="quiz-option" onclick="checkAnswer(this, false)"><code>default</code> (package-private)</div>
+        <div class="quiz-option" onclick="checkAnswer(this, true)"><code>protected</code></div>
+        <div class="quiz-option" onclick="checkAnswer(this, false)">None of the non-public members.</div>
+      </div>
+    </div>
+
+
+  </div>
+
+  <script>
+    function copyCode(button) {
+      const codeBlock = button.closest('.code-block');
+      const codeText = codeBlock.querySelector('code').innerText;
+      navigator.clipboard.writeText(codeText).then(() => {
+        button.classList.add('copied');
+        button.innerHTML = '✓ Copied!';
+        setTimeout(() => {
+          button.classList.remove('copied');
+          button.innerHTML = '📋 Copy Code';
+        }, 2000);
+      });
+    }
+
+    function filterMatrix(type, btn) {
+      document.querySelectorAll('.controls-row .btn').forEach(b => b.classList.remove('btn-active'));
+      btn.classList.add('btn-active');
+
+      document.querySelectorAll('.matrix-table th, .matrix-table td').forEach(el => el.classList.remove('matrix-highlight'));
+
+      let colIdx = 3;
+      if (type === 'same-sub') colIdx = 3;
+      if (type === 'same-non') colIdx = 4;
+      if (type === 'diff-sub') colIdx = 5;
+      if (type === 'diff-non') colIdx = 6;
+
+      document.querySelectorAll(`.matrix-table tr td:nth-child(${colIdx}), .matrix-table tr th:nth-child(${colIdx})`).forEach(el => {
+        el.classList.add('matrix-highlight');
+      });
+    }
+
+    // Default
+    filterMatrix('diff-sub', document.querySelectorAll('.controls-row .btn')[2]);
+
+    function checkAnswer(el, isCorrect) {
+      const parent = el.parentElement;
+      const options = parent.querySelectorAll('.quiz-option');
+      options.forEach(opt => opt.classList.remove('correct', 'incorrect'));
+      if (isCorrect) {
+        el.classList.add('correct');
+      } else {
+        el.classList.add('incorrect');
+      }
+    }
+  </script>
+</body>
+</html>
