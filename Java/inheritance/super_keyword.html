@@ -99,15 +99,56 @@
     .btn-primary { background: var(--primary); color: white; }
     .btn-primary:hover { background: var(--primary-dark); }
 
+    /* Viz Grid & Heap Object Styling */
+    .viz-grid {
+      display: grid; grid-template-columns: 1fr 1.1fr; gap: 20px; margin-top: 16px;
+    }
+    @media (max-width: 860px) {
+      .viz-grid { grid-template-columns: 1fr; }
+    }
+    .viz-panel {
+      background: #1e293b; border-radius: 12px; padding: 18px; border: 1px solid #334155;
+    }
+    .viz-panel-title {
+      font-size: 0.92rem; font-weight: 700; color: #cbd5e1; margin-bottom: 14px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid #334155; padding-bottom: 8px;
+    }
+
     .stack-visualizer {
-      display: flex; flex-direction: column-reverse; gap: 12px; padding: 20px; background: #1e293b; border-radius: 12px; min-height: 240px; align-items: center;
+      display: flex; flex-direction: column-reverse; gap: 10px; padding: 10px 0; min-height: 240px; align-items: center; justify-content: flex-end;
     }
     .stack-frame {
-      width: 100%; max-width: 440px; padding: 14px 20px; border-radius: 10px; font-family: 'Fira Code', monospace;
-      font-weight: 600; font-size: 0.9rem; text-align: center; border: 2px solid #334155; opacity: 0.4; transition: all 0.4s ease;
+      width: 100%; padding: 12px 16px; border-radius: 10px; font-family: 'Fira Code', monospace;
+      font-weight: 600; font-size: 0.85rem; text-align: center; border: 2px solid #334155; opacity: 0.4; transition: all 0.4s ease;
     }
     .stack-frame.active { opacity: 1; border-color: #38bdf8; background: rgba(56, 189, 248, 0.15); color: #38bdf8; }
     .stack-frame.completed { opacity: 1; border-color: #34d399; background: rgba(52, 211, 153, 0.15); color: #34d399; }
+
+    .heap-object-box {
+      border: 2px dashed #0284c7; background: rgba(2, 132, 199, 0.05);
+      border-radius: 12px; padding: 14px; transition: all 0.3s ease;
+    }
+    .heap-object-header {
+      display: flex; justify-content: space-between; align-items: center;
+      font-family: 'Fira Code', monospace; font-size: 0.82rem; color: #38bdf8;
+      margin-bottom: 10px; background: #0f172a; padding: 8px 12px;
+      border-radius: 8px; border: 1px solid #1e293b;
+    }
+    .heap-layer {
+      background: #0f172a; border-radius: 8px; padding: 10px 12px;
+      margin-bottom: 8px; border-left: 4px solid #475569; opacity: 0.45;
+      transition: all 0.4s ease; font-size: 0.85rem;
+    }
+    .heap-layer.active {
+      opacity: 1; border-left-color: #38bdf8; background: #1a2436;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.12);
+    }
+    .heap-field {
+      font-family: 'Fira Code', monospace; font-size: 0.82rem; color: #cbd5e1; margin-top: 4px;
+    }
+    .val-uninit { color: #64748b; font-style: italic; }
+    .val-set { color: #4ade80; font-weight: 600; }
 
     /* Code Block */
     .code-block {
@@ -197,10 +238,10 @@
       </div>
     </div>
 
-    <!-- SECTION 2: INTERACTIVE STACK VISUALIZER -->
+    <!-- SECTION 2: INTERACTIVE STACK & HEAP VISUALIZER -->
     <div class="card">
-      <h2 class="section-title"><span class="icon">🧪</span> Interactive Visualizer: Constructor Chaining Order</h2>
-      <p>Click "Step Forward" to watch constructor call stack execution when running <code>new Child()</code>:</p>
+      <h2 class="section-title"><span class="icon">🧪</span> Interactive Visualizer: Call Stack & Single Heap Object Creation</h2>
+      <p>Click "Step Forward" to watch constructor call stack execution on the left and the step-by-step field initialization inside the <strong>single Heap Object</strong> on the right when running <code>new SonChef()</code>:</p>
 
       <div class="interactive-container">
         <div class="controls-row">
@@ -209,13 +250,66 @@
           <span id="stepLabel" style="color: #cbd5e1; font-weight: 600; font-size: 0.9rem; margin-left: 12px;">Step 0 of 4: Initialized</span>
         </div>
 
-        <div class="stack-visualizer">
-          <div class="stack-frame" id="frameChild">ChildConstructor() [Step 4: Finishes Child Init]</div>
-          <div class="stack-frame" id="frameParent">ParentConstructor() [Step 3: Finishes Parent Init]</div>
-          <div class="stack-frame" id="frameGrandparent">GrandparentConstructor() [Step 2: Finishes Grandparent Init]</div>
-          <div class="stack-frame" id="frameObject">Object() [Step 1: Root java.lang.Object]</div>
+        <div class="viz-grid">
+          <!-- LEFT COLUMN: CALL STACK -->
+          <div class="viz-panel">
+            <div class="viz-panel-title">
+              <span>🥞 Call Stack (Stack Memory)</span>
+              <span style="color: #38bdf8; font-size: 0.8rem;">Top-Down Execution</span>
+            </div>
+            <div class="stack-visualizer">
+              <div class="stack-frame" id="frameChild">SonChef() [Step 4: Child Init]</div>
+              <div class="stack-frame" id="frameParent">FatherRecipe() [Step 3: Parent Init]</div>
+              <div class="stack-frame" id="frameGrandparent">Grandparent() [Step 2: Grandparent Init]</div>
+              <div class="stack-frame" id="frameObject">Object() [Step 1: Root java.lang.Object]</div>
+            </div>
+          </div>
+
+          <!-- RIGHT COLUMN: HEAP OBJECT -->
+          <div class="viz-panel">
+            <div class="viz-panel-title">
+              <span>📦 Heap Memory (Single Object Allocation)</span>
+              <span style="color: #4ade80; font-family: 'Fira Code', monospace; font-size: 0.8rem;">Address: @0x7a4b</span>
+            </div>
+
+            <div class="heap-object-box">
+              <div class="heap-object-header">
+                <span>Instance of: <strong>SonChef</strong></span>
+                <span>Total Size: 48 bytes</span>
+              </div>
+
+              <!-- Object Header -->
+              <div class="heap-layer" id="heapObjectLayer">
+                <div style="font-weight: 600; color: #94a3b8;">1. java.lang.Object Layer</div>
+                <div class="heap-field">Header: <span class="val-set">[ Mark Word | Klass Word (@SonChef) ]</span></div>
+              </div>
+
+              <!-- Grandparent Layer -->
+              <div class="heap-layer" id="heapGrandparentLayer">
+                <div style="font-weight: 600; color: #38bdf8;">2. Grandparent Fields</div>
+                <div class="heap-field">familyLine = <span id="valGrandparent" class="val-uninit">null</span></div>
+              </div>
+
+              <!-- Parent Layer -->
+              <div class="heap-layer" id="heapParentLayer">
+                <div style="font-weight: 600; color: #c084fc;">3. FatherRecipe (Parent) Fields</div>
+                <div class="heap-field">super.secretMasala = <span id="valParent" class="val-uninit">null</span></div>
+              </div>
+
+              <!-- Child Layer -->
+              <div class="heap-layer" id="heapChildLayer">
+                <div style="font-weight: 600; color: #34d399;">4. SonChef (Child) Fields</div>
+                <div class="heap-field">this.secretMasala = <span id="valChild" class="val-uninit">null</span></div>
+              </div>
+            </div>
+
+            <div style="margin-top: 12px; font-size: 0.82rem; color: #94a3b8; line-height: 1.4; background: #0f172a; padding: 10px; border-radius: 8px; border: 1px solid #1e293b;">
+              💡 <strong>Key Takeaway:</strong> Exactly <u>ONE SINGLE OBJECT</u> is created in Heap memory. Constructor chaining populates each layer's fields inside this single object from top to bottom!
+            </div>
+          </div>
         </div>
       </div>
+
     </div>
 
     <!-- SECTION 3: CODE EXAMPLE -->
@@ -295,35 +389,108 @@
 
     let currentStep = 0;
     const steps = [
-      { active: [], completed: [], label: "Step 0 of 4: Initialized (new Child() called)" },
-      { active: ["frameObject"], completed: [], label: "Step 1: Object() constructor executing at top of hierarchy" },
-      { active: ["frameGrandparent"], completed: ["frameObject"], label: "Step 2: GrandparentConstructor() executing" },
-      { active: ["frameParent"], completed: ["frameObject", "frameGrandparent"], label: "Step 3: ParentConstructor() executing" },
-      { active: ["frameChild"], completed: ["frameObject", "frameGrandparent", "frameParent"], label: "Step 4: ChildConstructor() finishes execution!" }
+      {
+        label: "Step 0 of 4: 'new SonChef()' called → Single Heap Object allocated at @0x7a4b (uninitialized)",
+        activeStack: [],
+        completedStack: [],
+        heapLayers: { heapObjectLayer: false, heapGrandparentLayer: false, heapParentLayer: false, heapChildLayer: false },
+        heapVals: {
+          valGrandparent: { text: "null (uninitialized)", populated: false },
+          valParent: { text: "null (uninitialized)", populated: false },
+          valChild: { text: "null (uninitialized)", populated: false }
+        }
+      },
+      {
+        label: "Step 1: java.lang.Object() constructor runs at top of stack (Object header initialized)",
+        activeStack: ["frameObject"],
+        completedStack: [],
+        heapLayers: { heapObjectLayer: true, heapGrandparentLayer: false, heapParentLayer: false, heapChildLayer: false },
+        heapVals: {
+          valGrandparent: { text: "null (uninitialized)", populated: false },
+          valParent: { text: "null (uninitialized)", populated: false },
+          valChild: { text: "null (uninitialized)", populated: false }
+        }
+      },
+      {
+        label: "Step 2: Grandparent() constructor executes → Populates Grandparent fields in Heap @0x7a4b",
+        activeStack: ["frameGrandparent"],
+        completedStack: ["frameObject"],
+        heapLayers: { heapObjectLayer: true, heapGrandparentLayer: true, heapParentLayer: false, heapChildLayer: false },
+        heapVals: {
+          valGrandparent: { text: '"Sharma Ancestry"', populated: true },
+          valParent: { text: "null (uninitialized)", populated: false },
+          valChild: { text: "null (uninitialized)", populated: false }
+        }
+      },
+      {
+        label: "Step 3: FatherRecipe() (Parent) constructor executes → Populates Parent fields in Heap @0x7a4b",
+        activeStack: ["frameParent"],
+        completedStack: ["frameObject", "frameGrandparent"],
+        heapLayers: { heapObjectLayer: true, heapGrandparentLayer: true, heapParentLayer: true, heapChildLayer: false },
+        heapVals: {
+          valGrandparent: { text: '"Sharma Ancestry"', populated: true },
+          valParent: { text: '"Ancestral Garam Masala"', populated: true },
+          valChild: { text: "null (uninitialized)", populated: false }
+        }
+      },
+      {
+        label: "Step 4: SonChef() (Child) constructor completes → Single Heap Object @0x7a4b fully constructed!",
+        activeStack: ["frameChild"],
+        completedStack: ["frameObject", "frameGrandparent", "frameParent"],
+        heapLayers: { heapObjectLayer: true, heapGrandparentLayer: true, heapParentLayer: true, heapChildLayer: true },
+        heapVals: {
+          valGrandparent: { text: '"Sharma Ancestry"', populated: true },
+          valParent: { text: '"Ancestral Garam Masala"', populated: true },
+          valChild: { text: '"Modern Peri Peri Masala"', populated: true }
+        }
+      }
     ];
 
-    function updateStack() {
+    function updateVisualizer() {
       const s = steps[currentStep];
       document.getElementById('stepLabel').innerText = s.label;
 
+      // Update Call Stack
       ["frameObject", "frameGrandparent", "frameParent", "frameChild"].forEach(id => {
         const el = document.getElementById(id);
         el.className = 'stack-frame';
-        if (s.completed.includes(id)) el.classList.add('completed');
-        if (s.active.includes(id)) el.classList.add('active');
+        if (s.completedStack.includes(id)) el.classList.add('completed');
+        if (s.activeStack.includes(id)) el.classList.add('active');
+      });
+
+      // Update Heap Object Layers
+      Object.keys(s.heapLayers).forEach(layerId => {
+        const el = document.getElementById(layerId);
+        if (s.heapLayers[layerId]) {
+          el.classList.add('active');
+        } else {
+          el.classList.remove('active');
+        }
+      });
+
+      // Update Field Values
+      Object.keys(s.heapVals).forEach(valId => {
+        const el = document.getElementById(valId);
+        const data = s.heapVals[valId];
+        el.innerText = data.text;
+        if (data.populated) {
+          el.className = 'val-set';
+        } else {
+          el.className = 'val-uninit';
+        }
       });
     }
 
     function stepForward() {
       if (currentStep < steps.length - 1) {
         currentStep++;
-        updateStack();
+        updateVisualizer();
       }
     }
 
     function resetStack() {
       currentStep = 0;
-      updateStack();
+      updateVisualizer();
     }
 
     function checkAnswer(el, isCorrect) {
