@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Multiple Inheritance & Diamond Problem | Java Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --secondary: #0284c7;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #ef4444;
+      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f1f5f9 100%);
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 10px 25px rgba(79, 70, 229, 0.07);
+      --shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      color: var(--text-main);
+      padding: 24px 16px;
+      line-height: 1.65;
+    }
+    .container { max-width: 1100px; margin: 0 auto; }
+    
+    .top-nav {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+    }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 8px; background: #ffffff; color: var(--primary-dark);
+      text-decoration: none; padding: 10px 20px; border-radius: 30px; font-weight: 600; font-size: 0.95rem;
+      border: 1px solid var(--card-border); box-shadow: var(--shadow-sm); transition: all 0.25s ease;
+    }
+    .back-btn:hover { background: var(--primary); color: #ffffff; transform: translateX(-4px); }
+    .nav-tag {
+      color: var(--text-muted); font-weight: 600; font-size: 0.9rem; background: rgba(255, 255, 255, 0.9);
+      padding: 6px 16px; border-radius: 20px; border: 1px solid var(--card-border);
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #4f46e5 0%, #0284c7 100%); color: #ffffff;
+      border-radius: 20px; padding: 40px 32px; text-align: center; box-shadow: var(--shadow-lg); margin-bottom: 32px;
+    }
+    .hero h1 { font-size: clamp(2rem, 4vw, 2.8rem); font-weight: 800; margin-bottom: 12px; }
+    .hero p { font-size: 1.15rem; opacity: 0.95; max-width: 780px; margin: 0 auto 20px auto; }
+    .hero-badges { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+    .hero-badge { background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(8px); padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+
+    .card {
+      background: var(--card-bg); border-radius: 18px; padding: 32px; margin-bottom: 32px;
+      box-shadow: var(--shadow-md); border: 1px solid var(--card-border);
+    }
+    .section-title {
+      font-size: 1.5rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 18px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .section-title .icon {
+      font-size: 1.4rem; background: #eef2ff; width: 44px; height: 44px;
+      display: flex; align-items: center; justify-content: center; border-radius: 12px; color: var(--primary);
+    }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    .concept-box {
+      background: #f8fafc; border-left: 4px solid var(--primary); padding: 20px; border-radius: 0 12px 12px 0; margin-bottom: 16px;
+    }
+    .concept-box h3 { font-size: 1.1rem; color: var(--primary-dark); margin-bottom: 8px; }
+
+    /* Visual Diamond Architecture Diagram */
+    .diamond-viz {
+      background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px;
+      margin: 20px 0; text-align: center;
+    }
+    .node-box {
+      display: inline-block; padding: 12px 24px; border-radius: 10px; font-weight: 700;
+      box-shadow: var(--shadow-sm); min-width: 160px;
+    }
+    .node-top { background: #e0e7ff; color: #3730a3; border: 2px solid #818cf8; }
+    .node-mid { background: #fef3c7; color: #92400e; border: 2px solid #f59e0b; }
+    .node-bottom { background: #fee2e2; color: #991b1b; border: 2px solid #ef4444; }
+    .node-solved { background: #dcfce7; color: #166534; border: 2px solid #22c55e; }
+
+    .arrow-line { font-size: 1.4rem; color: #64748b; margin: 8px 0; }
+    .mid-row { display: flex; justify-content: center; gap: 60px; margin: 12px 0; }
+
+    .code-block {
+      background: #0d1117; color: #e6edf3; border-radius: 12px; position: relative;
+      margin: 18px 0; border: 1px solid #30363d; overflow: hidden; font-family: 'Fira Code', monospace;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    }
+    .code-header {
+      display: flex; justify-content: space-between; align-items: center; padding: 10px 16px;
+      background: #161b22; border-bottom: 1px solid #30363d; font-size: 0.85rem; color: #8b949e;
+      font-family: 'Fira Code', monospace;
+    }
+    .code-file-badge {
+      display: inline-flex; align-items: center; gap: 8px; font-weight: 600; color: #c9d1d9;
+    }
+    .code-file-badge::before {
+      content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #e3b341;
+    }
+    .code-block pre {
+      margin: 0; padding: 18px 20px; overflow-x: auto; font-family: 'Fira Code', monospace;
+      font-size: 0.9rem; line-height: 1.6; white-space: pre;
+    }
+    .code-block code {
+      font-family: inherit; font-size: inherit; white-space: pre; display: block;
+    }
+    .copy-btn {
+      background: rgba(255, 255, 255, 0.08); color: #c9d1d9; border: 1px solid #30363d;
+      padding: 5px 12px; border-radius: 6px; font-size: 0.78rem; font-weight: 500; cursor: pointer;
+      transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 6px; font-family: inherit;
+    }
+    .copy-btn:hover { background: var(--primary); color: #ffffff; border-color: var(--primary); }
+    .copy-btn.copied { background: var(--accent-green) !important; color: #ffffff !important; border-color: var(--accent-green) !important; }
+
+    .tag-kw { color: #ff7b72; font-weight: 600; }
+    .tag-type { color: #79c0ff; font-weight: 600; }
+    .tag-str { color: #a5d6ff; }
+    .tag-comment { color: #8b949e; font-style: italic; }
+    .tag-annotation { color: #d2a8ff; font-weight: 600; }
+    .tag-fn { color: #d2a8ff; }
+    .tag-num { color: #79c0ff; }
+
+    /* Code Tabs */
+    .code-tabs-nav {
+      display: flex; gap: 8px; border-bottom: 2px solid var(--card-border); margin-bottom: 16px; flex-wrap: wrap;
+    }
+    .code-tab-btn {
+      padding: 10px 18px; background: transparent; border: 1px solid transparent; border-bottom: none;
+      font-family: 'Outfit', sans-serif; font-size: 0.95rem; font-weight: 600; color: var(--text-muted);
+      cursor: pointer; border-radius: 10px 10px 0 0; transition: all 0.2s ease; display: inline-flex;
+      align-items: center; gap: 8px;
+    }
+    .code-tab-btn:hover { color: var(--primary); background: #f1f5f9; }
+    .code-tab-btn.active {
+      color: var(--primary); background: #ffffff; border-color: var(--card-border);
+      border-bottom: 2px solid #ffffff; margin-bottom: -2px; font-weight: 700;
+      box-shadow: 0 -2px 8px rgba(0,0,0,0.03);
+    }
+    .code-tab-panel { display: none; }
+    .code-tab-panel.active { display: block; animation: fadeIn 0.2s ease-in-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Interactive Conflict Sandbox */
+    .interactive-container {
+      background: #0f172a; color: #f8fafc; border-radius: 16px; padding: 28px; border: 1px solid #334155; margin-top: 16px;
+    }
+    .btn {
+      padding: 10px 18px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer;
+      transition: all 0.2s; font-size: 0.88rem; font-family: inherit; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-secondary { background: #334155; color: white; }
+    .btn-secondary:hover { background: #475569; }
+    .btn-active { background: var(--primary) !important; color: white; }
+
+    /* Page Navigation Footer */
+    .page-nav {
+      display: flex; justify-content: space-between; align-items: center; margin-top: 40px; gap: 16px; flex-wrap: wrap;
+    }
+    .nav-btn-link {
+      display: inline-flex; align-items: center; gap: 8px; background: white; padding: 12px 24px;
+      border-radius: 12px; border: 1px solid var(--card-border); color: var(--primary-dark);
+      font-weight: 700; text-decoration: none; box-shadow: var(--shadow-sm); transition: all 0.2s;
+    }
+    .nav-btn-link:hover { background: var(--primary); color: white; transform: translateY(-2px); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Top Navigation -->
+    <div class="top-nav">
+      <a href="../index.html" class="back-btn">← Back to Java Index</a>
+      <span class="nav-tag">☕ Module: Abstraction & Interfaces (Topic 5/10)</span>
+    </div>
+
+    <!-- Hero Banner -->
+    <div class="hero">
+      <h1>Multiple Inheritance & The Diamond Problem</h1>
+      <p>Understand the infamous Diamond of Death from C++, why Java strictly prohibited multiple class inheritance, and how interfaces elegantly eliminate ambiguity.</p>
+      <div class="hero-badges">
+        <span class="hero-badge">💎 Diamond of Death</span>
+        <span class="hero-badge">🛡️ Ambiguity Eradication</span>
+        <span class="hero-badge">⚡ Java 8 Default Conflict Syntax</span>
+      </div>
+    </div>
+
+    <!-- The Diamond Problem Explained -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">☠️</span>
+        <h2>1. What is the "Diamond Problem"?</h2>
+      </div>
+      <p style="font-size: 1.05rem; margin-bottom: 20px;">
+        In object-oriented languages that support multiple class inheritance (like C++), a classic ambiguity emerges when a class inherits from two parent classes that both share a common ancestor:
+      </p>
+
+      <div class="diamond-viz">
+        <div><span class="node-box node-top">Class A (defines show())</span></div>
+        <div class="arrow-line">↙ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ↘</div>
+        <div class="mid-row">
+          <span class="node-box node-mid">Class B (overrides show())</span>
+          <span class="node-box node-mid">Class C (overrides show())</span>
+        </div>
+        <div class="arrow-line">↘ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ↙</div>
+        <div><span class="node-box node-bottom">Class D extends B, C (Calls show()??)</span></div>
+      </div>
+
+      <div class="grid-2">
+        <div class="concept-box" style="border-left-color: var(--accent-rose);">
+          <h3 style="color: #991b1b;">1. Method Ambiguity</h3>
+          <p>When an instance of <code>D</code> calls <code>d.show()</code>, which method should execute? The one from <code>B</code> or the one from <code>C</code>? The compiler has no natural way to deduce the author's intent.</p>
+        </div>
+        <div class="concept-box" style="border-left-color: var(--accent-rose);">
+          <h3 style="color: #991b1b;">2. State Duplication & Memory Havoc</h3>
+          <p>If Class <code>A</code> had an instance variable <code>int count</code>, Class <code>D</code> inherits two separate copies of <code>count</code> (one via <code>B</code>, one via <code>C</code>), requiring complex pointer adjustments.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- How Interfaces Solve The Problem -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">💡</span>
+        <h2>2. How Java Interfaces Solved It (Pure Contracts)</h2>
+      </div>
+      <p style="margin-bottom: 16px;">
+        Java completely disallowed multiple class inheritance (<code>class D extends B, C</code> is a compile error). Instead, Java introduced multiple <strong>interface</strong> inheritance (<code>class D implements B, C</code>).
+      </p>
+
+      <div class="concept-box" style="border-left-color: var(--accent-green); background: #f0fdf4;">
+        <h3 style="color: #166534;">Why There is Zero Ambiguity:</h3>
+        <p style="color: #14532d;">
+          1. <strong>No State:</strong> Interfaces cannot hold non-static instance fields, so there is never duplicate state in memory.<br/>
+          2. <strong>No Method Body Conflict:</strong> Both Interface <code>B</code> and Interface <code>C</code> only declare abstract method signatures (<code>void show();</code>). They have zero implementation. Class <code>D</code> implements the interface and provides <strong>exactly ONE definitive method body</strong>!
+        </p>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-file-badge">Document.java (Dual Interface Implementation)</div>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+        </div>
+        <pre><code><span class="tag-comment">// 1. Two independent interfaces declare identical abstract signature</span>
+<span class="tag-kw">interface</span> <span class="tag-type">Printable</span> {
+    <span class="tag-kw">void</span> <span class="tag-fn">display</span>(); <span class="tag-comment">// Declaration only</span>
+}
+
+<span class="tag-kw">interface</span> <span class="tag-type">Showable</span> {
+    <span class="tag-kw">void</span> <span class="tag-fn">display</span>(); <span class="tag-comment">// Identical declaration!</span>
+}
+
+<span class="tag-comment">// 2. Class Document implements BOTH interfaces seamlessly</span>
+<span class="tag-kw">class</span> <span class="tag-type">Document</span> <span class="tag-kw">implements</span> <span class="tag-type">Printable</span>, <span class="tag-type">Showable</span> {
+    <span class="tag-comment">// Exactly ONE body satisfies BOTH contracts! Zero ambiguity!</span>
+    <span class="tag-annotation">@Override</span>
+    <span class="tag-kw">public void</span> <span class="tag-fn">display</span>() {
+        System.out.println(<span class="tag-str">"Displaying document on screen &amp; sending to printer spooler."</span>);
+    }
+}</code></pre>
+      </div>
+    </div>
+
+    <!-- The Modern Java 8+ Default Method Conflict -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">⚡</span>
+        <h2>3. The Java 8+ Twist: Default Method Conflicts</h2>
+      </div>
+      <p style="margin-bottom: 16px;">
+        Java 8 added <code>default</code> methods to interfaces, allowing interfaces to have method bodies! Does this bring back the Diamond Problem?
+      </p>
+
+      <div style="background: #fffbeb; border: 1px solid #fde68a; border-left: 5px solid var(--accent-amber); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+        <h4 style="color: #92400e; margin-bottom: 8px;">⚠️ What happens if two interfaces have the SAME default method?</h4>
+        <p style="color: #78350f;">
+          If Class <code>D</code> implements Interface <code>B</code> and Interface <code>C</code>, and BOTH provide a <code>default void log()</code> method, the Java compiler raises a compile-time error:
+          <br/><code>error: class D inherits unrelated defaults for log() from types B and C</code>
+        </p>
+      </div>
+
+      <h3 style="margin-bottom: 12px; font-size: 1.15rem; color: var(--primary-dark);">How Java Enforces Disambiguation:</h3>
+      <p style="margin-bottom: 20px;">Class <code>D</code> <strong>MUST explicitly override</strong> the conflicting method and resolve the conflict. It can provide a new implementation or choose one parent using the special syntax: <code>InterfaceName.super.method()</code>.</p>
+
+      <!-- Code Tabs Navigation -->
+      <div class="code-tabs-nav">
+        <button class="code-tab-btn active" onclick="switchCodeTab('tab-diamond-parents', this)">
+          ⚔️ 1. Engine &amp; ElectricMotor (Defaults)
+        </button>
+        <button class="code-tab-btn" onclick="switchCodeTab('tab-diamond-child', this)">
+          🚗 2. HybridCar.java (Disambiguation)
+        </button>
+        <button class="code-tab-btn" onclick="switchCodeTab('tab-diamond-demo', this)">
+          🚀 3. HybridDemo.java &amp; Output
+        </button>
+        <button class="code-tab-btn" onclick="switchCodeTab('tab-diamond-all', this)">
+          📦 4. Full Combined Source
+        </button>
+      </div>
+
+      <!-- Tab 1: Parent Interfaces with Defaults -->
+      <div id="tab-diamond-parents" class="code-tab-panel active">
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-file-badge">EngineAndMotor.java (Colliding Defaults)</div>
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+          </div>
+          <pre><code><span class="tag-comment">// Interface 1: Provides a default start() implementation</span>
+<span class="tag-kw">interface</span> <span class="tag-type">Engine</span> {
+    <span class="tag-kw">default void</span> <span class="tag-fn">start</span>() {
+        System.out.println(<span class="tag-str">"Combustion engine ignited with gasoline."</span>);
+    }
+}
+
+<span class="tag-comment">// Interface 2: Also provides an identical default start() implementation!</span>
+<span class="tag-kw">interface</span> <span class="tag-type">ElectricMotor</span> {
+    <span class="tag-kw">default void</span> <span class="tag-type">start</span>() {
+        System.out.println(<span class="tag-str">"High-voltage battery engaged electric motor."</span>);
+    }
+}</code></pre>
+        </div>
+      </div>
+
+      <!-- Tab 2: Disambiguating Subclass -->
+      <div id="tab-diamond-child" class="code-tab-panel">
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-file-badge">HybridCar.java (Explicit Disambiguation)</div>
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+          </div>
+          <pre><code><span class="tag-comment">// HybridCar implements both - MUST override start() to resolve collision!</span>
+<span class="tag-kw">class</span> <span class="tag-type">HybridCar</span> <span class="tag-kw">implements</span> <span class="tag-type">Engine</span>, <span class="tag-type">ElectricMotor</span> {
+    <span class="tag-annotation">@Override</span>
+    <span class="tag-kw">public void</span> <span class="tag-fn">start</span>() {
+        System.out.println(<span class="tag-str">"--- Booting Hybrid Power Controller ---"</span>);
+        <span class="tag-comment">// Disambiguate using InterfaceName.super.methodName():</span>
+        ElectricMotor.<span class="tag-kw">super</span>.start(); <span class="tag-comment">// Primary clean start</span>
+        Engine.<span class="tag-kw">super</span>.start();        <span class="tag-comment">// Auxiliary combustion assist</span>
+    }
+}</code></pre>
+        </div>
+      </div>
+
+      <!-- Tab 3: Driver & Output -->
+      <div id="tab-diamond-demo" class="code-tab-panel">
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-file-badge">HybridDemo.java (Driver &amp; Output)</div>
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+          </div>
+          <pre><code><span class="tag-kw">public class</span> <span class="tag-type">HybridDemo</span> {
+    <span class="tag-kw">public static void</span> <span class="tag-fn">main</span>(String[] args) {
+        <span class="tag-type">HybridCar</span> prius = <span class="tag-kw">new</span> <span class="tag-type">HybridCar</span>();
+        prius.<span class="tag-fn">start</span>();
+    }
+}
+
+<span class="tag-comment">/*
+=========================== CONSOLE OUTPUT ===========================
+--- Booting Hybrid Power Controller ---
+High-voltage battery engaged electric motor.
+Combustion engine ignited with gasoline.
+======================================================================
+*/</span></code></pre>
+        </div>
+      </div>
+
+      <!-- Tab 4: All In One -->
+      <div id="tab-diamond-all" class="code-tab-panel">
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-file-badge">CompleteHybridDiamondResolution.java</div>
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+          </div>
+          <pre><code><span class="tag-kw">interface</span> <span class="tag-type">Engine</span> {
+    <span class="tag-kw">default void</span> <span class="tag-fn">start</span>() {
+        System.out.println(<span class="tag-str">"Combustion engine ignited with gasoline."</span>);
+    }
+}
+
+<span class="tag-kw">interface</span> <span class="tag-type">ElectricMotor</span> {
+    <span class="tag-kw">default void</span> <span class="tag-fn">start</span>() {
+        System.out.println(<span class="tag-str">"High-voltage battery engaged electric motor."</span>);
+    }
+}
+
+<span class="tag-kw">class</span> <span class="tag-type">HybridCar</span> <span class="tag-kw">implements</span> <span class="tag-type">Engine</span>, <span class="tag-type">ElectricMotor</span> {
+    <span class="tag-annotation">@Override</span>
+    <span class="tag-kw">public void</span> <span class="tag-fn">start</span>() {
+        System.out.println(<span class="tag-str">"--- Booting Hybrid Power Controller ---"</span>);
+        ElectricMotor.<span class="tag-kw">super</span>.start();
+        Engine.<span class="tag-kw">super</span>.start();
+    }
+}
+
+<span class="tag-kw">public class</span> <span class="tag-type">HybridDemo</span> {
+    <span class="tag-kw">public static void</span> <span class="tag-fn">main</span>(String[] args) {
+        <span class="tag-type">HybridCar</span> prius = <span class="tag-kw">new</span> <span class="tag-type">HybridCar</span>();
+        prius.<span class="tag-fn">start</span>();
+    }
+}</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Interactive Conflict Sandbox -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🎮</span>
+        <h2>4. Interactive Conflict Resolver Sandbox</h2>
+      </div>
+      <p>Test various resolution strategies below to inspect the resulting behavior:</p>
+
+      <div class="interactive-container">
+        <div style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;">
+          <button class="btn btn-secondary btn-active" id="btnResBoth" onclick="setResolution('both')">1. Invoke Both via super</button>
+          <button class="btn btn-secondary" id="btnResElectric" onclick="setResolution('electric')">2. Choose ElectricMotor Only</button>
+          <button class="btn btn-secondary" id="btnResCustom" onclick="setResolution('custom')">3. Provide Custom Hybrid Logic</button>
+        </div>
+
+        <div class="code-block" style="margin: 0; background: #0b1120;">
+          <div class="code-header">
+            <div class="code-file-badge">DisambiguationResolution.java</div>
+          </div>
+          <pre style="margin: 0; padding: 16px 20px;"><code id="resolverCode"><span class="tag-annotation">@Override</span>
+<span class="tag-kw">public void</span> <span class="tag-fn">start</span>() {
+    ElectricMotor.<span class="tag-kw">super</span>.start();
+    Engine.<span class="tag-kw">super</span>.start();
+}</code></pre>
+        </div>
+
+        <div id="resolverOutput" style="margin-top: 16px; padding: 16px; background: #1e293b; border-radius: 8px; border: 1px solid #334155; font-family: 'Fira Code', monospace; font-size: 0.88rem;">
+          <span style="color: #34d399; font-weight: 700;">🟢 Output:</span><br/>
+          High-voltage battery engaged electric motor.<br/>
+          Combustion engine ignited with gasoline.
+        </div>
+      </div>
+    </div>
+
+    <!-- Page Navigation Footer -->
+    <div class="page-nav">
+      <a href="interface_vs_abstract_class.html" class="nav-btn-link">← Prev: Interface vs Abstract Class</a>
+      <a href="nested_interfaces.html" class="nav-btn-link">Next: Nested Interfaces →</a>
+    </div>
+  </div>
+
+  <script>
+    function setResolution(type) {
+      document.querySelectorAll('.interactive-container .btn').forEach(b => b.classList.remove('btn-active'));
+      const code = document.getElementById('resolverCode');
+      const out = document.getElementById('resolverOutput');
+
+      if (type === 'both') {
+        document.getElementById('btnResBoth').classList.add('btn-active');
+        code.innerHTML = `<span class="tag-annotation">@Override</span>\n<span class="tag-kw">public void</span> <span class="tag-fn">start</span>() {\n    ElectricMotor.<span class="tag-kw">super</span>.start();\n    Engine.<span class="tag-kw">super</span>.start();\n}`;
+        out.innerHTML = `<span style="color: #34d399; font-weight: 700;">🟢 Output:</span><br/>High-voltage battery engaged electric motor.<br/>Combustion engine ignited with gasoline.`;
+      } else if (type === 'electric') {
+        document.getElementById('btnResElectric').classList.add('btn-active');
+        code.innerHTML = `<span class="tag-annotation">@Override</span>\n<span class="tag-kw">public void</span> <span class="tag-fn">start</span>() {\n    <span class="tag-comment">// Route solely to electric motor</span>\n    ElectricMotor.<span class="tag-kw">super</span>.start();\n}`;
+        out.innerHTML = `<span style="color: #34d399; font-weight: 700;">🟢 Output:</span><br/>High-voltage battery engaged electric motor.`;
+      } else if (type === 'custom') {
+        document.getElementById('btnResCustom').classList.add('btn-active');
+        code.innerHTML = `<span class="tag-annotation">@Override</span>\n<span class="tag-kw">public void</span> <span class="tag-fn">start</span>() {\n    System.out.println(<span class="tag-str">"Starting in EV mode at low speed, auto-engaging engine above 60 km/h."</span>);\n}`;
+        out.innerHTML = `<span style="color: #34d399; font-weight: 700;">🟢 Output:</span><br/>Starting in EV mode at low speed, auto-engaging engine above 60 km/h.`;
+      }
+    }
+
+    function switchCodeTab(tabId, btn) {
+      const container = btn.closest('.card');
+      container.querySelectorAll('.code-tab-btn').forEach(b => b.classList.remove('active'));
+      container.querySelectorAll('.code-tab-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      const target = document.getElementById(tabId);
+      if (target) {
+        target.classList.add('active');
+      }
+    }
+
+    function copyCode(btn) {
+      const codeBlock = btn.closest('.code-block');
+      const codeEl = codeBlock.querySelector('code');
+      const text = codeEl ? codeEl.innerText : codeBlock.innerText.replace(/📋 Copy Code|📋 Copy|✓ Copied!/g, '').trim();
+      navigator.clipboard.writeText(text).then(() => {
+        const originalText = btn.innerText;
+        btn.innerText = '✓ Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.innerText = originalText;
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    }
+  </script>
+</body>
+</html>

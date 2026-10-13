@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Marker Interfaces in Java | Tagging Patterns & Modern Annotations</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --secondary: #0284c7;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #ef4444;
+      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f1f5f9 100%);
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 10px 25px rgba(79, 70, 229, 0.07);
+      --shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      color: var(--text-main);
+      padding: 24px 16px;
+      line-height: 1.65;
+    }
+    .container { max-width: 1100px; margin: 0 auto; }
+    
+    .top-nav {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+    }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 8px; background: #ffffff; color: var(--primary-dark);
+      text-decoration: none; padding: 10px 20px; border-radius: 30px; font-weight: 600; font-size: 0.95rem;
+      border: 1px solid var(--card-border); box-shadow: var(--shadow-sm); transition: all 0.25s ease;
+    }
+    .back-btn:hover { background: var(--primary); color: #ffffff; transform: translateX(-4px); }
+    .nav-tag {
+      color: var(--text-muted); font-weight: 600; font-size: 0.9rem; background: rgba(255, 255, 255, 0.9);
+      padding: 6px 16px; border-radius: 20px; border: 1px solid var(--card-border);
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #4f46e5 0%, #0284c7 100%); color: #ffffff;
+      border-radius: 20px; padding: 40px 32px; text-align: center; box-shadow: var(--shadow-lg); margin-bottom: 32px;
+    }
+    .hero h1 { font-size: clamp(2rem, 4vw, 2.8rem); font-weight: 800; margin-bottom: 12px; }
+    .hero p { font-size: 1.15rem; opacity: 0.95; max-width: 780px; margin: 0 auto 20px auto; }
+    .hero-badges { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+    .hero-badge { background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(8px); padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+
+    .card {
+      background: var(--card-bg); border-radius: 18px; padding: 32px; margin-bottom: 32px;
+      box-shadow: var(--shadow-md); border: 1px solid var(--card-border);
+    }
+    .section-title {
+      font-size: 1.5rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 18px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .section-title .icon {
+      font-size: 1.4rem; background: #eef2ff; width: 44px; height: 44px;
+      display: flex; align-items: center; justify-content: center; border-radius: 12px; color: var(--primary);
+    }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    .concept-box {
+      background: #f8fafc; border-left: 4px solid var(--primary); padding: 20px; border-radius: 0 12px 12px 0; margin-bottom: 16px;
+    }
+    .concept-box h3 { font-size: 1.1rem; color: var(--primary-dark); margin-bottom: 8px; }
+
+    .cmp-table {
+      width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 0.92rem;
+    }
+    .cmp-table th, .cmp-table td {
+      padding: 14px 16px; border: 1px solid var(--card-border); text-align: left;
+    }
+    .cmp-table th { background: #f1f5f9; color: var(--primary-dark); font-weight: 700; }
+    .cmp-table tr:nth-child(even) { background: #f8fafc; }
+
+    /* Fragmented Code Tabs */
+    .code-tabs-nav {
+      display: flex;
+      gap: 6px;
+      border-bottom: 2px solid #e2e8f0;
+      margin-bottom: 0;
+      overflow-x: auto;
+      padding-bottom: 0;
+    }
+    .code-tab-btn {
+      padding: 10px 18px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      border: 1px solid #cbd5e1;
+      border-bottom: none;
+      background: #f1f5f9;
+      color: #64748b;
+      border-radius: 8px 8px 0 0;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: inherit;
+      white-space: nowrap;
+    }
+    .code-tab-btn:hover {
+      background: #e2e8f0;
+      color: var(--primary);
+    }
+    .code-tab-btn.active {
+      background: #0d1117;
+      color: #38bdf8;
+      border-color: #0d1117;
+      font-weight: 700;
+    }
+    .code-tab-panel {
+      display: none;
+    }
+    .code-tab-panel.active {
+      display: block;
+    }
+
+    .code-block {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      overflow: hidden;
+      margin: 18px 0;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+      font-family: 'Fira Code', monospace;
+    }
+    .code-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 16px;
+      background: #161b22;
+      border-bottom: 1px solid #30363d;
+    }
+    .code-file-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #8b949e;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+    .code-file-badge::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #e3b341;
+      display: inline-block;
+    }
+    .code-block pre {
+      margin: 0;
+      padding: 18px 20px;
+      overflow-x: auto;
+      white-space: pre;
+      line-height: 1.6;
+      font-size: 0.9rem;
+      color: #e6edf3;
+    }
+    .code-block code {
+      display: block;
+      white-space: pre;
+      font-family: 'Fira Code', monospace;
+    }
+    .copy-btn {
+      background: #21262d;
+      color: #c9d1d9;
+      border: 1px solid #30363d;
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .copy-btn:hover {
+      background: #30363d;
+      color: #58a6ff;
+    }
+    .copy-btn.copied {
+      background: #238636;
+      color: #fff;
+      border-color: #2ea043;
+    }
+
+    .tag-kw { color: #ff7b72; font-weight: 600; }
+    .tag-type { color: #79c0ff; font-weight: 600; }
+    .tag-str { color: #a5d6ff; }
+    .tag-comment { color: #8b949e; font-style: italic; }
+
+    /* Interactive Tagging Simulator */
+    .interactive-container {
+      background: #0f172a; color: #f8fafc; border-radius: 16px; padding: 28px; border: 1px solid #334155; margin-top: 16px;
+    }
+    .btn {
+      padding: 10px 18px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer;
+      transition: all 0.2s; font-size: 0.88rem; font-family: inherit; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-secondary { background: #334155; color: white; }
+    .btn-secondary:hover { background: #475569; }
+    .btn-active { background: var(--primary) !important; color: white; }
+
+    /* Page Navigation Footer */
+    .page-nav {
+      display: flex; justify-content: space-between; align-items: center; margin-top: 40px; gap: 16px; flex-wrap: wrap;
+    }
+    .nav-btn-link {
+      display: inline-flex; align-items: center; gap: 8px; background: white; padding: 12px 24px;
+      border-radius: 12px; border: 1px solid var(--card-border); color: var(--primary-dark);
+      font-weight: 700; text-decoration: none; box-shadow: var(--shadow-sm); transition: all 0.2s;
+    }
+    .nav-btn-link:hover { background: var(--primary); color: white; transform: translateY(-2px); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Top Navigation -->
+    <div class="top-nav">
+      <a href="../index.html" class="back-btn">← Back to Java Index</a>
+      <span class="nav-tag">☕ Module: Abstraction & Interfaces (Topic 10/10)</span>
+    </div>
+
+    <!-- Hero Banner -->
+    <div class="hero">
+      <h1>Marker Interfaces in Java</h1>
+      <p>Discover tagging interfaces: how empty interfaces convey metadata to the JVM and compiler, classic JDK examples like Serializable and Cloneable, and when to use modern Annotations.</p>
+      <div class="hero-badges">
+        <span class="hero-badge">🏷️ Tagging / Empty Contract</span>
+        <span class="hero-badge">⚙️ JVM Runtime Signals</span>
+        <span class="hero-badge">⚖️ Marker vs @Annotation</span>
+      </div>
+    </div>
+
+    <!-- What is a Marker Interface -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🏷️</span>
+        <h2>1. What is a Marker Interface?</h2>
+      </div>
+      <p style="font-size: 1.05rem; margin-bottom: 20px;">
+        A <strong>Marker Interface</strong> (also called a <em>Tagging Interface</em>) is an interface that contains <strong>zero methods and zero constants</strong>. It is completely empty:
+      </p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-file-badge">Serializable.java</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+        </div>
+        <pre><code><span class="tag-comment">// Official JDK definition of Serializable:</span>
+<span class="tag-kw">package</span> java.io;
+
+<span class="tag-kw">public interface</span> <span class="tag-type">Serializable</span> {
+    <span class="tag-comment">// Completely empty! No methods, no fields, no constants!</span>
+}</code></pre>
+      </div>
+
+      <div class="concept-box" style="border-left-color: var(--secondary);">
+        <h3>💡 How Does an Empty Interface Do Anything?</h3>
+        <p>
+          It acts as a <strong>runtime permission badge</strong> or category marker. The JVM, compiler, or frameworks inspect objects using the <code>instanceof</code> operator. If the object implements the marker interface, special behavior is enabled; otherwise, a security exception or alternative branch is triggered.
+        </p>
+      </div>
+    </div>
+
+    <!-- The 4 Classic JDK Marker Interfaces -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">☕</span>
+        <h2>2. Famous JDK Marker Interfaces</h2>
+      </div>
+
+      <div class="grid-2">
+        <div class="concept-box" style="border-left-color: var(--primary);">
+          <h3>1. java.io.Serializable</h3>
+          <p>Tells the JVM that the object's memory state is safe to convert into a byte stream for storage to disk or transmission across a network socket. If a class does not implement it, <code>ObjectOutputStream.writeObject()</code> throws <code>NotSerializableException</code>!</p>
+        </div>
+
+        <div class="concept-box" style="border-left-color: var(--secondary);">
+          <h3>2. java.lang.Cloneable</h3>
+          <p>Signals that calling <code>Object.clone()</code> is permitted. If an object calls <code>clone()</code> without implementing <code>Cloneable</code>, the JVM throws <code>CloneNotSupportedException</code>!</p>
+        </div>
+
+        <div class="concept-box" style="border-left-color: var(--accent-amber);">
+          <h3>3. java.rmi.Remote</h3>
+          <p>Identifies classes whose methods may be invoked from a non-local Java Virtual Machine (Remote Method Invocation).</p>
+        </div>
+
+        <div class="concept-box" style="border-left-color: var(--accent-green);">
+          <h3>4. java.util.RandomAccess</h3>
+          <p>Signals that a <code>List</code> supports constant time $O(1)$ fast random element access. <code>ArrayList</code> implements it; <code>LinkedList</code> does not! Algorithms like <code>Collections.binarySearch()</code> check this to select the optimal traversal loop.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Custom Marker Interface Example -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">💻</span>
+        <h2>3. Creating a Custom Marker Interface in Enterprise Java</h2>
+      </div>
+      <p style="margin-bottom: 16px;">Here is how an enterprise backend uses a custom marker interface to enforce entity deletion safety:</p>
+
+      <!-- Fragmented Code Tabs -->
+      <div class="code-tabs-nav">
+        <button class="code-tab-btn active" onclick="switchCodeTab('tab-mark', this)">Deletable.java</button>
+        <button class="code-tab-btn" onclick="switchCodeTab('tab-ent', this)">Entities.java</button>
+        <button class="code-tab-btn" onclick="switchCodeTab('tab-serv', this)">DataCleanerService.java</button>
+        <button class="code-tab-btn" onclick="switchCodeTab('tab-demo', this)">CompleteMarkerDemo.java</button>
+      </div>
+
+      <!-- Tab 1: Deletable.java -->
+      <div id="tab-mark" class="code-tab-panel active">
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-file-badge">Deletable.java</span>
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+          </div>
+          <pre><code><span class="tag-comment">// 1. Custom Marker Interface (Tag / Permission Badge)</span>
+<span class="tag-kw">public interface</span> <span class="tag-type">Deletable</span> {
+    <span class="tag-comment">// Intentionally empty: entities implementing this are approved for database purging</span>
+}</code></pre>
+        </div>
+      </div>
+
+      <!-- Tab 2: Entities.java -->
+      <div id="tab-ent" class="code-tab-panel">
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-file-badge">Entities.java</span>
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+          </div>
+          <pre><code><span class="tag-comment">// Entity A: Granted Deletable badge</span>
+<span class="tag-kw">public class</span> <span class="tag-type">TemporarySession</span> <span class="tag-kw">implements</span> <span class="tag-type">Deletable</span> {
+    <span class="tag-kw">private</span> String token;
+    <span class="tag-kw">public</span> <span class="tag-type">TemporarySession</span>(String token) { <span class="tag-kw">this</span>.token = token; }
+    <span class="tag-kw">public</span> String <span class="tag-type">getToken</span>() { <span class="tag-kw">return</span> token; }
+}
+
+<span class="tag-comment">// Entity B: Critical Master Record (NOT Deletable!)</span>
+<span class="tag-kw">public class</span> <span class="tag-type">SystemAuditLedger</span> {
+    <span class="tag-kw">private</span> String transactionId;
+    <span class="tag-kw">public</span> <span class="tag-type">SystemAuditLedger</span>(String tx) { <span class="tag-kw">this</span>.transactionId = tx; }
+}</code></pre>
+        </div>
+      </div>
+
+      <!-- Tab 3: DataCleanerService.java -->
+      <div id="tab-serv" class="code-tab-panel">
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-file-badge">DataCleanerService.java</span>
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+          </div>
+          <pre><code><span class="tag-comment">// The Processing Service: Inspects marker interface at runtime using 'instanceof'</span>
+<span class="tag-kw">public class</span> <span class="tag-type">DataCleanerService</span> {
+    <span class="tag-kw">public static void</span> <span class="tag-type">purgeEntity</span>(Object entity) {
+        <span class="tag-kw">if</span> (entity <span class="tag-kw">instanceof</span> <span class="tag-type">Deletable</span>) {
+            System.out.println(<span class="tag-str">"✅ Entity is verified 'Deletable'. Permanently purging record."</span>);
+        } <span class="tag-kw">else</span> {
+            System.err.println(<span class="tag-str">"⛔ SECURITY REJECTION: "</span> + entity.getClass().getSimpleName() + 
+                               <span class="tag-str">" is NOT Deletable! Purge aborted."</span>);
+        }
+    }
+}</code></pre>
+        </div>
+      </div>
+
+      <!-- Tab 4: CompleteMarkerDemo.java -->
+      <div id="tab-demo" class="code-tab-panel">
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-file-badge">CompleteMarkerDemo.java</span>
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+          </div>
+          <pre><code><span class="tag-kw">public class</span> <span class="tag-type">CompleteMarkerDemo</span> {
+    <span class="tag-kw">public static void</span> <span class="tag-type">main</span>(String[] args) {
+        <span class="tag-type">Object</span> session = <span class="tag-kw">new</span> <span class="tag-type">TemporarySession</span>(<span class="tag-str">"sess_99a8x"</span>);
+        <span class="tag-type">Object</span> ledger = <span class="tag-kw">new</span> <span class="tag-type">SystemAuditLedger</span>(<span class="tag-str">"TX-99120"</span>);
+
+        <span class="tag-type">DataCleanerService</span>.purgeEntity(session); <span class="tag-comment">// Allowed</span>
+        <span class="tag-type">DataCleanerService</span>.purgeEntity(ledger);  <span class="tag-comment">// Rejected</span>
+    }
+}</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Marker Interface vs Annotations -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">⚖️</span>
+        <h2>4. Marker Interface vs Modern Java Annotations (@Annotation)</h2>
+      </div>
+      <p style="margin-bottom: 16px;">Java 5 introduced Annotations (e.g. <code>@Entity</code>, <code>@Transactional</code>). Why and when do we still choose between them?</p>
+
+      <table class="cmp-table">
+        <thead>
+          <tr>
+            <th>Comparison Parameter</th>
+            <th>Marker Interface</th>
+            <th>Annotation (@Interface)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Compile-Time Type Safety</strong></td>
+            <td><strong>Yes!</strong> Can use as a method parameter type: <code>void save(Serializable s)</code>. Compiler enforces it!</td>
+            <td><strong>No.</strong> Annotations do not create a type. You cannot write <code>void save(@Entity e)</code> as a type parameter.</td>
+          </tr>
+          <tr>
+            <td><strong>Inheritance Behavior</strong></td>
+            <td>Subclasses automatically inherit the marker interface polymorphically.</td>
+            <td>Requires <code>@Inherited</code> meta-annotation to pass down to subclasses.</td>
+          </tr>
+          <tr>
+            <td><strong>Metadata / Parameters</strong></td>
+            <td>Cannot hold parameters or attributes. Pure boolean tag.</td>
+            <td>Can take rich metadata: <code>@Cacheable(ttl = 60, region = "US")</code>.</td>
+          </tr>
+          <tr>
+            <td><strong>Target Flexibility</strong></td>
+            <td>Can only be applied to classes/interfaces.</td>
+            <td>Can annotate classes, methods, parameters, fields, and constructors.</td>
+          </tr>
+          <tr>
+            <td><strong>Industry Recommendation</strong></td>
+            <td>Use when you need compile-time type verification across method signatures.</td>
+            <td>Modern standard for general metadata, frameworks (Spring, Hibernate), and configuration.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Interactive Simulator -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🔬</span>
+        <h2>5. Interactive Marker Verification Simulator</h2>
+      </div>
+      <p>Simulate runtime security inspection on various entities:</p>
+
+      <div class="interactive-container">
+        <div style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;">
+          <button class="btn btn-secondary btn-active" onclick="testMarker('session', this)">1. TemporarySession (implements Deletable)</button>
+          <button class="btn btn-secondary" onclick="testMarker('ledger', this)">2. AuditLedger (Does NOT implement Deletable)</button>
+          <button class="btn btn-secondary" onclick="testMarker('arraylist', this)">3. ArrayList (instanceof RandomAccess)</button>
+          <button class="btn btn-secondary" onclick="testMarker('linkedlist', this)">4. LinkedList (instanceof RandomAccess)</button>
+        </div>
+
+        <div class="code-block" style="margin: 0;">
+          <div class="code-header">
+            <span class="code-file-badge">MarkerVerificationTest.java</span>
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+          </div>
+          <pre><code id="markerCode"><span class="tag-type">Object</span> entity = <span class="tag-kw">new</span> <span class="tag-type">TemporarySession</span>(<span class="tag-str">"sess_99a8x"</span>);
+DataCleanerService.purgeEntity(entity);</code></pre>
+        </div>
+
+        <div id="markerOutput" style="margin-top: 16px; padding: 16px; background: #1e293b; border-radius: 8px; border: 1px solid #334155; font-family: 'Fira Code', monospace; font-size: 0.88rem;">
+          <span style="color: #34d399; font-weight: 700;">✅ INSTANCEOF CHECK PASSED:</span><br/>
+          entity instanceof Deletable == true<br/>
+          Status: Purge authorized and completed.
+        </div>
+      </div>
+    </div>
+
+    <!-- Page Navigation Footer -->
+    <div class="page-nav">
+      <a href="functional_interface.html" class="nav-btn-link">← Prev: Functional Interfaces</a>
+      <a href="abstraction_assessment.html" class="nav-btn-link">Next: Comprehensive Assessment & Quiz 🎯 →</a>
+    </div>
+  </div>
+
+  <script>
+    function switchCodeTab(panelId, btn) {
+      const container = btn.closest('.card');
+      container.querySelectorAll('.code-tab-btn').forEach(b => b.classList.remove('active'));
+      container.querySelectorAll('.code-tab-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      const targetPanel = document.getElementById(panelId);
+      if (targetPanel) targetPanel.classList.add('active');
+    }
+
+    function testMarker(type, btn) {
+      document.querySelectorAll('.interactive-container .btn').forEach(b => b.classList.remove('btn-active'));
+      btn.classList.add('btn-active');
+      const code = document.getElementById('markerCode');
+      const out = document.getElementById('markerOutput');
+
+      if (type === 'session') {
+        code.innerHTML = `<span class="tag-type">Object</span> entity = <span class="tag-kw">new</span> <span class="tag-type">TemporarySession</span>(<span class="tag-str">"sess_99a8x"</span>);\nDataCleanerService.purgeEntity(entity);`;
+        out.innerHTML = `<span style="color: #34d399; font-weight: 700;">✅ INSTANCEOF CHECK PASSED:</span><br/>session instanceof Deletable == true<br/>Status: Purge authorized and completed.`;
+      } else if (type === 'ledger') {
+        code.innerHTML = `<span class="tag-type">Object</span> entity = <span class="tag-kw">new</span> <span class="tag-type">SystemAuditLedger</span>(<span class="tag-str">"TX-99120"</span>);\nDataCleanerService.purgeEntity(entity);`;
+        out.innerHTML = `<span style="color: #f87171; font-weight: 700;">⛔ SECURITY REJECTION:</span><br/>ledger instanceof Deletable == false<br/>Status: Deletion blocked! Critical record preserved.`;
+      } else if (type === 'arraylist') {
+        code.innerHTML = `<span class="tag-type">List</span>&lt;String&gt; list = <span class="tag-kw">new</span> <span class="tag-type">ArrayList</span>&lt;&gt;();\n<span class="tag-kw">boolean</span> fast = list <span class="tag-kw">instanceof</span> <span class="tag-type">RandomAccess</span>;`;
+        out.innerHTML = `<span style="color: #34d399; font-weight: 700;">✅ O(1) RANDOM ACCESS CONFIRMED:</span><br/>new ArrayList&lt;&gt;() instanceof RandomAccess == true<br/>Algorithm: Collections.binarySearch() selects fast index-based traversal loop (get(i)).`;
+      } else if (type === 'linkedlist') {
+        code.innerHTML = `<span class="tag-type">List</span>&lt;String&gt; list = <span class="tag-kw">new</span> <span class="tag-type">LinkedList</span>&lt;&gt;();\n<span class="tag-kw">boolean</span> fast = list <span class="tag-kw">instanceof</span> <span class="tag-type">RandomAccess</span>;`;
+        out.innerHTML = `<span style="color: #f59e0b; font-weight: 700;">ℹ️ SEQUENTIAL ACCESS ONLY:</span><br/>new LinkedList&lt;&gt;() instanceof RandomAccess == false<br/>Algorithm: Collections.binarySearch() selects Iterator-based traversal to prevent O(N^2) pointer traversal penalty!`;
+      }
+    }
+
+    function copyCode(btn) {
+      const codeBlock = btn.closest('.code-block');
+      const codeEl = codeBlock.querySelector('code');
+      const text = (codeEl ? codeEl.innerText : codeBlock.innerText)
+        .replace(/📋 Copy Code/g, '')
+        .replace(/✓ Copied!/g, '')
+        .trim();
+      navigator.clipboard.writeText(text).then(() => {
+        btn.innerText = '✓ Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.innerText = '📋 Copy Code';
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    }
+  </script>
+</body>
+</html>

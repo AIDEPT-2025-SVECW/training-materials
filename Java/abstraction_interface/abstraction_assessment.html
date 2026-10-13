@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Abstraction & Interfaces Assessment | Java Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --secondary: #0284c7;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #ef4444;
+      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f1f5f9 100%);
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 10px 25px rgba(79, 70, 229, 0.07);
+      --shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      color: var(--text-main);
+      padding: 24px 16px;
+      line-height: 1.65;
+    }
+    .container { max-width: 1100px; margin: 0 auto; }
+    
+    .top-nav {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+    }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 8px; background: #ffffff; color: var(--primary-dark);
+      text-decoration: none; padding: 10px 20px; border-radius: 30px; font-weight: 600; font-size: 0.95rem;
+      border: 1px solid var(--card-border); box-shadow: var(--shadow-sm); transition: all 0.25s ease;
+    }
+    .back-btn:hover { background: var(--primary); color: #ffffff; transform: translateX(-4px); }
+    .nav-tag {
+      color: #92400e; font-weight: 700; font-size: 0.9rem; background: #fef3c7;
+      padding: 6px 16px; border-radius: 20px; border: 1px solid #f59e0b;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #4f46e5 100%); color: #ffffff;
+      border-radius: 20px; padding: 40px 32px; text-align: center; box-shadow: var(--shadow-lg); margin-bottom: 32px;
+    }
+    .hero h1 { font-size: clamp(2rem, 4vw, 2.8rem); font-weight: 800; margin-bottom: 12px; }
+    .hero p { font-size: 1.15rem; opacity: 0.95; max-width: 780px; margin: 0 auto 20px auto; }
+    .hero-badges { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+    .hero-badge { background: rgba(255, 255, 255, 0.25); backdrop-filter: blur(8px); padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+
+    .card {
+      background: var(--card-bg); border-radius: 18px; padding: 32px; margin-bottom: 32px;
+      box-shadow: var(--shadow-md); border: 1px solid var(--card-border);
+    }
+    .section-title {
+      font-size: 1.5rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 18px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .section-title .icon {
+      font-size: 1.4rem; background: #fef3c7; width: 44px; height: 44px;
+      display: flex; align-items: center; justify-content: center; border-radius: 12px; color: #b45309;
+    }
+
+    /* Score Bar */
+    .score-banner {
+      background: #1e293b; color: white; border-radius: 14px; padding: 20px 24px;
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+    }
+    .score-badge {
+      font-size: 1.4rem; font-weight: 800; color: #34d399; font-family: 'Fira Code', monospace;
+    }
+
+    /* Quiz Question Card */
+    .q-card {
+      background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 22px; margin-bottom: 18px;
+      transition: all 0.2s ease;
+    }
+    .q-num {
+      display: inline-block; background: #e0e7ff; color: #3730a3; padding: 2px 10px;
+      border-radius: 8px; font-weight: 700; font-size: 0.82rem; margin-bottom: 10px;
+    }
+    .q-text { font-size: 1.05rem; font-weight: 600; color: #0f172a; margin-bottom: 14px; }
+    .options-grid { display: flex; flex-direction: column; gap: 8px; }
+    .opt-btn {
+      text-align: left; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 10px;
+      padding: 12px 16px; font-family: inherit; font-size: 0.92rem; color: #1e293b; cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .opt-btn:hover:not(:disabled) { background: #f1f5f9; border-color: var(--primary); transform: translateX(4px); }
+    .opt-btn.correct { background: #dcfce7 !important; border-color: #22c55e !important; color: #166534 !important; font-weight: 700; }
+    .opt-btn.wrong { background: #fee2e2 !important; border-color: #ef4444 !important; color: #991b1b !important; }
+    .q-explanation {
+      margin-top: 12px; padding: 12px 16px; border-radius: 8px; font-size: 0.88rem; display: none; line-height: 1.5;
+    }
+
+    /* Scenario Tabs */
+    .tab-nav { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+    .tab-btn {
+      padding: 10px 18px; border-radius: 10px; border: 1px solid #cbd5e1; background: #ffffff;
+      font-weight: 600; cursor: pointer; font-size: 0.9rem; font-family: inherit; color: #475569;
+      transition: all 0.2s;
+    }
+    .tab-btn:hover { background: #f1f5f9; color: var(--primary-dark); }
+    .tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .code-block {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      overflow: hidden;
+      margin: 18px 0;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+      font-family: 'Fira Code', monospace;
+    }
+    .code-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 16px;
+      background: #161b22;
+      border-bottom: 1px solid #30363d;
+    }
+    .code-file-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #8b949e;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+    .code-file-badge::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #e3b341;
+      display: inline-block;
+    }
+    .code-block pre {
+      margin: 0;
+      padding: 18px 20px;
+      overflow-x: auto;
+      white-space: pre;
+      line-height: 1.6;
+      font-size: 0.9rem;
+      color: #e6edf3;
+    }
+    .code-block code {
+      display: block;
+      white-space: pre;
+      font-family: 'Fira Code', monospace;
+    }
+    .copy-btn {
+      background: #21262d;
+      color: #c9d1d9;
+      border: 1px solid #30363d;
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .copy-btn:hover {
+      background: #30363d;
+      color: #58a6ff;
+    }
+    .copy-btn.copied {
+      background: #238636;
+      color: #fff;
+      border-color: #2ea043;
+    }
+
+    .tag-kw { color: #ff7b72; font-weight: 600; }
+    .tag-type { color: #79c0ff; font-weight: 600; }
+    .tag-str { color: #a5d6ff; }
+    .tag-comment { color: #8b949e; font-style: italic; }
+    .tag-annotation { color: #d2a8ff; font-weight: 600; }
+
+    .btn {
+      padding: 10px 20px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer;
+      font-size: 0.9rem; font-family: inherit; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-dark); }
+
+    /* Page Navigation Footer */
+    .page-nav {
+      display: flex; justify-content: space-between; align-items: center; margin-top: 40px; gap: 16px; flex-wrap: wrap;
+    }
+    .nav-btn-link {
+      display: inline-flex; align-items: center; gap: 8px; background: white; padding: 12px 24px;
+      border-radius: 12px; border: 1px solid var(--card-border); color: var(--primary-dark);
+      font-weight: 700; text-decoration: none; box-shadow: var(--shadow-sm); transition: all 0.2s;
+    }
+    .nav-btn-link:hover { background: var(--primary); color: white; transform: translateY(-2px); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Top Navigation -->
+    <div class="top-nav">
+      <a href="../index.html" class="back-btn">← Back to Java Index</a>
+      <span class="nav-tag">🎯 Final Module Assessment & Quiz</span>
+    </div>
+
+    <!-- Hero Banner -->
+    <div class="hero">
+      <h1>Abstraction & Interfaces Self-Assessment</h1>
+      <p>Test your comprehensive mastery: 15 interactive conceptual MCQs covering all rules, plus 5 real-world enterprise scenario coding challenges with complete solutions.</p>
+      <div class="hero-badges">
+        <span class="hero-badge">🧠 15 Concept MCQs</span>
+        <span class="hero-badge">💼 5 Scenario Challenges</span>
+        <span class="hero-badge">🏆 Real-Time Score Tracker</span>
+      </div>
+    </div>
+
+    <!-- Live Score Banner -->
+    <div class="score-banner">
+      <div>
+        <h3 style="margin-bottom: 4px;">Assessment Progress</h3>
+        <p style="font-size: 0.9rem; opacity: 0.85;">Answer each question to test your knowledge.</p>
+      </div>
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <div>Score: <span id="scoreDisplay" class="score-badge">0 / 15</span></div>
+        <button class="btn btn-primary" onclick="resetQuiz()">🔄 Reset Quiz</button>
+      </div>
+    </div>
+
+    <!-- 15 Quiz Questions Card -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">❓</span>
+        <h2>Section 1: 15 Conceptual Multiple-Choice Questions</h2>
+      </div>
+
+      <div id="quizContainer">
+        <!-- Dynamically rendered via JS below -->
+      </div>
+    </div>
+
+    <!-- Scenario Coding Challenges Card -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">💻</span>
+        <h2>Section 2: Enterprise Scenario Architecture Challenges</h2>
+      </div>
+      <p style="margin-bottom: 20px;">Inspect real-world challenges and explore their production-ready implementations:</p>
+
+      <div class="tab-nav">
+        <button class="tab-btn active" onclick="showTab(1, this)">Challenge 1: Payment Gateway</button>
+        <button class="tab-btn" onclick="showTab(2, this)">Challenge 2: Vehicle Fleet</button>
+        <button class="tab-btn" onclick="showTab(3, this)">Challenge 3: Diamond Resolver</button>
+        <button class="tab-btn" onclick="showTab(4, this)">Challenge 4: Functional Pipeline</button>
+        <button class="tab-btn" onclick="showTab(5, this)">Challenge 5: Marker Security</button>
+      </div>
+
+      <!-- Tab 1 -->
+      <div id="tab1" class="tab-content active">
+        <h3 style="color: var(--primary-dark); margin-bottom: 8px;">Scenario 1: Pluggable Multi-Provider Payment Gateway</h3>
+        <p style="color: var(--text-muted); margin-bottom: 14px;"><strong>Requirement:</strong> Create an e-commerce payment framework supporting CreditCard, UPI, and Crypto. Clients must depend solely on the abstraction, with a default receipt generation method.</p>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-file-badge">PaymentProcessorDemo.java</span>
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+          </div>
+          <pre><code><span class="tag-comment">// The Interface Contract with Java 8 default method</span>
+<span class="tag-kw">interface</span> <span class="tag-type">PaymentProcessor</span> {
+    <span class="tag-kw">boolean</span> <span class="tag-type">processPayment</span>(<span class="tag-kw">double</span> amount);
+
+    <span class="tag-comment">// Default receipt printing method available to all implementations</span>
+    <span class="tag-kw">default void</span> <span class="tag-type">printReceipt</span>(<span class="tag-kw">double</span> amount, String txId) {
+        System.out.printf(<span class="tag-str">"=== RECEIPT ===%nTX ID: %s | Amount Paid: $%.2f%nStatus: SUCCESS%n==============%n"</span>, txId, amount);
+    }
+}
+
+<span class="tag-comment">// Concrete UPI Implementation</span>
+<span class="tag-kw">class</span> <span class="tag-type">UpiProcessor</span> <span class="tag-kw">implements</span> <span class="tag-type">PaymentProcessor</span> {
+    <span class="tag-kw">private</span> String upiId;
+    <span class="tag-kw">public</span> <span class="tag-type">UpiProcessor</span>(String upiId) { <span class="tag-kw">this</span>.upiId = upiId; }
+
+    <span class="tag-annotation">@Override</span>
+    <span class="tag-kw">public boolean</span> <span class="tag-type">processPayment</span>(<span class="tag-kw">double</span> amount) {
+        System.out.println(<span class="tag-str">"Transferred $"</span> + amount + <span class="tag-str">" from VPA: "</span> + upiId);
+        printReceipt(amount, <span class="tag-str">"UPI-"</span> + System.currentTimeMillis());
+        <span class="tag-kw">return true</span>;
+    }
+}</code></pre>
+        </div>
+      </div>
+
+      <!-- Tab 2 -->
+      <div id="tab2" class="tab-content">
+        <h3 style="color: var(--primary-dark); margin-bottom: 8px;">Scenario 2: Vehicle Fleet with Template Method Pattern</h3>
+        <p style="color: var(--text-muted); margin-bottom: 14px;"><strong>Requirement:</strong> An abstract class <code>FleetVehicle</code> holds VIN, fuel, and odometer state, executes constructor initialization, and defines an unchangeable <code>final</code> template method <code>dispatch()</code> calling abstract steps.</p>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-file-badge">FleetVehicleDemo.java</span>
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+          </div>
+          <pre><code><span class="tag-kw">abstract class</span> <span class="tag-type">FleetVehicle</span> {
+    <span class="tag-kw">protected</span> String vin;
+    <span class="tag-kw">protected double</span> fuelLevel;
+
+    <span class="tag-kw">public</span> <span class="tag-type">FleetVehicle</span>(String vin, <span class="tag-kw">double</span> fuelLevel) {
+        <span class="tag-kw">this</span>.vin = vin;
+        <span class="tag-kw">this</span>.fuelLevel = fuelLevel;
+    }
+
+    <span class="tag-comment">// Template Method: Final to protect workflow sequence</span>
+    <span class="tag-kw">public final void</span> <span class="tag-type">dispatch</span>() {
+        checkReadiness();
+        igniteEngine();
+        System.out.println(<span class="tag-str">"Vehicle "</span> + vin + <span class="tag-str">" dispatched on route."</span>);
+    }
+
+    <span class="tag-kw">abstract void</span> <span class="tag-type">checkReadiness</span>();
+    <span class="tag-kw">abstract void</span> <span class="tag-type">igniteEngine</span>();
+}
+
+<span class="tag-kw">class</span> <span class="tag-type">ElectricVan</span> <span class="tag-kw">extends</span> <span class="tag-type">FleetVehicle</span> {
+    <span class="tag-kw">public</span> <span class="tag-type">ElectricVan</span>(String vin, <span class="tag-kw">double</span> batteryPct) { <span class="tag-kw">super</span>(vin, batteryPct); }
+
+    <span class="tag-annotation">@Override</span>
+    <span class="tag-kw">void</span> <span class="tag-type">checkReadiness</span>() { System.out.println(<span class="tag-str">"Battery pack health: "</span> + fuelLevel + <span class="tag-str">"%"</span>); }
+
+    <span class="tag-annotation">@Override</span>
+    <span class="tag-kw">void</span> <span class="tag-type">igniteEngine</span>() { System.out.println(<span class="tag-str">"Inverters active; motor silent."</span>); }
+}</code></pre>
+        </div>
+      </div>
+
+      <!-- Tab 3 -->
+      <div id="tab3" class="tab-content">
+        <h3 style="color: var(--primary-dark); margin-bottom: 8px;">Scenario 3: Resolving Interface Diamond Collision</h3>
+        <p style="color: var(--text-muted); margin-bottom: 14px;"><strong>Requirement:</strong> Implement both <code>GPS</code> and <code>CellularModem</code> interfaces that both provide conflicting default <code>ping()</code> methods.</p>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-file-badge">DiamondResolutionDemo.java</span>
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+          </div>
+          <pre><code><span class="tag-kw">interface</span> <span class="tag-type">GPS</span> {
+    <span class="tag-kw">default void</span> <span class="tag-type">ping</span>() { System.out.println(<span class="tag-str">"Satellite link: latency 180ms"</span>); }
+}
+
+<span class="tag-kw">interface</span> <span class="tag-type">CellularModem</span> {
+    <span class="tag-kw">default void</span> <span class="tag-type">ping</span>() { System.out.println(<span class="tag-str">"5G Cell tower: latency 20ms"</span>); }
+}
+
+<span class="tag-kw">class</span> <span class="tag-type">NavigationDevice</span> <span class="tag-kw">implements</span> <span class="tag-type">GPS</span>, <span class="tag-type">CellularModem</span> {
+    <span class="tag-comment">// Must explicitly disambiguate the conflict</span>
+    <span class="tag-annotation">@Override</span>
+    <span class="tag-kw">public void</span> <span class="tag-type">ping</span>() {
+        System.out.println(<span class="tag-str">"--- Navigation Telemetry Ping ---"</span>);
+        CellularModem.<span class="tag-kw">super</span>.ping(); <span class="tag-comment">// Primary fast link</span>
+        GPS.<span class="tag-kw">super</span>.ping();           <span class="tag-comment">// Fallback sync</span>
+    }
+}</code></pre>
+        </div>
+      </div>
+
+      <!-- Tab 4 -->
+      <div id="tab4" class="tab-content">
+        <h3 style="color: var(--primary-dark); margin-bottom: 8px;">Scenario 4: Functional Interface Pipeline</h3>
+        <p style="color: var(--text-muted); margin-bottom: 14px;"><strong>Requirement:</strong> Process a user registration using <code>Predicate</code> for validation, <code>Function</code> for hashing password, and <code>Consumer</code> for sending welcome email.</p>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-file-badge">RegistrationPipeline.java</span>
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+          </div>
+          <pre><code><span class="tag-kw">import</span> java.util.function.*;
+
+<span class="tag-kw">public class</span> <span class="tag-type">RegistrationPipeline</span> {
+    <span class="tag-kw">public static void</span> <span class="tag-type">main</span>(String[] args) {
+        <span class="tag-type">Predicate</span>&lt;String&gt; validEmail = s -&gt; s.contains(<span class="tag-str">"@"</span>) &amp;&amp; s.length() &gt; 5;
+        <span class="tag-type">Function</span>&lt;String, String&gt; hashPassword = p -&gt; <span class="tag-str">"HASH_"</span> + Integer.toHexString(p.hashCode());
+        <span class="tag-type">Consumer</span>&lt;String&gt; sendNotification = email -&gt; System.out.println(<span class="tag-str">"Sent activation link to: "</span> + email);
+
+        String userEmail = <span class="tag-str">"dev@example.com"</span>;
+        String rawPass = <span class="tag-str">"Secret123"</span>;
+
+        <span class="tag-kw">if</span> (validEmail.test(userEmail)) {
+            String secureHash = hashPassword.apply(rawPass);
+            System.out.println(<span class="tag-str">"Stored Hash in DB: "</span> + secureHash);
+            sendNotification.accept(userEmail);
+        }
+    }
+}</code></pre>
+        </div>
+      </div>
+
+      <!-- Tab 5 -->
+      <div id="tab5" class="tab-content">
+        <h3 style="color: var(--primary-dark); margin-bottom: 8px;">Scenario 5: Marker Interface Security Vault</h3>
+        <p style="color: var(--text-muted); margin-bottom: 14px;"><strong>Requirement:</strong> Create a marker interface <code>EncryptedPayload</code>. A security gateway verifies at runtime via <code>instanceof</code> that payloads implement it before transmission.</p>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-file-badge">SecurityVaultDemo.java</span>
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+          </div>
+          <pre><code><span class="tag-comment">// Marker Interface</span>
+<span class="tag-kw">interface</span> <span class="tag-type">EncryptedPayload</span> { }
+
+<span class="tag-kw">class</span> <span class="tag-type">FinancialTransfer</span> <span class="tag-kw">implements</span> <span class="tag-type">EncryptedPayload</span> {
+    <span class="tag-kw">double</span> amount = 50000;
+}
+
+<span class="tag-kw">class</span> <span class="tag-type">DebugMessage</span> {
+    String log = <span class="tag-str">"Server ping"</span>;
+}
+
+<span class="tag-kw">class</span> <span class="tag-type">SecurityGateway</span> {
+    <span class="tag-kw">public static void</span> <span class="tag-type">transmit</span>(Object payload) {
+        <span class="tag-kw">if</span> (payload <span class="tag-kw">instanceof</span> <span class="tag-type">EncryptedPayload</span>) {
+            System.out.println(<span class="tag-str">"🔒 High-security transport approved. Packet routed."</span>);
+        } <span class="tag-kw">else</span> {
+            System.err.println(<span class="tag-str">"❌ TRANSMISSION REFUSED: Payload does not implement EncryptedPayload."</span>);
+        }
+    }
+}</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Page Navigation Footer -->
+    <div class="page-nav">
+      <a href="marker_interface.html" class="nav-btn-link">← Prev: Marker Interfaces</a>
+      <a href="../index.html" class="nav-btn-link">🏠 Return to Java Index</a>
+    </div>
+  </div>
+
+  <script>
+    const questions = [
+      {
+        q: "1. Can an abstract class in Java have constructors?",
+        opts: [
+          "No, because abstract classes cannot be instantiated",
+          "Yes, they are invoked via super() when concrete subclasses are instantiated",
+          "Only if the constructor is declared as private",
+          "Only if the abstract class has zero abstract methods"
+        ],
+        ans: 1,
+        exp: "Abstract classes CAN have constructors! They execute when a subclass instance is instantiated via constructor chaining (super())."
+      },
+      {
+        q: "2. Which combination of modifiers on an abstract method causes a compilation error?",
+        opts: [
+          "public abstract",
+          "protected abstract",
+          "abstract final",
+          "package-private abstract"
+        ],
+        ans: 2,
+        exp: "'abstract final' is strictly illegal because 'abstract' mandates overriding while 'final' forbids it."
+      },
+      {
+        q: "3. What are the implicit modifiers for variables declared inside a Java interface?",
+        opts: [
+          "public static final",
+          "private volatile",
+          "protected static",
+          "package-private transient"
+        ],
+        ans: 0,
+        exp: "Every variable in an interface is implicitly and automatically public static final (a constant)."
+      },
+      {
+        q: "4. When a class implements an interface method, what access modifier must the implementing method have?",
+        opts: [
+          "default (package-private)",
+          "protected",
+          "public",
+          "Any modifier chosen by the developer"
+        ],
+        ans: 2,
+        exp: "Interface methods are implicitly public. In Java, an overriding method cannot reduce visibility, so the implementing method MUST be explicitly public."
+      },
+      {
+        q: "5. How did traditional Java interfaces solve the C++ Diamond Problem?",
+        opts: [
+          "By using virtual base table offsets",
+          "By forbidding multiple interface implementation",
+          "Interfaces held no state and no method bodies; the implementing class provides the single definitive body",
+          "By using random method selection at runtime"
+        ],
+        ans: 2,
+        exp: "Interfaces had no instance fields and only abstract declarations, eliminating duplicate state and conflicting method implementations."
+      },
+      {
+        q: "6. If a class implements two interfaces that both have the exact same default method, what happens?",
+        opts: [
+          "The first interface in the 'implements' clause wins automatically",
+          "The Java compiler throws a compile-time error forcing the class to override the method",
+          "Both methods execute sequentially",
+          "The program throws a RuntimeException"
+        ],
+        ans: 1,
+        exp: "The compiler flags an 'unrelated defaults' error and forces the implementing class to explicitly override the method."
+      },
+      {
+        q: "7. In Java 8 default method conflict resolution, what is the 'Classes Win' rule?",
+        opts: [
+          "An interface method always shadows a superclass method",
+          "A method declaration in a class or superclass always takes priority over any interface default method",
+          "Classes cannot implement interfaces with default methods",
+          "Abstract classes cannot have default methods"
+        ],
+        ans: 1,
+        exp: "Rule 1 dictates that any concrete method inherited from a class or superclass always supersedes interface default methods."
+      },
+      {
+        q: "8. How must a static method declared inside an interface be invoked?",
+        opts: [
+          "Using implementing class name: ChildClass.method()",
+          "Using object instance: obj.method()",
+          "Strictly using the interface name: InterfaceName.method()",
+          "Using super.method()"
+        ],
+        ans: 2,
+        exp: "Interface static methods are NOT inherited by implementing classes. They can only be called via InterfaceName.staticMethod()."
+      },
+      {
+        q: "9. What is the access modifier of an interface declared inside another interface?",
+        opts: [
+          "private static",
+          "protected static",
+          "Implicitly public static",
+          "default (package-private)"
+        ],
+        ans: 2,
+        exp: "All nested interfaces declared inside an interface are implicitly public static."
+      },
+      {
+        q: "10. What access modifiers are allowed for an interface declared inside a class?",
+        opts: [
+          "public only",
+          "public and protected only",
+          "public, protected, default, or private",
+          "Interfaces cannot be declared inside classes"
+        ],
+        ans: 2,
+        exp: "A nested interface inside a class can have any access specifier: public, protected, package-private, or private."
+      },
+      {
+        q: "11. What is the Single Abstract Method (SAM) rule for Functional Interfaces?",
+        opts: [
+          "The interface must have zero methods",
+          "The interface must have exactly one abstract method",
+          "The interface cannot have default or static methods",
+          "The interface can only have private methods"
+        ],
+        ans: 1,
+        exp: "A Functional Interface must have exactly ONE abstract method. It may still contain default, static, or private methods."
+      },
+      {
+        q: "12. Does an abstract method overriding Object.equals(Object) count toward the SAM limit in a Functional Interface?",
+        opts: [
+          "Yes, it breaks the SAM rule",
+          "No, public methods of java.lang.Object do not count toward the SAM count",
+          "Only if marked with @Override",
+          "Only if the method is default"
+        ],
+        ans: 1,
+        exp: "Abstract methods that match public methods of java.lang.Object are excluded from the SAM count because every implementing instance inherits them from Object anyway."
+      },
+      {
+        q: "13. What is the SAM signature of the java.util.function.Predicate<T> interface?",
+        opts: [
+          "void accept(T t)",
+          "R apply(T t)",
+          "boolean test(T t)",
+          "T get()"
+        ],
+        ans: 2,
+        exp: "Predicate<T> has boolean test(T t), used for conditional testing and filtering."
+      },
+      {
+        q: "14. Which of the following is an empty Marker Interface in the Java Standard Library?",
+        opts: [
+          "java.lang.Runnable",
+          "java.lang.Comparable",
+          "java.io.Serializable",
+          "java.util.function.Consumer"
+        ],
+        ans: 2,
+        exp: "Serializable is an empty marker interface used to signal JVM serialization permissions."
+      },
+      {
+        q: "15. What advantage does a Marker Interface have over a modern @Annotation?",
+        opts: [
+          "Marker interfaces can take key-value parameters",
+          "Marker interfaces create a compile-time type that can be enforced in method signatures (e.g. void save(Serializable s))",
+          "Marker interfaces are faster than annotations at runtime",
+          "Marker interfaces can annotate methods and fields"
+        ],
+        ans: 1,
+        exp: "Marker interfaces define a true Java type, allowing compile-time type safety in variable and parameter declarations."
+      }
+    ];
+
+    let userScore = 0;
+    let answeredCount = 0;
+
+    function renderQuiz() {
+      const c = document.getElementById('quizContainer');
+      c.innerHTML = '';
+      questions.forEach((q, idx) => {
+        const card = document.createElement('div');
+        card.className = 'q-card';
+        card.id = `qCard_${idx}`;
+
+        let optsHtml = '';
+        q.opts.forEach((opt, oIdx) => {
+          optsHtml += `<button class="opt-btn" onclick="selectAnswer(${idx}, ${oIdx}, this)">${String.fromCharCode(65 + oIdx)}. ${opt}</button>`;
+        });
+
+        card.innerHTML = `
+          <span class="q-num">QUESTION ${idx + 1} OF ${questions.length}</span>
+          <div class="q-text">${q.q}</div>
+          <div class="options-grid">${optsHtml}</div>
+          <div class="q-explanation" id="exp_${idx}"></div>
+        `;
+        c.appendChild(card);
+      });
+    }
+
+    function selectAnswer(qIdx, optIdx, btn) {
+      const q = questions[qIdx];
+      const card = document.getElementById(`qCard_${qIdx}`);
+      const buttons = card.querySelectorAll('.opt-btn');
+      const exp = document.getElementById(`exp_${qIdx}`);
+
+      buttons.forEach(b => b.disabled = true);
+
+      if (optIdx === q.ans) {
+        btn.classList.add('correct');
+        userScore++;
+        exp.style.background = '#dcfce7';
+        exp.style.color = '#166534';
+        exp.style.border = '1px solid #86efac';
+        exp.innerHTML = `<strong>✅ Correct!</strong> ${q.exp}`;
+      } else {
+        btn.classList.add('wrong');
+        buttons[q.ans].classList.add('correct');
+        exp.style.background = '#fee2e2';
+        exp.style.color = '#991b1b';
+        exp.style.border = '1px solid #fca5a5';
+        exp.innerHTML = `<strong>❌ Incorrect.</strong> ${q.exp}`;
+      }
+      exp.style.display = 'block';
+      answeredCount++;
+      document.getElementById('scoreDisplay').innerText = `${userScore} / ${questions.length}`;
+    }
+
+    function resetQuiz() {
+      userScore = 0;
+      answeredCount = 0;
+      document.getElementById('scoreDisplay').innerText = `0 / ${questions.length}`;
+      renderQuiz();
+    }
+
+    function showTab(num, btn) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(`tab${num}`).classList.add('active');
+    }
+
+    function copyCode(btn) {
+      const codeBlock = btn.closest('.code-block');
+      const codeEl = codeBlock.querySelector('code');
+      const text = (codeEl ? codeEl.innerText : codeBlock.innerText)
+        .replace(/📋 Copy Code/g, '')
+        .replace(/✓ Copied!/g, '')
+        .trim();
+      navigator.clipboard.writeText(text).then(() => {
+        btn.innerText = '✓ Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.innerText = '📋 Copy Code';
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', renderQuiz);
+  </script>
+</body>
+</html>

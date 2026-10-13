@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Abstract Classes & Abstract Methods | Java Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --secondary: #0284c7;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #ef4444;
+      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f1f5f9 100%);
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 10px 25px rgba(79, 70, 229, 0.07);
+      --shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      color: var(--text-main);
+      padding: 24px 16px;
+      line-height: 1.65;
+    }
+    .container { max-width: 1100px; margin: 0 auto; }
+    
+    .top-nav {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+    }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 8px; background: #ffffff; color: var(--primary-dark);
+      text-decoration: none; padding: 10px 20px; border-radius: 30px; font-weight: 600; font-size: 0.95rem;
+      border: 1px solid var(--card-border); box-shadow: var(--shadow-sm); transition: all 0.25s ease;
+    }
+    .back-btn:hover { background: var(--primary); color: #ffffff; transform: translateX(-4px); }
+    .nav-tag {
+      color: var(--text-muted); font-weight: 600; font-size: 0.9rem; background: rgba(255, 255, 255, 0.9);
+      padding: 6px 16px; border-radius: 20px; border: 1px solid var(--card-border);
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #4f46e5 0%, #0284c7 100%); color: #ffffff;
+      border-radius: 20px; padding: 40px 32px; text-align: center; box-shadow: var(--shadow-lg); margin-bottom: 32px;
+    }
+    .hero h1 { font-size: clamp(2rem, 4vw, 2.8rem); font-weight: 800; margin-bottom: 12px; }
+    .hero p { font-size: 1.15rem; opacity: 0.95; max-width: 780px; margin: 0 auto 20px auto; }
+    .hero-badges { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+    .hero-badge { background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(8px); padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+
+    .card {
+      background: var(--card-bg); border-radius: 18px; padding: 32px; margin-bottom: 32px;
+      box-shadow: var(--shadow-md); border: 1px solid var(--card-border);
+    }
+    .section-title {
+      font-size: 1.5rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 18px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .section-title .icon {
+      font-size: 1.4rem; background: #eef2ff; width: 44px; height: 44px;
+      display: flex; align-items: center; justify-content: center; border-radius: 12px; color: var(--primary);
+    }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    .concept-box {
+      background: #f8fafc; border-left: 4px solid var(--primary); padding: 20px; border-radius: 0 12px 12px 0; margin-bottom: 16px;
+    }
+    .concept-box h3 { font-size: 1.1rem; color: var(--primary-dark); margin-bottom: 8px; }
+
+    .rule-item {
+      display: flex; align-items: flex-start; gap: 14px; padding: 14px 18px; background: #fbfcfe;
+      border: 1px solid #e2e8f0; border-radius: 10px; margin-bottom: 10px;
+    }
+    .rule-badge {
+      padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 700; white-space: nowrap;
+    }
+    .rule-allow { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+    .rule-forbid { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+
+    .code-block {
+      background: #0d1117; color: #e6edf3; border-radius: 12px; position: relative;
+      margin: 18px 0; border: 1px solid #30363d; overflow: hidden; font-family: 'Fira Code', monospace;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    }
+    .code-header {
+      display: flex; justify-content: space-between; align-items: center; padding: 10px 16px;
+      background: #161b22; border-bottom: 1px solid #30363d; font-size: 0.85rem; color: #8b949e;
+      font-family: 'Fira Code', monospace;
+    }
+    .code-file-badge {
+      display: inline-flex; align-items: center; gap: 8px; font-weight: 600; color: #c9d1d9;
+    }
+    .code-file-badge::before {
+      content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #e3b341;
+    }
+    .code-block pre {
+      margin: 0; padding: 18px 20px; overflow-x: auto; font-family: 'Fira Code', monospace;
+      font-size: 0.9rem; line-height: 1.6; white-space: pre;
+    }
+    .code-block code {
+      font-family: inherit; font-size: inherit; white-space: pre; display: block;
+    }
+    .copy-btn {
+      background: rgba(255, 255, 255, 0.08); color: #c9d1d9; border: 1px solid #30363d;
+      padding: 5px 12px; border-radius: 6px; font-size: 0.78rem; font-weight: 500; cursor: pointer;
+      transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 6px; font-family: inherit;
+    }
+    .copy-btn:hover { background: var(--primary); color: #ffffff; border-color: var(--primary); }
+    .copy-btn.copied { background: var(--accent-green) !important; color: #ffffff !important; border-color: var(--accent-green) !important; }
+
+    .tag-kw { color: #ff7b72; font-weight: 600; }
+    .tag-type { color: #79c0ff; font-weight: 600; }
+    .tag-str { color: #a5d6ff; }
+    .tag-comment { color: #8b949e; font-style: italic; }
+    .tag-annotation { color: #d2a8ff; font-weight: 600; }
+    .tag-fn { color: #d2a8ff; }
+    .tag-num { color: #79c0ff; }
+    .tag-err { color: #f87171; text-decoration: wavy underline; }
+
+    /* Code Tabs */
+    .code-tabs-nav {
+      display: flex; gap: 8px; border-bottom: 2px solid var(--card-border); margin-bottom: 16px; flex-wrap: wrap;
+    }
+    .code-tab-btn {
+      padding: 10px 18px; background: transparent; border: 1px solid transparent; border-bottom: none;
+      font-family: 'Outfit', sans-serif; font-size: 0.95rem; font-weight: 600; color: var(--text-muted);
+      cursor: pointer; border-radius: 10px 10px 0 0; transition: all 0.2s ease; display: inline-flex;
+      align-items: center; gap: 8px;
+    }
+    .code-tab-btn:hover { color: var(--primary); background: #f1f5f9; }
+    .code-tab-btn.active {
+      color: var(--primary); background: #ffffff; border-color: var(--card-border);
+      border-bottom: 2px solid #ffffff; margin-bottom: -2px; font-weight: 700;
+      box-shadow: 0 -2px 8px rgba(0,0,0,0.03);
+    }
+    .code-tab-panel { display: none; }
+    .code-tab-panel.active { display: block; animation: fadeIn 0.2s ease-in-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Interactive Rules Sandbox */
+    .interactive-container {
+      background: #0f172a; color: #f8fafc; border-radius: 16px; padding: 28px; border: 1px solid #334155; margin-top: 16px;
+    }
+    .compiler-output {
+      background: #1e293b; border-radius: 10px; padding: 18px; margin-top: 16px;
+      font-family: 'Fira Code', monospace; font-size: 0.88rem; border: 1px solid #334155;
+    }
+
+    .btn {
+      padding: 10px 16px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer;
+      transition: all 0.2s; font-size: 0.88rem; font-family: inherit; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-secondary { background: #334155; color: white; }
+    .btn-secondary:hover { background: #475569; }
+    .btn-active { background: var(--primary) !important; color: white; }
+
+    .status-pass { color: #34d399; font-weight: 700; }
+    .status-fail { color: #f87171; font-weight: 700; }
+
+    /* Page Navigation Footer */
+    .page-nav {
+      display: flex; justify-content: space-between; align-items: center; margin-top: 40px; gap: 16px; flex-wrap: wrap;
+    }
+    .nav-btn-link {
+      display: inline-flex; align-items: center; gap: 8px; background: white; padding: 12px 24px;
+      border-radius: 12px; border: 1px solid var(--card-border); color: var(--primary-dark);
+      font-weight: 700; text-decoration: none; box-shadow: var(--shadow-sm); transition: all 0.2s;
+    }
+    .nav-btn-link:hover { background: var(--primary); color: white; transform: translateY(-2px); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Top Navigation -->
+    <div class="top-nav">
+      <a href="../index.html" class="back-btn">← Back to Java Index</a>
+      <span class="nav-tag">☕ Module: Abstraction & Interfaces (Topic 2/10)</span>
+    </div>
+
+    <!-- Hero Banner -->
+    <div class="hero">
+      <h1>Abstract Classes & Abstract Methods</h1>
+      <p>Explore partial abstraction in Java: how abstract classes define partial templates, why constructors exist in uninstantiable classes, and which method modifier combinations are strictly forbidden by javac.</p>
+      <div class="hero-badges">
+        <span class="hero-badge">🔑 abstract Keyword</span>
+        <span class="hero-badge">⚙️ Template Method Pattern</span>
+        <span class="hero-badge">🚫 Forbidden Combinations</span>
+      </div>
+    </div>
+
+    <!-- What is an Abstract Class & Method -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🧱</span>
+        <h2>1. Fundamentals: Syntax and Anatomy</h2>
+      </div>
+      <p style="font-size: 1.05rem; margin-bottom: 20px;">
+        An <strong>Abstract Class</strong> is a class that serves as an incomplete blueprint for subclasses. It cannot be instantiated on its own. An <strong>Abstract Method</strong> is a method that has only a declaration (signature and return type) without an implementation body.
+      </p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-file-badge">Vehicle.java (Abstract Class Blueprint)</div>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+        </div>
+        <pre><code><span class="tag-comment">// 1. Declaring an Abstract Class using the 'abstract' keyword</span>
+<span class="tag-kw">abstract class</span> <span class="tag-type">Vehicle</span> {
+    <span class="tag-comment">// Concrete instance variable (State is allowed!)</span>
+    <span class="tag-kw">protected</span> String brand;
+    <span class="tag-kw">protected int</span> currentSpeed;
+
+    <span class="tag-comment">// Constructor (Allowed! Invoked via super() from child classes)</span>
+    <span class="tag-kw">public</span> <span class="tag-type">Vehicle</span>(String brand) {
+        <span class="tag-kw">this</span>.brand = brand;
+        <span class="tag-kw">this</span>.currentSpeed = 0;
+    }
+
+    <span class="tag-comment">// 2. Abstract Method: Ends with semicolon; NO curly braces {}</span>
+    <span class="tag-kw">abstract void</span> <span class="tag-fn">accelerate</span>(<span class="tag-kw">int</span> rate);
+    <span class="tag-kw">abstract void</span> <span class="tag-fn">applyBrakes</span>();
+
+    <span class="tag-comment">// 3. Concrete Method: Shared implementation for all subclasses</span>
+    <span class="tag-kw">public void</span> <span class="tag-fn">displayInfo</span>() {
+        System.out.println(<span class="tag-str">"Vehicle Brand: "</span> + brand + <span class="tag-str">", Speed: "</span> + currentSpeed + <span class="tag-str">" km/h"</span>);
+    }
+}</code></pre>
+      </div>
+    </div>
+
+    <!-- The 8 Golden Rules of Abstract Classes -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">📜</span>
+        <h2>2. The 8 Critical Rules of Abstract Classes</h2>
+      </div>
+
+      <div class="rule-item">
+        <span class="rule-badge rule-forbid">RULE 1</span>
+        <div>
+          <strong>Cannot Be Instantiated Directly:</strong> You cannot create an object using <code>new MyAbstractClass()</code>. The Java compiler will flag a compilation error: <em>"Vehicle is abstract; cannot be instantiated"</em>.
+        </div>
+      </div>
+
+      <div class="rule-item">
+        <span class="rule-badge rule-allow">RULE 2</span>
+        <div>
+          <strong>Can Have Constructors:</strong> Even though you cannot instantiate it directly, an abstract class CAN (and often should) have constructors. When a concrete subclass is instantiated with <code>new Car()</code>, the constructor of the abstract parent class executes first via <code>super()</code>.
+        </div>
+      </div>
+
+      <div class="rule-item">
+        <span class="rule-badge rule-allow">RULE 3</span>
+        <div>
+          <strong>Can Have Both Abstract & Concrete Methods:</strong> Unlike pure interfaces (pre-Java 8), an abstract class can mix 0 to 100% abstract methods with fully implemented concrete methods.
+        </div>
+      </div>
+
+      <div class="rule-item">
+        <span class="rule-badge rule-forbid">RULE 4</span>
+        <div>
+          <strong>Any Abstract Method Forces Class to Be Abstract:</strong> If a class contains even a single abstract method, the class itself MUST be declared with the <code>abstract</code> keyword. Otherwise, javac throws an error.
+        </div>
+      </div>
+
+      <div class="rule-item">
+        <span class="rule-badge rule-forbid">RULE 5</span>
+        <div>
+          <strong>Subclasses Must Implement All Abstract Methods:</strong> The first non-abstract (concrete) subclass that extends an abstract class MUST override and provide bodies for ALL inherited abstract methods. If it fails to implement even one, the subclass itself MUST be declared <code>abstract</code>.
+        </div>
+      </div>
+
+      <div class="rule-item">
+        <span class="rule-badge rule-allow">RULE 6</span>
+        <div>
+          <strong>Can Have State, Static & Final Members:</strong> Abstract classes can contain instance variables, <code>static</code> variables, <code>final</code> variables, <code>static</code> methods, and <code>final</code> methods.
+        </div>
+      </div>
+
+      <div class="rule-item">
+        <span class="rule-badge rule-allow">RULE 7</span>
+        <div>
+          <strong>Can Have Zero Abstract Methods:</strong> An abstract class does NOT require any abstract methods. You can declare a class abstract purely to prevent other developers from directly instantiating it!
+        </div>
+      </div>
+
+      <div class="rule-item">
+        <span class="rule-badge rule-allow">RULE 8</span>
+        <div>
+          <strong>Can Have a <code>main()</code> Method:</strong> An abstract class can have a <code>public static void main(String[] args)</code> method and can be executed directly from the terminal or IDE!
+        </div>
+      </div>
+    </div>
+
+    <!-- Illegal Modifier Combinations -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🚫</span>
+        <h2>3. Illegal Modifier Combinations on Abstract Methods</h2>
+      </div>
+      <p style="margin-bottom: 16px;">This is one of the top interview trick topics. The <code>abstract</code> keyword on a method requires child classes to override it. Any modifier that prevents overriding creates an illegal paradox:</p>
+
+      <div class="grid-2">
+        <div class="concept-box" style="border-left-color: var(--accent-rose);">
+          <h3 style="color: #991b1b;">❌ abstract final</h3>
+          <p><strong>Contradiction:</strong> <code>abstract</code> demands that a subclass overrides the method. <code>final</code> explicitly prohibits method overriding. Javac Error: <em>"illegal combination of modifiers: abstract and final"</em>.</p>
+        </div>
+
+        <div class="concept-box" style="border-left-color: var(--accent-rose);">
+          <h3 style="color: #991b1b;">❌ abstract private</h3>
+          <p><strong>Contradiction:</strong> <code>private</code> members are completely invisible to subclasses. A child class cannot override a method it cannot see! Javac Error: <em>"illegal combination of modifiers: abstract and private"</em>.</p>
+        </div>
+
+        <div class="concept-box" style="border-left-color: var(--accent-rose);">
+          <h3 style="color: #991b1b;">❌ abstract static</h3>
+          <p><strong>Contradiction:</strong> <code>static</code> methods belong to class memory and participate in compile-time method hiding, NOT runtime dynamic dispatch (polymorphic overriding). Javac Error: <em>"illegal combination of modifiers: abstract and static"</em>.</p>
+        </div>
+
+        <div class="concept-box" style="border-left-color: var(--accent-rose);">
+          <h3 style="color: #991b1b;">❌ abstract synchronized / native</h3>
+          <p><strong>Contradiction:</strong> <code>synchronized</code> and <code>native</code> are implementation details (locks and C/C++ machine bindings). Since an abstract method has NO body, declaring how its nonexistent body is synchronized or native is meaningless.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Interactive Rule Validator -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🔬</span>
+        <h2>4. Interactive Compiler Rule Simulator</h2>
+      </div>
+      <p>Click any code scenario below to simulate the Java Compiler (<code>javac</code>) analysis and rule verification:</p>
+
+      <div class="interactive-container">
+        <div class="controls-row">
+          <button class="btn btn-secondary btn-active" onclick="simulateRule(1, this)">1. new AbstractClass()</button>
+          <button class="btn btn-secondary" onclick="simulateRule(2, this)">2. abstract final void run()</button>
+          <button class="btn btn-secondary" onclick="simulateRule(3, this)">3. abstract private int get()</button>
+          <button class="btn btn-secondary" onclick="simulateRule(4, this)">4. Abstract Class with main()</button>
+          <button class="btn btn-secondary" onclick="simulateRule(5, this)">5. Constructor in Abstract Class</button>
+        </div>
+
+        <div class="code-block" style="margin: 0; background: #0b1120;">
+          <div class="code-header">
+            <div class="code-file-badge">RuleVerification.java</div>
+          </div>
+          <pre style="margin: 0; padding: 16px 20px;"><code id="simSnippet"><span class="tag-kw">abstract class</span> <span class="tag-type">Shape</span> { }
+<span class="tag-kw">Shape</span> s = <span class="tag-err">new Shape()</span>;</code></pre>
+        </div>
+
+        <div id="simOutput" class="compiler-output">
+          <div class="status-fail">🔴 COMPILE TIME ERROR</div>
+          <div style="margin-top: 6px; color: #cbd5e1;">error: Shape is abstract; cannot be instantiated</div>
+          <div style="margin-top: 8px; color: #94a3b8; font-size: 0.85rem;">
+            💡 Why? Abstract classes represent incomplete concepts. Allowing instantiation would risk calling unimplemented abstract methods that have no bytecode.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Full Production-Grade Example -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">💻</span>
+        <h2>5. Complete Working Code: Shape & Geometry Hierarchy</h2>
+      </div>
+      <p style="margin-bottom: 20px;">Explore the end-to-end executable Java example below, modularly fragmented into its base blueprint, concrete subclasses, and polymorphic execution driver:</p>
+
+      <!-- Code Tabs Navigation -->
+      <div class="code-tabs-nav">
+        <button class="code-tab-btn active" onclick="switchCodeTab('tab-shape-base', this)">
+          🧱 1. Shape.java (Abstract Base)
+        </button>
+        <button class="code-tab-btn" onclick="switchCodeTab('tab-circle', this)">
+          🔴 2. Circle.java (Subclass)
+        </button>
+        <button class="code-tab-btn" onclick="switchCodeTab('tab-rectangle', this)">
+          🟦 3. Rectangle.java (Subclass)
+        </button>
+        <button class="code-tab-btn" onclick="switchCodeTab('tab-demo', this)">
+          🚀 4. ShapeDemo.java &amp; Output
+        </button>
+        <button class="code-tab-btn" onclick="switchCodeTab('tab-all', this)">
+          📦 5. Full Combined Source
+        </button>
+      </div>
+
+      <!-- Tab 1: Shape.java -->
+      <div id="tab-shape-base" class="code-tab-panel active">
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-file-badge">Shape.java (Base Abstract Class)</div>
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+          </div>
+          <pre><code><span class="tag-comment">// Base Abstract Class: Defines contract, shared state & template method</span>
+<span class="tag-kw">abstract class</span> <span class="tag-type">Shape</span> {
+    <span class="tag-kw">protected</span> String color;
+
+    <span class="tag-comment">// Constructor in abstract class (Invoked via super(color) in child classes)</span>
+    <span class="tag-kw">public</span> <span class="tag-type">Shape</span>(String color) {
+        <span class="tag-kw">this</span>.color = color;
+    }
+
+    <span class="tag-comment">// Abstract methods: Subclasses MUST implement these</span>
+    <span class="tag-kw">abstract double</span> <span class="tag-fn">calculateArea</span>();
+    <span class="tag-kw">abstract double</span> <span class="tag-fn">calculatePerimeter</span>();
+
+    <span class="tag-comment">// Concrete Template Method: Shared reusable logic across all shapes</span>
+    <span class="tag-kw">public void</span> <span class="tag-fn">printReport</span>() {
+        System.out.printf(<span class="tag-str">"[%s %s] Area: %.2f | Perimeter: %.2f%n"</span>,
+                color, getClass().getSimpleName(), calculateArea(), calculatePerimeter());
+    }
+}</code></pre>
+        </div>
+      </div>
+
+      <!-- Tab 2: Circle.java -->
+      <div id="tab-circle" class="code-tab-panel">
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-file-badge">Circle.java (Concrete Subclass)</div>
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+          </div>
+          <pre><code><span class="tag-comment">// Concrete Subclass: Circle</span>
+<span class="tag-kw">class</span> <span class="tag-type">Circle</span> <span class="tag-kw">extends</span> <span class="tag-type">Shape</span> {
+    <span class="tag-kw">private double</span> radius;
+
+    <span class="tag-kw">public</span> <span class="tag-type">Circle</span>(String color, <span class="tag-kw">double</span> radius) {
+        <span class="tag-kw">super</span>(color); <span class="tag-comment">// Calls abstract parent's constructor</span>
+        <span class="tag-kw">this</span>.radius = radius;
+    }
+
+    <span class="tag-annotation">@Override</span>
+    <span class="tag-kw">double</span> <span class="tag-fn">calculateArea</span>() {
+        <span class="tag-kw">return</span> Math.PI * radius * radius;
+    }
+
+    <span class="tag-annotation">@Override</span>
+    <span class="tag-kw">double</span> <span class="tag-fn">calculatePerimeter</span>() {
+        <span class="tag-kw">return</span> <span class="tag-num">2</span> * Math.PI * radius;
+    }
+}</code></pre>
+        </div>
+      </div>
+
+      <!-- Tab 3: Rectangle.java -->
+      <div id="tab-rectangle" class="code-tab-panel">
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-file-badge">Rectangle.java (Concrete Subclass)</div>
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+          </div>
+          <pre><code><span class="tag-comment">// Concrete Subclass: Rectangle</span>
+<span class="tag-kw">class</span> <span class="tag-type">Rectangle</span> <span class="tag-kw">extends</span> <span class="tag-type">Shape</span> {
+    <span class="tag-kw">private double</span> width, height;
+
+    <span class="tag-kw">public</span> <span class="tag-type">Rectangle</span>(String color, <span class="tag-kw">double</span> width, <span class="tag-kw">double</span> height) {
+        <span class="tag-kw">super</span>(color);
+        <span class="tag-kw">this</span>.width = width;
+        <span class="tag-kw">this</span>.height = height;
+    }
+
+    <span class="tag-annotation">@Override</span>
+    <span class="tag-kw">double</span> <span class="tag-fn">calculateArea</span>() {
+        <span class="tag-kw">return</span> width * height;
+    }
+
+    <span class="tag-annotation">@Override</span>
+    <span class="tag-kw">double</span> <span class="tag-fn">calculatePerimeter</span>() {
+        <span class="tag-kw">return</span> <span class="tag-num">2</span> * (width + height);
+    }
+}</code></pre>
+        </div>
+      </div>
+
+      <!-- Tab 4: ShapeDemo.java -->
+      <div id="tab-demo" class="code-tab-panel">
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-file-badge">ShapeDemo.java (Driver &amp; Output)</div>
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+          </div>
+          <pre><code><span class="tag-kw">public class</span> <span class="tag-type">ShapeDemo</span> {
+    <span class="tag-kw">public static void</span> <span class="tag-fn">main</span>(String[] args) {
+        <span class="tag-comment">// Polymorphic references using the Abstract Parent type</span>
+        <span class="tag-type">Shape</span> c = <span class="tag-kw">new</span> <span class="tag-type">Circle</span>(<span class="tag-str">"Ruby Red"</span>, <span class="tag-num">5.0</span>);
+        <span class="tag-type">Shape</span> r = <span class="tag-kw">new</span> <span class="tag-type">Rectangle</span>(<span class="tag-str">"Sky Blue"</span>, <span class="tag-num">4.0</span>, <span class="tag-num">6.0</span>);
+
+        c.<span class="tag-fn">printReport</span>(); <span class="tag-comment">// [Ruby Red Circle] Area: 78.54 | Perimeter: 31.42</span>
+        r.<span class="tag-fn">printReport</span>(); <span class="tag-comment">// [Sky Blue Rectangle] Area: 24.00 | Perimeter: 20.00</span>
+    }
+}
+
+<span class="tag-comment">/*
+================== CONSOLE OUTPUT ==================
+[Ruby Red Circle] Area: 78.54 | Perimeter: 31.42
+[Sky Blue Rectangle] Area: 24.00 | Perimeter: 20.00
+====================================================
+*/</span></code></pre>
+        </div>
+      </div>
+
+      <!-- Tab 5: Full Combined Source -->
+      <div id="tab-all" class="code-tab-panel">
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-file-badge">CompleteShapeHierarchy.java</div>
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+          </div>
+          <pre><code><span class="tag-comment">// Complete All-in-One Java File</span>
+<span class="tag-kw">abstract class</span> <span class="tag-type">Shape</span> {
+    <span class="tag-kw">protected</span> String color;
+
+    <span class="tag-kw">public</span> <span class="tag-type">Shape</span>(String color) {
+        <span class="tag-kw">this</span>.color = color;
+    }
+
+    <span class="tag-kw">abstract double</span> <span class="tag-fn">calculateArea</span>();
+    <span class="tag-kw">abstract double</span> <span class="tag-fn">calculatePerimeter</span>();
+
+    <span class="tag-kw">public void</span> <span class="tag-fn">printReport</span>() {
+        System.out.printf(<span class="tag-str">"[%s %s] Area: %.2f | Perimeter: %.2f%n"</span>,
+                color, getClass().getSimpleName(), calculateArea(), calculatePerimeter());
+    }
+}
+
+<span class="tag-kw">class</span> <span class="tag-type">Circle</span> <span class="tag-kw">extends</span> <span class="tag-type">Shape</span> {
+    <span class="tag-kw">private double</span> radius;
+
+    <span class="tag-kw">public</span> <span class="tag-type">Circle</span>(String color, <span class="tag-kw">double</span> radius) {
+        <span class="tag-kw">super</span>(color);
+        <span class="tag-kw">this</span>.radius = radius;
+    }
+
+    <span class="tag-annotation">@Override</span>
+    <span class="tag-kw">double</span> <span class="tag-fn">calculateArea</span>() { <span class="tag-kw">return</span> Math.PI * radius * radius; }
+
+    <span class="tag-annotation">@Override</span>
+    <span class="tag-kw">double</span> <span class="tag-fn">calculatePerimeter</span>() { <span class="tag-kw">return</span> <span class="tag-num">2</span> * Math.PI * radius; }
+}
+
+<span class="tag-kw">class</span> <span class="tag-type">Rectangle</span> <span class="tag-kw">extends</span> <span class="tag-type">Shape</span> {
+    <span class="tag-kw">private double</span> width, height;
+
+    <span class="tag-kw">public</span> <span class="tag-type">Rectangle</span>(String color, <span class="tag-kw">double</span> width, <span class="tag-kw">double</span> height) {
+        <span class="tag-kw">super</span>(color);
+        <span class="tag-kw">this</span>.width = width;
+        <span class="tag-kw">this</span>.height = height;
+    }
+
+    <span class="tag-annotation">@Override</span>
+    <span class="tag-kw">double</span> <span class="tag-fn">calculateArea</span>() { <span class="tag-kw">return</span> width * height; }
+
+    <span class="tag-annotation">@Override</span>
+    <span class="tag-kw">double</span> <span class="tag-fn">calculatePerimeter</span>() { <span class="tag-kw">return</span> <span class="tag-num">2</span> * (width + height); }
+}
+
+<span class="tag-kw">public class</span> <span class="tag-type">ShapeDemo</span> {
+    <span class="tag-kw">public static void</span> <span class="tag-fn">main</span>(String[] args) {
+        <span class="tag-type">Shape</span> c = <span class="tag-kw">new</span> <span class="tag-type">Circle</span>(<span class="tag-str">"Ruby Red"</span>, <span class="tag-num">5.0</span>);
+        <span class="tag-type">Shape</span> r = <span class="tag-kw">new</span> <span class="tag-type">Rectangle</span>(<span class="tag-str">"Sky Blue"</span>, <span class="tag-num">4.0</span>, <span class="tag-num">6.0</span>);
+
+        c.<span class="tag-fn">printReport</span>();
+        r.<span class="tag-fn">printReport</span>();
+    }
+}</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Page Navigation Footer -->
+    <div class="page-nav">
+      <a href="abstraction_intro.html" class="nav-btn-link">← Prev: Abstraction Overview</a>
+      <a href="interface_intro.html" class="nav-btn-link">Next: Interfaces Deep Dive →</a>
+    </div>
+  </div>
+
+  <script>
+    function simulateRule(num, btn) {
+      document.querySelectorAll('.controls-row .btn').forEach(b => b.classList.remove('btn-active'));
+      btn.classList.add('btn-active');
+      const snippet = document.getElementById('simSnippet');
+      const out = document.getElementById('simOutput');
+
+      if (num === 1) {
+        snippet.innerHTML = `<span class="tag-kw">abstract class</span> <span class="tag-type">Shape</span> { }\n<span class="tag-kw">Shape</span> s = <span class="tag-err">new Shape()</span>;`;
+        out.innerHTML = `<div class="status-fail">🔴 COMPILE TIME ERROR</div>
+<div style="margin-top: 6px; color: #cbd5e1;">error: Shape is abstract; cannot be instantiated</div>
+<div style="margin-top: 8px; color: #94a3b8; font-size: 0.85rem;">
+  💡 Why? Abstract classes represent incomplete models. Instantiating one would leave abstract methods uncallable.
+</div>`;
+      } else if (num === 2) {
+        snippet.innerHTML = `<span class="tag-kw">abstract class</span> <span class="tag-type">Worker</span> {\n    <span class="tag-kw">abstract final void</span> <span class="tag-fn">work</span>(); <span class="tag-comment">// ❌ Paradox!</span>\n}`;
+        out.innerHTML = `<div class="status-fail">🔴 COMPILE TIME ERROR</div>
+<div style="margin-top: 6px; color: #cbd5e1;">error: illegal combination of modifiers: abstract and final</div>
+<div style="margin-top: 8px; color: #94a3b8; font-size: 0.85rem;">
+  💡 Why? 'abstract' insists that a child class MUST override the method, while 'final' forbids overriding. They are directly opposite.
+</div>`;
+      } else if (num === 3) {
+        snippet.innerHTML = `<span class="tag-kw">abstract class</span> <span class="tag-type">Secret</span> {\n    <span class="tag-kw">abstract private void</span> <span class="tag-fn">reveal</span>(); <span class="tag-comment">// ❌ Inaccessible!</span>\n}`;
+        out.innerHTML = `<div class="status-fail">🔴 COMPILE TIME ERROR</div>
+<div style="margin-top: 6px; color: #cbd5e1;">error: illegal combination of modifiers: abstract and private</div>
+<div style="margin-top: 8px; color: #94a3b8; font-size: 0.85rem;">
+  💡 Why? A private method is invisible outside its class. A subclass cannot possibly override or implement a method it cannot see.
+</div>`;
+      } else if (num === 4) {
+        snippet.innerHTML = `<span class="tag-kw">abstract class</span> <span class="tag-type">ExecutableAbstract</span> {\n    <span class="tag-kw">public static void</span> <span class="tag-fn">main</span>(String[] args) {\n        System.out.println(<span class="tag-str">"Hello from Abstract Class main()!"</span>);\n    }\n}`;
+        out.innerHTML = `<div class="status-pass">🟢 COMPILATION SUCCESSFUL & EXECUTES!</div>
+<div style="margin-top: 6px; color: #cbd5e1;">Output: Hello from Abstract Class main()!</div>
+<div style="margin-top: 8px; color: #94a3b8; font-size: 0.85rem;">
+  💡 Why? main() is static. Static methods belong to the class definition and do not require creating an object instance to execute.
+</div>`;
+      } else if (num === 5) {
+        snippet.innerHTML = `<span class="tag-kw">abstract class</span> <span class="tag-type">Base</span> {\n    <span class="tag-kw">public</span> <span class="tag-type">Base</span>() { System.out.println(<span class="tag-str">"Base constructor executed"</span>); }\n}\n<span class="tag-kw">class</span> <span class="tag-type">Child</span> <span class="tag-kw">extends</span> <span class="tag-type">Base</span> {\n    <span class="tag-kw">public</span> <span class="tag-type">Child</span>() { <span class="tag-kw">super</span>(); }\n}`;
+        out.innerHTML = `<div class="status-pass">🟢 COMPILATION SUCCESSFUL & EXECUTES!</div>
+<div style="margin-top: 6px; color: #cbd5e1;">Output: Base constructor executed</div>
+<div style="margin-top: 8px; color: #94a3b8; font-size: 0.85rem;">
+  💡 Why? Abstract classes can define constructors to initialize base fields (like color, id, timestamp) when any concrete subclass is instantiated.
+</div>`;
+      }
+    }
+
+    function switchCodeTab(tabId, btn) {
+      const container = btn.closest('.card');
+      container.querySelectorAll('.code-tab-btn').forEach(b => b.classList.remove('active'));
+      container.querySelectorAll('.code-tab-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      const target = document.getElementById(tabId);
+      if (target) {
+        target.classList.add('active');
+      }
+    }
+
+    function copyCode(btn) {
+      const codeBlock = btn.closest('.code-block');
+      const codeEl = codeBlock.querySelector('code');
+      const text = codeEl ? codeEl.innerText : codeBlock.innerText.replace(/📋 Copy Code|📋 Copy|✓ Copied!/g, '').trim();
+      navigator.clipboard.writeText(text).then(() => {
+        const originalText = btn.innerText;
+        btn.innerText = '✓ Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.innerText = originalText;
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    }
+  </script>
+</body>
+</html>

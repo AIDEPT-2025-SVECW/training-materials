@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Static Methods in Interfaces (Java 8+) | Rules & Invocation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --secondary: #0284c7;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #ef4444;
+      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f1f5f9 100%);
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 10px 25px rgba(79, 70, 229, 0.07);
+      --shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      color: var(--text-main);
+      padding: 24px 16px;
+      line-height: 1.65;
+    }
+    .container { max-width: 1100px; margin: 0 auto; }
+    
+    .top-nav {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+    }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 8px; background: #ffffff; color: var(--primary-dark);
+      text-decoration: none; padding: 10px 20px; border-radius: 30px; font-weight: 600; font-size: 0.95rem;
+      border: 1px solid var(--card-border); box-shadow: var(--shadow-sm); transition: all 0.25s ease;
+    }
+    .back-btn:hover { background: var(--primary); color: #ffffff; transform: translateX(-4px); }
+    .nav-tag {
+      color: var(--text-muted); font-weight: 600; font-size: 0.9rem; background: rgba(255, 255, 255, 0.9);
+      padding: 6px 16px; border-radius: 20px; border: 1px solid var(--card-border);
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #4f46e5 0%, #0284c7 100%); color: #ffffff;
+      border-radius: 20px; padding: 40px 32px; text-align: center; box-shadow: var(--shadow-lg); margin-bottom: 32px;
+    }
+    .hero h1 { font-size: clamp(2rem, 4vw, 2.8rem); font-weight: 800; margin-bottom: 12px; }
+    .hero p { font-size: 1.15rem; opacity: 0.95; max-width: 780px; margin: 0 auto 20px auto; }
+    .hero-badges { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+    .hero-badge { background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(8px); padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+
+    .card {
+      background: var(--card-bg); border-radius: 18px; padding: 32px; margin-bottom: 32px;
+      box-shadow: var(--shadow-md); border: 1px solid var(--card-border);
+    }
+    .section-title {
+      font-size: 1.5rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 18px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .section-title .icon {
+      font-size: 1.4rem; background: #eef2ff; width: 44px; height: 44px;
+      display: flex; align-items: center; justify-content: center; border-radius: 12px; color: var(--primary);
+    }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    .concept-box {
+      background: #f8fafc; border-left: 4px solid var(--primary); padding: 20px; border-radius: 0 12px 12px 0; margin-bottom: 16px;
+    }
+    .concept-box h3 { font-size: 1.1rem; color: var(--primary-dark); margin-bottom: 8px; }
+
+    /* Fragmented Code Tabs */
+    .code-tabs-nav {
+      display: flex;
+      gap: 6px;
+      border-bottom: 2px solid #e2e8f0;
+      margin-bottom: 0;
+      overflow-x: auto;
+      padding-bottom: 0;
+    }
+    .code-tab-btn {
+      padding: 10px 18px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      border: 1px solid #cbd5e1;
+      border-bottom: none;
+      background: #f1f5f9;
+      color: #64748b;
+      border-radius: 8px 8px 0 0;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: inherit;
+      white-space: nowrap;
+    }
+    .code-tab-btn:hover {
+      background: #e2e8f0;
+      color: var(--primary);
+    }
+    .code-tab-btn.active {
+      background: #0d1117;
+      color: #38bdf8;
+      border-color: #0d1117;
+      font-weight: 700;
+    }
+    .code-tab-panel {
+      display: none;
+    }
+    .code-tab-panel.active {
+      display: block;
+    }
+
+    .code-block {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      overflow: hidden;
+      margin: 18px 0;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+      font-family: 'Fira Code', monospace;
+    }
+    .code-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 16px;
+      background: #161b22;
+      border-bottom: 1px solid #30363d;
+    }
+    .code-file-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #8b949e;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+    .code-file-badge::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #e3b341;
+      display: inline-block;
+    }
+    .code-block pre {
+      margin: 0;
+      padding: 18px 20px;
+      overflow-x: auto;
+      white-space: pre;
+      line-height: 1.6;
+      font-size: 0.9rem;
+      color: #e6edf3;
+    }
+    .code-block code {
+      display: block;
+      white-space: pre;
+      font-family: 'Fira Code', monospace;
+    }
+    .copy-btn {
+      background: #21262d;
+      color: #c9d1d9;
+      border: 1px solid #30363d;
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .copy-btn:hover {
+      background: #30363d;
+      color: #58a6ff;
+    }
+    .copy-btn.copied {
+      background: #238636;
+      color: #fff;
+      border-color: #2ea043;
+    }
+
+    .tag-kw { color: #ff7b72; font-weight: 600; }
+    .tag-type { color: #79c0ff; font-weight: 600; }
+    .tag-str { color: #a5d6ff; }
+    .tag-comment { color: #8b949e; font-style: italic; }
+
+    /* Interactive Invocation Sandbox */
+    .interactive-container {
+      background: #0f172a; color: #f8fafc; border-radius: 16px; padding: 28px; border: 1px solid #334155; margin-top: 16px;
+    }
+    .btn {
+      padding: 10px 18px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer;
+      transition: all 0.2s; font-size: 0.88rem; font-family: inherit; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-secondary { background: #334155; color: white; }
+    .btn-secondary:hover { background: #475569; }
+    .btn-active { background: var(--primary) !important; color: white; }
+
+    /* Page Navigation Footer */
+    .page-nav {
+      display: flex; justify-content: space-between; align-items: center; margin-top: 40px; gap: 16px; flex-wrap: wrap;
+    }
+    .nav-btn-link {
+      display: inline-flex; align-items: center; gap: 8px; background: white; padding: 12px 24px;
+      border-radius: 12px; border: 1px solid var(--card-border); color: var(--primary-dark);
+      font-weight: 700; text-decoration: none; box-shadow: var(--shadow-sm); transition: all 0.2s;
+    }
+    .nav-btn-link:hover { background: var(--primary); color: white; transform: translateY(-2px); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Top Navigation -->
+    <div class="top-nav">
+      <a href="../index.html" class="back-btn">← Back to Java Index</a>
+      <span class="nav-tag">☕ Module: Abstraction & Interfaces (Topic 8/10)</span>
+    </div>
+
+    <!-- Hero Banner -->
+    <div class="hero">
+      <h1>Static Methods in Interfaces (Java 8+)</h1>
+      <p>Discover utility methods directly on interfaces: why auxiliary classes like Collections and Paths were replaced, and the non-inheritance invocation rules enforced by javac.</p>
+      <div class="hero-badges">
+        <span class="hero-badge">🛠️ Contract Utilities</span>
+        <span class="hero-badge">🚫 Zero Subclass Inheritance</span>
+        <span class="hero-badge">📌 Strict Namespace Resolution</span>
+      </div>
+    </div>
+
+    <!-- Why Static Methods Exist -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">💡</span>
+        <h2>1. Why Were Static Methods Added to Interfaces?</h2>
+      </div>
+      <p style="font-size: 1.05rem; margin-bottom: 20px;">
+        Before Java 8, interfaces could not hold static helper algorithms. As a result, language designers and library developers had to create duplicate companion "Utility" classes just to hold static methods:
+      </p>
+
+      <div class="grid-2">
+        <div class="concept-box" style="border-left-color: var(--accent-amber);">
+          <h3 style="color: #b45309;">Pre-Java 8 Architecture</h3>
+          <p>
+            • <code>Collection</code> (interface) &amp; <code>Collections</code> (utility class)<br/>
+            • <code>Path</code> (interface) &amp; <code>Paths</code> (utility class)<br/>
+            Developers were constantly confused about where methods lived.
+          </p>
+        </div>
+
+        <div class="concept-box" style="border-left-color: var(--accent-green);">
+          <h3 style="color: #166534;">Java 8+ Modern Architecture</h3>
+          <p>
+            Utility methods live directly on the interface itself!<br/>
+            • <code>Comparator.comparing()</code>, <code>Comparator.naturalOrder()</code><br/>
+            • <code>List.of()</code>, <code>Map.of()</code>, <code>Stream.of()</code>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- The Cardinal Rule of Interface Static Methods -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🔒</span>
+        <h2>2. The Cardinal Rule: Interface Static Methods Are NOT Inherited!</h2>
+      </div>
+      <div style="background: #fff1f2; border: 1px solid #fecdd3; border-left: 5px solid var(--accent-rose); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+        <h4 style="color: #9f1239; margin-bottom: 8px;">🚨 Critical Difference Between Classes and Interfaces!</h4>
+        <p style="color: #881337;">
+          In standard classes, static methods are inherited by subclasses (e.g. <code>ChildClass.staticMethod()</code> works).<br/>
+          <strong>However, static methods in interfaces are NEVER inherited by implementing classes!</strong> They can <em>ONLY</em> be invoked by prefixing the interface's exact name.
+        </p>
+      </div>
+
+      <!-- Fragmented Code Tabs -->
+      <div class="code-tabs-nav">
+        <button class="code-tab-btn active" onclick="switchCodeTab('tab-math', this)">MathUtility.java</button>
+        <button class="code-tab-btn" onclick="switchCodeTab('tab-calc', this)">Calculator.java</button>
+        <button class="code-tab-btn" onclick="switchCodeTab('tab-demo', this)">StaticDemo.java</button>
+        <button class="code-tab-btn" onclick="switchCodeTab('tab-all', this)">CompleteStaticDemo.java</button>
+      </div>
+
+      <!-- Tab 1: MathUtility.java -->
+      <div id="tab-math" class="code-tab-panel active">
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-file-badge">MathUtility.java</span>
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+          </div>
+          <pre><code><span class="tag-comment">// Interface defining a static helper method</span>
+<span class="tag-kw">public interface</span> <span class="tag-type">MathUtility</span> {
+    <span class="tag-comment">// Static method inside interface: Must have an implementation body</span>
+    <span class="tag-kw">static int</span> <span class="tag-type">cube</span>(<span class="tag-kw">int</span> x) {
+        <span class="tag-kw">return</span> x * x * x;
+    }
+}</code></pre>
+        </div>
+      </div>
+
+      <!-- Tab 2: Calculator.java -->
+      <div id="tab-calc" class="code-tab-panel">
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-file-badge">Calculator.java</span>
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+          </div>
+          <pre><code><span class="tag-comment">// Implementing class does NOT inherit interface static methods</span>
+<span class="tag-kw">public class</span> <span class="tag-type">Calculator</span> <span class="tag-kw">implements</span> <span class="tag-type">MathUtility</span> {
+    <span class="tag-comment">// Note: cube() is NOT inherited here!</span>
+    <span class="tag-comment">// Calling Calculator.cube(5) will produce a compile-time error.</span>
+}</code></pre>
+        </div>
+      </div>
+
+      <!-- Tab 3: StaticDemo.java -->
+      <div id="tab-demo" class="code-tab-panel">
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-file-badge">StaticDemo.java</span>
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+          </div>
+          <pre><code><span class="tag-kw">public class</span> <span class="tag-type">StaticDemo</span> {
+    <span class="tag-kw">public static void</span> <span class="tag-type">main</span>(String[] args) {
+        <span class="tag-comment">// ✅ 1. Correct: Invoked strictly via Interface name</span>
+        <span class="tag-kw">int</span> result = <span class="tag-type">MathUtility</span>.cube(5);
+        System.out.println(<span class="tag-str">"Result: "</span> + result); <span class="tag-comment">// 125</span>
+
+        <span class="tag-comment">// ❌ 2. COMPILE ERROR: Cannot invoke through implementing class!</span>
+        <span class="tag-comment">// int err1 = Calculator.cube(5);</span>
+        <span class="tag-comment">// javac error: cannot find symbol method cube(int) in class Calculator</span>
+
+        <span class="tag-comment">// ❌ 3. COMPILE ERROR: Cannot invoke through object reference!</span>
+        <span class="tag-comment">// Calculator calc = new Calculator();</span>
+        <span class="tag-comment">// int err2 = calc.cube(5);</span>
+        <span class="tag-comment">// javac error: cannot find symbol method cube(int) in variable calc</span>
+    }
+}</code></pre>
+        </div>
+      </div>
+
+      <!-- Tab 4: CompleteStaticDemo.java -->
+      <div id="tab-all" class="code-tab-panel">
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-file-badge">CompleteStaticDemo.java</span>
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+          </div>
+          <pre><code><span class="tag-kw">interface</span> <span class="tag-type">MathUtility</span> {
+    <span class="tag-kw">static int</span> <span class="tag-type">cube</span>(<span class="tag-kw">int</span> x) {
+        <span class="tag-kw">return</span> x * x * x;
+    }
+}
+
+<span class="tag-kw">class</span> <span class="tag-type">Calculator</span> <span class="tag-kw">implements</span> <span class="tag-type">MathUtility</span> { }
+
+<span class="tag-kw">public class</span> <span class="tag-type">CompleteStaticDemo</span> {
+    <span class="tag-kw">public static void</span> <span class="tag-type">main</span>(String[] args) {
+        <span class="tag-comment">// Strictly MathUtility.cube()</span>
+        System.out.println(<span class="tag-str">"Cube of 4: "</span> + <span class="tag-type">MathUtility</span>.cube(4));
+    }
+}</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Java 9 Private Static Methods -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">☕</span>
+        <h2>3. Evolution in Java 9: Private Static Methods</h2>
+      </div>
+      <p style="margin-bottom: 16px;">
+        Java 9 added <code>private static</code> methods inside interfaces. If you have multiple public static methods in an interface that share complex validation or encryption logic, you can encapsulate that shared helper code in a private static method:
+      </p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-file-badge">SecurityToken.java</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+        </div>
+        <pre><code><span class="tag-kw">interface</span> <span class="tag-type">SecurityToken</span> {
+    <span class="tag-kw">static boolean</span> <span class="tag-type">validateJwt</span>(String token) {
+        <span class="tag-kw">return</span> logAndCheck(token, <span class="tag-str">"JWT"</span>);
+    }
+
+    <span class="tag-kw">static boolean</span> <span class="tag-type">validateApiKey</span>(String key) {
+        <span class="tag-kw">return</span> logAndCheck(key, <span class="tag-str">"API_KEY"</span>);
+    }
+
+    <span class="tag-comment">// Java 9 Private Static Helper: Hidden from outside world!</span>
+    <span class="tag-kw">private static boolean</span> <span class="tag-type">logAndCheck</span>(String credential, String type) {
+        System.out.println(<span class="tag-str">"Auditing credentials for type: "</span> + type);
+        <span class="tag-kw">return</span> credential != <span class="tag-kw">null</span> &amp;&amp; credential.length() &gt; 16;
+    }
+}</code></pre>
+      </div>
+    </div>
+
+    <!-- Interactive Invocation Sandbox -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🔬</span>
+        <h2>4. Interactive Invocation Rule Checker</h2>
+      </div>
+      <p>Test various invocation syntax patterns to observe the Java compiler's verification:</p>
+
+      <div class="interactive-container">
+        <div style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;">
+          <button class="btn btn-secondary btn-active" onclick="testInvocation(1, this)">1. InterfaceName.method()</button>
+          <button class="btn btn-secondary" onclick="testInvocation(2, this)">2. ClassName.method()</button>
+          <button class="btn btn-secondary" onclick="testInvocation(3, this)">3. instance.method()</button>
+        </div>
+
+        <div class="code-block" style="margin: 0;">
+          <div class="code-header">
+            <span class="code-file-badge">InvocationTest.java</span>
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+          </div>
+          <pre><code id="invCode">MathUtility.cube(3); <span class="tag-comment">// Direct interface call</span></code></pre>
+        </div>
+
+        <div id="invOutput" style="margin-top: 16px; padding: 16px; background: #1e293b; border-radius: 8px; border: 1px solid #334155; font-family: 'Fira Code', monospace; font-size: 0.88rem;">
+          <span style="color: #34d399; font-weight: 700;">🟢 COMPILATION SUCCESS:</span><br/>
+          Output: 27<br/>
+          💡 The official, correct syntax for invoking an interface static method.
+        </div>
+      </div>
+    </div>
+
+    <!-- Page Navigation Footer -->
+    <div class="page-nav">
+      <a href="default_methods.html" class="nav-btn-link">← Prev: Default Methods</a>
+      <a href="functional_interface.html" class="nav-btn-link">Next: Functional Interfaces →</a>
+    </div>
+  </div>
+
+  <script>
+    function switchCodeTab(panelId, btn) {
+      const container = btn.closest('.card');
+      container.querySelectorAll('.code-tab-btn').forEach(b => b.classList.remove('active'));
+      container.querySelectorAll('.code-tab-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      const targetPanel = document.getElementById(panelId);
+      if (targetPanel) targetPanel.classList.add('active');
+    }
+
+    function testInvocation(opt, btn) {
+      document.querySelectorAll('.interactive-container .btn').forEach(b => b.classList.remove('btn-active'));
+      btn.classList.add('btn-active');
+      const code = document.getElementById('invCode');
+      const out = document.getElementById('invOutput');
+
+      if (opt === 1) {
+        code.innerHTML = `MathUtility.cube(3); <span class="tag-comment">// Direct call via Interface</span>`;
+        out.innerHTML = `<span style="color: #34d399; font-weight: 700;">🟢 COMPILATION SUCCESS:</span><br/>Output: 27<br/>💡 This is the ONLY valid way to call static methods on an interface.`;
+      } else if (opt === 2) {
+        code.innerHTML = `Calculator.cube(3); <span class="tag-comment">// Calling via implementing class</span>`;
+        out.innerHTML = `<span style="color: #f87171; font-weight: 700;">🔴 COMPILE ERROR:</span><br/>error: cannot find symbol method cube(int) in class Calculator<br/>💡 Reason: Interface static methods are NOT inherited by implementing classes!`;
+      } else if (opt === 3) {
+        code.innerHTML = `Calculator calc = new Calculator();\ncalc.cube(3); <span class="tag-comment">// Calling via object instance</span>`;
+        out.innerHTML = `<span style="color: #f87171; font-weight: 700;">🔴 COMPILE ERROR:</span><br/>error: cannot find symbol method cube(int) in variable calc<br/>💡 Reason: An object instance has no reference to the static method of an implemented interface.`;
+      }
+    }
+
+    function copyCode(btn) {
+      const codeBlock = btn.closest('.code-block');
+      const codeEl = codeBlock.querySelector('code');
+      const text = (codeEl ? codeEl.innerText : codeBlock.innerText)
+        .replace(/📋 Copy Code/g, '')
+        .replace(/✓ Copied!/g, '')
+        .trim();
+      navigator.clipboard.writeText(text).then(() => {
+        btn.innerText = '✓ Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.innerText = '📋 Copy Code';
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    }
+  </script>
+</body>
+</html>

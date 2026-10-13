@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interfaces in Java | Contracts & Implementation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --secondary: #0284c7;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #ef4444;
+      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f1f5f9 100%);
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 10px 25px rgba(79, 70, 229, 0.07);
+      --shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      color: var(--text-main);
+      padding: 24px 16px;
+      line-height: 1.65;
+    }
+    .container { max-width: 1100px; margin: 0 auto; }
+    
+    .top-nav {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+    }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 8px; background: #ffffff; color: var(--primary-dark);
+      text-decoration: none; padding: 10px 20px; border-radius: 30px; font-weight: 600; font-size: 0.95rem;
+      border: 1px solid var(--card-border); box-shadow: var(--shadow-sm); transition: all 0.25s ease;
+    }
+    .back-btn:hover { background: var(--primary); color: #ffffff; transform: translateX(-4px); }
+    .nav-tag {
+      color: var(--text-muted); font-weight: 600; font-size: 0.9rem; background: rgba(255, 255, 255, 0.9);
+      padding: 6px 16px; border-radius: 20px; border: 1px solid var(--card-border);
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #4f46e5 0%, #0284c7 100%); color: #ffffff;
+      border-radius: 20px; padding: 40px 32px; text-align: center; box-shadow: var(--shadow-lg); margin-bottom: 32px;
+    }
+    .hero h1 { font-size: clamp(2rem, 4vw, 2.8rem); font-weight: 800; margin-bottom: 12px; }
+    .hero p { font-size: 1.15rem; opacity: 0.95; max-width: 780px; margin: 0 auto 20px auto; }
+    .hero-badges { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+    .hero-badge { background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(8px); padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+
+    .card {
+      background: var(--card-bg); border-radius: 18px; padding: 32px; margin-bottom: 32px;
+      box-shadow: var(--shadow-md); border: 1px solid var(--card-border);
+    }
+    .section-title {
+      font-size: 1.5rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 18px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .section-title .icon {
+      font-size: 1.4rem; background: #eef2ff; width: 44px; height: 44px;
+      display: flex; align-items: center; justify-content: center; border-radius: 12px; color: var(--primary);
+    }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    .concept-box {
+      background: #f8fafc; border-left: 4px solid var(--primary); padding: 20px; border-radius: 0 12px 12px 0; margin-bottom: 16px;
+    }
+    .concept-box h3 { font-size: 1.1rem; color: var(--primary-dark); margin-bottom: 8px; }
+
+    .code-block {
+      background: #0d1117; color: #e6edf3; border-radius: 12px; position: relative;
+      margin: 18px 0; border: 1px solid #30363d; overflow: hidden; font-family: 'Fira Code', monospace;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    }
+    .code-header {
+      display: flex; justify-content: space-between; align-items: center; padding: 10px 16px;
+      background: #161b22; border-bottom: 1px solid #30363d; font-size: 0.85rem; color: #8b949e;
+      font-family: 'Fira Code', monospace;
+    }
+    .code-file-badge {
+      display: inline-flex; align-items: center; gap: 8px; font-weight: 600; color: #c9d1d9;
+    }
+    .code-file-badge::before {
+      content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #e3b341;
+    }
+    .code-block pre {
+      margin: 0; padding: 18px 20px; overflow-x: auto; font-family: 'Fira Code', monospace;
+      font-size: 0.9rem; line-height: 1.6; white-space: pre;
+    }
+    .code-block code {
+      font-family: inherit; font-size: inherit; white-space: pre; display: block;
+    }
+    .copy-btn {
+      background: rgba(255, 255, 255, 0.08); color: #c9d1d9; border: 1px solid #30363d;
+      padding: 5px 12px; border-radius: 6px; font-size: 0.78rem; font-weight: 500; cursor: pointer;
+      transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 6px; font-family: inherit;
+    }
+    .copy-btn:hover { background: var(--primary); color: #ffffff; border-color: var(--primary); }
+    .copy-btn.copied { background: var(--accent-green) !important; color: #ffffff !important; border-color: var(--accent-green) !important; }
+
+    .tag-kw { color: #ff7b72; font-weight: 600; }
+    .tag-type { color: #79c0ff; font-weight: 600; }
+    .tag-str { color: #a5d6ff; }
+    .tag-comment { color: #8b949e; font-style: italic; }
+    .tag-annotation { color: #d2a8ff; font-weight: 600; }
+    .tag-fn { color: #d2a8ff; }
+    .tag-num { color: #79c0ff; }
+
+    /* Code Tabs */
+    .code-tabs-nav {
+      display: flex; gap: 8px; border-bottom: 2px solid var(--card-border); margin-bottom: 16px; flex-wrap: wrap;
+    }
+    .code-tab-btn {
+      padding: 10px 18px; background: transparent; border: 1px solid transparent; border-bottom: none;
+      font-family: 'Outfit', sans-serif; font-size: 0.95rem; font-weight: 600; color: var(--text-muted);
+      cursor: pointer; border-radius: 10px 10px 0 0; transition: all 0.2s ease; display: inline-flex;
+      align-items: center; gap: 8px;
+    }
+    .code-tab-btn:hover { color: var(--primary); background: #f1f5f9; }
+    .code-tab-btn.active {
+      color: var(--primary); background: #ffffff; border-color: var(--card-border);
+      border-bottom: 2px solid #ffffff; margin-bottom: -2px; font-weight: 700;
+      box-shadow: 0 -2px 8px rgba(0,0,0,0.03);
+    }
+    .code-tab-panel { display: none; }
+    .code-tab-panel.active { display: block; animation: fadeIn 0.2s ease-in-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Interactive Decompiler Box */
+    .interactive-container {
+      background: #0f172a; color: #f8fafc; border-radius: 16px; padding: 28px; border: 1px solid #334155; margin-top: 16px;
+    }
+    .toggle-row { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+    .btn {
+      padding: 10px 18px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer;
+      transition: all 0.2s; font-size: 0.88rem; font-family: inherit; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-secondary { background: #334155; color: white; }
+    .btn-secondary:hover { background: #475569; }
+    .btn-active { background: var(--primary) !important; color: white; }
+
+    /* Page Navigation Footer */
+    .page-nav {
+      display: flex; justify-content: space-between; align-items: center; margin-top: 40px; gap: 16px; flex-wrap: wrap;
+    }
+    .nav-btn-link {
+      display: inline-flex; align-items: center; gap: 8px; background: white; padding: 12px 24px;
+      border-radius: 12px; border: 1px solid var(--card-border); color: var(--primary-dark);
+      font-weight: 700; text-decoration: none; box-shadow: var(--shadow-sm); transition: all 0.2s;
+    }
+    .nav-btn-link:hover { background: var(--primary); color: white; transform: translateY(-2px); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Top Navigation -->
+    <div class="top-nav">
+      <a href="../index.html" class="back-btn">← Back to Java Index</a>
+      <span class="nav-tag">☕ Module: Abstraction & Interfaces (Topic 3/10)</span>
+    </div>
+
+    <!-- Hero Banner -->
+    <div class="hero">
+      <h1>Interfaces in Java</h1>
+      <p>Master pure contract-based programming: how interfaces define standardized behaviors, implicit compiler modifiers, and multiple implementation architecture.</p>
+      <div class="hero-badges">
+        <span class="hero-badge">📜 Contractual Blueprint</span>
+        <span class="hero-badge">⚡ 100% Behavioral Specification</span>
+        <span class="hero-badge">🔌 Plug-and-Play Design</span>
+      </div>
+    </div>
+
+    <!-- Core Definition -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">📑</span>
+        <h2>1. What is an Interface?</h2>
+      </div>
+      <p style="font-size: 1.05rem; margin-bottom: 20px;">
+        An <strong>Interface</strong> in Java is a reference type, similar to a class, that can contain only constants, method signatures, default methods, static methods, and nested types. It is an agreement or <strong>contract</strong> between a service provider and its consumers.
+      </p>
+
+      <div class="grid-2">
+        <div class="concept-box">
+          <h3>🤝 The Contract Concept</h3>
+          <p>When a class uses the <code>implements</code> keyword, it officially pledges: <em>"I guarantee to provide full executable implementations for every method specified in this interface."</em></p>
+        </div>
+        <div class="concept-box" style="border-left-color: var(--secondary);">
+          <h3>🔌 Plug-and-Play Architecture</h3>
+          <p>Consumers write code against interface types (e.g., <code>PaymentProcessor</code>), allowing different implementations (PayPal, Stripe, Razorpay) to be plugged in interchangeably at runtime without changing the consumer.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Implicit Modifiers (Under the Hood) -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🔍</span>
+        <h2>2. Compiler Secrets: Implicit Modifiers</h2>
+      </div>
+      <p style="margin-bottom: 16px;">When you write code inside an interface, the Java compiler (<code>javac</code>) automatically injects strict keywords behind the scenes:</p>
+
+      <div class="grid-2">
+        <div class="concept-box" style="border-left-color: var(--accent-amber);">
+          <h3>Variables in Interfaces</h3>
+          <p>Every field declared inside an interface is automatically and implicitly:</p>
+          <ul style="padding-left: 20px; margin-top: 8px;">
+            <li><code>public</code>: Accessible everywhere.</li>
+            <li><code>static</code>: Belongs to the interface itself, not any object.</li>
+            <li><code>final</code>: Constant! Must be assigned immediately; cannot be reassigned.</li>
+          </ul>
+        </div>
+
+        <div class="concept-box" style="border-left-color: var(--primary);">
+          <h3>Methods in Interfaces (Traditional)</h3>
+          <p>Every standard method signature in an interface is automatically and implicitly:</p>
+          <ul style="padding-left: 20px; margin-top: 8px;">
+            <li><code>public</code>: Exposes the contract publicly to any consumer.</li>
+            <li><code>abstract</code>: Must be provided a body by implementing classes.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Interactive Compiler Decompiler View -->
+      <div class="interactive-container">
+        <div class="toggle-row">
+          <span style="font-weight: 600; color: #94a3b8; align-self: center;">Toggle View:</span>
+          <button class="btn btn-secondary btn-active" id="btnSource" onclick="toggleCompilerView('source')">👨‍💻 What Developer Writes</button>
+          <button class="btn btn-secondary" id="btnJavac" onclick="toggleCompilerView('javac')">⚙️ What javac Actually Compiles</button>
+        </div>
+
+        <div class="code-block" style="margin: 0; background: #0b1120;">
+          <div class="code-header">
+            <div class="code-file-badge">Flyable.java (Decompiler Inspection)</div>
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+          </div>
+          <pre style="margin: 0; padding: 16px 20px;"><code id="compilerCode"><span class="tag-kw">interface</span> <span class="tag-type">Flyable</span> {
+    <span class="tag-kw">int</span> MAX_ALTITUDE = <span class="tag-num">10000</span>; <span class="tag-comment">// Clean &amp; concise</span>
+
+    <span class="tag-kw">void</span> <span class="tag-fn">takeOff</span>();
+    <span class="tag-kw">void</span> <span class="tag-fn">fly</span>();
+    <span class="tag-kw">void</span> <span class="tag-fn">land</span>();
+}</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Implementing Interfaces & Visibility Rules -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">⚠️</span>
+        <h2>3. The Golden Overriding Rule for Implementing Classes</h2>
+      </div>
+      <div style="background: #fff1f2; border: 1px solid #fecdd3; border-left: 5px solid var(--accent-rose); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+        <h4 style="color: #9f1239; margin-bottom: 8px;">🚨 Crucial Interview Gotcha: Why must implementing methods be declared 'public'?</h4>
+        <p style="color: #881337;">
+          In Java, an overriding method in a subclass cannot reduce the visibility of the method inherited from the parent. Since interface methods are implicitly <strong>public</strong>, any implementing class MUST explicitly specify <code>public</code> in its method signature!
+        </p>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-file-badge">Printer.java (Visibility Rules)</div>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+        </div>
+        <pre><code><span class="tag-kw">interface</span> <span class="tag-type">Printer</span> {
+    <span class="tag-kw">void</span> <span class="tag-fn">printDocument</span>(String doc); <span class="tag-comment">// implicitly public abstract</span>
+}
+
+<span class="tag-kw">class</span> <span class="tag-type">LaserPrinter</span> <span class="tag-kw">implements</span> <span class="tag-type">Printer</span> {
+    <span class="tag-comment">// ❌ COMPILE ERROR: Cannot reduce visibility from public to package-private!</span>
+    <span class="tag-comment">// void printDocument(String doc) { ... }</span>
+
+    <span class="tag-comment">// ✅ CORRECT: Explicit 'public' keyword is mandatory!</span>
+    <span class="tag-annotation">@Override</span>
+    <span class="tag-kw">public void</span> <span class="tag-fn">printDocument</span>(String doc) {
+        System.out.println(<span class="tag-str">"Printing high-res laser document: "</span> + doc);
+    }
+}</code></pre>
+      </div>
+    </div>
+
+    <!-- Complete Real-World Example -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">☁️</span>
+        <h2>4. Real-World Architecture: Cloud Storage Service</h2>
+      </div>
+      <p style="margin-bottom: 20px;">Demonstrating how enterprise backends utilize interfaces to allow multi-cloud infrastructure switching without modifying business logic:</p>
+
+      <!-- Code Tabs Navigation -->
+      <div class="code-tabs-nav">
+        <button class="code-tab-btn active" onclick="switchCodeTab('tab-cloud-iface', this)">
+          📜 1. CloudStorageService.java (Contract)
+        </button>
+        <button class="code-tab-btn" onclick="switchCodeTab('tab-aws', this)">
+          🟧 2. AwsS3Storage.java (Provider 1)
+        </button>
+        <button class="code-tab-btn" onclick="switchCodeTab('tab-gcs', this)">
+          🟦 3. GoogleCloudStorage.java (Provider 2)
+        </button>
+        <button class="code-tab-btn" onclick="switchCodeTab('tab-client', this)">
+          🚀 4. StorageClient.java &amp; Output
+        </button>
+        <button class="code-tab-btn" onclick="switchCodeTab('tab-all-cloud', this)">
+          📦 5. Full Combined Source
+        </button>
+      </div>
+
+      <!-- Tab 1: Contract -->
+      <div id="tab-cloud-iface" class="code-tab-panel active">
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-file-badge">CloudStorageService.java (Clean Interface)</div>
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+          </div>
+          <pre><code><span class="tag-comment">// Pure Contract: Defines WHAT cloud operations exist</span>
+<span class="tag-kw">interface</span> <span class="tag-type">CloudStorageService</span> {
+    <span class="tag-kw">void</span> <span class="tag-fn">uploadFile</span>(String fileName, <span class="tag-kw">byte</span>[] data);
+    <span class="tag-kw">byte</span>[] <span class="tag-fn">downloadFile</span>(String fileName);
+    <span class="tag-kw">boolean</span> <span class="tag-fn">deleteFile</span>(String fileName);
+}</code></pre>
+        </div>
+      </div>
+
+      <!-- Tab 2: AWS -->
+      <div id="tab-aws" class="code-tab-panel">
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-file-badge">AwsS3Storage.java (Concrete Implementation)</div>
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+          </div>
+          <pre><code><span class="tag-comment">// Concrete Provider A: Amazon Web Services S3</span>
+<span class="tag-kw">class</span> <span class="tag-type">AwsS3Storage</span> <span class="tag-kw">implements</span> <span class="tag-type">CloudStorageService</span> {
+    <span class="tag-annotation">@Override</span>
+    <span class="tag-kw">public void</span> <span class="tag-fn">uploadFile</span>(String fileName, <span class="tag-kw">byte</span>[] data) {
+        System.out.println(<span class="tag-str">"[AWS S3] Uploading "</span> + fileName + <span class="tag-str">" to bucket 'production-assets'"</span>);
+    }
+
+    <span class="tag-annotation">@Override</span>
+    <span class="tag-kw">public byte</span>[] <span class="tag-fn">downloadFile</span>(String fileName) {
+        System.out.println(<span class="tag-str">"[AWS S3] Fetching bytes for "</span> + fileName);
+        <span class="tag-kw">return new byte</span>[<span class="tag-num">1024</span>];
+    }
+
+    <span class="tag-annotation">@Override</span>
+    <span class="tag-kw">public boolean</span> <span class="tag-fn">deleteFile</span>(String fileName) {
+        System.out.println(<span class="tag-str">"[AWS S3] Deleted object "</span> + fileName);
+        <span class="tag-kw">return true</span>;
+    }
+}</code></pre>
+        </div>
+      </div>
+
+      <!-- Tab 3: GCS -->
+      <div id="tab-gcs" class="code-tab-panel">
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-file-badge">GoogleCloudStorage.java (Concrete Implementation)</div>
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+          </div>
+          <pre><code><span class="tag-comment">// Concrete Provider B: Google Cloud Storage</span>
+<span class="tag-kw">class</span> <span class="tag-type">GoogleCloudStorage</span> <span class="tag-kw">implements</span> <span class="tag-type">CloudStorageService</span> {
+    <span class="tag-annotation">@Override</span>
+    <span class="tag-kw">public void</span> <span class="tag-fn">uploadFile</span>(String fileName, <span class="tag-kw">byte</span>[] data) {
+        System.out.println(<span class="tag-str">"[GCS] Uploading "</span> + fileName + <span class="tag-str">" via Google Cloud Storage Client"</span>);
+    }
+
+    <span class="tag-annotation">@Override</span>
+    <span class="tag-kw">public byte</span>[] <span class="tag-fn">downloadFile</span>(String fileName) {
+        System.out.println(<span class="tag-str">"[GCS] Streaming object from GCP bucket"</span>);
+        <span class="tag-kw">return new byte</span>[<span class="tag-num">1024</span>];
+    }
+
+    <span class="tag-annotation">@Override</span>
+    <span class="tag-kw">public boolean</span> <span class="tag-fn">deleteFile</span>(String fileName) {
+        System.out.println(<span class="tag-str">"[GCS] Deleting object from Google Cloud"</span>);
+        <span class="tag-kw">return true</span>;
+    }
+}</code></pre>
+        </div>
+      </div>
+
+      <!-- Tab 4: Driver & Output -->
+      <div id="tab-client" class="code-tab-panel">
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-file-badge">StorageClient.java (Driver &amp; Output)</div>
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+          </div>
+          <pre><code><span class="tag-comment">// Client Application: Talks ONLY to CloudStorageService contract</span>
+<span class="tag-kw">public class</span> <span class="tag-type">StorageClient</span> {
+    <span class="tag-kw">public static void</span> <span class="tag-fn">main</span>(String[] args) {
+        <span class="tag-comment">// Loose coupling: Depend on Interface reference!</span>
+        <span class="tag-type">CloudStorageService</span> storage = <span class="tag-kw">new</span> <span class="tag-type">AwsS3Storage</span>();
+        storage.<span class="tag-fn">uploadFile</span>(<span class="tag-str">"avatar.png"</span>, <span class="tag-kw">new byte</span>[<span class="tag-num">512</span>]);
+
+        <span class="tag-comment">// Seamlessly switch provider with 1 line of instantiation:</span>
+        storage = <span class="tag-kw">new</span> <span class="tag-type">GoogleCloudStorage</span>();
+        storage.<span class="tag-fn">uploadFile</span>(<span class="tag-str">"backup.zip"</span>, <span class="tag-kw">new byte</span>[<span class="tag-num">2048</span>]);
+    }
+}
+
+<span class="tag-comment">/*
+=========================== CONSOLE OUTPUT ===========================
+[AWS S3] Uploading avatar.png to bucket 'production-assets'
+[GCS] Uploading backup.zip via Google Cloud Storage Client
+======================================================================
+*/</span></code></pre>
+        </div>
+      </div>
+
+      <!-- Tab 5: Complete Combined Source -->
+      <div id="tab-all-cloud" class="code-tab-panel">
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-file-badge">CompleteCloudStorageSystem.java</div>
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+          </div>
+          <pre><code><span class="tag-kw">interface</span> <span class="tag-type">CloudStorageService</span> {
+    <span class="tag-kw">void</span> <span class="tag-fn">uploadFile</span>(String fileName, <span class="tag-kw">byte</span>[] data);
+    <span class="tag-kw">byte</span>[] <span class="tag-fn">downloadFile</span>(String fileName);
+    <span class="tag-kw">boolean</span> <span class="tag-fn">deleteFile</span>(String fileName);
+}
+
+<span class="tag-kw">class</span> <span class="tag-type">AwsS3Storage</span> <span class="tag-kw">implements</span> <span class="tag-type">CloudStorageService</span> {
+    <span class="tag-annotation">@Override</span>
+    <span class="tag-kw">public void</span> <span class="tag-fn">uploadFile</span>(String fileName, <span class="tag-kw">byte</span>[] data) {
+        System.out.println(<span class="tag-str">"[AWS S3] Uploading "</span> + fileName + <span class="tag-str">" to bucket 'production-assets'"</span>);
+    }
+    <span class="tag-annotation">@Override</span>
+    <span class="tag-kw">public byte</span>[] <span class="tag-fn">downloadFile</span>(String fileName) {
+        System.out.println(<span class="tag-str">"[AWS S3] Fetching bytes for "</span> + fileName);
+        <span class="tag-kw">return new byte</span>[<span class="tag-num">1024</span>];
+    }
+    <span class="tag-annotation">@Override</span>
+    <span class="tag-kw">public boolean</span> <span class="tag-fn">deleteFile</span>(String fileName) {
+        System.out.println(<span class="tag-str">"[AWS S3] Deleted object "</span> + fileName);
+        <span class="tag-kw">return true</span>;
+    }
+}
+
+<span class="tag-kw">class</span> <span class="tag-type">GoogleCloudStorage</span> <span class="tag-kw">implements</span> <span class="tag-type">CloudStorageService</span> {
+    <span class="tag-annotation">@Override</span>
+    <span class="tag-kw">public void</span> <span class="tag-fn">uploadFile</span>(String fileName, <span class="tag-kw">byte</span>[] data) {
+        System.out.println(<span class="tag-str">"[GCS] Uploading "</span> + fileName + <span class="tag-str">" via Google Cloud Storage Client"</span>);
+    }
+    <span class="tag-annotation">@Override</span>
+    <span class="tag-kw">public byte</span>[] <span class="tag-fn">downloadFile</span>(String fileName) {
+        System.out.println(<span class="tag-str">"[GCS] Streaming object from GCP bucket"</span>);
+        <span class="tag-kw">return new byte</span>[<span class="tag-num">1024</span>];
+    }
+    <span class="tag-annotation">@Override</span>
+    <span class="tag-kw">public boolean</span> <span class="tag-fn">deleteFile</span>(String fileName) {
+        System.out.println(<span class="tag-str">"[GCS] Deleting object from Google Cloud"</span>);
+        <span class="tag-kw">return true</span>;
+    }
+}
+
+<span class="tag-kw">public class</span> <span class="tag-type">StorageClient</span> {
+    <span class="tag-kw">public static void</span> <span class="tag-fn">main</span>(String[] args) {
+        <span class="tag-type">CloudStorageService</span> storage = <span class="tag-kw">new</span> <span class="tag-type">AwsS3Storage</span>();
+        storage.<span class="tag-fn">uploadFile</span>(<span class="tag-str">"avatar.png"</span>, <span class="tag-kw">new byte</span>[<span class="tag-num">512</span>]);
+
+        storage = <span class="tag-kw">new</span> <span class="tag-type">GoogleCloudStorage</span>();
+        storage.<span class="tag-fn">uploadFile</span>(<span class="tag-str">"backup.zip"</span>, <span class="tag-kw">new byte</span>[<span class="tag-num">2048</span>]);
+    }
+}</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Page Navigation Footer -->
+    <div class="page-nav">
+      <a href="abstract_classes_methods.html" class="nav-btn-link">← Prev: Abstract Classes & Methods</a>
+      <a href="interface_vs_abstract_class.html" class="nav-btn-link">Next: Interface vs Abstract Class →</a>
+    </div>
+  </div>
+
+  <script>
+    function toggleCompilerView(view) {
+      const code = document.getElementById('compilerCode');
+      const btnSource = document.getElementById('btnSource');
+      const btnJavac = document.getElementById('btnJavac');
+
+      if (view === 'source') {
+        btnSource.classList.add('btn-active');
+        btnJavac.classList.remove('btn-active');
+        code.innerHTML = `<span class="tag-kw">interface</span> <span class="tag-type">Flyable</span> {\n    <span class="tag-kw">int</span> MAX_ALTITUDE = <span class="tag-num">10000</span>; <span class="tag-comment">// Clean &amp; concise</span>\n\n    <span class="tag-kw">void</span> <span class="tag-fn">takeOff</span>();\n    <span class="tag-kw">void</span> <span class="tag-fn">fly</span>();\n    <span class="tag-kw">void</span> <span class="tag-fn">land</span>();\n}`;
+      } else {
+        btnJavac.classList.add('btn-active');
+        btnSource.classList.remove('btn-active');
+        code.innerHTML = `<span class="tag-kw">interface</span> <span class="tag-type">Flyable</span> {\n    <span class="tag-comment">// Javac injects 'public static final' automatically:</span>\n    <span class="tag-kw">public static final int</span> MAX_ALTITUDE = <span class="tag-num">10000</span>;\n\n    <span class="tag-comment">// Javac injects 'public abstract' automatically:</span>\n    <span class="tag-kw">public abstract void</span> <span class="tag-fn">takeOff</span>();\n    <span class="tag-kw">public abstract void</span> <span class="tag-fn">fly</span>();\n    <span class="tag-kw">public abstract void</span> <span class="tag-fn">land</span>();\n}`;
+      }
+    }
+
+    function switchCodeTab(tabId, btn) {
+      const container = btn.closest('.card');
+      container.querySelectorAll('.code-tab-btn').forEach(b => b.classList.remove('active'));
+      container.querySelectorAll('.code-tab-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      const target = document.getElementById(tabId);
+      if (target) {
+        target.classList.add('active');
+      }
+    }
+
+    function copyCode(btn) {
+      const codeBlock = btn.closest('.code-block');
+      const codeEl = codeBlock.querySelector('code');
+      const text = codeEl ? codeEl.innerText : codeBlock.innerText.replace(/📋 Copy Code|📋 Copy|✓ Copied!/g, '').trim();
+      navigator.clipboard.writeText(text).then(() => {
+        const originalText = btn.innerText;
+        btn.innerText = '✓ Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.innerText = originalText;
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    }
+  </script>
+</body>
+</html>

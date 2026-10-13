@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interface vs Abstract Class | Architecture & Deep Comparison</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --secondary: #0284c7;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #ef4444;
+      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f1f5f9 100%);
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 10px 25px rgba(79, 70, 229, 0.07);
+      --shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      color: var(--text-main);
+      padding: 24px 16px;
+      line-height: 1.65;
+    }
+    .container { max-width: 1100px; margin: 0 auto; }
+    
+    .top-nav {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+    }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 8px; background: #ffffff; color: var(--primary-dark);
+      text-decoration: none; padding: 10px 20px; border-radius: 30px; font-weight: 600; font-size: 0.95rem;
+      border: 1px solid var(--card-border); box-shadow: var(--shadow-sm); transition: all 0.25s ease;
+    }
+    .back-btn:hover { background: var(--primary); color: #ffffff; transform: translateX(-4px); }
+    .nav-tag {
+      color: var(--text-muted); font-weight: 600; font-size: 0.9rem; background: rgba(255, 255, 255, 0.9);
+      padding: 6px 16px; border-radius: 20px; border: 1px solid var(--card-border);
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #4f46e5 0%, #0284c7 100%); color: #ffffff;
+      border-radius: 20px; padding: 40px 32px; text-align: center; box-shadow: var(--shadow-lg); margin-bottom: 32px;
+    }
+    .hero h1 { font-size: clamp(2rem, 4vw, 2.8rem); font-weight: 800; margin-bottom: 12px; }
+    .hero p { font-size: 1.15rem; opacity: 0.95; max-width: 780px; margin: 0 auto 20px auto; }
+    .hero-badges { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+    .hero-badge { background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(8px); padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+
+    .card {
+      background: var(--card-bg); border-radius: 18px; padding: 32px; margin-bottom: 32px;
+      box-shadow: var(--shadow-md); border: 1px solid var(--card-border);
+    }
+    .section-title {
+      font-size: 1.5rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 18px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .section-title .icon {
+      font-size: 1.4rem; background: #eef2ff; width: 44px; height: 44px;
+      display: flex; align-items: center; justify-content: center; border-radius: 12px; color: var(--primary);
+    }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    .concept-box {
+      background: #f8fafc; border-left: 4px solid var(--primary); padding: 20px; border-radius: 0 12px 12px 0; margin-bottom: 16px;
+    }
+    .concept-box h3 { font-size: 1.1rem; color: var(--primary-dark); margin-bottom: 8px; }
+
+    /* Comparison Table */
+    .cmp-table {
+      width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 0.92rem;
+    }
+    .cmp-table th, .cmp-table td {
+      padding: 14px 16px; border: 1px solid var(--card-border); text-align: left;
+    }
+    .cmp-table th { background: #f1f5f9; color: var(--primary-dark); font-weight: 700; }
+    .cmp-table tr:nth-child(even) { background: #f8fafc; }
+    .cmp-table tr:hover { background: #eef2ff; }
+
+    .tag-iface { color: #0284c7; font-weight: 700; }
+    .tag-abs { color: #4f46e5; font-weight: 700; }
+
+    .code-block {
+      background: #0d1117; color: #e6edf3; border-radius: 12px; position: relative;
+      margin: 18px 0; border: 1px solid #30363d; overflow: hidden; font-family: 'Fira Code', monospace;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    }
+    .code-header {
+      display: flex; justify-content: space-between; align-items: center; padding: 10px 16px;
+      background: #161b22; border-bottom: 1px solid #30363d; font-size: 0.85rem; color: #8b949e;
+      font-family: 'Fira Code', monospace;
+    }
+    .code-file-badge {
+      display: inline-flex; align-items: center; gap: 8px; font-weight: 600; color: #c9d1d9;
+    }
+    .code-file-badge::before {
+      content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #e3b341;
+    }
+    .code-block pre {
+      margin: 0; padding: 18px 20px; overflow-x: auto; font-family: 'Fira Code', monospace;
+      font-size: 0.9rem; line-height: 1.6; white-space: pre;
+    }
+    .code-block code {
+      font-family: inherit; font-size: inherit; white-space: pre; display: block;
+    }
+    .copy-btn {
+      background: rgba(255, 255, 255, 0.08); color: #c9d1d9; border: 1px solid #30363d;
+      padding: 5px 12px; border-radius: 6px; font-size: 0.78rem; font-weight: 500; cursor: pointer;
+      transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 6px; font-family: inherit;
+    }
+    .copy-btn:hover { background: var(--primary); color: #ffffff; border-color: var(--primary); }
+    .copy-btn.copied { background: var(--accent-green) !important; color: #ffffff !important; border-color: var(--accent-green) !important; }
+
+    .tag-kw { color: #ff7b72; font-weight: 600; }
+    .tag-type { color: #79c0ff; font-weight: 600; }
+    .tag-str { color: #a5d6ff; }
+    .tag-comment { color: #8b949e; font-style: italic; }
+    .tag-annotation { color: #d2a8ff; font-weight: 600; }
+    .tag-fn { color: #d2a8ff; }
+    .tag-num { color: #79c0ff; }
+
+    /* Code Tabs */
+    .code-tabs-nav {
+      display: flex; gap: 8px; border-bottom: 2px solid var(--card-border); margin-bottom: 16px; flex-wrap: wrap;
+    }
+    .code-tab-btn {
+      padding: 10px 18px; background: transparent; border: 1px solid transparent; border-bottom: none;
+      font-family: 'Outfit', sans-serif; font-size: 0.95rem; font-weight: 600; color: var(--text-muted);
+      cursor: pointer; border-radius: 10px 10px 0 0; transition: all 0.2s ease; display: inline-flex;
+      align-items: center; gap: 8px;
+    }
+    .code-tab-btn:hover { color: var(--primary); background: #f1f5f9; }
+    .code-tab-btn.active {
+      color: var(--primary); background: #ffffff; border-color: var(--card-border);
+      border-bottom: 2px solid #ffffff; margin-bottom: -2px; font-weight: 700;
+      box-shadow: 0 -2px 8px rgba(0,0,0,0.03);
+    }
+    .code-tab-panel { display: none; }
+    .code-tab-panel.active { display: block; animation: fadeIn 0.2s ease-in-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Interactive Decision Wizard */
+    .interactive-container {
+      background: #0f172a; color: #f8fafc; border-radius: 16px; padding: 28px; border: 1px solid #334155; margin-top: 16px;
+    }
+    .wizard-step { margin-bottom: 16px; }
+    .wizard-label { font-size: 0.95rem; font-weight: 600; color: #94a3b8; margin-bottom: 8px; display: block; }
+    .wizard-options { display: flex; gap: 10px; flex-wrap: wrap; }
+    .wizard-btn {
+      padding: 10px 16px; border-radius: 8px; border: 1px solid #334155; background: #1e293b;
+      color: #e2e8f0; font-family: inherit; font-size: 0.88rem; cursor: pointer; transition: all 0.2s;
+    }
+    .wizard-btn:hover { background: #334155; }
+    .wizard-btn.selected { background: var(--primary); border-color: var(--primary); color: white; }
+
+    .decision-verdict {
+      margin-top: 20px; padding: 20px; border-radius: 12px; background: #1e293b; border: 1px solid #334155;
+    }
+
+    /* Page Navigation Footer */
+    .page-nav {
+      display: flex; justify-content: space-between; align-items: center; margin-top: 40px; gap: 16px; flex-wrap: wrap;
+    }
+    .nav-btn-link {
+      display: inline-flex; align-items: center; gap: 8px; background: white; padding: 12px 24px;
+      border-radius: 12px; border: 1px solid var(--card-border); color: var(--primary-dark);
+      font-weight: 700; text-decoration: none; box-shadow: var(--shadow-sm); transition: all 0.2s;
+    }
+    .nav-btn-link:hover { background: var(--primary); color: white; transform: translateY(-2px); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Top Navigation -->
+    <div class="top-nav">
+      <a href="../index.html" class="back-btn">← Back to Java Index</a>
+      <span class="nav-tag">☕ Module: Abstraction & Interfaces (Topic 4/10)</span>
+    </div>
+
+    <!-- Hero Banner -->
+    <div class="hero">
+      <h1>Interface vs Abstract Class</h1>
+      <p>The definitive guide to OOP architecture: exhaustive feature comparison, IS-A vs CAN-DO design rules, and the industry-standard Skeletal Implementation Pattern.</p>
+      <div class="hero-badges">
+        <span class="hero-badge">⚖️ Architectural Decision</span>
+        <span class="hero-badge">🧬 IS-A vs CAN-DO</span>
+        <span class="hero-badge">🏛️ Skeletal Implementation</span>
+      </div>
+    </div>
+
+    <!-- Full Comparison Matrix -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">📊</span>
+        <h2>1. The Comprehensive Comparison Matrix</h2>
+      </div>
+      <p style="margin-bottom: 16px;">Even after Java 8 added default and static methods to interfaces, significant differences in state, lifecycle, and inheritance remain:</p>
+
+      <table class="cmp-table">
+        <thead>
+          <tr>
+            <th>Feature / Parameter</th>
+            <th><span class="tag-abs">Abstract Class</span></th>
+            <th><span class="tag-iface">Interface</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Inheritance Model</strong></td>
+            <td>Single inheritance: A class can extend only <strong>one</strong> abstract class (<code>extends</code>).</td>
+            <td>Multiple inheritance: A class can implement <strong>multiple</strong> interfaces (<code>implements A, B, C</code>).</td>
+          </tr>
+          <tr>
+            <td><strong>State / Instance Fields</strong></td>
+            <td>Can have mutable instance variables, static variables, and constants.</td>
+            <td><strong>No instance state!</strong> Variables are strictly <code>public static final</code> constants.</td>
+          </tr>
+          <tr>
+            <td><strong>Constructors</strong></td>
+            <td><strong>Yes!</strong> Can define constructors (invoked by subclasses via <code>super()</code>).</td>
+            <td><strong>No!</strong> Cannot declare constructors; cannot hold non-static state.</td>
+          </tr>
+          <tr>
+            <td><strong>Method Access Modifiers</strong></td>
+            <td>Can have <code>public</code>, <code>protected</code>, <code>default</code>, and <code>private</code> methods.</td>
+            <td>Methods are <code>public</code> by default. Java 9 added <code>private</code> methods for helper code.</td>
+          </tr>
+          <tr>
+            <td><strong>Design Relationship</strong></td>
+            <td><strong>"IS-A"</strong> relationship. Represents high identity sharing among closely related classes.</td>
+            <td><strong>"CAN-DO"</strong> / Capability. Represents contracts shared across completely unrelated classes.</td>
+          </tr>
+          <tr>
+            <td><strong>Speed / Performance</strong></td>
+            <td>Slightly faster method dispatch via direct class virtual method table (vtable).</td>
+            <td>Minor lookup overhead via interface method table (itable) due to multiple inheritance polymorphism.</td>
+          </tr>
+          <tr>
+            <td><strong>API Evolution (Adding methods)</strong></td>
+            <td>Can easily add concrete methods without breaking existing subclasses.</td>
+            <td>Pre-Java 8 would break all implementors; Java 8+ requires <code>default</code> methods to evolve safely.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Golden Rules of When to Use Which -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🎯</span>
+        <h2>2. Architecture Decision: When to Choose Which?</h2>
+      </div>
+
+      <div class="grid-2">
+        <div class="concept-box" style="border-left-color: var(--primary);">
+          <h3 style="color: var(--primary-dark);">Choose an Abstract Class When:</h3>
+          <ul style="padding-left: 20px; margin-top: 10px; line-height: 1.7;">
+            <li>You need to share common <strong>mutable state</strong> (fields like <code>id</code>, <code>timestamp</code>, <code>connectionPool</code>).</li>
+            <li>You have closely related classes that represent a clear family hierarchy (e.g., <code>Cat</code>, <code>Dog</code>, <code>Horse</code> extending <code>Animal</code>).</li>
+            <li>You need <code>protected</code> or package-private helper methods that should NOT be visible to outside consumers.</li>
+            <li>You need to execute constructor logic when child objects are instantiated.</li>
+          </ul>
+        </div>
+
+        <div class="concept-box" style="border-left-color: var(--secondary);">
+          <h3 style="color: var(--secondary);">Choose an Interface When:</h3>
+          <ul style="padding-left: 20px; margin-top: 10px; line-height: 1.7;">
+            <li>You need to define a <strong>common capability</strong> among completely unrelated classes (e.g., <code>Bird</code> and <code>Airplane</code> implementing <code>Flyable</code>).</li>
+            <li>You want to take advantage of <strong>multiple inheritance of type</strong>.</li>
+            <li>You want to decouple the public contract from the implementation (e.g., in Dependency Injection / Spring Framework).</li>
+            <li>You are writing a standard library API where client classes may already have their own inheritance hierarchy.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Interactive Decision Matrix Advisor -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🤖</span>
+        <h2>3. Interactive Architecture Advisor</h2>
+      </div>
+      <p>Configure your architectural requirements below to get instant guidance on whether to use an Abstract Class or an Interface:</p>
+
+      <div class="interactive-container">
+        <div class="wizard-step">
+          <span class="wizard-label">1. What is the relationship among your classes?</span>
+          <div class="wizard-options">
+            <button class="wizard-btn selected" id="relIsA" onclick="setOption('rel', 'isA', this)">Closely related family ("IS-A")</button>
+            <button class="wizard-btn" id="relCanDo" onclick="setOption('rel', 'canDo', this)">Unrelated classes sharing a capability ("CAN-DO")</button>
+          </div>
+        </div>
+
+        <div class="wizard-step">
+          <span class="wizard-label">2. Do you need to store instance state (variables that change per object)?</span>
+          <div class="wizard-options">
+            <button class="wizard-btn selected" id="stateYes" onclick="setOption('state', 'yes', this)">Yes, need instance fields & constructors</button>
+            <button class="wizard-btn" id="stateNo" onclick="setOption('state', 'no', this)">No, only stateless behavior or constants</button>
+          </div>
+        </div>
+
+        <div class="wizard-step">
+          <span class="wizard-label">3. Can a class have more than one parent type in this scenario?</span>
+          <div class="wizard-options">
+            <button class="wizard-btn selected" id="multNo" onclick="setOption('mult', 'no', this)">Single parent is sufficient</button>
+            <button class="wizard-btn" id="multYes" onclick="setOption('mult', 'yes', this)">Must inherit from multiple contracts</button>
+          </div>
+        </div>
+
+        <div id="advisorVerdict" class="decision-verdict">
+          <div style="font-size: 1.15rem; font-weight: 700; color: #818cf8; margin-bottom: 8px;">
+            Recommended: Abstract Class 🏛️
+          </div>
+          <div style="color: #cbd5e1; font-size: 0.92rem;">
+            Because you require instance state/constructors and have a closely related "IS-A" hierarchy, an <strong>Abstract Class</strong> is the optimal OOP choice.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- The Skeletal Implementation Pattern -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🏆</span>
+        <h2>4. The Industry Best Practice: Skeletal Implementation Pattern</h2>
+      </div>
+      <p style="margin-bottom: 16px;">
+        Why choose between an Interface and an Abstract Class when you can use <strong>both</strong>? In Joshua Bloch's renowned book <em>Effective Java</em>, this is called the <strong>Skeletal Implementation (Adapter) Pattern</strong>.
+      </p>
+
+      <div class="concept-box" style="border-left-color: var(--accent-green); background: #f0fdf4;">
+        <h3 style="color: #166534;">How Java's JDK Collections Framework Uses This:</h3>
+        <p style="color: #14532d;">
+          1. <code>interface List&lt;E&gt;</code>: Defines the pure public contract and allows multiple inheritance.<br/>
+          2. <code>abstract class AbstractList&lt;E&gt; implements List&lt;E&gt;</code>: Provides default algorithmic plumbing for methods like <code>equals()</code>, <code>hashCode()</code>, and <code>indexOf()</code>.<br/>
+          3. <code>class ArrayList&lt;E&gt; extends AbstractList&lt;E&gt;</code>: Focuses solely on array resizing and index lookups!
+        </p>
+      </div>
+
+      <!-- Code Tabs Navigation -->
+      <div class="code-tabs-nav" style="margin-top: 20px;">
+        <button class="code-tab-btn active" onclick="switchCodeTab('tab-skel-iface', this)">
+          ⚡ 1. CharacterAction.java (Interface)
+        </button>
+        <button class="code-tab-btn" onclick="switchCodeTab('tab-skel-abstract', this)">
+          🏛️ 2. AbstractCharacter.java (Skeletal Base)
+        </button>
+        <button class="code-tab-btn" onclick="switchCodeTab('tab-skel-concrete', this)">
+          ⚔️ 3. Warrior.java (Concrete Subclass)
+        </button>
+        <button class="code-tab-btn" onclick="switchCodeTab('tab-skel-demo', this)">
+          🚀 4. SkeletalDemo.java &amp; Output
+        </button>
+        <button class="code-tab-btn" onclick="switchCodeTab('tab-skel-all', this)">
+          📦 5. Full Combined Source
+        </button>
+      </div>
+
+      <!-- Tab 1: Interface Contract -->
+      <div id="tab-skel-iface" class="code-tab-panel active">
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-file-badge">CharacterAction.java (Pure Contract)</div>
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+          </div>
+          <pre><code><span class="tag-comment">// 1. The Interface: Defines the full contract & allows multiple inheritance</span>
+<span class="tag-kw">interface</span> <span class="tag-type">CharacterAction</span> {
+    <span class="tag-kw">void</span> <span class="tag-fn">attack</span>();
+    <span class="tag-kw">void</span> <span class="tag-fn">defend</span>();
+    <span class="tag-kw">void</span> <span class="tag-fn">levelUp</span>();
+}</code></pre>
+        </div>
+      </div>
+
+      <!-- Tab 2: Skeletal Abstract Class -->
+      <div id="tab-skel-abstract" class="code-tab-panel">
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-file-badge">AbstractCharacter.java (Skeletal Implementation)</div>
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+          </div>
+          <pre><code><span class="tag-comment">// 2. Skeletal Abstract Class: Implements shared state & boilerplate logic</span>
+<span class="tag-kw">abstract class</span> <span class="tag-type">AbstractCharacter</span> <span class="tag-kw">implements</span> <span class="tag-type">CharacterAction</span> {
+    <span class="tag-kw">protected</span> String name;
+    <span class="tag-kw">protected int</span> level = <span class="tag-num">1</span>;
+
+    <span class="tag-kw">public</span> <span class="tag-type">AbstractCharacter</span>(String name) {
+        <span class="tag-kw">this</span>.name = name;
+    }
+
+    <span class="tag-annotation">@Override</span>
+    <span class="tag-kw">public void</span> <span class="tag-fn">levelUp</span>() {
+        level++;
+        System.out.println(name + <span class="tag-str">" leveled up to Level "</span> + level + <span class="tag-str">"!"</span>);
+    }
+}</code></pre>
+        </div>
+      </div>
+
+      <!-- Tab 3: Concrete Subclass -->
+      <div id="tab-skel-concrete" class="code-tab-panel">
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-file-badge">Warrior.java (Concrete Subclass)</div>
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+          </div>
+          <pre><code><span class="tag-comment">// 3. Concrete Class: Inherits boilerplate and implements only unique mechanics!</span>
+<span class="tag-kw">class</span> <span class="tag-type">Warrior</span> <span class="tag-kw">extends</span> <span class="tag-type">AbstractCharacter</span> {
+    <span class="tag-kw">public</span> <span class="tag-type">Warrior</span>(String name) {
+        <span class="tag-kw">super</span>(name);
+    }
+
+    <span class="tag-annotation">@Override</span>
+    <span class="tag-kw">public void</span> <span class="tag-fn">attack</span>() {
+        System.out.println(name + <span class="tag-str">" swings huge battleaxe!"</span>);
+    }
+
+    <span class="tag-annotation">@Override</span>
+    <span class="tag-kw">public void</span> <span class="tag-fn">defend</span>() {
+        System.out.println(name + <span class="tag-str">" raises heavy iron shield!"</span>);
+    }
+}</code></pre>
+        </div>
+      </div>
+
+      <!-- Tab 4: Demo & Output -->
+      <div id="tab-skel-demo" class="code-tab-panel">
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-file-badge">SkeletalDemo.java (Driver &amp; Output)</div>
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+          </div>
+          <pre><code><span class="tag-kw">public class</span> <span class="tag-type">SkeletalDemo</span> {
+    <span class="tag-kw">public static void</span> <span class="tag-fn">main</span>(String[] args) {
+        <span class="tag-comment">// Client interacts via the pure Interface contract</span>
+        <span class="tag-type">CharacterAction</span> hero = <span class="tag-kw">new</span> <span class="tag-type">Warrior</span>(<span class="tag-str">"Thorin Oakenshield"</span>);
+
+        hero.<span class="tag-fn">attack</span>();   <span class="tag-comment">// Thorin Oakenshield swings huge battleaxe!</span>
+        hero.<span class="tag-fn">defend</span>();   <span class="tag-comment">// Thorin Oakenshield raises heavy iron shield!</span>
+        hero.<span class="tag-fn">levelUp</span>();  <span class="tag-comment">// Thorin Oakenshield leveled up to Level 2! (From Skeletal Class)</span>
+    }
+}
+
+<span class="tag-comment">/*
+=========================== CONSOLE OUTPUT ===========================
+Thorin Oakenshield swings huge battleaxe!
+Thorin Oakenshield raises heavy iron shield!
+Thorin Oakenshield leveled up to Level 2!
+======================================================================
+*/</span></code></pre>
+        </div>
+      </div>
+
+      <!-- Tab 5: Complete Combined Source -->
+      <div id="tab-skel-all" class="code-tab-panel">
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-file-badge">CompleteSkeletalPattern.java</div>
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+          </div>
+          <pre><code><span class="tag-comment">// 1. Interface (Contract)</span>
+<span class="tag-kw">interface</span> <span class="tag-type">CharacterAction</span> {
+    <span class="tag-kw">void</span> <span class="tag-fn">attack</span>();
+    <span class="tag-kw">void</span> <span class="tag-fn">defend</span>();
+    <span class="tag-kw">void</span> <span class="tag-fn">levelUp</span>();
+}
+
+<span class="tag-comment">// 2. Skeletal Implementation (Abstract Adapter)</span>
+<span class="tag-kw">abstract class</span> <span class="tag-type">AbstractCharacter</span> <span class="tag-kw">implements</span> <span class="tag-type">CharacterAction</span> {
+    <span class="tag-kw">protected</span> String name;
+    <span class="tag-kw">protected int</span> level = <span class="tag-num">1</span>;
+
+    <span class="tag-kw">public</span> <span class="tag-type">AbstractCharacter</span>(String name) { <span class="tag-kw">this</span>.name = name; }
+
+    <span class="tag-annotation">@Override</span>
+    <span class="tag-kw">public void</span> <span class="tag-fn">levelUp</span>() {
+        level++;
+        System.out.println(name + <span class="tag-str">" leveled up to Level "</span> + level + <span class="tag-str">"!"</span>);
+    }
+}
+
+<span class="tag-comment">// 3. Concrete Subclass</span>
+<span class="tag-kw">class</span> <span class="tag-type">Warrior</span> <span class="tag-kw">extends</span> <span class="tag-type">AbstractCharacter</span> {
+    <span class="tag-kw">public</span> <span class="tag-type">Warrior</span>(String name) { <span class="tag-kw">super</span>(name); }
+
+    <span class="tag-annotation">@Override</span>
+    <span class="tag-kw">public void</span> <span class="tag-fn">attack</span>() { System.out.println(name + <span class="tag-str">" swings huge battleaxe!"</span>); }
+
+    <span class="tag-annotation">@Override</span>
+    <span class="tag-kw">public void</span> <span class="tag-fn">defend</span>() { System.out.println(name + <span class="tag-str">" raises heavy iron shield!"</span>); }
+}
+
+<span class="tag-comment">// 4. Client Driver</span>
+<span class="tag-kw">public class</span> <span class="tag-type">SkeletalDemo</span> {
+    <span class="tag-kw">public static void</span> <span class="tag-fn">main</span>(String[] args) {
+        <span class="tag-type">CharacterAction</span> hero = <span class="tag-kw">new</span> <span class="tag-type">Warrior</span>(<span class="tag-str">"Thorin Oakenshield"</span>);
+        hero.<span class="tag-fn">attack</span>();
+        hero.<span class="tag-fn">defend</span>();
+        hero.<span class="tag-fn">levelUp</span>();
+    }
+}</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Page Navigation Footer -->
+    <div class="page-nav">
+      <a href="interface_intro.html" class="nav-btn-link">← Prev: Interfaces Deep Dive</a>
+      <a href="multiple_inheritance_diamond.html" class="nav-btn-link">Next: Multiple Inheritance &amp; Diamond Problem →</a>
+    </div>
+  </div>
+
+  <script>
+    const choices = { rel: 'isA', state: 'yes', mult: 'no' };
+
+    function setOption(key, val, btn) {
+      choices[key] = val;
+      btn.parentElement.querySelectorAll('.wizard-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      updateAdvisor();
+    }
+
+    function updateAdvisor() {
+      const v = document.getElementById('advisorVerdict');
+      if (choices.mult === 'yes') {
+        v.innerHTML = `<div style="font-size: 1.15rem; font-weight: 700; color: #38bdf8; margin-bottom: 8px;">
+            Recommended: Interface 🔌
+          </div>
+          <div style="color: #cbd5e1; font-size: 0.92rem;">
+            Because you require multiple inheritance, Java <strong>strictly mandates an Interface</strong>. A class in Java cannot extend more than one class.
+          </div>`;
+      } else if (choices.state === 'yes' || choices.rel === 'isA') {
+        v.innerHTML = `<div style="font-size: 1.15rem; font-weight: 700; color: #818cf8; margin-bottom: 8px;">
+            Recommended: Abstract Class 🏛️
+          </div>
+          <div style="color: #cbd5e1; font-size: 0.92rem;">
+            Because you require instance state/constructors and have a closely related "IS-A" hierarchy, an <strong>Abstract Class</strong> is the optimal OOP choice.
+          </div>`;
+      } else {
+        v.innerHTML = `<div style="font-size: 1.15rem; font-weight: 700; color: #38bdf8; margin-bottom: 8px;">
+            Recommended: Interface 🔌
+          </div>
+          <div style="color: #cbd5e1; font-size: 0.92rem;">
+            With unrelated classes and no need for mutable instance state, an <strong>Interface</strong> gives maximum flexibility and loose coupling.
+          </div>`;
+      }
+    }
+
+    function switchCodeTab(tabId, btn) {
+      const container = btn.closest('.card');
+      container.querySelectorAll('.code-tab-btn').forEach(b => b.classList.remove('active'));
+      container.querySelectorAll('.code-tab-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      const target = document.getElementById(tabId);
+      if (target) {
+        target.classList.add('active');
+      }
+    }
+
+    function copyCode(btn) {
+      const codeBlock = btn.closest('.code-block');
+      const codeEl = codeBlock.querySelector('code');
+      const text = codeEl ? codeEl.innerText : codeBlock.innerText.replace(/📋 Copy Code|📋 Copy|✓ Copied!/g, '').trim();
+      navigator.clipboard.writeText(text).then(() => {
+        const originalText = btn.innerText;
+        btn.innerText = '✓ Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.innerText = originalText;
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    }
+  </script>
+</body>
+</html>

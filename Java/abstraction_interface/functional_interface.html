@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Functional Interfaces & Lambda Foundation | Java Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --secondary: #0284c7;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #ef4444;
+      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f1f5f9 100%);
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 10px 25px rgba(79, 70, 229, 0.07);
+      --shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      color: var(--text-main);
+      padding: 24px 16px;
+      line-height: 1.65;
+    }
+    .container { max-width: 1100px; margin: 0 auto; }
+    
+    .top-nav {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+    }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 8px; background: #ffffff; color: var(--primary-dark);
+      text-decoration: none; padding: 10px 20px; border-radius: 30px; font-weight: 600; font-size: 0.95rem;
+      border: 1px solid var(--card-border); box-shadow: var(--shadow-sm); transition: all 0.25s ease;
+    }
+    .back-btn:hover { background: var(--primary); color: #ffffff; transform: translateX(-4px); }
+    .nav-tag {
+      color: var(--text-muted); font-weight: 600; font-size: 0.9rem; background: rgba(255, 255, 255, 0.9);
+      padding: 6px 16px; border-radius: 20px; border: 1px solid var(--card-border);
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #4f46e5 0%, #0284c7 100%); color: #ffffff;
+      border-radius: 20px; padding: 40px 32px; text-align: center; box-shadow: var(--shadow-lg); margin-bottom: 32px;
+    }
+    .hero h1 { font-size: clamp(2rem, 4vw, 2.8rem); font-weight: 800; margin-bottom: 12px; }
+    .hero p { font-size: 1.15rem; opacity: 0.95; max-width: 780px; margin: 0 auto 20px auto; }
+    .hero-badges { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+    .hero-badge { background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(8px); padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+
+    .card {
+      background: var(--card-bg); border-radius: 18px; padding: 32px; margin-bottom: 32px;
+      box-shadow: var(--shadow-md); border: 1px solid var(--card-border);
+    }
+    .section-title {
+      font-size: 1.5rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 18px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .section-title .icon {
+      font-size: 1.4rem; background: #eef2ff; width: 44px; height: 44px;
+      display: flex; align-items: center; justify-content: center; border-radius: 12px; color: var(--primary);
+    }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    .concept-box {
+      background: #f8fafc; border-left: 4px solid var(--primary); padding: 20px; border-radius: 0 12px 12px 0; margin-bottom: 16px;
+    }
+    .concept-box h3 { font-size: 1.1rem; color: var(--primary-dark); margin-bottom: 8px; }
+
+    .cmp-table {
+      width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 0.92rem;
+    }
+    .cmp-table th, .cmp-table td {
+      padding: 14px 16px; border: 1px solid var(--card-border); text-align: left;
+    }
+    .cmp-table th { background: #f1f5f9; color: var(--primary-dark); font-weight: 700; }
+    .cmp-table tr:nth-child(even) { background: #f8fafc; }
+
+    /* Fragmented Code Tabs & Blocks */
+    .code-block {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      overflow: hidden;
+      margin: 18px 0;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+      font-family: 'Fira Code', monospace;
+    }
+    .code-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 16px;
+      background: #161b22;
+      border-bottom: 1px solid #30363d;
+    }
+    .code-file-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #8b949e;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+    .code-file-badge::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #e3b341;
+      display: inline-block;
+    }
+    .code-block pre {
+      margin: 0;
+      padding: 18px 20px;
+      overflow-x: auto;
+      white-space: pre;
+      line-height: 1.6;
+      font-size: 0.9rem;
+      color: #e6edf3;
+    }
+    .code-block code {
+      display: block;
+      white-space: pre;
+      font-family: 'Fira Code', monospace;
+    }
+    .copy-btn {
+      background: #21262d;
+      color: #c9d1d9;
+      border: 1px solid #30363d;
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .copy-btn:hover {
+      background: #30363d;
+      color: #58a6ff;
+    }
+    .copy-btn.copied {
+      background: #238636;
+      color: #fff;
+      border-color: #2ea043;
+    }
+
+    .tag-kw { color: #ff7b72; font-weight: 600; }
+    .tag-type { color: #79c0ff; font-weight: 600; }
+    .tag-str { color: #a5d6ff; }
+    .tag-comment { color: #8b949e; font-style: italic; }
+    .tag-annotation { color: #d2a8ff; font-weight: 600; }
+
+    /* Interactive Lambda Demo */
+    .interactive-container {
+      background: #0f172a; color: #f8fafc; border-radius: 16px; padding: 28px; border: 1px solid #334155; margin-top: 16px;
+    }
+    .btn {
+      padding: 10px 18px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer;
+      transition: all 0.2s; font-size: 0.88rem; font-family: inherit; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-secondary { background: #334155; color: white; }
+    .btn-secondary:hover { background: #475569; }
+    .btn-active { background: var(--primary) !important; color: white; }
+
+    /* Page Navigation Footer */
+    .page-nav {
+      display: flex; justify-content: space-between; align-items: center; margin-top: 40px; gap: 16px; flex-wrap: wrap;
+    }
+    .nav-btn-link {
+      display: inline-flex; align-items: center; gap: 8px; background: white; padding: 12px 24px;
+      border-radius: 12px; border: 1px solid var(--card-border); color: var(--primary-dark);
+      font-weight: 700; text-decoration: none; box-shadow: var(--shadow-sm); transition: all 0.2s;
+    }
+    .nav-btn-link:hover { background: var(--primary); color: white; transform: translateY(-2px); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Top Navigation -->
+    <div class="top-nav">
+      <a href="../index.html" class="back-btn">← Back to Java Index</a>
+      <span class="nav-tag">☕ Module: Abstraction & Interfaces (Topic 9/10)</span>
+    </div>
+
+    <!-- Hero Banner -->
+    <div class="hero">
+      <h1>Functional Interfaces in Java</h1>
+      <p>Master the Single Abstract Method (SAM) rule: the bridge to Lambda expressions, the @FunctionalInterface annotation, and the core built-in functional interfaces in java.util.function.</p>
+      <div class="hero-badges">
+        <span class="hero-badge">⚡ SAM (Single Abstract Method)</span>
+        <span class="hero-badge">λ Lambda Expressions Gateway</span>
+        <span class="hero-badge">📦 java.util.function</span>
+      </div>
+    </div>
+
+    <!-- What is a Functional Interface -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🎯</span>
+        <h2>1. The SAM Rule (Single Abstract Method)</h2>
+      </div>
+      <p style="font-size: 1.05rem; margin-bottom: 20px;">
+        A <strong>Functional Interface</strong> is an interface that contains <strong>exactly one abstract method</strong>. It is the architectural cornerstone of functional programming in Java, enabling Lambda Expressions and Method References.
+      </p>
+
+      <div class="grid-2">
+        <div class="concept-box" style="border-left-color: var(--accent-green);">
+          <h3>✅ What It CAN Contain</h3>
+          <ul style="padding-left: 20px; margin-top: 8px; line-height: 1.6;">
+            <li><strong>Exactly 1 Abstract Method</strong> (the SAM).</li>
+            <li>Any number of <code>default</code> methods.</li>
+            <li>Any number of <code>static</code> methods.</li>
+            <li>Any number of <code>private</code> methods (Java 9+).</li>
+            <li>Abstract methods that override <code>java.lang.Object</code> (e.g., <code>equals</code>) do NOT count toward the SAM limit!</li>
+          </ul>
+        </div>
+
+        <div class="concept-box" style="border-left-color: var(--accent-rose);">
+          <h3>❌ What Violates the SAM Rule</h3>
+          <ul style="padding-left: 20px; margin-top: 8px; line-height: 1.6;">
+            <li>Zero abstract methods (Marker interface).</li>
+            <li>Two or more abstract methods.</li>
+            <li>If marked with <code>@FunctionalInterface</code>, javac will throw an immediate compile error!</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- The @FunctionalInterface Annotation -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🏷️</span>
+        <h2>2. The @FunctionalInterface Annotation</h2>
+      </div>
+      <p style="margin-bottom: 16px;">
+        The <code>@FunctionalInterface</code> annotation is optional, but strongly recommended. It acts as an automated compiler watchdog:
+      </p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-file-badge">Calculator.java</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+        </div>
+        <pre><code><span class="tag-annotation">@FunctionalInterface</span>
+<span class="tag-kw">public interface</span> <span class="tag-type">Calculator</span> {
+    <span class="tag-comment">// The single abstract method (SAM)</span>
+    <span class="tag-kw">int</span> <span class="tag-type">operate</span>(<span class="tag-kw">int</span> a, <span class="tag-kw">int</span> b);
+
+    <span class="tag-comment">// Default &amp; static methods are completely allowed!</span>
+    <span class="tag-kw">default void</span> <span class="tag-type">log</span>() { System.out.println(<span class="tag-str">"Calculating..."</span>); }
+    <span class="tag-kw">static void</span> <span class="tag-type">info</span>() { System.out.println(<span class="tag-str">"Math operations v1.0"</span>); }
+
+    <span class="tag-comment">// java.lang.Object public methods do NOT violate SAM rule!</span>
+    <span class="tag-annotation">@Override</span>
+    <span class="tag-kw">boolean</span> <span class="tag-type">equals</span>(Object obj);
+}</code></pre>
+      </div>
+    </div>
+
+    <!-- Lambda Expression Evolution -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">λ</span>
+        <h2>3. Evolution: Anonymous Inner Class vs Lambda Expression</h2>
+      </div>
+      <p style="margin-bottom: 16px;">Because a functional interface has only one abstract method, the compiler can automatically infer the method name, argument types, and return type. Lambdas eliminate verbose boilerplate:</p>
+
+      <div class="grid-2">
+        <div class="concept-box" style="border-left-color: #94a3b8;">
+          <h3 style="color: #475569;">Old Way: Anonymous Inner Class (6 Lines)</h3>
+          <div class="code-block" style="margin-top: 10px; font-size: 0.85rem;">
+            <div class="code-header">
+              <span class="code-file-badge">OldAnonymousStyle.java</span>
+              <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+            </div>
+            <pre><code><span class="tag-type">Calculator</span> add = <span class="tag-kw">new</span> <span class="tag-type">Calculator</span>() {
+    <span class="tag-annotation">@Override</span>
+    <span class="tag-kw">public int</span> <span class="tag-type">operate</span>(<span class="tag-kw">int</span> a, <span class="tag-kw">int</span> b) {
+        <span class="tag-kw">return</span> a + b;
+    }
+};</code></pre>
+          </div>
+        </div>
+
+        <div class="concept-box" style="border-left-color: var(--accent-green);">
+          <h3 style="color: #166534;">Modern Way: Lambda Expression (1 Line!)</h3>
+          <div class="code-block" style="margin-top: 10px; font-size: 0.85rem;">
+            <div class="code-header">
+              <span class="code-file-badge">ModernLambdaStyle.java</span>
+              <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+            </div>
+            <pre><code><span class="tag-type">Calculator</span> add = (a, b) -&gt; a + b;
+<span class="tag-comment">// 85% less code, faster execution, zero extra .class bytecode generated!</span></code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- The Big 4 Built-In Functional Interfaces -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">📦</span>
+        <h2>4. The Big 4 Built-In Functional Interfaces (java.util.function)</h2>
+      </div>
+      <p style="margin-bottom: 16px;">Java 8 introduced standard functional interfaces that every developer must know for Stream processing and modern API design:</p>
+
+      <table class="cmp-table">
+        <thead>
+          <tr>
+            <th>Interface Name</th>
+            <th>SAM Signature</th>
+            <th>Purpose</th>
+            <th>Real-World Example</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Predicate&lt;T&gt;</strong></td>
+            <td><code>boolean test(T t)</code></td>
+            <td>Evaluates a boolean condition (filtering).</td>
+            <td><code>p -&gt; p.getAge() &gt;= 18</code></td>
+          </tr>
+          <tr>
+            <td><strong>Function&lt;T, R&gt;</strong></td>
+            <td><code>R apply(T t)</code></td>
+            <td>Transforms input type T into result type R.</td>
+            <td><code>user -&gt; user.getEmail()</code></td>
+          </tr>
+          <tr>
+            <td><strong>Consumer&lt;T&gt;</strong></td>
+            <td><code>void accept(T t)</code></td>
+            <td>Consumes data; produces side-effects (printing/saving).</td>
+            <td><code>msg -&gt; System.out.println(msg)</code></td>
+          </tr>
+          <tr>
+            <td><strong>Supplier&lt;T&gt;</strong></td>
+            <td><code>T get()</code></td>
+            <td>Supplies a new value; takes no arguments (factory).</td>
+            <td><code>() -&gt; UUID.randomUUID()</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Interactive Lambda Playground -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🎮</span>
+        <h2>5. Interactive Built-in Interface Simulator</h2>
+      </div>
+      <p>Test the Big 4 functional interfaces interactively below:</p>
+
+      <div class="interactive-container">
+        <div style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;">
+          <button class="btn btn-secondary btn-active" onclick="showBuiltin('pred', this)">1. Predicate&lt;T&gt;</button>
+          <button class="btn btn-secondary" onclick="showBuiltin('func', this)">2. Function&lt;T, R&gt;</button>
+          <button class="btn btn-secondary" onclick="showBuiltin('cons', this)">3. Consumer&lt;T&gt;</button>
+          <button class="btn btn-secondary" onclick="showBuiltin('supp', this)">4. Supplier&lt;T&gt;</button>
+        </div>
+
+        <div class="code-block" style="margin: 0;">
+          <div class="code-header">
+            <span class="code-file-badge">BuiltinFunctionalDemo.java</span>
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+          </div>
+          <pre><code id="builtinCode"><span class="tag-type">Predicate</span>&lt;String&gt; isEmail = s -&gt; s.contains(<span class="tag-str">"@"</span>) &amp;&amp; s.endsWith(<span class="tag-str">".com"</span>);
+<span class="tag-kw">boolean</span> valid = isEmail.test(<span class="tag-str">"user@google.com"</span>);</code></pre>
+        </div>
+
+        <div id="builtinOutput" style="margin-top: 16px; padding: 16px; background: #1e293b; border-radius: 8px; border: 1px solid #334155; font-family: 'Fira Code', monospace; font-size: 0.88rem;">
+          <span style="color: #34d399; font-weight: 700;">🟢 Result:</span> true<br/>
+          💡 Predicate accepts an object and returns a boolean. Widely used in list.filter()!
+        </div>
+      </div>
+    </div>
+
+    <!-- Page Navigation Footer -->
+    <div class="page-nav">
+      <a href="static_methods_interface.html" class="nav-btn-link">← Prev: Static Methods</a>
+      <a href="marker_interface.html" class="nav-btn-link">Next: Marker Interfaces →</a>
+    </div>
+  </div>
+
+  <script>
+    function showBuiltin(type, btn) {
+      document.querySelectorAll('.interactive-container .btn').forEach(b => b.classList.remove('btn-active'));
+      btn.classList.add('btn-active');
+      const code = document.getElementById('builtinCode');
+      const out = document.getElementById('builtinOutput');
+
+      if (type === 'pred') {
+        code.innerHTML = `<span class="tag-type">Predicate</span>&lt;String&gt; isEmail = s -&gt; s.contains(<span class="tag-str">"@"</span>) &amp;&amp; s.endsWith(<span class="tag-str">".com"</span>);\n<span class="tag-kw">boolean</span> valid = isEmail.test(<span class="tag-str">"user@google.com"</span>);`;
+        out.innerHTML = `<span style="color: #34d399; font-weight: 700;">🟢 Result:</span> true<br/>💡 Predicate accepts an argument and evaluates a boolean condition. Used everywhere in stream().filter()!`;
+      } else if (type === 'func') {
+        code.innerHTML = `<span class="tag-type">Function</span>&lt;String, Integer&gt; strLength = s -&gt; s.length();\n<span class="tag-type">Integer</span> len = strLength.apply(<span class="tag-str">"Hello Java 8"</span>);`;
+        out.innerHTML = `<span style="color: #34d399; font-weight: 700;">🟢 Result:</span> 12<br/>💡 Function transforms an input of type T into an output of type R. Used everywhere in stream().map()!`;
+      } else if (type === 'cons') {
+        code.innerHTML = `<span class="tag-type">Consumer</span>&lt;String&gt; logger = msg -&gt; System.out.println(<span class="tag-str">"[AUDIT] "</span> + msg);\nlogger.accept(<span class="tag-str">"User logged in successfully"</span>);`;
+        out.innerHTML = `<span style="color: #34d399; font-weight: 700;">🟢 Output:</span> [AUDIT] User logged in successfully<br/>💡 Consumer accepts an object and performs an action with zero return value. Used in list.forEach()!`;
+      } else if (type === 'supp') {
+        code.innerHTML = `<span class="tag-type">Supplier</span>&lt;Double&gt; randomOtp = () -&gt; Math.floor(1000 + Math.random() * 9000);\n<span class="tag-type">Double</span> otp = randomOtp.get();`;
+        out.innerHTML = `<span style="color: #34d399; font-weight: 700;">🟢 Output:</span> 7482.0 (Generated dynamically)<br/>💡 Supplier takes zero arguments and returns an object. Used for lazy initialization and factory methods!`;
+      }
+    }
+
+    function copyCode(btn) {
+      const codeBlock = btn.closest('.code-block');
+      const codeEl = codeBlock.querySelector('code');
+      const text = (codeEl ? codeEl.innerText : codeBlock.innerText)
+        .replace(/📋 Copy Code/g, '')
+        .replace(/✓ Copied!/g, '')
+        .trim();
+      navigator.clipboard.writeText(text).then(() => {
+        btn.innerText = '✓ Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.innerText = '📋 Copy Code';
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    }
+  </script>
+</body>
+</html>
