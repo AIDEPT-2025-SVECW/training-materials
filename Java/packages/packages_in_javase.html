@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Standard Packages in Java SE Architecture</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --secondary: #0284c7;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #ef4444;
+      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f1f5f9 100%);
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 10px 25px rgba(79, 70, 229, 0.07);
+      --shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      color: var(--text-main);
+      padding: 24px 16px;
+      line-height: 1.65;
+    }
+    .container { max-width: 1100px; margin: 0 auto; }
+    
+    .top-nav {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+    }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 8px; background: #ffffff; color: var(--primary-dark);
+      text-decoration: none; padding: 10px 20px; border-radius: 30px; font-weight: 600; font-size: 0.95rem;
+      border: 1px solid var(--card-border); box-shadow: var(--shadow-sm); transition: all 0.25s ease;
+    }
+    .back-btn:hover { background: var(--primary); color: #ffffff; transform: translateX(-4px); }
+    .nav-tag {
+      color: var(--text-muted); font-weight: 600; font-size: 0.9rem; background: rgba(255, 255, 255, 0.9);
+      padding: 6px 16px; border-radius: 20px; border: 1px solid var(--card-border);
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #4f46e5 0%, #0284c7 100%); color: #ffffff;
+      border-radius: 20px; padding: 40px 32px; text-align: center; box-shadow: var(--shadow-lg); margin-bottom: 32px;
+    }
+    .hero h1 { font-size: clamp(2rem, 4vw, 2.8rem); font-weight: 800; margin-bottom: 12px; }
+    .hero p { font-size: 1.15rem; opacity: 0.95; max-width: 780px; margin: 0 auto 20px auto; }
+    .hero-badges { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+    .hero-badge { background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(8px); padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+
+    .card {
+      background: var(--card-bg); border-radius: 18px; padding: 32px; margin-bottom: 32px;
+      box-shadow: var(--shadow-md); border: 1px solid var(--card-border);
+    }
+    .section-title {
+      font-size: 1.5rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 18px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .section-title .icon {
+      font-size: 1.4rem; background: #eef2ff; width: 44px; height: 44px;
+      display: flex; align-items: center; justify-content: center; border-radius: 12px; color: var(--primary);
+    }
+
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    @media (max-width: 850px) { .grid-3 { grid-template-columns: 1fr; } }
+
+    .pkg-card {
+      background: #f8fafc; border: 1px solid var(--card-border); border-radius: 12px; padding: 20px;
+      border-top: 4px solid var(--primary); transition: transform 0.2s ease;
+    }
+    .pkg-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-sm); }
+    .pkg-card h3 { font-size: 1.15rem; color: var(--primary-dark); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+    .pkg-card p { font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; }
+    .pkg-card .classes-list { margin-top: 10px; font-family: 'Fira Code', monospace; font-size: 0.8rem; color: #4338ca; }
+
+    .code-block {
+      background: #0d1117; color: #e6edf3; border-radius: 12px; position: relative;
+      margin: 18px 0; border: 1px solid #30363d; overflow: hidden; font-family: 'Fira Code', monospace;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    }
+    .code-header {
+      display: flex; justify-content: space-between; align-items: center; padding: 10px 16px;
+      background: #161b22; border-bottom: 1px solid #30363d; font-size: 0.85rem; color: #8b949e;
+      font-family: 'Fira Code', monospace;
+    }
+    .code-file-badge {
+      display: inline-flex; align-items: center; gap: 8px; font-weight: 600; color: #c9d1d9;
+    }
+    .code-file-badge::before {
+      content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #e3b341;
+    }
+    .code-block pre {
+      margin: 0; padding: 18px 20px; overflow-x: auto; font-family: 'Fira Code', monospace;
+      font-size: 0.9rem; line-height: 1.6; white-space: pre;
+    }
+    .copy-btn {
+      background: rgba(255, 255, 255, 0.08); color: #c9d1d9; border: 1px solid #30363d;
+      padding: 5px 12px; border-radius: 6px; font-size: 0.78rem; font-weight: 500; cursor: pointer;
+      transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 6px; font-family: inherit;
+    }
+    .copy-btn:hover { background: var(--primary); color: #ffffff; border-color: var(--primary); }
+    .copy-btn.copied { background: var(--accent-green) !important; color: #ffffff !important; border-color: var(--accent-green) !important; }
+
+    .tag-kw { color: #ff7b72; font-weight: 600; }
+    .tag-type { color: #79c0ff; font-weight: 600; }
+    .tag-str { color: #a5d6ff; }
+    .tag-comment { color: #8b949e; font-style: italic; }
+    .tag-fn { color: #d2a8ff; }
+    .tag-num { color: #79c0ff; }
+
+    .page-nav {
+      display: flex; justify-content: space-between; align-items: center; margin-top: 40px; gap: 16px; flex-wrap: wrap;
+    }
+    .nav-btn-link {
+      display: inline-flex; align-items: center; gap: 8px; background: white; padding: 12px 24px;
+      border-radius: 12px; border: 1px solid var(--card-border); color: var(--primary-dark);
+      font-weight: 700; text-decoration: none; box-shadow: var(--shadow-sm); transition: all 0.2s;
+    }
+    .nav-btn-link:hover { background: var(--primary); color: white; transform: translateY(-2px); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="top-nav">
+      <a href="../index.html" class="back-btn">← Back to Java Index</a>
+      <span class="nav-tag">☕ Module: Packages &amp; Java Standard Library (Topic 6/19)</span>
+    </div>
+
+    <div class="hero">
+      <h1>Packages in Java SE (Standard Edition)</h1>
+      <p>Explore the architectural backbone of Java: the built-in core API packages that empower enterprise software across the globe.</p>
+      <div class="hero-badges">
+        <span class="hero-badge">🏛️ Java SE Ecosystem</span>
+        <span class="hero-badge">🧩 Modular Architecture</span>
+        <span class="hero-badge">⚡ Core API Packages</span>
+      </div>
+    </div>
+
+    <!-- WHY PART -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">❓</span>
+        <h2>1. WHY: The Need for a Categorized Standard Library</h2>
+      </div>
+      <p style="font-size: 1.05rem; margin-bottom: 20px;">
+        The Java SE Standard Library contains over 4,500 classes. If all these classes were dumped into one package, finding APIs would be a nightmare and the memory footprint on lightweight microservices or IoT devices would be unbearable. Java partitions the standard library into specialized functional packages.
+      </p>
+    </div>
+
+    <!-- WHAT PART -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">💡</span>
+        <h2>2. WHAT: The 6 Core Java SE Packages</h2>
+      </div>
+
+      <div class="grid-3">
+        <div class="pkg-card" style="border-top-color: #4f46e5;">
+          <h3>☕ java.lang</h3>
+          <p>The foundation of Java language runtime. Automatically imported into every compilation unit.</p>
+          <div class="classes-list">Object, String, Math, System, Thread, Exception, Class</div>
+        </div>
+
+        <div class="pkg-card" style="border-top-color: #0284c7;">
+          <h3>🛠️ java.util</h3>
+          <p>Collections framework, data structures, formatting, random generators, and utility helpers.</p>
+          <div class="classes-list">ArrayList, HashMap, Scanner, Random, Formatter, Optional</div>
+        </div>
+
+        <div class="pkg-card" style="border-top-color: #10b981;">
+          <h3>🕒 java.time</h3>
+          <p>Modern, immutable, thread-safe Date &amp; Time API introduced in Java 8 (JSR-310).</p>
+          <div class="classes-list">LocalDate, LocalTime, Instant, ZonedDateTime, Period</div>
+        </div>
+
+        <div class="pkg-card" style="border-top-color: #f59e0b;">
+          <h3>💾 java.io &amp; java.nio</h3>
+          <p>Input/Output streams, buffered readers, serialization, and high-performance non-blocking channels.</p>
+          <div class="classes-list">File, BufferedReader, InputStream, Files, Path</div>
+        </div>
+
+        <div class="pkg-card" style="border-top-color: #8b5cf6;">
+          <h3>🌐 java.net</h3>
+          <p>Networking, TCP/UDP sockets, modern HTTP client, and URL connection handlers.</p>
+          <div class="classes-list">HttpClient, HttpRequest, Socket, ServerSocket, URI</div>
+        </div>
+
+        <div class="pkg-card" style="border-top-color: #ec4899;">
+          <h3>🗄️ java.sql</h3>
+          <p>JDBC (Java Database Connectivity) API for executing SQL queries on relational databases.</p>
+          <div class="classes-list">Connection, Statement, PreparedStatement, ResultSet</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HOW PART -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🛠️</span>
+        <h2>3. HOW: Real-World Flipkart Order Processing Flow</h2>
+      </div>
+      <p style="margin-bottom: 16px;">
+        Notice how a single enterprise e-commerce order workflow coordinates standard Java SE packages seamlessly:
+      </p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-file-badge">FlipkartOrderProcessor.java (Multi-Package Symphony)</div>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+        </div>
+        <pre><code><span class="tag-comment">// 1. java.lang: Auto-imported (String, System, Math)</span>
+
+<span class="tag-comment">// 2. java.util: Collections &amp; Utilities</span>
+<span class="tag-kw">import</span> java.util.List;
+<span class="tag-kw">import</span> java.util.ArrayList;
+
+<span class="tag-comment">// 3. java.time: Order Timestamps in Indian Standard Time (IST)</span>
+<span class="tag-kw">import</span> java.time.ZonedDateTime;
+<span class="tag-kw">import</span> java.time.ZoneId;
+
+<span class="tag-kw">public class</span> <span class="tag-type">FlipkartOrderProcessor</span> {
+    <span class="tag-kw">public static void</span> <span class="tag-fn">main</span>(String[] args) {
+        String orderId = <span class="tag-str">"OD-2026-BLR-8921"</span>;
+        <span class="tag-type">List</span>&lt;String&gt; items = <span class="tag-kw">new</span> <span class="tag-type">ArrayList</span>&lt;&gt;();
+        items.<span class="tag-fn">add</span>(<span class="tag-str">"Boat Airdopes Earbuds"</span>);
+        items.<span class="tag-fn">add</span>(<span class="tag-str">"Puma Running Shoes"</span>);
+
+        <span class="tag-comment">// Get timestamp in Asia/Kolkata timezone:</span>
+        <span class="tag-type">ZonedDateTime</span> istOrderTime = <span class="tag-type">ZonedDateTime</span>.<span class="tag-fn">now</span>(<span class="tag-type">ZoneId</span>.<span class="tag-fn">of</span>(<span class="tag-str">"Asia/Kolkata"</span>));
+
+        System.out.println(<span class="tag-str">"🛍️ Flipkart Order Dispatched:"</span>);
+        System.out.println(<span class="tag-str">"Order ID: "</span> + orderId);
+        System.out.println(<span class="tag-str">"Items Count: "</span> + items.<span class="tag-fn">size</span>());
+        System.out.println(<span class="tag-str">"IST Order Time: "</span> + istOrderTime);
+    }
+}</code></pre>
+      </div>
+    </div>
+
+    <!-- Summary Box -->
+    <div class="card" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-color: #86efac;">
+      <h3 style="color: #166534; margin-bottom: 12px;">📌 Key Takeaways</h3>
+      <ul style="padding-left: 20px; color: #14532d; line-height: 1.8;">
+        <li><strong>Why:</strong> Decouples the huge Java standard library into logical modules and maintainable units.</li>
+        <li><strong>What:</strong> <code>java.lang</code>, <code>java.util</code>, <code>java.time</code>, <code>java.io</code>, <code>java.net</code>, <code>java.sql</code> form the bedrock of enterprise applications.</li>
+        <li><strong>How:</strong> Standard libraries are bundled into the JDK; simply import what you need without external JAR downloads.</li>
+      </ul>
+    </div>
+
+    <div class="page-nav">
+      <a href="access_control_packages.html" class="nav-btn-link">← Prev: Access Control &amp; Visibility</a>
+      <a href="java_lang_package.html" class="nav-btn-link">Next: java.lang Package &amp; Core Classes →</a>
+    </div>
+  </div>
+
+  <script>
+    function copyCode(btn) {
+      const codeBlock = btn.closest('.code-block');
+      const codeEl = codeBlock.querySelector('code, pre');
+      const text = codeEl ? codeEl.innerText : '';
+      navigator.clipboard.writeText(text).then(() => {
+        const orig = btn.innerText;
+        btn.innerText = '✓ Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.innerText = orig;
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    }
+  </script>
+</body>
+</html>

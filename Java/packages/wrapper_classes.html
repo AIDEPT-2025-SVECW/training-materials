@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wrapper Classes in Java | Primitives as Objects</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --secondary: #0284c7;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #ef4444;
+      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f1f5f9 100%);
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 10px 25px rgba(79, 70, 229, 0.07);
+      --shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      color: var(--text-main);
+      padding: 24px 16px;
+      line-height: 1.65;
+    }
+    .container { max-width: 1100px; margin: 0 auto; }
+    
+    .top-nav {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+    }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 8px; background: #ffffff; color: var(--primary-dark);
+      text-decoration: none; padding: 10px 20px; border-radius: 30px; font-weight: 600; font-size: 0.95rem;
+      border: 1px solid var(--card-border); box-shadow: var(--shadow-sm); transition: all 0.25s ease;
+    }
+    .back-btn:hover { background: var(--primary); color: #ffffff; transform: translateX(-4px); }
+    .nav-tag {
+      color: var(--text-muted); font-weight: 600; font-size: 0.9rem; background: rgba(255, 255, 255, 0.9);
+      padding: 6px 16px; border-radius: 20px; border: 1px solid var(--card-border);
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #4f46e5 0%, #0284c7 100%); color: #ffffff;
+      border-radius: 20px; padding: 40px 32px; text-align: center; box-shadow: var(--shadow-lg); margin-bottom: 32px;
+    }
+    .hero h1 { font-size: clamp(2rem, 4vw, 2.8rem); font-weight: 800; margin-bottom: 12px; }
+    .hero p { font-size: 1.15rem; opacity: 0.95; max-width: 780px; margin: 0 auto 20px auto; }
+    .hero-badges { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+    .hero-badge { background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(8px); padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+
+    .card {
+      background: var(--card-bg); border-radius: 18px; padding: 32px; margin-bottom: 32px;
+      box-shadow: var(--shadow-md); border: 1px solid var(--card-border);
+    }
+    .section-title {
+      font-size: 1.5rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 18px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .section-title .icon {
+      font-size: 1.4rem; background: #eef2ff; width: 44px; height: 44px;
+      display: flex; align-items: center; justify-content: center; border-radius: 12px; color: var(--primary);
+    }
+
+    .methods-grid {
+      display: grid; grid-template-columns: 1fr; gap: 16px; margin: 20px 0;
+    }
+    .method-card {
+      background: #f8fafc; border: 1px solid var(--card-border); border-left: 5px solid var(--primary);
+      border-radius: 10px; padding: 18px 20px;
+    }
+    .method-sig {
+      font-family: 'Fira Code', monospace; font-size: 0.95rem; font-weight: 600; color: var(--primary-dark);
+      margin-bottom: 6px; display: flex; align-items: center; gap: 8px;
+    }
+    .method-desc { font-size: 0.92rem; color: var(--text-muted); }
+
+    .table-container { overflow-x: auto; margin: 20px 0; }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th, td { padding: 12px 16px; border-bottom: 1px solid var(--card-border); font-size: 0.92rem; }
+    th { background: #f8fafc; color: var(--primary-dark); font-weight: 700; }
+    tr:hover { background: #fbfdff; }
+
+    .code-block {
+      background: #0d1117; color: #e6edf3; border-radius: 12px; position: relative;
+      margin: 18px 0; border: 1px solid #30363d; overflow: hidden; font-family: 'Fira Code', monospace;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    }
+    .code-header {
+      display: flex; justify-content: space-between; align-items: center; padding: 10px 16px;
+      background: #161b22; border-bottom: 1px solid #30363d; font-size: 0.85rem; color: #8b949e;
+      font-family: 'Fira Code', monospace;
+    }
+    .code-file-badge {
+      display: inline-flex; align-items: center; gap: 8px; font-weight: 600; color: #c9d1d9;
+    }
+    .code-file-badge::before {
+      content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #e3b341;
+    }
+    .code-block pre {
+      margin: 0; padding: 18px 20px; overflow-x: auto; font-family: 'Fira Code', monospace;
+      font-size: 0.9rem; line-height: 1.6; white-space: pre;
+    }
+    .copy-btn {
+      background: rgba(255, 255, 255, 0.08); color: #c9d1d9; border: 1px solid #30363d;
+      padding: 5px 12px; border-radius: 6px; font-size: 0.78rem; font-weight: 500; cursor: pointer;
+      transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 6px; font-family: inherit;
+    }
+    .copy-btn:hover { background: var(--primary); color: #ffffff; border-color: var(--primary); }
+    .copy-btn.copied { background: var(--accent-green) !important; color: #ffffff !important; border-color: var(--accent-green) !important; }
+
+    .tag-kw { color: #ff7b72; font-weight: 600; }
+    .tag-type { color: #79c0ff; font-weight: 600; }
+    .tag-str { color: #a5d6ff; }
+    .tag-comment { color: #8b949e; font-style: italic; }
+    .tag-fn { color: #d2a8ff; }
+    .tag-num { color: #79c0ff; }
+
+    .doc-link-card {
+      background: #f0f7ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 20px;
+      display: flex; justify-content: space-between; align-items: center; margin: 20px 0; flex-wrap: wrap; gap: 12px;
+    }
+    .doc-link-card h4 { color: #1e40af; margin-bottom: 4px; }
+    .doc-link-card p { color: #3b82f6; font-size: 0.9rem; }
+    .doc-btn {
+      background: #1d4ed8; color: white; text-decoration: none; padding: 8px 18px; border-radius: 8px;
+      font-weight: 600; font-size: 0.88rem; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .doc-btn:hover { background: #1e40af; }
+
+    .alert-box {
+      padding: 16px 20px; border-radius: 12px; margin: 16px 0; display: flex; gap: 12px; align-items: flex-start;
+    }
+    .alert-warning { background: #fffbeb; border-left: 4px solid var(--accent-amber); color: #92400e; }
+
+    .page-nav {
+      display: flex; justify-content: space-between; align-items: center; margin-top: 40px; gap: 16px; flex-wrap: wrap;
+    }
+    .nav-btn-link {
+      display: inline-flex; align-items: center; gap: 8px; background: white; padding: 12px 24px;
+      border-radius: 12px; border: 1px solid var(--card-border); color: var(--primary-dark);
+      font-weight: 700; text-decoration: none; box-shadow: var(--shadow-sm); transition: all 0.2s;
+    }
+    .nav-btn-link:hover { background: var(--primary); color: white; transform: translateY(-2px); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="top-nav">
+      <a href="../index.html" class="back-btn">← Back to Java Index</a>
+      <span class="nav-tag">☕ Module: Packages &amp; Java Standard Library (Topic 11/19)</span>
+    </div>
+
+    <div class="hero">
+      <h1>Wrapper Classes in Java</h1>
+      <p>Bridge the gap between fast primitive types and the object-oriented world. Master 5 key methods, parsing utilities, and the internal Integer Cache pool.</p>
+      <div class="hero-badges">
+        <span class="hero-badge">📦 Primitives to Objects</span>
+        <span class="hero-badge">🧬 java.lang.Integer</span>
+        <span class="hero-badge">⚡ Integer Cache Pool</span>
+      </div>
+    </div>
+
+    <!-- WHY PART -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">❓</span>
+        <h2>1. WHY: Why Do We Need Wrapper Classes?</h2>
+      </div>
+      <p style="font-size: 1.05rem; margin-bottom: 20px;">
+        Java is an object-oriented language, but primitive data types (<code>int</code>, <code>double</code>, <code>boolean</code>) are not objects for raw performance reasons. However, wrappers are essential when:
+      </p>
+      <ul style="padding-left: 20px; line-height: 1.8;">
+        <li><strong>Java Collections Framework:</strong> Data structures like <code>ArrayList&lt;T&gt;</code> and <code>HashMap&lt;K,V&gt;</code> work <em>only</em> with objects. Writing <code>ArrayList&lt;int&gt;</code> is a compile error; you must write <code>ArrayList&lt;Integer&gt;</code>!</li>
+        <li><strong>Representing Nullability:</strong> An <code>int</code> must always hold a value (default 0). In database entities (like an optional Indian GSTIN or PAN card), only an <code>Integer</code> object can represent <code>null</code> (absent/unassigned).</li>
+        <li><strong>Data Conversion Utilities:</strong> Providing parsing methods to convert strings from Web forms or JSON into numbers (e.g., <code>Integer.parseInt()</code>).</li>
+      </ul>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Primitive Type</th>
+              <th>Wrapper Class</th>
+              <th>Bytes Occupied</th>
+              <th>Default Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><code>byte</code></td><td><code>Byte</code></td><td>1 byte</td><td>0</td></tr>
+            <tr><td><code>short</code></td><td><code>Short</code></td><td>2 bytes</td><td>0</td></tr>
+            <tr><td><code>int</code></td><td><code>Integer</code></td><td>4 bytes</td><td>0</td></tr>
+            <tr><td><code>long</code></td><td><code>Long</code></td><td>8 bytes</td><td>0L</td></tr>
+            <tr><td><code>float</code></td><td><code>Float</code></td><td>4 bytes</td><td>0.0f</td></tr>
+            <tr><td><code>double</code></td><td><code>Double</code></td><td>8 bytes</td><td>0.0d</td></tr>
+            <tr><td><code>char</code></td><td><code>Character</code></td><td>2 bytes</td><td>'\u0000'</td></tr>
+            <tr><td><code>boolean</code></td><td><code>Boolean</code></td><td>JVM dependent</td><td>false</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- WHAT PART: 5 IMPORTANT METHODS (using Integer) -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">💡</span>
+        <h2>2. WHAT: 5 Essential Methods of java.lang.Integer</h2>
+      </div>
+
+      <div class="methods-grid">
+        <div class="method-card">
+          <div class="method-sig">1. public static Integer valueOf(int i) / valueOf(String s)</div>
+          <div class="method-desc">Recommended static factory method to create an Integer object. Reuses cached objects from the internal <strong>Integer Cache Pool (-128 to 127)</strong>, saving significant memory.</div>
+        </div>
+
+        <div class="method-card" style="border-left-color: var(--secondary);">
+          <div class="method-sig">2. public static int parseInt(String s)</div>
+          <div class="method-desc">Parses the string argument as a signed decimal integer primitive. Throws <code>NumberFormatException</code> if string is not numeric.</div>
+        </div>
+
+        <div class="method-card" style="border-left-color: var(--accent-amber);">
+          <div class="method-sig">3. public int compareTo(Integer anotherInteger)</div>
+          <div class="method-desc">Compares two Integer objects numerically. Returns 0 if equal, negative if less, positive if greater.</div>
+        </div>
+
+        <div class="method-card" style="border-left-color: var(--accent-green);">
+          <div class="method-sig">4. public static String toString(int i)</div>
+          <div class="method-desc">Converts a primitive integer into its decimal String representation.</div>
+        </div>
+
+        <div class="method-card" style="border-left-color: #8b5cf6;">
+          <div class="method-sig">5. public static String toBinaryString(int i) / toHexString(int i)</div>
+          <div class="method-desc">Converts an integer into an unsigned string representation in base 2 (binary) or base 16 (hexadecimal).</div>
+        </div>
+      </div>
+
+      <div class="alert-box alert-warning">
+        <div>⚡</div>
+        <div>
+          <strong>The Infamous Integer Cache Interview Trap:</strong><br/>
+          JVM caches Integer objects in the range <code>-128 to 127</code>.<br/>
+          <code>Integer a = 120, b = 120; System.out.println(a == b); // TRUE (Same cached instance)</code><br/>
+          <code>Integer x = 200, y = 200; System.out.println(x == y); // FALSE (Distinct heap objects!)</code><br/>
+          Always use <code>.equals()</code> to compare wrapper objects!
+        </div>
+      </div>
+
+      <!-- Documentation Link Card -->
+      <div class="doc-link-card">
+        <div>
+          <h4>📖 Official Java SE Documentation</h4>
+          <p>Read all methods, bitwise operations, and constants (like <code>MAX_VALUE</code>) in the official <code>java.lang.Integer</code> JavaDoc.</p>
+        </div>
+        <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Integer.html" target="_blank" rel="noopener" class="doc-btn">
+          View java.lang.Integer JavaDoc ↗
+        </a>
+      </div>
+    </div>
+
+    <!-- HOW PART -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🛠️</span>
+        <h2>3. HOW: Indian PIN Code &amp; Electricity Meter Parser</h2>
+      </div>
+      <p style="margin-bottom: 16px;">
+        Demonstrating wrapper methods in an Indian postal and utility bill parser:
+      </p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-file-badge">IndianPincodeAndBillParser.java</div>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+        </div>
+        <pre><code><span class="tag-kw">package</span> in.gov.post.utility;
+
+<span class="tag-kw">import</span> java.util.List;
+<span class="tag-kw">import</span> java.util.ArrayList;
+
+<span class="tag-kw">public class</span> <span class="tag-type">IndianPincodeAndBillParser</span> {
+    <span class="tag-kw">public static void</span> <span class="tag-fn">main</span>(String[] args) {
+        <span class="tag-comment">// Method 1 &amp; 2: Parsing String inputs from a Web Portal</span>
+        String pincodeStr = <span class="tag-str">"560034"</span>; <span class="tag-comment">// Koramangala, Bengaluru</span>
+        <span class="tag-kw">int</span> pincode = <span class="tag-type">Integer</span>.<span class="tag-fn">parseInt</span>(pincodeStr);
+
+        String meterUnitsStr = <span class="tag-str">"340"</span>;
+        <span class="tag-type">Integer</span> unitsConsumed = <span class="tag-type">Integer</span>.<span class="tag-fn">valueOf</span>(meterUnitsStr);
+
+        <span class="tag-comment">// Method 3: Using in Generic Collections</span>
+        <span class="tag-type">List</span>&lt;<span class="tag-type">Integer</span>&gt; hubPincodes = <span class="tag-kw">new</span> <span class="tag-type">ArrayList</span>&lt;&gt;();
+        hubPincodes.<span class="tag-fn">add</span>(pincode);
+        hubPincodes.<span class="tag-fn">add</span>(<span class="tag-num">500081</span>); <span class="tag-comment">// Madhapur, Hyderabad</span>
+        hubPincodes.<span class="tag-fn">add</span>(<span class="tag-num">110001</span>); <span class="tag-comment">// New Delhi</span>
+
+        <span class="tag-comment">// Method 4: compareTo comparison</span>
+        <span class="tag-type">Integer</span> slabLimit = <span class="tag-num">300</span>;
+        <span class="tag-kw">int</span> comparison = unitsConsumed.<span class="tag-fn">compareTo</span>(slabLimit);
+        System.out.println(<span class="tag-str">"Is consumption greater than slab limit 300? "</span> + (comparison &gt; <span class="tag-num">0</span>));
+
+        <span class="tag-comment">// Method 5: Binary and Hexadecimal representation</span>
+        System.out.println(<span class="tag-str">"PIN Code in Binary: "</span> + <span class="tag-type">Integer</span>.<span class="tag-fn">toBinaryString</span>(pincode));
+        System.out.println(<span class="tag-str">"PIN Code in Hex: 0x"</span> + <span class="tag-type">Integer</span>.<span class="tag-fn">toHexString</span>(pincode).toUpperCase());
+    }
+}</code></pre>
+      </div>
+    </div>
+
+    <!-- Summary Box -->
+    <div class="card" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-color: #86efac;">
+      <h3 style="color: #166534; margin-bottom: 12px;">📌 Key Takeaways</h3>
+      <ul style="padding-left: 20px; color: #14532d; line-height: 1.8;">
+        <li><strong>Why:</strong> Wraps primitives into objects for collections, nullable fields, and utility conversion methods.</li>
+        <li><strong>What:</strong> 8 classes corresponding to 8 primitives with 5 key methods: <code>valueOf()</code>, <code>parseInt()</code>, <code>compareTo()</code>, <code>toString()</code>, <code>toBinaryString()</code>.</li>
+        <li><strong>How:</strong> Always compare wrapper objects using <code>.equals()</code> to avoid the -128 to 127 caching trap.</li>
+      </ul>
+    </div>
+
+    <div class="page-nav">
+      <a href="class_math.html" class="nav-btn-link">← Prev: class Math (Math)</a>
+      <a href="autoboxing_unboxing.html" class="nav-btn-link">Next: Auto-boxing &amp; Auto-unboxing →</a>
+    </div>
+  </div>
+
+  <script>
+    function copyCode(btn) {
+      const codeBlock = btn.closest('.code-block');
+      const codeEl = codeBlock.querySelector('code, pre');
+      const text = codeEl ? codeEl.innerText : '';
+      navigator.clipboard.writeText(text).then(() => {
+        const orig = btn.innerText;
+        btn.innerText = '✓ Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.innerText = orig;
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    }
+  </script>
+</body>
+</html>

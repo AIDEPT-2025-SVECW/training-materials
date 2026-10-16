@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Java Time Package (java.time) | Modern Date-Time API</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --secondary: #0284c7;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #ef4444;
+      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f1f5f9 100%);
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 10px 25px rgba(79, 70, 229, 0.07);
+      --shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      color: var(--text-main);
+      padding: 24px 16px;
+      line-height: 1.65;
+    }
+    .container { max-width: 1100px; margin: 0 auto; }
+    
+    .top-nav {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+    }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 8px; background: #ffffff; color: var(--primary-dark);
+      text-decoration: none; padding: 10px 20px; border-radius: 30px; font-weight: 600; font-size: 0.95rem;
+      border: 1px solid var(--card-border); box-shadow: var(--shadow-sm); transition: all 0.25s ease;
+    }
+    .back-btn:hover { background: var(--primary); color: #ffffff; transform: translateX(-4px); }
+    .nav-tag {
+      color: var(--text-muted); font-weight: 600; font-size: 0.9rem; background: rgba(255, 255, 255, 0.9);
+      padding: 6px 16px; border-radius: 20px; border: 1px solid var(--card-border);
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #4f46e5 0%, #0284c7 100%); color: #ffffff;
+      border-radius: 20px; padding: 40px 32px; text-align: center; box-shadow: var(--shadow-lg); margin-bottom: 32px;
+    }
+    .hero h1 { font-size: clamp(2rem, 4vw, 2.8rem); font-weight: 800; margin-bottom: 12px; }
+    .hero p { font-size: 1.15rem; opacity: 0.95; max-width: 780px; margin: 0 auto 20px auto; }
+    .hero-badges { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+    .hero-badge { background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(8px); padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+
+    .card {
+      background: var(--card-bg); border-radius: 18px; padding: 32px; margin-bottom: 32px;
+      box-shadow: var(--shadow-md); border: 1px solid var(--card-border);
+    }
+    .section-title {
+      font-size: 1.5rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 18px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .section-title .icon {
+      font-size: 1.4rem; background: #eef2ff; width: 44px; height: 44px;
+      display: flex; align-items: center; justify-content: center; border-radius: 12px; color: var(--primary);
+    }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    @media (max-width: 768px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+
+    .concept-box {
+      background: #f8fafc; border-left: 4px solid var(--primary); padding: 20px; border-radius: 0 12px 12px 0; margin-bottom: 16px;
+    }
+    .concept-box h3 { font-size: 1.1rem; color: var(--primary-dark); margin-bottom: 8px; }
+
+    .diagram-img {
+      width: 100%; border-radius: 12px; border: 1px solid var(--card-border);
+      box-shadow: var(--shadow-md); display: block; margin: 20px 0;
+    }
+
+    .code-block {
+      background: #0d1117; color: #e6edf3; border-radius: 12px; position: relative;
+      margin: 18px 0; border: 1px solid #30363d; overflow: hidden; font-family: 'Fira Code', monospace;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    }
+    .code-header {
+      display: flex; justify-content: space-between; align-items: center; padding: 10px 16px;
+      background: #161b22; border-bottom: 1px solid #30363d; font-size: 0.85rem; color: #8b949e;
+      font-family: 'Fira Code', monospace;
+    }
+    .code-file-badge {
+      display: inline-flex; align-items: center; gap: 8px; font-weight: 600; color: #c9d1d9;
+    }
+    .code-file-badge::before {
+      content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #e3b341;
+    }
+    .code-block pre {
+      margin: 0; padding: 18px 20px; overflow-x: auto; font-family: 'Fira Code', monospace;
+      font-size: 0.9rem; line-height: 1.6; white-space: pre;
+    }
+    .copy-btn {
+      background: rgba(255, 255, 255, 0.08); color: #c9d1d9; border: 1px solid #30363d;
+      padding: 5px 12px; border-radius: 6px; font-size: 0.78rem; font-weight: 500; cursor: pointer;
+      transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 6px; font-family: inherit;
+    }
+    .copy-btn:hover { background: var(--primary); color: #ffffff; border-color: var(--primary); }
+    .copy-btn.copied { background: var(--accent-green) !important; color: #ffffff !important; border-color: var(--accent-green) !important; }
+
+    .tag-kw { color: #ff7b72; font-weight: 600; }
+    .tag-type { color: #79c0ff; font-weight: 600; }
+    .tag-str { color: #a5d6ff; }
+    .tag-comment { color: #8b949e; font-style: italic; }
+    .tag-fn { color: #d2a8ff; }
+    .tag-num { color: #79c0ff; }
+
+    .doc-link-card {
+      background: #f0f7ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 20px;
+      display: flex; justify-content: space-between; align-items: center; margin: 20px 0; flex-wrap: wrap; gap: 12px;
+    }
+    .doc-link-card h4 { color: #1e40af; margin-bottom: 4px; }
+    .doc-link-card p { color: #3b82f6; font-size: 0.9rem; }
+    .doc-btn {
+      background: #1d4ed8; color: white; text-decoration: none; padding: 8px 18px; border-radius: 8px;
+      font-weight: 600; font-size: 0.88rem; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .doc-btn:hover { background: #1e40af; }
+
+    .page-nav {
+      display: flex; justify-content: space-between; align-items: center; margin-top: 40px; gap: 16px; flex-wrap: wrap;
+    }
+    .nav-btn-link {
+      display: inline-flex; align-items: center; gap: 8px; background: white; padding: 12px 24px;
+      border-radius: 12px; border: 1px solid var(--card-border); color: var(--primary-dark);
+      font-weight: 700; text-decoration: none; box-shadow: var(--shadow-sm); transition: all 0.2s;
+    }
+    .nav-btn-link:hover { background: var(--primary); color: white; transform: translateY(-2px); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="top-nav">
+      <a href="../index.html" class="back-btn">← Back to Java Index</a>
+      <span class="nav-tag">☕ Module: Packages &amp; Java Standard Library (Topic 16/19)</span>
+    </div>
+
+    <div class="hero">
+      <h1>Java Time Package (java.time)</h1>
+      <p>Master modern, immutable, and thread-safe date and time computation in Java (JSR-310). Distinguish human time from machine timelines and handle Indian Standard Time (IST).</p>
+      <div class="hero-badges">
+        <span class="hero-badge">🕒 Immutable &amp; Thread-Safe</span>
+        <span class="hero-badge">🇮🇳 Asia/Kolkata (IST UTC+5:30)</span>
+        <span class="hero-badge">🚆 IRCTC Tatkal Scheduling</span>
+      </div>
+    </div>
+
+    <!-- Visual Infographic -->
+    <div class="card">
+      <img src="java_datetime_timeline.jpg" alt="Modern Java Date-Time API Timeline" class="diagram-img" />
+    </div>
+
+    <!-- WHY PART -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">❓</span>
+        <h2>1. WHY: Why Did Java 8 Completely Replace java.util.Date?</h2>
+      </div>
+      <p style="font-size: 1.05rem; margin-bottom: 20px;">
+        Prior to Java 8, Java relied on <code>java.util.Date</code> and <code>Calendar</code>, which were notoriously flawed:
+      </p>
+
+      <div class="grid-3">
+        <div class="concept-box" style="border-left-color: var(--accent-rose);">
+          <h3>💥 Mutable State</h3>
+          <p><code>Date</code> objects are mutable! If thread A inspects an invoice date while thread B updates it via <code>date.setTime()</code>, data becomes corrupt.</p>
+        </div>
+        <div class="concept-box" style="border-left-color: var(--accent-amber);">
+          <h3>🤯 Confusing Offsets</h3>
+          <p>In <code>Date</code>, years began at 1900 (so 2026 was 126!), and months were 0-indexed (January was 0, December was 11). Countless production bugs resulted from this design.</p>
+        </div>
+        <div class="concept-box" style="border-left-color: var(--secondary);">
+          <h3>🧵 Thread-Safety Nightmare</h3>
+          <p><code>SimpleDateFormat</code> was not thread-safe. Reusing an instance across requests in a Spring Boot or Servlet backend caused random crashes.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- WHAT PART -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">💡</span>
+        <h2>2. WHAT: Core Classes in java.time</h2>
+      </div>
+
+      <div class="grid-2">
+        <div class="concept-box">
+          <h3>📅 LocalDate &amp; LocalTime</h3>
+          <p><strong>LocalDate:</strong> Date without time or timezone (e.g., Indian Republic Day: <code>2026-01-26</code>).<br/>
+          <strong>LocalTime:</strong> Time without date or timezone (e.g., IRCTC Tatkal opening: <code>10:00:00</code>).</p>
+        </div>
+
+        <div class="concept-box" style="border-left-color: var(--secondary);">
+          <h3>🗓️ LocalDateTime &amp; ZonedDateTime</h3>
+          <p><strong>LocalDateTime:</strong> Combines date and time without timezone.<br/>
+          <strong>ZonedDateTime:</strong> Full date, time, and timezone context with offset: <code>ZoneId.of("Asia/Kolkata")</code> (IST +05:30).</p>
+        </div>
+      </div>
+
+      <!-- Documentation Link Card -->
+      <div class="doc-link-card">
+        <div>
+          <h4>📖 Official Java SE Documentation</h4>
+          <p>Explore the full <code>java.time</code> package architecture in the official JavaDoc.</p>
+        </div>
+        <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/package-summary.html" target="_blank" rel="noopener" class="doc-btn">
+          View java.time JavaDoc ↗
+        </a>
+      </div>
+    </div>
+
+    <!-- HOW PART -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🛠️</span>
+        <h2>3. HOW: IRCTC Tatkal Train Booking Countdown Scheduler</h2>
+      </div>
+      <p style="margin-bottom: 16px;">
+        Tatkal tickets in Indian Railways open at <strong>10:00 AM IST</strong> for AC classes and <strong>11:00 AM IST</strong> for Non-AC classes one day prior to journey date:
+      </p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-file-badge">IrctcTatkalScheduler.java</div>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+        </div>
+        <pre><code><span class="tag-kw">package</span> in.gov.irctc.time;
+
+<span class="tag-kw">import</span> java.time.LocalDate;
+<span class="tag-kw">import</span> java.time.LocalTime;
+<span class="tag-kw">import</span> java.time.LocalDateTime;
+<span class="tag-kw">import</span> java.time.ZonedDateTime;
+<span class="tag-kw">import</span> java.time.ZoneId;
+<span class="tag-kw">import</span> java.time.Duration;
+
+<span class="tag-kw">public class</span> <span class="tag-type">IrctcTatkalScheduler</span> {
+    <span class="tag-kw">public static void</span> <span class="tag-fn">main</span>(String[] args) {
+        <span class="tag-type">ZoneId</span> istZone = <span class="tag-type">ZoneId</span>.<span class="tag-fn">of</span>(<span class="tag-str">"Asia/Kolkata"</span>);
+
+        <span class="tag-comment">// 1. Current clock in Indian Standard Time (IST)</span>
+        <span class="tag-type">ZonedDateTime</span> nowInIndia = <span class="tag-type">ZonedDateTime</span>.<span class="tag-fn">now</span>(istZone);
+        System.out.println(<span class="tag-str">"🕒 Current Clock in India: "</span> + nowInIndia);
+
+        <span class="tag-comment">// 2. Journey planned for tomorrow</span>
+        <span class="tag-type">LocalDate</span> journeyDate = <span class="tag-type">LocalDate</span>.<span class="tag-fn">now</span>(istZone).<span class="tag-fn">plusDays</span>(<span class="tag-num">1</span>);
+        System.out.println(<span class="tag-str">"🚆 Journey Date: "</span> + journeyDate);
+
+        <span class="tag-comment">// 3. AC Tatkal opens today at exactly 10:00:00 AM IST</span>
+        <span class="tag-type">LocalTime</span> tatkalAcOpenTime = <span class="tag-type">LocalTime</span>.<span class="tag-fn">of</span>(<span class="tag-num">10</span>, <span class="tag-num">0</span>, <span class="tag-num">0</span>);
+        <span class="tag-type">ZonedDateTime</span> acTatkalOpening = <span class="tag-type">ZonedDateTime</span>.<span class="tag-fn">of</span>(
+                <span class="tag-type">LocalDate</span>.<span class="tag-fn">now</span>(istZone), tatkalAcOpenTime, istZone);
+
+        <span class="tag-comment">// 4. Calculate countdown Duration</span>
+        <span class="tag-kw">if</span> (nowInIndia.<span class="tag-fn">isBefore</span>(acTatkalOpening)) {
+            <span class="tag-type">Duration</span> countdown = <span class="tag-type">Duration</span>.<span class="tag-fn">between</span>(nowInIndia, acTatkalOpening);
+            <span class="tag-kw">long</span> minutesLeft = countdown.<span class="tag-fn">toMinutes</span>();
+            System.out.println(<span class="tag-str">"⏳ AC Tatkal window opens in: "</span> + minutesLeft + <span class="tag-str">" minutes!"</span>);
+        } <span class="tag-kw">else</span> {
+            System.out.println(<span class="tag-str">"🟢 AC Tatkal booking is currently OPEN for today's quota!"</span>);
+        }
+    }
+}</code></pre>
+      </div>
+    </div>
+
+    <!-- Summary Box -->
+    <div class="card" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-color: #86efac;">
+      <h3 style="color: #166534; margin-bottom: 12px;">📌 Key Takeaways</h3>
+      <ul style="padding-left: 20px; color: #14532d; line-height: 1.8;">
+        <li><strong>Why:</strong> Replaced buggy, mutable <code>java.util.Date</code> with clean, immutable, and thread-safe designs.</li>
+        <li><strong>What:</strong> <code>LocalDate</code>, <code>LocalTime</code>, <code>LocalDateTime</code>, and <code>ZonedDateTime</code> cleanly model human date concepts.</li>
+        <li><strong>How:</strong> Use <code>ZoneId.of("Asia/Kolkata")</code> for Indian Standard Time operations.</li>
+      </ul>
+    </div>
+
+    <div class="page-nav">
+      <a href="random_class.html" class="nav-btn-link">← Prev: Random Class</a>
+      <a href="class_instant.html" class="nav-btn-link">Next: Class Instant (java.time.Instant) →</a>
+    </div>
+  </div>
+
+  <script>
+    function copyCode(btn) {
+      const codeBlock = btn.closest('.code-block');
+      const codeEl = codeBlock.querySelector('code, pre');
+      const text = codeEl ? codeEl.innerText : '';
+      navigator.clipboard.writeText(text).then(() => {
+        const orig = btn.innerText;
+        btn.innerText = '✓ Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.innerText = orig;
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    }
+  </script>
+</body>
+</html>
