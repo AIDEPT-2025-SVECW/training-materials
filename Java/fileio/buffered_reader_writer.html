@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BufferedReader & BufferedWriter Deep Dive | Java File I/O</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --secondary: #0284c7;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #ef4444;
+      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f1f5f9 100%);
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 10px 25px rgba(79, 70, 229, 0.07);
+      --shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      color: var(--text-main);
+      padding: 24px 16px;
+      line-height: 1.65;
+    }
+    .container { max-width: 1100px; margin: 0 auto; }
+    
+    .top-nav {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+    }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 8px; background: #ffffff; color: var(--primary-dark);
+      text-decoration: none; padding: 10px 20px; border-radius: 30px; font-weight: 600; font-size: 0.95rem;
+      border: 1px solid var(--card-border); box-shadow: var(--shadow-sm); transition: all 0.25s ease;
+    }
+    .back-btn:hover { background: var(--primary); color: #ffffff; transform: translateX(-4px); }
+    .nav-tag {
+      color: var(--text-muted); font-weight: 600; font-size: 0.9rem; background: rgba(255, 255, 255, 0.9);
+      padding: 6px 16px; border-radius: 20px; border: 1px solid var(--card-border);
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #4f46e5 0%, #0284c7 100%); color: #ffffff;
+      border-radius: 20px; padding: 40px 32px; text-align: center; box-shadow: var(--shadow-lg); margin-bottom: 32px;
+    }
+    .hero h1 { font-size: clamp(2rem, 4vw, 2.7rem); font-weight: 800; margin-bottom: 12px; }
+    .hero p { font-size: 1.15rem; opacity: 0.95; max-width: 780px; margin: 0 auto 20px auto; }
+    .hero-badges { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+    .hero-badge { background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(8px); padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+
+    .card {
+      background: var(--card-bg); border-radius: 16px; border: 1px solid var(--card-border);
+      padding: 28px; margin-bottom: 24px; box-shadow: var(--shadow-sm);
+    }
+    .section-title {
+      display: flex; align-items: center; gap: 12px; margin-bottom: 18px; border-bottom: 2px solid #f1f5f9; padding-bottom: 12px;
+    }
+    .section-title h2 { font-size: 1.45rem; color: var(--primary-dark); font-weight: 700; }
+    .section-title .icon {
+      font-size: 1.6rem; background: #e0e7ff; width: 44px; height: 44px; display: flex;
+      align-items: center; justify-content: center; border-radius: 12px; color: var(--primary);
+    }
+
+    /* Code Blocks */
+    .code-block {
+      background: #0f172a; border-radius: 12px; overflow: hidden; margin: 18px 0; box-shadow: var(--shadow-md);
+    }
+    .code-header {
+      background: #1e293b; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 1px solid #334155;
+    }
+    .code-file-badge { font-family: 'Fira Code', monospace; font-size: 0.85rem; color: #94a3b8; }
+    pre {
+      margin: 0; padding: 20px; overflow-x: auto; font-family: 'Fira Code', monospace;
+      font-size: 0.9rem; line-height: 1.6; white-space: pre;
+    }
+    .copy-btn {
+      background: rgba(255, 255, 255, 0.08); color: #c9d1d9; border: 1px solid #30363d;
+      padding: 5px 12px; border-radius: 6px; font-size: 0.78rem; font-weight: 500; cursor: pointer;
+      transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 6px; font-family: inherit;
+    }
+    .copy-btn:hover { background: var(--primary); color: #ffffff; border-color: var(--primary); }
+    .copy-btn.copied { background: var(--accent-green) !important; color: #ffffff !important; border-color: var(--accent-green) !important; }
+
+    .tag-kw { color: #ff7b72; font-weight: 600; }
+    .tag-type { color: #79c0ff; font-weight: 600; }
+    .tag-str { color: #a5d6ff; }
+    .tag-comment { color: #8b949e; font-style: italic; }
+    .tag-fn { color: #d2a8ff; }
+    .tag-num { color: #79c0ff; }
+
+    code:not(pre code) {
+      font-family: 'Fira Code', monospace;
+      font-size: 0.88em;
+      background: #eef2ff;
+      color: #4338ca;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .alert-box {
+      padding: 16px 20px; border-radius: 12px; margin: 18px 0; display: flex; gap: 14px; align-items: flex-start;
+      line-height: 1.6;
+    }
+    .alert-info { background: #eff6ff; border-left: 5px solid var(--secondary); color: #1e40af; }
+    .alert-warning { background: #fffbeb; border-left: 5px solid var(--accent-amber); color: #92400e; }
+    .alert-danger { background: #fef2f2; border-left: 5px solid var(--accent-rose); color: #991b1b; }
+
+    .table-container { overflow-x: auto; margin: 20px 0; border: 1px solid var(--card-border); border-radius: 12px; }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th, td { padding: 14px 18px; border-bottom: 1px solid var(--card-border); font-size: 0.92rem; }
+    th { background: #f8fafc; color: var(--primary-dark); font-weight: 700; }
+    tr:hover { background: #fbfdff; }
+
+    .page-nav {
+      display: flex; justify-content: space-between; align-items: center; margin-top: 40px; gap: 16px; flex-wrap: wrap;
+    }
+    .nav-btn-link {
+      display: inline-flex; align-items: center; gap: 8px; background: white; padding: 12px 24px;
+      border-radius: 12px; border: 1px solid var(--card-border); color: var(--primary-dark);
+      font-weight: 700; text-decoration: none; box-shadow: var(--shadow-sm); transition: all 0.2s;
+    }
+    .nav-btn-link:hover { background: var(--primary); color: white; transform: translateY(-2px); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="top-nav">
+      <a href="../index.html" class="back-btn">← Back to Java Index</a>
+      <span class="nav-tag">Java File I/O • Topic 6 of 6</span>
+    </div>
+
+    <!-- Hero Header -->
+    <div class="hero">
+      <h1>BufferedReader &amp; BufferedWriter Deep Dive</h1>
+      <p>High-Speed Text Processing, Line-by-Line Reading & Swiggy Restaurant Daily Orders Ledger</p>
+      <div class="hero-badges">
+        <span class="hero-badge">📖 BufferedReader (readLine)</span>
+        <span class="hero-badge">✍️ BufferedWriter (newLine & flush)</span>
+        <span class="hero-badge">⚡ 8KB RAM Buffer</span>
+        <span class="hero-badge">🇮🇳 Swiggy CSV Ledger</span>
+      </div>
+    </div>
+
+    <!-- 1. Why Buffering is Essential -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">💡</span>
+        <h2>1. WHY: Why Plain FileReader / FileWriter is Not Enough</h2>
+      </div>
+
+      <p style="font-size: 1.05rem; margin-bottom: 16px;">
+        Java has <code>FileReader</code> and <code>FileWriter</code>. Why do enterprise developers almost always wrap them inside <code>BufferedReader</code> and <code>BufferedWriter</code>?
+      </p>
+
+      <!-- Spoon vs Bucket Analogy -->
+      <div class="alert-box alert-info">
+        <span style="font-size: 1.6rem;">🪣</span>
+        <div>
+          <strong>The Teaspoon vs Bucket Analogy:</strong><br>
+          Suppose you need to fill a water tank in your house from a well outside.<br>
+          • <strong>FileReader:</strong> Like walking to the well with a <em>tiny teaspoon</em>, taking one sip of water, walking back inside, and repeating 10,000 times! Every character read makes an expensive operating system disk request.<br>
+          • <strong>BufferedReader:</strong> Like taking a <strong>large 20-liter bucket (an 8192-character RAM buffer)</strong> to the well once, filling the bucket in a single trip, and drinking directly from the bucket in your kitchen. It is <strong>hundreds of times faster</strong>!
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Class</th>
+              <th>Key Superpowers</th>
+              <th>How to Construct</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>BufferedWriter</code></td>
+              <td>
+                • Holds characters in an internal 8KB buffer before writing to disk.<br>
+                • <code>newLine()</code>: Platform-independent newline (works on Windows <code>\r\n</code> and Linux/Mac <code>\n</code>).<br>
+                • <code>flush()</code>: Forces any pending buffered data to be written to disk immediately.
+              </td>
+              <td><code>new BufferedWriter(new FileWriter("orders.csv"))</code></td>
+            </tr>
+            <tr>
+              <td><code>BufferedReader</code></td>
+              <td>
+                • Reads characters in 8KB chunks from disk into RAM.<br>
+                • <strong><code>readLine()</code>:</strong> Reads an entire line of text as a <code>String</code>, stripping out <code>\n</code> or <code>\r\n</code>.<br>
+                • Returns <strong><code>null</code></strong> when it hits End of File (EOF)!
+              </td>
+              <td><code>new BufferedReader(new FileReader("orders.csv"))</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="alert-box alert-warning">
+        <span style="font-size: 1.4rem;">⚠️</span>
+        <div>
+          <strong>Crucial Difference for Freshers:</strong><br>
+          • In <code>FileInputStream</code> (Byte Stream), the end of file (EOF) marker is <strong>-1</strong> (an integer).<br>
+          • In <code>BufferedReader.readLine()</code> (Character Stream), the end of file (EOF) marker is <strong>null</strong> (an object reference)!
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Writing CSV with BufferedWriter -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">✍️</span>
+        <h2>2. Writing Text Files with BufferedWriter</h2>
+      </div>
+
+      <p style="margin-bottom: 16px;">
+        Let's write a daily order ledger for a restaurant in Hyderabad on Swiggy:
+      </p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-file-badge">SwiggyOrderWriter.java</div>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+        </div>
+        <pre><code><span class="tag-kw">import</span> java.io.<span class="tag-type">BufferedWriter</span>;
+<span class="tag-kw">import</span> java.io.<span class="tag-type">FileWriter</span>;
+<span class="tag-kw">import</span> java.io.<span class="tag-type">IOException</span>;
+
+<span class="tag-kw">public class</span> <span class="tag-type">SwiggyOrderWriter</span> {
+
+    <span class="tag-kw">public static void</span> <span class="tag-fn">main</span>(String[] args) {
+        
+        String csvFileName = <span class="tag-str">"swiggy_orders_hyderabad.csv"</span>;
+
+        <span class="tag-comment">// Chaining FileWriter inside BufferedWriter for maximum performance</span>
+        <span class="tag-kw">try</span> (<span class="tag-type">BufferedWriter</span> writer = <span class="tag-kw">new</span> <span class="tag-type">BufferedWriter</span>(<span class="tag-kw">new</span> <span class="tag-type">FileWriter</span>(csvFileName))) {
+            
+            <span class="tag-comment">// 1. Write CSV Header</span>
+            writer.<span class="tag-fn">write</span>(<span class="tag-str">"OrderID,CustomerName,ItemOrdered,BillAmount,PaymentMode"</span>);
+            writer.<span class="tag-fn">newLine</span>(); <span class="tag-comment">// Cross-platform newline (\r\n or \n)</span>
+
+            <span class="tag-comment">// 2. Write Order Records</span>
+            writer.<span class="tag-fn">write</span>(<span class="tag-str">"SWIG-1001,Ananya Sharma,Hyderabadi Chicken Biryani,380,UPI"</span>);
+            writer.<span class="tag-fn">newLine</span>();
+
+            writer.<span class="tag-fn">write</span>(<span class="tag-str">"SWIG-1002,Vikram Reddy,Paneer Butter Masala + Naan,290,PhonePe"</span>);
+            writer.<span class="tag-fn">newLine</span>();
+
+            writer.<span class="tag-fn">write</span>(<span class="tag-str">"SWIG-1003,Deepak Verma,Masala Dosa + Filter Coffee,160,GPay"</span>);
+            writer.<span class="tag-fn">newLine</span>();
+
+            writer.<span class="tag-fn">write</span>(<span class="tag-str">"SWIG-1004,Pooja Hegde,Double Ka Meetha,120,CashOnDelivery"</span>);
+            writer.<span class="tag-fn">newLine</span>();
+
+            <span class="tag-comment">// flush() pushes all data remaining in RAM buffer to disk</span>
+            writer.<span class="tag-fn">flush</span>();
+
+            System.out.println(<span class="tag-str">"✅ Swiggy daily orders ledger successfully generated: "</span> + csvFileName);
+
+        } <span class="tag-kw">catch</span> (<span class="tag-type">IOException</span> e) {
+            System.out.println(<span class="tag-str">"❌ Writing Error: "</span> + e.<span class="tag-fn">getMessage</span>());
+        }
+    }
+}</code></pre>
+      </div>
+
+      <div class="alert-box alert-info">
+        <span style="font-size: 1.4rem;">💡</span>
+        <div>
+          <strong>Generated File (<code>swiggy_orders_hyderabad.csv</code>):</strong>
+          <pre style="background: white; border: 1px solid #cbd5e1; padding: 12px; border-radius: 8px; margin-top: 8px; color: #1e293b;">OrderID,CustomerName,ItemOrdered,BillAmount,PaymentMode
+SWIG-1001,Ananya Sharma,Hyderabadi Chicken Biryani,380,UPI
+SWIG-1002,Vikram Reddy,Paneer Butter Masala + Naan,290,PhonePe
+SWIG-1003,Deepak Verma,Masala Dosa + Filter Coffee,160,GPay
+SWIG-1004,Pooja Hegde,Double Ka Meetha,120,CashOnDelivery</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Reading Line-by-Line with BufferedReader -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">📖</span>
+        <h2>3. Reading Line-by-Line with BufferedReader &amp; Calculating Totals</h2>
+      </div>
+
+      <p style="margin-bottom: 16px;">
+        Now let's read the CSV file line-by-line using <code>BufferedReader.readLine()</code>, parse the items, and calculate the total daily revenue in Indian Rupees (₹):
+      </p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-file-badge">SwiggyOrderSummaryReader.java</div>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+        </div>
+        <pre><code><span class="tag-kw">import</span> java.io.<span class="tag-type">BufferedReader</span>;
+<span class="tag-kw">import</span> java.io.<span class="tag-type">FileReader</span>;
+<span class="tag-kw">import</span> java.io.<span class="tag-type">IOException</span>;
+
+<span class="tag-kw">public class</span> <span class="tag-type">SwiggyOrderSummaryReader</span> {
+
+    <span class="tag-kw">public static void</span> <span class="tag-fn">main</span>(String[] args) {
+        
+        String csvFileName = <span class="tag-str">"swiggy_orders_hyderabad.csv"</span>;
+        <span class="tag-kw">int</span> totalRevenue = <span class="tag-num">0</span>;
+        <span class="tag-kw">int</span> totalOrders = <span class="tag-num">0</span>;
+
+        System.out.println(<span class="tag-str">"=================================================="</span>);
+        System.out.println(<span class="tag-str">"    🍽️ SWIGGY DAILY RESTAURANT REVENUE REPORT"</span>);
+        System.out.println(<span class="tag-str">"=================================================="</span>);
+
+        <span class="tag-comment">// Chaining FileReader inside BufferedReader</span>
+        <span class="tag-kw">try</span> (<span class="tag-type">BufferedReader</span> reader = <span class="tag-kw">new</span> <span class="tag-type">BufferedReader</span>(<span class="tag-kw">new</span> <span class="tag-type">FileReader</span>(csvFileName))) {
+            
+            <span class="tag-comment">// 1. Read first line (header) to skip it during math calculation</span>
+            String headerLine = reader.<span class="tag-fn">readLine</span>();
+            System.out.println(<span class="tag-str">"[CSV Header Skipped]: "</span> + headerLine);
+            System.out.println(<span class="tag-str">"--------------------------------------------------"</span>);
+
+            String currentLine;
+            <span class="tag-comment">// 2. Loop continues until readLine() returns null (End of File)</span>
+            <span class="tag-kw">while</span> ((currentLine = reader.<span class="tag-fn">readLine</span>()) != <span class="tag-kw">null</span>) {
+                
+                <span class="tag-comment">// Split CSV line by comma delimiter</span>
+                String[] fields = currentLine.<span class="tag-fn">split</span>(<span class="tag-str">","</span>);
+
+                String orderId = fields[<span class="tag-num">0</span>];
+                String customer = fields[<span class="tag-num">1</span>];
+                String item = fields[<span class="tag-num">2</span>];
+                <span class="tag-kw">int</span> billAmount = Integer.<span class="tag-fn">parseInt</span>(fields[<span class="tag-num">3</span>]); <span class="tag-comment">// Parse amount to int</span>
+                String payment = fields[<span class="tag-num">4</span>];
+
+                System.out.<span class="tag-fn">printf</span>(<span class="tag-str">"%-10s | %-15s | ₹ %-4d | %-12s\n"</span>, orderId, customer, billAmount, payment);
+
+                totalRevenue += billAmount;
+                totalOrders++;
+            }
+
+            System.out.println(<span class="tag-str">"--------------------------------------------------"</span>);
+            System.out.println(<span class="tag-str">"Total Orders Delivered : "</span> + totalOrders);
+            System.out.println(<span class="tag-str">"Total Revenue Earned   : ₹ "</span> + totalRevenue);
+            System.out.println(<span class="tag-str">"=================================================="</span>);
+
+        } <span class="tag-kw">catch</span> (<span class="tag-type">IOException</span> e) {
+            System.out.println(<span class="tag-str">"❌ Reading Error: "</span> + e.<span class="tag-fn">getMessage</span>());
+        }
+    }
+}</code></pre>
+      </div>
+
+      <div class="alert-box alert-info">
+        <span style="font-size: 1.4rem;">💡</span>
+        <div>
+          <strong>Console Output:</strong>
+          <pre style="background: white; border: 1px solid #cbd5e1; padding: 12px; border-radius: 8px; margin-top: 8px; color: #1e293b;">==================================================
+    🍽️ SWIGGY DAILY RESTAURANT REVENUE REPORT
+==================================================
+[CSV Header Skipped]: OrderID,CustomerName,ItemOrdered,BillAmount,PaymentMode
+--------------------------------------------------
+SWIG-1001  | Ananya Sharma   | ₹ 380  | UPI         
+SWIG-1002  | Vikram Reddy    | ₹ 290  | PhonePe     
+SWIG-1003  | Deepak Verma    | ₹ 160  | GPay        
+SWIG-1004  | Pooja Hegde     | ₹ 120  | CashOnDelivery
+--------------------------------------------------
+Total Orders Delivered : 4
+Total Revenue Earned   : ₹ 950
+==================================================</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. Grand Master Comparison -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">📊</span>
+        <h2>4. Grand Master Comparison: Which Stream Should You Choose?</h2>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Criteria</th>
+              <th>FileInputStream / Out</th>
+              <th>FileReader / FileWriter</th>
+              <th>BufferedReader / Writer</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Stream Type</strong></td>
+              <td>Byte Stream (8-bit)</td>
+              <td>Character Stream (16-bit)</td>
+              <td>Buffered Character Stream</td>
+            </tr>
+            <tr>
+              <td><strong>Best For</strong></td>
+              <td>Images (PNG/JPG), Audio, PDF, MP4, raw bytes</td>
+              <td>Small text files (only simple cases)</td>
+              <td>Large text files, CSV, Logs, JSON</td>
+            </tr>
+            <tr>
+              <td><strong>Buffering</strong></td>
+              <td>No internal RAM buffer (unbuffered)</td>
+              <td>No internal RAM buffer (direct OS calls)</td>
+              <td><strong>Yes, 8KB internal RAM buffer</strong></td>
+            </tr>
+            <tr>
+              <td><strong>Performance</strong></td>
+              <td>Moderate (Fast if custom byte[] buffer used)</td>
+              <td>Slow (Every character trips disk)</td>
+              <td><strong>Blazing Fast</strong> (Batched memory reads)</td>
+            </tr>
+            <tr>
+              <td><strong>Key Method</strong></td>
+              <td><code>read()</code> / <code>write(byte[])</code></td>
+              <td><code>read()</code> / <code>write(char)</code></td>
+              <td><code>readLine()</code> / <code>newLine()</code></td>
+            </tr>
+            <tr>
+              <td><strong>EOF Marker</strong></td>
+              <td><code>-1</code></td>
+              <td><code>-1</code></td>
+              <td><strong><code>null</code></strong> (for <code>readLine()</code>)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Summary Box -->
+    <div class="card" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-color: #86efac;">
+      <h3 style="color: #166534; margin-bottom: 12px;">📌 Key Takeaways for Freshers</h3>
+      <ul style="padding-left: 20px; color: #14532d; line-height: 1.8;">
+        <li>Always wrap <code>FileReader</code> in <code>BufferedReader</code> and <code>FileWriter</code> in <code>BufferedWriter</code> for performance.</li>
+        <li><code>BufferedReader.readLine()</code> reads full lines and returns <code>null</code> when the file ends.</li>
+        <li><code>BufferedWriter.newLine()</code> writes a platform-safe newline character.</li>
+        <li>Always <code>flush()</code> or let <code>try-with-resources</code> auto-close your buffered writer, otherwise data lingering in the RAM buffer won't be written to disk!</li>
+      </ul>
+    </div>
+
+    <div class="page-nav">
+      <a href="byte_streams_input_output.html" class="nav-btn-link">← Prev: Byte Streams (FileInputStream &amp; Out)</a>
+      <a href="../index.html" class="nav-btn-link">🏠 Back to Java Index →</a>
+    </div>
+  </div>
+
+  <script>
+    function copyCode(btn) {
+      const codeBlock = btn.closest('.code-block');
+      const codeEl = codeBlock.querySelector('code, pre');
+      const text = codeEl ? codeEl.innerText : '';
+      navigator.clipboard.writeText(text).then(() => {
+        const orig = btn.innerText;
+        btn.innerText = '✓ Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.innerText = orig;
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deep Dive into File Class (java.io.File) & Methods | Java File I/O</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --secondary: #0284c7;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #ef4444;
+      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f1f5f9 100%);
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 10px 25px rgba(79, 70, 229, 0.07);
+      --shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      color: var(--text-main);
+      padding: 24px 16px;
+      line-height: 1.65;
+    }
+    .container { max-width: 1100px; margin: 0 auto; }
+    
+    .top-nav {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+    }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 8px; background: #ffffff; color: var(--primary-dark);
+      text-decoration: none; padding: 10px 20px; border-radius: 30px; font-weight: 600; font-size: 0.95rem;
+      border: 1px solid var(--card-border); box-shadow: var(--shadow-sm); transition: all 0.25s ease;
+    }
+    .back-btn:hover { background: var(--primary); color: #ffffff; transform: translateX(-4px); }
+    .nav-tag {
+      color: var(--text-muted); font-weight: 600; font-size: 0.9rem; background: rgba(255, 255, 255, 0.9);
+      padding: 6px 16px; border-radius: 20px; border: 1px solid var(--card-border);
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #4f46e5 0%, #0284c7 100%); color: #ffffff;
+      border-radius: 20px; padding: 40px 32px; text-align: center; box-shadow: var(--shadow-lg); margin-bottom: 32px;
+    }
+    .hero h1 { font-size: clamp(2rem, 4vw, 2.7rem); font-weight: 800; margin-bottom: 12px; }
+    .hero p { font-size: 1.15rem; opacity: 0.95; max-width: 780px; margin: 0 auto 20px auto; }
+    .hero-badges { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+    .hero-badge { background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(8px); padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+
+    .card {
+      background: var(--card-bg); border-radius: 16px; border: 1px solid var(--card-border);
+      padding: 28px; margin-bottom: 24px; box-shadow: var(--shadow-sm);
+    }
+    .section-title {
+      display: flex; align-items: center; gap: 12px; margin-bottom: 18px; border-bottom: 2px solid #f1f5f9; padding-bottom: 12px;
+    }
+    .section-title h2 { font-size: 1.45rem; color: var(--primary-dark); font-weight: 700; }
+    .section-title .icon {
+      font-size: 1.6rem; background: #e0e7ff; width: 44px; height: 44px; display: flex;
+      align-items: center; justify-content: center; border-radius: 12px; color: var(--primary);
+    }
+
+    /* Code Blocks */
+    .code-block {
+      background: #0f172a; border-radius: 12px; overflow: hidden; margin: 18px 0; box-shadow: var(--shadow-md);
+    }
+    .code-header {
+      background: #1e293b; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 1px solid #334155;
+    }
+    .code-file-badge { font-family: 'Fira Code', monospace; font-size: 0.85rem; color: #94a3b8; }
+    pre {
+      margin: 0; padding: 20px; overflow-x: auto; font-family: 'Fira Code', monospace;
+      font-size: 0.9rem; line-height: 1.6; white-space: pre;
+    }
+    .copy-btn {
+      background: rgba(255, 255, 255, 0.08); color: #c9d1d9; border: 1px solid #30363d;
+      padding: 5px 12px; border-radius: 6px; font-size: 0.78rem; font-weight: 500; cursor: pointer;
+      transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 6px; font-family: inherit;
+    }
+    .copy-btn:hover { background: var(--primary); color: #ffffff; border-color: var(--primary); }
+    .copy-btn.copied { background: var(--accent-green) !important; color: #ffffff !important; border-color: var(--accent-green) !important; }
+
+    .tag-kw { color: #ff7b72; font-weight: 600; }
+    .tag-type { color: #79c0ff; font-weight: 600; }
+    .tag-str { color: #a5d6ff; }
+    .tag-comment { color: #8b949e; font-style: italic; }
+    .tag-fn { color: #d2a8ff; }
+    .tag-num { color: #79c0ff; }
+
+    code:not(pre code) {
+      font-family: 'Fira Code', monospace;
+      font-size: 0.88em;
+      background: #eef2ff;
+      color: #4338ca;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .alert-box {
+      padding: 16px 20px; border-radius: 12px; margin: 18px 0; display: flex; gap: 14px; align-items: flex-start;
+      line-height: 1.6;
+    }
+    .alert-info { background: #eff6ff; border-left: 5px solid var(--secondary); color: #1e40af; }
+    .alert-warning { background: #fffbeb; border-left: 5px solid var(--accent-amber); color: #92400e; }
+    .alert-danger { background: #fef2f2; border-left: 5px solid var(--accent-rose); color: #991b1b; }
+
+    .table-container { overflow-x: auto; margin: 20px 0; border: 1px solid var(--card-border); border-radius: 12px; }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th, td { padding: 14px 18px; border-bottom: 1px solid var(--card-border); font-size: 0.92rem; }
+    th { background: #f8fafc; color: var(--primary-dark); font-weight: 700; }
+    tr:hover { background: #fbfdff; }
+
+    .page-nav {
+      display: flex; justify-content: space-between; align-items: center; margin-top: 40px; gap: 16px; flex-wrap: wrap;
+    }
+    .nav-btn-link {
+      display: inline-flex; align-items: center; gap: 8px; background: white; padding: 12px 24px;
+      border-radius: 12px; border: 1px solid var(--card-border); color: var(--primary-dark);
+      font-weight: 700; text-decoration: none; box-shadow: var(--shadow-sm); transition: all 0.2s;
+    }
+    .nav-btn-link:hover { background: var(--primary); color: white; transform: translateY(-2px); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="top-nav">
+      <a href="../index.html" class="back-btn">← Back to Java Index</a>
+      <span class="nav-tag">Java File I/O • Topic 4 of 6</span>
+    </div>
+
+    <!-- Hero Header -->
+    <div class="hero">
+      <h1>Deep Dive into File Class (java.io.File)</h1>
+      <p>Filesystem Metadata, Paths, File & Directory Creation, Inspections, and Folder Scanning</p>
+      <div class="hero-badges">
+        <span class="hero-badge">📁 java.io.File</span>
+        <span class="hero-badge">⚡ Metadata vs Content</span>
+        <span class="hero-badge">🛠️ mkdirs() & createNewFile()</span>
+        <span class="hero-badge">🇮🇳 Aadhaar Vault Manager</span>
+      </div>
+    </div>
+
+    <!-- 1. What is java.io.File? -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">💡</span>
+        <h2>1. The #1 Misconception Every Fresher Must Avoid</h2>
+      </div>
+
+      <div class="alert-box alert-danger">
+        <span style="font-size: 1.6rem;">🚫</span>
+        <div>
+          <strong>CRITICAL WARNING: The <code>File</code> class does NOT read or write file contents!</strong><br>
+          An instance of <code>java.io.File</code> is merely an <strong>abstract representation of a pathname</strong> (file or directory name on disk).
+          <br>• It can tell you: <em>"Does this file exist? How many bytes is it? Is it a folder? What is its path?"</em>
+          <br>• It <strong>CANNOT</strong> read lines of text or write bytes. For reading/writing contents, you use <strong>Streams</strong> (like <code>FileInputStream</code> or <code>BufferedReader</code>).
+        </div>
+      </div>
+
+      <h3 style="color: var(--primary-dark); margin: 20px 0 10px 0;">Common Constructors of File Class:</h3>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Constructor Signature</th>
+              <th>Description &amp; Example</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>File(String pathname)</code></td>
+              <td>Creates a File instance using a relative or absolute path.<br><code>File f = new File("aadhaar_kyc.xml");</code></td>
+            </tr>
+            <tr>
+              <td><code>File(String parent, String child)</code></td>
+              <td>Combines parent folder path with child file/folder name.<br><code>File f = new File("C:/uidai/vault", "user_101.txt");</code></td>
+            </tr>
+            <tr>
+              <td><code>File(File parent, String child)</code></td>
+              <td>Uses an existing parent File folder object.<br><code>File dir = new File("C:/uidai/vault"); File f = new File(dir, "user_101.txt");</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 2. Core Methods of File Class -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🛠️</span>
+        <h2>2. Comprehensive Methods of File Class</h2>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Method</th>
+              <th>Return Type</th>
+              <th>What It Does (Description)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>exists()</code></td>
+              <td><code>boolean</code></td>
+              <td>Returns <code>true</code> if the file or folder actually exists on the disk.</td>
+            </tr>
+            <tr>
+              <td><code>isFile()</code></td>
+              <td><code>boolean</code></td>
+              <td>Returns <code>true</code> if the target is a normal file (not a folder/directory).</td>
+            </tr>
+            <tr>
+              <td><code>isDirectory()</code></td>
+              <td><code>boolean</code></td>
+              <td>Returns <code>true</code> if the target is a directory/folder.</td>
+            </tr>
+            <tr>
+              <td><code>getName()</code></td>
+              <td><code>String</code></td>
+              <td>Returns the base name of the file or folder (e.g. <code>"passbook.csv"</code>).</td>
+            </tr>
+            <tr>
+              <td><code>getAbsolutePath()</code></td>
+              <td><code>String</code></td>
+              <td>Returns the full absolute system path (e.g. <code>"C:\banking\passbook.csv"</code>).</td>
+            </tr>
+            <tr>
+              <td><code>length()</code></td>
+              <td><code>long</code></td>
+              <td>Returns file size in <strong>bytes</strong> (0 if file does not exist or is a directory).</td>
+            </tr>
+            <tr>
+              <td><code>createNewFile()</code></td>
+              <td><code>boolean</code></td>
+              <td>Atomically creates a new empty file. Returns <code>true</code> if created, <code>false</code> if it already existed. Throws <code>IOException</code>.</td>
+            </tr>
+            <tr>
+              <td><code>mkdir()</code></td>
+              <td><code>boolean</code></td>
+              <td>Creates a single directory. Returns <code>false</code> if parent folders are missing.</td>
+            </tr>
+            <tr>
+              <td><code>mkdirs()</code></td>
+              <td><code>boolean</code></td>
+              <td><strong>Super Handy:</strong> Creates the directory <em>plus all missing parent directories</em> in the path!</td>
+            </tr>
+            <tr>
+              <td><code>delete()</code></td>
+              <td><code>boolean</code></td>
+              <td>Deletes the file or directory (directory must be completely empty to be deleted).</td>
+            </tr>
+            <tr>
+              <td><code>canRead()</code> / <code>canWrite()</code></td>
+              <td><code>boolean</code></td>
+              <td>Checks operating system read/write permissions for the current user.</td>
+            </tr>
+            <tr>
+              <td><code>list()</code></td>
+              <td><code>String[]</code></td>
+              <td>Returns an array of file/folder name strings inside this directory.</td>
+            </tr>
+            <tr>
+              <td><code>listFiles()</code></td>
+              <td><code>File[]</code></td>
+              <td>Returns an array of <code>File</code> objects inside this directory (ideal for inspecting nested files).</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="alert-box alert-info">
+        <span style="font-size: 1.4rem;">💡</span>
+        <div>
+          <strong><code>mkdir()</code> vs <code>mkdirs()</code>:</strong><br>
+          If folder <code>"C:/gov_india"</code> does not exist and you call <code>new File("C:/gov_india/aadhaar/vault").mkdir()</code>, it will <strong>FAIL</strong> (returns <code>false</code>).<br>
+          Calling <code>.mkdirs()</code> creates <code>gov_india</code>, <code>aadhaar</code>, and <code>vault</code> all in one step! Always prefer <code>mkdirs()</code>.
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Indian Real-World Example: UIDAI Aadhaar Vault Manager -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🇮🇳</span>
+        <h2>3. Real-World Indian Example: UIDAI Aadhaar Vault Manager</h2>
+      </div>
+
+      <p style="margin-bottom: 16px;">
+        Here is a complete, runnable Java program demonstrating all key <code>File</code> class methods in action:
+      </p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-file-badge">AadhaarVaultManager.java</div>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+        </div>
+        <pre><code><span class="tag-kw">import</span> java.io.<span class="tag-type">File</span>;
+<span class="tag-kw">import</span> java.io.<span class="tag-type">IOException</span>;
+
+<span class="tag-kw">public class</span> <span class="tag-type">AadhaarVaultManager</span> {
+
+    <span class="tag-kw">public static void</span> <span class="tag-fn">main</span>(String[] args) {
+        
+        System.out.println(<span class="tag-str">"=================================================="</span>);
+        System.out.println(<span class="tag-str">"    🇮🇳 UIDAI AADHAAR KYC SECURE VAULT MANAGER"</span>);
+        System.out.println(<span class="tag-str">"=================================================="</span>);
+
+        <span class="tag-comment">// -------------------------------------------------------------</span>
+        <span class="tag-comment">// 1. DIRECTORY SETUP: Create nested folder structure</span>
+        <span class="tag-comment">// -------------------------------------------------------------</span>
+        String vaultDirPath = <span class="tag-str">"uidai_records/secure_vault_2026"</span>;
+        <span class="tag-type">File</span> vaultDir = <span class="tag-kw">new</span> <span class="tag-type">File</span>(vaultDirPath);
+
+        <span class="tag-kw">if</span> (!vaultDir.<span class="tag-fn">exists</span>()) {
+            <span class="tag-comment">// mkdirs() creates both 'uidai_records' and 'secure_vault_2026' folders</span>
+            <span class="tag-kw">boolean</span> created = vaultDir.<span class="tag-fn">mkdirs</span>();
+            System.out.println(<span class="tag-str">"📁 Created new secure vault directory: "</span> + created);
+        } <span class="tag-kw">else</span> {
+            System.out.println(<span class="tag-str">"📁 Secure vault directory already exists."</span>);
+        }
+
+        <span class="tag-comment">// -------------------------------------------------------------</span>
+        <span class="tag-comment">// 2. FILE CREATION: Create a citizen's KYC record file</span>
+        <span class="tag-comment">// -------------------------------------------------------------</span>
+        <span class="tag-type">File</span> kycFile = <span class="tag-kw">new</span> <span class="tag-type">File</span>(vaultDir, <span class="tag-str">"aadhaar_5432_1098_7654.xml"</span>);
+
+        <span class="tag-kw">try</span> {
+            <span class="tag-kw">if</span> (kycFile.<span class="tag-fn">createNewFile</span>()) {
+                System.out.println(<span class="tag-str">"✅ New citizen KYC record created: "</span> + kycFile.<span class="tag-fn">getName</span>());
+            } <span class="tag-kw">else</span> {
+                System.out.println(<span class="tag-str">"ℹ️ Record file already exists on disk."</span>);
+            }
+        } <span class="tag-kw">catch</span> (<span class="tag-type">IOException</span> e) {
+            System.out.println(<span class="tag-str">"❌ Error creating KYC file: "</span> + e.<span class="tag-fn">getMessage</span>());
+        }
+
+        <span class="tag-comment">// -------------------------------------------------------------</span>
+        <span class="tag-comment">// 3. INSPECTION: Extracting Metadata from the File Object</span>
+        <span class="tag-comment">// -------------------------------------------------------------</span>
+        System.out.println(<span class="tag-str">"\n--- 📄 File Metadata Inspection ---"</span>);
+        System.out.println(<span class="tag-str">"File Name       : "</span> + kycFile.<span class="tag-fn">getName</span>());
+        System.out.println(<span class="tag-str">"Absolute Path   : "</span> + kycFile.<span class="tag-fn">getAbsolutePath</span>());
+        System.out.println(<span class="tag-str">"Parent Folder   : "</span> + kycFile.<span class="tag-fn">getParent</span>());
+        System.out.println(<span class="tag-str">"Is Directory?   : "</span> + kycFile.<span class="tag-fn">isDirectory</span>());
+        System.out.println(<span class="tag-str">"Is Normal File? : "</span> + kycFile.<span class="tag-fn">isFile</span>());
+        System.out.println(<span class="tag-str">"File Size       : "</span> + kycFile.<span class="tag-fn">length</span>() + <span class="tag-str">" bytes"</span>);
+        System.out.println(<span class="tag-str">"Can Read?       : "</span> + kycFile.<span class="tag-fn">canRead</span>());
+        System.out.println(<span class="tag-str">"Can Write?      : "</span> + kycFile.<span class="tag-fn">canWrite</span>());
+
+        <span class="tag-comment">// -------------------------------------------------------------</span>
+        <span class="tag-comment">// 4. DIRECTORY SCANNING: List all files in the vault folder</span>
+        <span class="tag-comment">// -------------------------------------------------------------</span>
+        System.out.println(<span class="tag-str">"\n--- 📂 Scanning Aadhaar Vault Folder ---"</span>);
+        <span class="tag-type">File</span>[] filesInVault = vaultDir.<span class="tag-fn">listFiles</span>();
+
+        <span class="tag-kw">if</span> (filesInVault != <span class="tag-kw">null</span> && filesInVault.length > <span class="tag-num">0</span>) {
+            <span class="tag-kw">for</span> (<span class="tag-type">File</span> f : filesInVault) {
+                System.out.println(<span class="tag-str">"-> Found: "</span> + f.<span class="tag-fn">getName</span>() + <span class="tag-str">" ("</span> + f.<span class="tag-fn">length</span>() + <span class="tag-str">" bytes)"</span>);
+            }
+        } <span class="tag-kw">else</span> {
+            System.out.println(<span class="tag-str">"Vault directory is currently empty."</span>);
+        }
+
+        System.out.println(<span class="tag-str">"=================================================="</span>);
+    }
+}</code></pre>
+      </div>
+
+      <div class="alert-box alert-info">
+        <span style="font-size: 1.4rem;">💡</span>
+        <div>
+          <strong>Expected Console Output:</strong>
+          <pre style="background: white; border: 1px solid #cbd5e1; padding: 12px; border-radius: 8px; margin-top: 8px; color: #1e293b;">==================================================
+    🇮🇳 UIDAI AADHAAR KYC SECURE VAULT MANAGER
+==================================================
+📁 Created new secure vault directory: true
+✅ New citizen KYC record created: aadhaar_5432_1098_7654.xml
+
+--- 📄 File Metadata Inspection ---
+File Name       : aadhaar_5432_1098_7654.xml
+Absolute Path   : T:\...\uidai_records\secure_vault_2026\aadhaar_5432_1098_7654.xml
+Parent Folder   : uidai_records\secure_vault_2026
+Is Directory?   : false
+Is Normal File? : true
+File Size       : 0 bytes
+Can Read?       : true
+Can Write?      : true
+
+--- 📂 Scanning Aadhaar Vault Folder ---
+-> Found: aadhaar_5432_1098_7654.xml (0 bytes)
+==================================================</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary Box -->
+    <div class="card" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-color: #86efac;">
+      <h3 style="color: #166534; margin-bottom: 12px;">📌 Key Takeaways for Freshers</h3>
+      <ul style="padding-left: 20px; color: #14532d; line-height: 1.8;">
+        <li><code>File</code> deals with <strong>metadata and file management</strong> (creation, deletion, checking existence, directory scanning), NOT writing text or bytes.</li>
+        <li>Always use <code>mkdirs()</code> instead of <code>mkdir()</code> when creating paths that may have missing parent directories.</li>
+        <li><code>createNewFile()</code> checks if the file already exists; if not, it creates a blank 0-byte file.</li>
+        <li><code>listFiles()</code> returns an array of <code>File</code> objects inside a folder, ideal for directory search algorithms.</li>
+      </ul>
+    </div>
+
+    <div class="page-nav">
+      <a href="stream_hierarchy.html" class="nav-btn-link">← Prev: Stream Hierarchy &amp; Types</a>
+      <a href="byte_streams_input_output.html" class="nav-btn-link">Next: Byte Streams (FileInputStream &amp; FileOutputStream) →</a>
+    </div>
+  </div>
+
+  <script>
+    function copyCode(btn) {
+      const codeBlock = btn.closest('.code-block');
+      const codeEl = codeBlock.querySelector('code, pre');
+      const text = codeEl ? codeEl.innerText : '';
+      navigator.clipboard.writeText(text).then(() => {
+        const orig = btn.innerText;
+        btn.innerText = '✓ Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.innerText = orig;
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    }
+  </script>
+</body>
+</html>

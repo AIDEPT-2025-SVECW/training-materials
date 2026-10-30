@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Java Stream Classes Hierarchy & Byte vs Character Streams | Java File I/O</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --secondary: #0284c7;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #ef4444;
+      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f1f5f9 100%);
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 10px 25px rgba(79, 70, 229, 0.07);
+      --shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      color: var(--text-main);
+      padding: 24px 16px;
+      line-height: 1.65;
+    }
+    .container { max-width: 1150px; margin: 0 auto; }
+    
+    .top-nav {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+    }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 8px; background: #ffffff; color: var(--primary-dark);
+      text-decoration: none; padding: 10px 20px; border-radius: 30px; font-weight: 600; font-size: 0.95rem;
+      border: 1px solid var(--card-border); box-shadow: var(--shadow-sm); transition: all 0.25s ease;
+    }
+    .back-btn:hover { background: var(--primary); color: #ffffff; transform: translateX(-4px); }
+    .nav-tag {
+      color: var(--text-muted); font-weight: 600; font-size: 0.9rem; background: rgba(255, 255, 255, 0.9);
+      padding: 6px 16px; border-radius: 20px; border: 1px solid var(--card-border);
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #4f46e5 0%, #0284c7 100%); color: #ffffff;
+      border-radius: 20px; padding: 40px 32px; text-align: center; box-shadow: var(--shadow-lg); margin-bottom: 32px;
+    }
+    .hero h1 { font-size: clamp(2rem, 4vw, 2.7rem); font-weight: 800; margin-bottom: 12px; }
+    .hero p { font-size: 1.15rem; opacity: 0.95; max-width: 820px; margin: 0 auto 20px auto; }
+    .hero-badges { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+    .hero-badge { background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(8px); padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+
+    .card {
+      background: var(--card-bg); border-radius: 16px; border: 1px solid var(--card-border);
+      padding: 28px; margin-bottom: 24px; box-shadow: var(--shadow-sm);
+    }
+    .section-title {
+      display: flex; align-items: center; gap: 12px; margin-bottom: 18px; border-bottom: 2px solid #f1f5f9; padding-bottom: 12px;
+    }
+    .section-title h2 { font-size: 1.45rem; color: var(--primary-dark); font-weight: 700; }
+    .section-title .icon {
+      font-size: 1.6rem; background: #e0e7ff; width: 44px; height: 44px; display: flex;
+      align-items: center; justify-content: center; border-radius: 12px; color: var(--primary);
+    }
+
+    /* Hierarchy Grid View */
+    .hierarchy-container {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin: 24px 0;
+    }
+    @media (max-width: 800px) {
+      .hierarchy-container { grid-template-columns: 1fr; }
+    }
+    .hierarchy-branch {
+      background: #f8fafc; border: 1px solid var(--card-border); border-radius: 16px; padding: 20px;
+    }
+    .branch-header {
+      font-size: 1.25rem; font-weight: 700; padding-bottom: 10px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .stream-subgroup {
+      background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px; margin-bottom: 16px;
+    }
+    .stream-subgroup-title {
+      font-weight: 700; font-size: 1rem; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;
+    }
+    .class-pill-list {
+      display: flex; flex-wrap: wrap; gap: 8px;
+    }
+    .class-pill {
+      background: #eef2ff; color: #4338ca; font-family: 'Fira Code', monospace; font-size: 0.82rem;
+      padding: 4px 10px; border-radius: 6px; border: 1px solid #c7d2fe;
+    }
+    .class-pill.nested {
+      background: #f0fdf4; color: #166534; border-color: #bbf7d0;
+    }
+
+    /* Diagram Image Box */
+    .diagram-image-card {
+      text-align: center; background: #ffffff; border: 2px dashed #cbd5e1; border-radius: 16px;
+      padding: 20px; margin: 20px 0; transition: all 0.25s ease;
+    }
+    .diagram-image-card:hover { border-color: var(--primary); box-shadow: var(--shadow-md); }
+    .diagram-img {
+      max-width: 100%; height: auto; border-radius: 10px; box-shadow: var(--shadow-sm); cursor: zoom-in;
+    }
+
+    /* Modal for Image Zoom */
+    .modal {
+      display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
+      background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(4px); align-items: center; justify-content: center;
+    }
+    .modal.active { display: flex; }
+    .modal-content { max-width: 90%; max-height: 90%; }
+    .modal-content img { width: 100%; height: auto; border-radius: 12px; }
+    .modal-close {
+      position: absolute; top: 20px; right: 30px; color: #ffffff; font-size: 40px; cursor: pointer;
+    }
+
+    /* Code Blocks */
+    .code-block {
+      background: #0f172a; border-radius: 12px; overflow: hidden; margin: 18px 0; box-shadow: var(--shadow-md);
+    }
+    .code-header {
+      background: #1e293b; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 1px solid #334155;
+    }
+    .code-file-badge { font-family: 'Fira Code', monospace; font-size: 0.85rem; color: #94a3b8; }
+    pre {
+      margin: 0; padding: 20px; overflow-x: auto; font-family: 'Fira Code', monospace;
+      font-size: 0.9rem; line-height: 1.6; white-space: pre;
+    }
+    .copy-btn {
+      background: rgba(255, 255, 255, 0.08); color: #c9d1d9; border: 1px solid #30363d;
+      padding: 5px 12px; border-radius: 6px; font-size: 0.78rem; font-weight: 500; cursor: pointer;
+      transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 6px; font-family: inherit;
+    }
+    .copy-btn:hover { background: var(--primary); color: #ffffff; border-color: var(--primary); }
+    .copy-btn.copied { background: var(--accent-green) !important; color: #ffffff !important; border-color: var(--accent-green) !important; }
+
+    .tag-kw { color: #ff7b72; font-weight: 600; }
+    .tag-type { color: #79c0ff; font-weight: 600; }
+    .tag-str { color: #a5d6ff; }
+    .tag-comment { color: #8b949e; font-style: italic; }
+    .tag-fn { color: #d2a8ff; }
+    .tag-num { color: #79c0ff; }
+
+    code:not(pre code) {
+      font-family: 'Fira Code', monospace;
+      font-size: 0.88em;
+      background: #eef2ff;
+      color: #4338ca;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .alert-box {
+      padding: 16px 20px; border-radius: 12px; margin: 18px 0; display: flex; gap: 14px; align-items: flex-start;
+      line-height: 1.6;
+    }
+    .alert-info { background: #eff6ff; border-left: 5px solid var(--secondary); color: #1e40af; }
+    .alert-warning { background: #fffbeb; border-left: 5px solid var(--accent-amber); color: #92400e; }
+    .alert-danger { background: #fef2f2; border-left: 5px solid var(--accent-rose); color: #991b1b; }
+
+    .table-container { overflow-x: auto; margin: 20px 0; border: 1px solid var(--card-border); border-radius: 12px; }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th, td { padding: 14px 18px; border-bottom: 1px solid var(--card-border); font-size: 0.92rem; }
+    th { background: #f8fafc; color: var(--primary-dark); font-weight: 700; }
+    tr:hover { background: #fbfdff; }
+
+    .page-nav {
+      display: flex; justify-content: space-between; align-items: center; margin-top: 40px; gap: 16px; flex-wrap: wrap;
+    }
+    .nav-btn-link {
+      display: inline-flex; align-items: center; gap: 8px; background: white; padding: 12px 24px;
+      border-radius: 12px; border: 1px solid var(--card-border); color: var(--primary-dark);
+      font-weight: 700; text-decoration: none; box-shadow: var(--shadow-sm); transition: all 0.2s;
+    }
+    .nav-btn-link:hover { background: var(--primary); color: white; transform: translateY(-2px); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="top-nav">
+      <a href="../index.html" class="back-btn">← Back to Java Index</a>
+      <span class="nav-tag">Java File I/O • Topic 3 of 6</span>
+    </div>
+
+    <!-- Hero Header -->
+    <div class="hero">
+      <h1>Java Stream Classes Hierarchy</h1>
+      <p>Mastering Byte Streams vs Character Streams & High-Level Architecture of all java.io Classes</p>
+      <div class="hero-badges">
+        <span class="hero-badge">🧬 8-bit Byte vs 16-bit Character</span>
+        <span class="hero-badge">📊 Complete Stream Hierarchy</span>
+        <span class="hero-badge">🇮🇳 Unicode & Indian Languages</span>
+        <span class="hero-badge">🔍 Interactive Class Tree</span>
+      </div>
+    </div>
+
+    <!-- 1. The Core Division: Byte Streams vs Character Streams -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">⚖️</span>
+        <h2>1. The Two Grand Kingdoms: Byte Streams vs Character Streams</h2>
+      </div>
+
+      <p style="font-size: 1.05rem; margin-bottom: 16px;">
+        Java divides the entire universe of I/O streams into two fundamentally distinct categories based on the <strong>unit of data</strong> being transferred:
+      </p>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Comparison Factor</th>
+              <th style="color: #4338ca;">Byte Streams (Binary Oriented)</th>
+              <th style="color: #0284c7;">Character Streams (Text Oriented)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Base Unit</strong></td>
+              <td><strong>8-bit Bytes</strong> (1 Byte = 8 bits, <code>0 to 255</code>)</td>
+              <td><strong>16-bit Unicode Characters</strong> (2 Bytes, <code>UTF-16</code>)</td>
+            </tr>
+            <tr>
+              <td><strong>Root Superclasses</strong></td>
+              <td><code>InputStream</code> (Read) &amp; <code>OutputStream</code> (Write)</td>
+              <td><code>Reader</code> (Read) &amp; <code>Writer</code> (Write)</td>
+            </tr>
+            <tr>
+              <td><strong>Naming Suffix</strong></td>
+              <td>End with <code>*Stream</code> (e.g. <code>FileInputStream</code>)</td>
+              <td>End with <code>*Reader</code> or <code>*Writer</code> (e.g. <code>FileReader</code>)</td>
+            </tr>
+            <tr>
+              <td><strong>Best Used For</strong></td>
+              <td><strong>Binary Files:</strong> Images (PNG, JPG), Audio (MP3), Videos (MP4), PDFs, Zip files, compiled bytecode.</td>
+              <td><strong>Human Readable Text:</strong> Plain text (<code>.txt</code>), Source code (<code>.java</code>), CSV files, JSON, XML, HTML.</td>
+            </tr>
+            <tr>
+              <td><strong>Indian Context Relevance</strong></td>
+              <td>Used to copy Aadhaar QR code images or PDF bank statements byte-for-byte.</td>
+              <td>Used to read/write passenger names in Indian languages (Hindi: <code>रोहित</code>, Telugu: <code>రోహిత్</code>, Tamil: <code>ரோஹித்</code>) safely without corrupting characters.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="alert-box alert-warning">
+        <span style="font-size: 1.5rem;">⚠️</span>
+        <div>
+          <strong>Why Character Streams Were Added in Java 1.1:</strong><br>
+          Java 1.0 only had Byte Streams. While English ASCII characters fit into 1 byte (0-127), Indian languages (Hindi, Tamil, Telugu, Bengali) and global scripts require <strong>2 to 4 bytes</strong> under UTF-8 / UTF-16! If you read a Hindi text file byte-by-byte using an <code>InputStream</code>, characters get split in half and turn into garbage question marks (<code>???</code>). Character Streams (<code>Reader</code> & <code>Writer</code>) automatically handle character encoding and decode whole letters cleanly.
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. The Visual Hierarchy Diagram -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🖼️</span>
+        <h2>2. Visual Stream Classes Hierarchy Diagram</h2>
+      </div>
+
+      <p style="margin-bottom: 16px;">
+        Here is the standard, authoritative visual architecture of <strong>Java Stream Classes</strong>. Click the diagram to inspect in full zoom:
+      </p>
+
+      <div class="diagram-image-card">
+        <img src="java_stream_classes_hierarchy.png" alt="Java Stream Classes Hierarchy Diagram" class="diagram-img" onclick="openImageModal()" />
+        <div style="margin-top: 10px; font-size: 0.88rem; color: var(--text-muted);">
+          🔍 Click image to enlarge full architecture
+        </div>
+      </div>
+    </div>
+
+    <!-- Lightbox Modal -->
+    <div id="imgModal" class="modal" onclick="closeImageModal()">
+      <span class="modal-close" onclick="closeImageModal()">&times;</span>
+      <div class="modal-content" onclick="event.stopPropagation()">
+        <img src="java_stream_classes_hierarchy.png" alt="Java Stream Classes Hierarchy Enlarged" />
+      </div>
+    </div>
+
+    <!-- 3. Interactive Structural Breakdown of the Hierarchy -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🌳</span>
+        <h2>3. Deep Structural Breakdown of All Classes in the Diagram</h2>
+      </div>
+
+      <p style="margin-bottom: 16px;">
+        Notice how beautifully symmetric Java's I/O framework is. There are <strong>4 core abstract classes</strong> at the top:
+      </p>
+
+      <div class="hierarchy-container">
+        <!-- BYTE STREAMS COLUMN -->
+        <div class="hierarchy-branch" style="border-top: 5px solid var(--primary);">
+          <div class="branch-header">
+            <span style="color: var(--primary-dark);">⚡ 1. BYTE STREAMS (8-bit)</span>
+            <span style="font-size: 0.8rem; background: #e0e7ff; color: var(--primary); padding: 4px 8px; border-radius: 6px;">Binary</span>
+          </div>
+
+          <!-- InputStream -->
+          <div class="stream-subgroup">
+            <div class="stream-subgroup-title" style="color: #166534;">
+              📥 InputStream <span style="font-size: 0.8rem; color: #475569; font-weight: normal;">(Abstract Root for Reading Bytes)</span>
+            </div>
+            <div class="class-pill-list">
+              <span class="class-pill" title="Reads raw bytes from hard disk file">FileInputStream</span>
+              <span class="class-pill" title="Reads bytes from in-memory byte array">ByteArrayInputStream</span>
+              <span class="class-pill" title="Deserializes objects from binary stream">ObjectInputStream</span>
+              <span class="class-pill" title="Combines multiple input streams into one sequentially">SequenceInputStream</span>
+              <span class="class-pill" title="Filter wrapper adding features to streams">FilterInputStream</span>
+            </div>
+            <div style="margin-top: 8px; padding-left: 14px; border-left: 2px dashed #bbf7d0;">
+              <span style="font-size: 0.82rem; color: #166534; font-weight: 600;">Subclasses of FilterInputStream:</span>
+              <div class="class-pill-list" style="margin-top: 6px;">
+                <span class="class-pill nested" title="High-speed memory buffered byte reading">BufferedInputStream</span>
+                <span class="class-pill nested" title="Reads primitive types (int, float, boolean)">DataInputStream</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- OutputStream -->
+          <div class="stream-subgroup">
+            <div class="stream-subgroup-title" style="color: #0369a1;">
+              📤 OutputStream <span style="font-size: 0.8rem; color: #475569; font-weight: normal;">(Abstract Root for Writing Bytes)</span>
+            </div>
+            <div class="class-pill-list">
+              <span class="class-pill" title="Writes raw bytes directly to disk file">FileOutputStream</span>
+              <span class="class-pill" title="Writes bytes to in-memory byte buffer">ByteArrayOutputStream</span>
+              <span class="class-pill" title="Serializes Java objects into bytes">ObjectOutputStream</span>
+              <span class="class-pill" title="Pipes data between concurrent threads">PipedOutputStream</span>
+              <span class="class-pill" title="Filter wrapper for writing streams">FilterOutputStream</span>
+            </div>
+            <div style="margin-top: 8px; padding-left: 14px; border-left: 2px dashed #bae6fd;">
+              <span style="font-size: 0.82rem; color: #0369a1; font-weight: 600;">Subclasses of FilterOutputStream:</span>
+              <div class="class-pill-list" style="margin-top: 6px;">
+                <span class="class-pill nested" title="High-speed memory buffered byte writing">BufferedOutputStream</span>
+                <span class="class-pill nested" title="Writes primitive types (int, float, boolean)">DataOutputStream</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CHARACTER STREAMS COLUMN -->
+        <div class="hierarchy-branch" style="border-top: 5px solid var(--secondary);">
+          <div class="branch-header">
+            <span style="color: var(--secondary);">📝 2. CHARACTER STREAMS (16-bit)</span>
+            <span style="font-size: 0.8rem; background: #e0f2fe; color: var(--secondary); padding: 4px 8px; border-radius: 6px;">Text / Unicode</span>
+          </div>
+
+          <!-- Reader -->
+          <div class="stream-subgroup">
+            <div class="stream-subgroup-title" style="color: #92400e;">
+              📖 Reader <span style="font-size: 0.8rem; color: #475569; font-weight: normal;">(Abstract Root for Reading Characters)</span>
+            </div>
+            <div class="class-pill-list">
+              <span class="class-pill" title="Efficient line-by-line buffered text reading">BufferedReader</span>
+              <span class="class-pill" title="Reads from character array in RAM">CharArrayReader</span>
+              <span class="class-pill" title="Reads characters from a String">StringReader</span>
+              <span class="class-pill" title="Filter wrapper for readers">FilterReader</span>
+              <span class="class-pill" title="Bridge converting Byte Stream to Character Stream">InputStreamReader</span>
+            </div>
+            <div style="margin-top: 8px; padding-left: 14px; border-left: 2px dashed #fde68a;">
+              <span style="font-size: 0.82rem; color: #92400e; font-weight: 600;">Subclass of InputStreamReader:</span>
+              <div class="class-pill-list" style="margin-top: 6px;">
+                <span class="class-pill nested" title="Convenience reader for character text files">FileReader</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Writer -->
+          <div class="stream-subgroup">
+            <div class="stream-subgroup-title" style="color: #991b1b;">
+              ✍️ Writer <span style="font-size: 0.8rem; color: #475569; font-weight: normal;">(Abstract Root for Writing Characters)</span>
+            </div>
+            <div class="class-pill-list">
+              <span class="class-pill" title="High-speed buffered text writer with newLine()">BufferedWriter</span>
+              <span class="class-pill" title="Writes characters to internal char buffer">CharArrayWriter</span>
+              <span class="class-pill" title="Writes characters into a StringBuffer">StringWriter</span>
+              <span class="class-pill" title="Filter wrapper for writers">FilterWriter</span>
+              <span class="class-pill" title="Bridge converting Character Stream to Byte Stream">OutputStreamWriter</span>
+            </div>
+            <div style="margin-top: 8px; padding-left: 14px; border-left: 2px dashed #fecaca;">
+              <span style="font-size: 0.82rem; color: #991b1b; font-weight: 600;">Subclass of OutputStreamWriter:</span>
+              <div class="class-pill-list" style="margin-top: 6px;">
+                <span class="class-pill nested" title="Convenience writer for character text files">FileWriter</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. Comprehensive Class Reference Matrix -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">📋</span>
+        <h2>4. High-Level Summary of Every Class in the Diagram</h2>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Class Name</th>
+              <th>Category</th>
+              <th>Role</th>
+              <th>Real-World Example</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>FileInputStream</code></td>
+              <td>Byte • Input</td>
+              <td>Reads raw bytes from file on disk.</td>
+              <td>Reading Aadhaar QR code image (<code>.png</code>) or audio recording.</td>
+            </tr>
+            <tr>
+              <td><code>FileOutputStream</code></td>
+              <td>Byte • Output</td>
+              <td>Writes raw bytes to file on disk.</td>
+              <td>Saving downloaded SBI PDF bank statement to disk.</td>
+            </tr>
+            <tr>
+              <td><code>BufferedInputStream</code></td>
+              <td>Byte • Input</td>
+              <td>Wraps another byte stream with an internal 8KB buffer in RAM.</td>
+              <td>Fast streaming of large video/binary datasets.</td>
+            </tr>
+            <tr>
+              <td><code>BufferedOutputStream</code></td>
+              <td>Byte • Output</td>
+              <td>Batches bytes in RAM buffer before flushing to disk.</td>
+              <td>High-throughput logging of binary telemetry packets.</td>
+            </tr>
+            <tr>
+              <td><code>DataInputStream</code> / <code>Out</code></td>
+              <td>Byte • In/Out</td>
+              <td>Reads/writes Java primitive types (<code>readInt()</code>, <code>writeDouble()</code>) in binary format.</td>
+              <td>Storing game high scores or encrypted financial numbers in compact binary.</td>
+            </tr>
+            <tr>
+              <td><code>ObjectInputStream</code> / <code>Out</code></td>
+              <td>Byte • In/Out</td>
+              <td>Object Serialization & Deserialization.</td>
+              <td>Saving whole <code>Employee</code> or <code>Order</code> Java objects to disk.</td>
+            </tr>
+            <tr>
+              <td><code>InputStreamReader</code></td>
+              <td>Char • Input</td>
+              <td><strong>The Bridge:</strong> Reads bytes and decodes them into characters using a charset (UTF-8).</td>
+              <td>Wrapping <code>System.in</code>: <code>new InputStreamReader(System.in)</code>.</td>
+            </tr>
+            <tr>
+              <td><code>OutputStreamWriter</code></td>
+              <td>Char • Output</td>
+              <td><strong>The Bridge:</strong> Encodes characters into bytes before writing to a byte stream.</td>
+              <td>Writing UTF-8 text directly to network socket output stream.</td>
+            </tr>
+            <tr>
+              <td><code>FileReader</code></td>
+              <td>Char • Input</td>
+              <td>Convenience class extending <code>InputStreamReader</code> for reading text files.</td>
+              <td>Reading simple config files (<code>config.properties</code>).</td>
+            </tr>
+            <tr>
+              <td><code>FileWriter</code></td>
+              <td>Char • Output</td>
+              <td>Convenience class extending <code>OutputStreamWriter</code> for writing text files.</td>
+              <td>Writing customer receipt notes in plain text.</td>
+            </tr>
+            <tr>
+              <td><code>BufferedReader</code></td>
+              <td>Char • Input</td>
+              <td>Buffers characters and offers the invaluable <code>readLine()</code> method.</td>
+              <td>Processing IRCTC passenger manifest CSV line-by-line.</td>
+            </tr>
+            <tr>
+              <td><code>BufferedWriter</code></td>
+              <td>Char • Output</td>
+              <td>Buffers written characters and provides <code>newLine()</code> and <code>flush()</code>.</td>
+              <td>Writing large Swiggy daily order ledger files with fast performance.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Summary Box -->
+    <div class="card" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-color: #86efac;">
+      <h3 style="color: #166534; margin-bottom: 12px;">📌 Key Takeaways for Freshers</h3>
+      <ul style="padding-left: 20px; color: #14532d; line-height: 1.8;">
+        <li><strong>Byte Streams (InputStream / OutputStream):</strong> Operate on 8-bit bytes. Use for binary files (images, audio, videos, PDFs).</li>
+        <li><strong>Character Streams (Reader / Writer):</strong> Operate on 16-bit characters. Use for text files, JSON, CSV, and Indian languages (UTF-8).</li>
+        <li><strong>Bridge Classes:</strong> <code>InputStreamReader</code> and <code>OutputStreamWriter</code> connect the Byte world with the Character world.</li>
+        <li><strong>Buffering is King:</strong> Always wrap file readers/writers inside <code>BufferedReader</code> or <code>BufferedWriter</code> for real production performance!</li>
+      </ul>
+    </div>
+
+    <div class="page-nav">
+      <a href="streams_and_standard_streams.html" class="nav-btn-link">← Prev: Streaming &amp; Standard Streams</a>
+      <a href="file_class.html" class="nav-btn-link">Next: Deep Dive into File Class →</a>
+    </div>
+  </div>
+
+  <script>
+    function openImageModal() {
+      document.getElementById('imgModal').classList.add('active');
+    }
+    function closeImageModal() {
+      document.getElementById('imgModal').classList.remove('active');
+    }
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closeImageModal();
+    });
+  </script>
+</body>
+</html>

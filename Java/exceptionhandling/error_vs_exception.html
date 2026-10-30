@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Differences Between Error and Exception | Java</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --secondary: #0284c7;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #ef4444;
+      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f1f5f9 100%);
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 10px 25px rgba(79, 70, 229, 0.07);
+      --shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      color: var(--text-main);
+      padding: 24px 16px;
+      line-height: 1.65;
+    }
+    .container { max-width: 1100px; margin: 0 auto; }
+    
+    .top-nav {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+    }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 8px; background: #ffffff; color: var(--primary-dark);
+      text-decoration: none; padding: 10px 20px; border-radius: 30px; font-weight: 600; font-size: 0.95rem;
+      border: 1px solid var(--card-border); box-shadow: var(--shadow-sm); transition: all 0.25s ease;
+    }
+    .back-btn:hover { background: var(--primary); color: #ffffff; transform: translateX(-4px); }
+    .nav-tag {
+      color: var(--text-muted); font-weight: 600; font-size: 0.9rem; background: rgba(255, 255, 255, 0.9);
+      padding: 6px 16px; border-radius: 20px; border: 1px solid var(--card-border);
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #4f46e5 0%, #0284c7 100%); color: #ffffff;
+      border-radius: 20px; padding: 40px 32px; text-align: center; box-shadow: var(--shadow-lg); margin-bottom: 32px;
+    }
+    .hero h1 { font-size: clamp(2rem, 4vw, 2.7rem); font-weight: 800; margin-bottom: 12px; }
+    .hero p { font-size: 1.15rem; opacity: 0.95; max-width: 780px; margin: 0 auto 20px auto; }
+    .hero-badges { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+    .hero-badge { background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(8px); padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+
+    .card {
+      background: var(--card-bg); border-radius: 18px; padding: 32px; margin-bottom: 32px;
+      box-shadow: var(--shadow-md); border: 1px solid var(--card-border);
+    }
+    .section-title {
+      font-size: 1.5rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 18px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .section-title .icon {
+      font-size: 1.4rem; background: #eef2ff; width: 44px; height: 44px;
+      display: flex; align-items: center; justify-content: center; border-radius: 12px; color: var(--primary);
+    }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    @media (max-width: 820px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    .concept-box {
+      background: #f8fafc; border-left: 4px solid var(--primary); padding: 20px; border-radius: 0 12px 12px 0; margin-bottom: 16px;
+    }
+    .concept-box h3 { font-size: 1.1rem; color: var(--primary-dark); margin-bottom: 8px; }
+
+    .table-container { overflow-x: auto; margin: 20px 0; border: 1px solid var(--card-border); border-radius: 12px; }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th, td { padding: 14px 18px; border-bottom: 1px solid var(--card-border); font-size: 0.92rem; }
+    th { background: #f8fafc; color: var(--primary-dark); font-weight: 700; }
+    tr:hover { background: #fbfdff; }
+
+    .code-block {
+      background: #0d1117; color: #e6edf3; border-radius: 12px; position: relative;
+      margin: 18px 0; border: 1px solid #30363d; overflow: hidden; font-family: 'Fira Code', monospace;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    }
+    .code-header {
+      display: flex; justify-content: space-between; align-items: center; padding: 10px 16px;
+      background: #161b22; border-bottom: 1px solid #30363d; font-size: 0.85rem; color: #8b949e;
+      font-family: 'Fira Code', monospace;
+    }
+    .code-file-badge {
+      display: inline-flex; align-items: center; gap: 8px; font-weight: 600; color: #c9d1d9;
+    }
+    .code-file-badge::before {
+      content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #e3b341;
+    }
+    .code-block pre {
+      margin: 0; padding: 18px 20px; overflow-x: auto; font-family: 'Fira Code', monospace;
+      font-size: 0.9rem; line-height: 1.6; white-space: pre;
+    }
+    .copy-btn {
+      background: rgba(255, 255, 255, 0.08); color: #c9d1d9; border: 1px solid #30363d;
+      padding: 5px 12px; border-radius: 6px; font-size: 0.78rem; font-weight: 500; cursor: pointer;
+      transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 6px; font-family: inherit;
+    }
+    .copy-btn:hover { background: var(--primary); color: #ffffff; border-color: var(--primary); }
+    .copy-btn.copied { background: var(--accent-green) !important; color: #ffffff !important; border-color: var(--accent-green) !important; }
+
+    .tag-kw { color: #ff7b72; font-weight: 600; }
+    .tag-type { color: #79c0ff; font-weight: 600; }
+    .tag-str { color: #a5d6ff; }
+    .tag-comment { color: #8b949e; font-style: italic; }
+    .tag-fn { color: #d2a8ff; }
+    .tag-num { color: #79c0ff; }
+
+    code:not(pre code) {
+      font-family: 'Fira Code', monospace;
+      font-size: 0.88em;
+      background: #eef2ff;
+      color: #4338ca;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .alert-box {
+      padding: 16px 20px; border-radius: 12px; margin: 18px 0; display: flex; gap: 14px; align-items: flex-start;
+      line-height: 1.6;
+    }
+    .alert-info { background: #eff6ff; border-left: 5px solid var(--secondary); color: #1e40af; }
+    .alert-warning { background: #fffbeb; border-left: 5px solid var(--accent-amber); color: #92400e; }
+    .alert-danger { background: #fef2f2; border-left: 5px solid var(--accent-rose); color: #991b1b; }
+
+    .page-nav {
+      display: flex; justify-content: space-between; align-items: center; margin-top: 40px; gap: 16px; flex-wrap: wrap;
+    }
+    .nav-btn-link {
+      display: inline-flex; align-items: center; gap: 8px; background: white; padding: 12px 24px;
+      border-radius: 12px; border: 1px solid var(--card-border); color: var(--primary-dark);
+      font-weight: 700; text-decoration: none; box-shadow: var(--shadow-sm); transition: all 0.2s;
+    }
+    .nav-btn-link:hover { background: var(--primary); color: white; transform: translateY(-2px); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="top-nav">
+      <a href="../index.html" class="back-btn">← Back to Java Index</a>
+      <span class="nav-tag">🛡️ Module: Exception Handling (Topic 2/6)</span>
+    </div>
+
+    <div class="hero">
+      <h1>Differences Between Error and Exception</h1>
+      <p>Understand the two major branches of <code>java.lang.Throwable</code>, why developers handle Exceptions but never catch Errors, and key interview distinctions.</p>
+      <div class="hero-badges">
+        <span class="hero-badge">⚖️ Error vs Exception</span>
+        <span class="hero-badge">🧬 java.lang.Throwable</span>
+        <span class="hero-badge">💥 Fatal vs Recoverable</span>
+      </div>
+    </div>
+
+    <!-- 1. WHY PART -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">❓</span>
+        <h2>1. WHY: Why Does Java Differentiate Between Error &amp; Exception?</h2>
+      </div>
+
+      <p style="font-size: 1.05rem; margin-bottom: 18px;">
+        Both <code>Error</code> and <code>Exception</code> represent disruptions during runtime. However, Java makes a strict distinction based on <strong>who caused it</strong> and <strong>whether the application can recover</strong>:
+      </p>
+
+      <!-- Real World Indian Analogy -->
+      <div class="grid-2">
+        <div class="concept-box" style="border-left-color: var(--accent-rose);">
+          <h3 style="color: #991b1b;">🛑 What an Error Feels Like (Fatal)</h3>
+          <p>
+            Imagine an entire railway station building collapses or a massive earthquake breaks the railway tracks into pieces. No train driver can "handle" this situation through code. The train service must halt immediately. This is an <strong>Error</strong> (hardware failure, out of memory, stack overflow).
+          </p>
+        </div>
+
+        <div class="concept-box" style="border-left-color: var(--secondary);">
+          <h3 style="color: #0369a1;">⚠️ What an Exception Feels Like (Recoverable)</h3>
+          <p>
+            Now imagine a passenger forgot their printed train ticket at home. The Ticket Examiner (TTE) doesn't stop the entire train! Instead, the passenger opens <em>DigiLocker</em> on their smartphone and shows the digital Aadhaar and ticket. The problem is resolved, and the journey continues. This is an <strong>Exception</strong>.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. WHAT PART: COMPARISON TABLE -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">💡</span>
+        <h2>2. WHAT: Side-by-Side Comparison (Error vs Exception)</h2>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 20%;">Criteria</th>
+              <th style="width: 40%; color: #dc2626;">💥 java.lang.Error</th>
+              <th style="width: 40%; color: #16a34a;">🛡️ java.lang.Exception</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Definition</strong></td>
+              <td>Serious system-level problems indicating fatal failure of the JVM or environment.</td>
+              <td>Abnormal application-level conditions that a reasonable program should anticipate and handle.</td>
+            </tr>
+            <tr>
+              <td><strong>Can We Recover?</strong></td>
+              <td><strong>Irrecoverable.</strong> Once an Error occurs, program termination is virtually inevitable.</td>
+              <td><strong>Recoverable.</strong> The program can catch it, recover, and continue processing normally.</td>
+            </tr>
+            <tr>
+              <td><strong>Origin</strong></td>
+              <td>Environment, hardware, or JVM internal resource depletion.</td>
+              <td>Programmer code logic bugs or invalid external user inputs.</td>
+            </tr>
+            <tr>
+              <td><strong>Category</strong></td>
+              <td>Always <strong>Unchecked</strong>. The compiler never requires you to catch or declare Errors.</td>
+              <td>Can be <strong>Checked</strong> (e.g. <code>IOException</code>) or <strong>Unchecked</strong> (e.g. <code>NullPointerException</code>).</td>
+            </tr>
+            <tr>
+              <td><strong>Should We Catch It?</strong></td>
+              <td><strong>NO!</strong> Catching Errors in <code>try-catch</code> is considered an anti-pattern.</td>
+              <td><strong>YES!</strong> Recommended to write <code>catch</code> blocks to handle anticipated exceptions.</td>
+            </tr>
+            <tr>
+              <td><strong>Top Examples</strong></td>
+              <td>
+                • <code>OutOfMemoryError</code> (Heap full)<br/>
+                • <code>StackOverflowError</code> (Infinite recursion)<br/>
+                • <code>VirtualMachineError</code><br/>
+                • <code>NoClassDefFoundError</code>
+              </td>
+              <td>
+                • <code>ArithmeticException</code> (divide by 0)<br/>
+                • <code>NullPointerException</code> (null call)<br/>
+                • <code>FileNotFoundException</code> (missing file)<br/>
+                • <code>SQLException</code> (database issue)
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="alert-box alert-danger">
+        <span style="font-size: 1.3rem;">⚠️</span>
+        <div>
+          <strong>Golden Rule for Freshers:</strong> Never write <code>catch (Error e)</code> or <code>catch (Throwable t)</code> in your routine business logic! If your JVM runs out of RAM (<code>OutOfMemoryError</code>), your Java program cannot magically create more physical RAM chips. Let the JVM terminate so developers can fix the memory leak.
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. HOW PART: CODE COMPARISON -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🛠️</span>
+        <h2>3. HOW: Demonstrating Error vs Exception in Java</h2>
+      </div>
+
+      <p style="margin-bottom: 16px;">
+        Here is a simple example showing how an application easily recovers from an <code>Exception</code>, while an <code>Error</code> exhausts system memory and cannot be resolved by application logic:
+      </p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-file-badge">ErrorVsExceptionDemo.java</div>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+        </div>
+        <pre><code><span class="tag-comment">// Demonstrating Recoverable Exception vs Fatal Error</span>
+<span class="tag-kw">public class</span> <span class="tag-type">ErrorVsExceptionDemo</span> {
+
+    <span class="tag-comment">// 1. EXCEPTION: Recoverable application problem (e.g., ATM withdrawal)</span>
+    <span class="tag-kw">public static void</span> <span class="tag-fn">handleAtmWithdrawal</span>() {
+        System.out.println(<span class="tag-str">"\n--- 1. Testing Exception Handling (Recoverable) ---"</span>);
+        <span class="tag-kw">try</span> {
+            <span class="tag-kw">int</span> accountBalance = <span class="tag-num">5000</span>;
+            <span class="tag-kw">int</span> withdrawalAmount = <span class="tag-num">0</span>; <span class="tag-comment">// Invalid input</span>
+            
+            <span class="tag-comment">// Dividing by 0 throws ArithmeticException</span>
+            <span class="tag-kw">int</span> notesDispensed = accountBalance / withdrawalAmount;
+            System.out.println(<span class="tag-str">"Notes dispensed: "</span> + notesDispensed);
+
+        } <span class="tag-kw">catch</span> (<span class="tag-type">ArithmeticException</span> ex) {
+            <span class="tag-comment">// Gracefully handled: ATM screen stays on and informs customer!</span>
+            System.out.println(<span class="tag-str">"🛡️ Recovered: Invalid amount! Please enter amount > 0."</span>);
+        }
+        System.out.println(<span class="tag-str">"✅ ATM System remains alive and ready for next customer!"</span>);
+    }
+
+    <span class="tag-comment">// 2. ERROR: Fatal environment failure (StackOverflowError via infinite recursion)</span>
+    <span class="tag-kw">public static void</span> <span class="tag-fn">infiniteRecursiveCall</span>(<span class="tag-kw">int</span> counter) {
+        <span class="tag-comment">// Every method call adds a frame to JVM Call Stack.</span>
+        <span class="tag-comment">// Without a base condition, the stack memory runs out completely!</span>
+        <span class="tag-fn">infiniteRecursiveCall</span>(counter + <span class="tag-num">1</span>);
+    }
+
+    <span class="tag-kw">public static void</span> <span class="tag-fn">main</span>(String[] args) {
+        <span class="tag-comment">// Part A: Exceptions are caught and recovered</span>
+        <span class="tag-fn">handleAtmWithdrawal</span>();
+
+        <span class="tag-comment">// Part B: Errors are fatal (Uncommenting below crashes the JVM stack)</span>
+        System.out.println(<span class="tag-str">"\n--- 2. Simulating Fatal Error ---"</span>);
+        System.out.println(<span class="tag-str">"Calling infinite recursion (will exhaust JVM stack memory)..."</span>);
+        <span class="tag-comment">// infiniteRecursiveCall(1); // Throws java.lang.StackOverflowError</span>
+    }
+}</code></pre>
+      </div>
+    </div>
+
+    <!-- Summary Box -->
+    <div class="card" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-color: #86efac;">
+      <h3 style="color: #166534; margin-bottom: 12px;">📌 Key Takeaways for Freshers</h3>
+      <ul style="padding-left: 20px; color: #14532d; line-height: 1.8;">
+        <li><strong>Hierarchy:</strong> Both <code>Error</code> and <code>Exception</code> directly extend <code>java.lang.Throwable</code>.</li>
+        <li><strong>Exceptions:</strong> Caused by your application code or user input. They are <em>recoverable</em> using <code>try-catch</code>.</li>
+        <li><strong>Errors:</strong> Caused by JVM environment failure (memory exhausted, stack overflow). They are <em>fatal</em> and should never be caught.</li>
+      </ul>
+    </div>
+
+    <div class="page-nav">
+      <a href="exceptions_intro.html" class="nav-btn-link">← Prev: What is an Exception</a>
+      <a href="exception_hierarchy.html" class="nav-btn-link">Next: Hierarchy of Exception Classes →</a>
+    </div>
+  </div>
+
+  <script>
+    function copyCode(btn) {
+      const codeBlock = btn.closest('.code-block');
+      const codeEl = codeBlock.querySelector('code, pre');
+      const text = codeEl ? codeEl.innerText : '';
+      navigator.clipboard.writeText(text).then(() => {
+        const orig = btn.innerText;
+        btn.innerText = '✓ Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.innerText = orig;
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    }
+  </script>
+</body>
+</html>

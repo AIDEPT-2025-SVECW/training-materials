@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Byte Streams Deep Dive: FileInputStream & FileOutputStream | Java File I/O</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --secondary: #0284c7;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #ef4444;
+      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f1f5f9 100%);
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 10px 25px rgba(79, 70, 229, 0.07);
+      --shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      color: var(--text-main);
+      padding: 24px 16px;
+      line-height: 1.65;
+    }
+    .container { max-width: 1100px; margin: 0 auto; }
+    
+    .top-nav {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+    }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 8px; background: #ffffff; color: var(--primary-dark);
+      text-decoration: none; padding: 10px 20px; border-radius: 30px; font-weight: 600; font-size: 0.95rem;
+      border: 1px solid var(--card-border); box-shadow: var(--shadow-sm); transition: all 0.25s ease;
+    }
+    .back-btn:hover { background: var(--primary); color: #ffffff; transform: translateX(-4px); }
+    .nav-tag {
+      color: var(--text-muted); font-weight: 600; font-size: 0.9rem; background: rgba(255, 255, 255, 0.9);
+      padding: 6px 16px; border-radius: 20px; border: 1px solid var(--card-border);
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #4f46e5 0%, #0284c7 100%); color: #ffffff;
+      border-radius: 20px; padding: 40px 32px; text-align: center; box-shadow: var(--shadow-lg); margin-bottom: 32px;
+    }
+    .hero h1 { font-size: clamp(2rem, 4vw, 2.7rem); font-weight: 800; margin-bottom: 12px; }
+    .hero p { font-size: 1.15rem; opacity: 0.95; max-width: 780px; margin: 0 auto 20px auto; }
+    .hero-badges { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+    .hero-badge { background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(8px); padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+
+    .card {
+      background: var(--card-bg); border-radius: 16px; border: 1px solid var(--card-border);
+      padding: 28px; margin-bottom: 24px; box-shadow: var(--shadow-sm);
+    }
+    .section-title {
+      display: flex; align-items: center; gap: 12px; margin-bottom: 18px; border-bottom: 2px solid #f1f5f9; padding-bottom: 12px;
+    }
+    .section-title h2 { font-size: 1.45rem; color: var(--primary-dark); font-weight: 700; }
+    .section-title .icon {
+      font-size: 1.6rem; background: #e0e7ff; width: 44px; height: 44px; display: flex;
+      align-items: center; justify-content: center; border-radius: 12px; color: var(--primary);
+    }
+
+    /* Code Blocks */
+    .code-block {
+      background: #0f172a; border-radius: 12px; overflow: hidden; margin: 18px 0; box-shadow: var(--shadow-md);
+    }
+    .code-header {
+      background: #1e293b; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 1px solid #334155;
+    }
+    .code-file-badge { font-family: 'Fira Code', monospace; font-size: 0.85rem; color: #94a3b8; }
+    pre {
+      margin: 0; padding: 20px; overflow-x: auto; font-family: 'Fira Code', monospace;
+      font-size: 0.9rem; line-height: 1.6; white-space: pre;
+    }
+    .copy-btn {
+      background: rgba(255, 255, 255, 0.08); color: #c9d1d9; border: 1px solid #30363d;
+      padding: 5px 12px; border-radius: 6px; font-size: 0.78rem; font-weight: 500; cursor: pointer;
+      transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 6px; font-family: inherit;
+    }
+    .copy-btn:hover { background: var(--primary); color: #ffffff; border-color: var(--primary); }
+    .copy-btn.copied { background: var(--accent-green) !important; color: #ffffff !important; border-color: var(--accent-green) !important; }
+
+    .tag-kw { color: #ff7b72; font-weight: 600; }
+    .tag-type { color: #79c0ff; font-weight: 600; }
+    .tag-str { color: #a5d6ff; }
+    .tag-comment { color: #8b949e; font-style: italic; }
+    .tag-fn { color: #d2a8ff; }
+    .tag-num { color: #79c0ff; }
+
+    code:not(pre code) {
+      font-family: 'Fira Code', monospace;
+      font-size: 0.88em;
+      background: #eef2ff;
+      color: #4338ca;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .alert-box {
+      padding: 16px 20px; border-radius: 12px; margin: 18px 0; display: flex; gap: 14px; align-items: flex-start;
+      line-height: 1.6;
+    }
+    .alert-info { background: #eff6ff; border-left: 5px solid var(--secondary); color: #1e40af; }
+    .alert-warning { background: #fffbeb; border-left: 5px solid var(--accent-amber); color: #92400e; }
+    .alert-danger { background: #fef2f2; border-left: 5px solid var(--accent-rose); color: #991b1b; }
+
+    .table-container { overflow-x: auto; margin: 20px 0; border: 1px solid var(--card-border); border-radius: 12px; }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th, td { padding: 14px 18px; border-bottom: 1px solid var(--card-border); font-size: 0.92rem; }
+    th { background: #f8fafc; color: var(--primary-dark); font-weight: 700; }
+    tr:hover { background: #fbfdff; }
+
+    .page-nav {
+      display: flex; justify-content: space-between; align-items: center; margin-top: 40px; gap: 16px; flex-wrap: wrap;
+    }
+    .nav-btn-link {
+      display: inline-flex; align-items: center; gap: 8px; background: white; padding: 12px 24px;
+      border-radius: 12px; border: 1px solid var(--card-border); color: var(--primary-dark);
+      font-weight: 700; text-decoration: none; box-shadow: var(--shadow-sm); transition: all 0.2s;
+    }
+    .nav-btn-link:hover { background: var(--primary); color: white; transform: translateY(-2px); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="top-nav">
+      <a href="../index.html" class="back-btn">← Back to Java Index</a>
+      <span class="nav-tag">Java File I/O • Topic 5 of 6</span>
+    </div>
+
+    <!-- Hero Header -->
+    <div class="hero">
+      <h1>Byte Streams: FileInputStream & FileOutputStream</h1>
+      <p>Reading & Writing Raw Binary Data, Buffer Chunks & The State Bank of India Passbook Backup</p>
+      <div class="hero-badges">
+        <span class="hero-badge">⚡ 8-bit Raw Bytes</span>
+        <span class="hero-badge">📥 FileInputStream</span>
+        <span class="hero-badge">📤 FileOutputStream</span>
+        <span class="hero-badge">🔒 try-with-resources</span>
+      </div>
+    </div>
+
+    <!-- 1. What are Byte Streams? -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">💡</span>
+        <h2>1. The Foundation: InputStream & OutputStream</h2>
+      </div>
+
+      <p style="font-size: 1.05rem; margin-bottom: 16px;">
+        <code>InputStream</code> and <code>OutputStream</code> are abstract superclasses. For working with files on your hard drive or SSD, Java provides their two most famous implementations:
+      </p>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Class</th>
+              <th>Direction</th>
+              <th>Primary Purpose</th>
+              <th>Key Methods</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>FileOutputStream</code></td>
+              <td><strong>Writing (Out)</strong></td>
+              <td>Writes raw 8-bit bytes from RAM to a disk file.</td>
+              <td>
+                <code>write(int b)</code><br>
+                <code>write(byte[] b)</code><br>
+                <code>write(byte[] b, int off, int len)</code><br>
+                <code>close()</code>
+              </td>
+            </tr>
+            <tr>
+              <td><code>FileInputStream</code></td>
+              <td><strong>Reading (In)</strong></td>
+              <td>Reads raw 8-bit bytes from a disk file into RAM.</td>
+              <td>
+                <code>read()</code>: returns <code>int</code> (0-255, or -1 at EOF)<br>
+                <code>read(byte[] b)</code>: reads a chunk into buffer<br>
+                <code>available()</code><br>
+                <code>close()</code>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="alert-box alert-warning">
+        <span style="font-size: 1.4rem;">💡</span>
+        <div>
+          <strong>The EOF (-1) Rule Every Fresher Must Remember:</strong><br>
+          When calling <code>read()</code>, Java returns an <code>int</code> containing the next byte (0 to 255). When it reaches the end of the file (EOF), it returns <strong>-1</strong>. This is how your while loop knows when to stop reading!
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Writing Bytes with FileOutputStream -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">📤</span>
+        <h2>2. Writing Data with FileOutputStream (Overwrite vs Append Mode)</h2>
+      </div>
+
+      <p style="margin-bottom: 16px;">
+        When creating a <code>FileOutputStream</code>, you can choose whether to overwrite the file or append to it:
+      </p>
+
+      <ul style="padding-left: 20px; line-height: 1.8; color: var(--text-muted); margin-bottom: 16px;">
+        <li><code>new FileOutputStream("sbi_audit.log")</code> ➔ <strong>Overwrite Mode:</strong> Clears existing content and starts at byte 0.</li>
+        <li><code>new FileOutputStream("sbi_audit.log", true)</code> ➔ <strong>Append Mode:</strong> Keeps existing content and appends new bytes to the end!</li>
+      </ul>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-file-badge">SbiAuditLogger.java (Writing Bytes)</div>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+        </div>
+        <pre><code><span class="tag-kw">import</span> java.io.<span class="tag-type">FileOutputStream</span>;
+<span class="tag-kw">import</span> java.io.<span class="tag-type">IOException</span>;
+
+<span class="tag-kw">public class</span> <span class="tag-type">SbiAuditLogger</span> {
+
+    <span class="tag-kw">public static void</span> <span class="tag-fn">main</span>(String[] args) {
+        
+        String logFilePath = <span class="tag-str">"sbi_audit_log.bin"</span>;
+        String transactionRecord = <span class="tag-str">"TXN#987123 | ₹ 25000 Debited to HDFC UPI | 27-OCT-2026 18:30 IST\n"</span>;
+
+        <span class="tag-comment">// Using try-with-resources: Auto-closes output stream and flushes OS buffers</span>
+        <span class="tag-comment">// Note the second parameter 'true': APPEND MODE enabled!</span>
+        <span class="tag-kw">try</span> (<span class="tag-type">FileOutputStream</span> fos = <span class="tag-kw">new</span> <span class="tag-type">FileOutputStream</span>(logFilePath, <span class="tag-kw">true</span>)) {
+            
+            <span class="tag-comment">// Convert human String characters into raw byte array</span>
+            <span class="tag-kw">byte</span>[] byteData = transactionRecord.<span class="tag-fn">getBytes</span>();
+
+            <span class="tag-comment">// Write the entire byte array to disk in one efficient call</span>
+            fos.<span class="tag-fn">write</span>(byteData);
+
+            System.out.println(<span class="tag-str">"✅ SBI Audit transaction successfully written to disk!"</span>);
+            System.out.println(<span class="tag-str">"Bytes written: "</span> + byteData.length);
+
+        } <span class="tag-kw">catch</span> (<span class="tag-type">IOException</span> e) {
+            System.out.println(<span class="tag-str">"❌ Disk Write Failure: "</span> + e.<span class="tag-fn">getMessage</span>());
+        }
+    }
+}</code></pre>
+      </div>
+    </div>
+
+    <!-- 3. Reading Bytes with FileInputStream -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">📥</span>
+        <h2>3. Reading Data with FileInputStream (Byte-by-Byte vs Buffer Chunk)</h2>
+      </div>
+
+      <p style="margin-bottom: 16px;">
+        Here are the two ways to read bytes back from disk into memory:
+      </p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-file-badge">SbiAuditReader.java (Reading Bytes)</div>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+        </div>
+        <pre><code><span class="tag-kw">import</span> java.io.<span class="tag-type">FileInputStream</span>;
+<span class="tag-kw">import</span> java.io.<span class="tag-type">IOException</span>;
+
+<span class="tag-kw">public class</span> <span class="tag-type">SbiAuditReader</span> {
+
+    <span class="tag-kw">public static void</span> <span class="tag-fn">main</span>(String[] args) {
+        
+        String logFilePath = <span class="tag-str">"sbi_audit_log.bin"</span>;
+
+        System.out.println(<span class="tag-str">"=== Reading SBI Audit Log from Disk ==="</span>);
+
+        <span class="tag-comment">// try-with-resources: FileInputStream auto-closed safely</span>
+        <span class="tag-kw">try</span> (<span class="tag-type">FileInputStream</span> fis = <span class="tag-kw">new</span> <span class="tag-type">FileInputStream</span>(logFilePath)) {
+            
+            <span class="tag-kw">int</span> byteRead;
+            <span class="tag-comment">// Loop continues until read() returns -1 (End of File)</span>
+            <span class="tag-kw">while</span> ((byteRead = fis.<span class="tag-fn">read</span>()) != -<span class="tag-num">1</span>) {
+                <span class="tag-comment">// byteRead contains integer (0 to 255). Cast to char to display:</span>
+                System.out.<span class="tag-fn">print</span>((<span class="tag-kw">char</span>) byteRead);
+            }
+
+            System.out.println(<span class="tag-str">"\n✅ File reached EOF and closed safely."</span>);
+
+        } <span class="tag-kw">catch</span> (<span class="tag-type">IOException</span> e) {
+            System.out.println(<span class="tag-str">"❌ Read Error: "</span> + e.<span class="tag-fn">getMessage</span>());
+        }
+    }
+}</code></pre>
+      </div>
+    </div>
+
+    <!-- 4. Real-World Fast Binary File Copier (Images / PDFs) -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🚀</span>
+        <h2>4. High-Performance Binary File Copier (Copying Images & PDFs)</h2>
+      </div>
+
+      <p style="margin-bottom: 16px;">
+        Reading 1 byte at a time for a 50 Megabyte Aadhaar KYC PDF or IRCTC ticket QR code would make 50 million slow disk calls! In professional enterprise Java, we read in <strong>buffer chunks (e.g. 4096 or 8192 bytes)</strong>:
+      </p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-file-badge">AadhaarQrCodeCopier.java (High Speed Binary Copy)</div>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+        </div>
+        <pre><code><span class="tag-kw">import</span> java.io.<span class="tag-type">FileInputStream</span>;
+<span class="tag-kw">import</span> java.io.<span class="tag-type">FileOutputStream</span>;
+<span class="tag-kw">import</span> java.io.<span class="tag-type">IOException</span>;
+
+<span class="tag-kw">public class</span> <span class="tag-type">AadhaarQrCodeCopier</span> {
+
+    <span class="tag-kw">public static void</span> <span class="tag-fn">main</span>(String[] args) {
+        
+        String sourceImage = <span class="tag-str">"aadhaar_qr.png"</span>;
+        String destinationBackup = <span class="tag-str">"aadhaar_qr_backup.png"</span>;
+
+        System.out.println(<span class="tag-str">"=== 🇮🇳 Fast Binary Byte Stream Copier ==="</span>);
+
+        <span class="tag-comment">// Opening both source input stream and target output stream simultaneously</span>
+        <span class="tag-kw">try</span> (<span class="tag-type">FileInputStream</span> in = <span class="tag-kw">new</span> <span class="tag-type">FileInputStream</span>(sourceImage);
+             <span class="tag-type">FileOutputStream</span> out = <span class="tag-kw">new</span> <span class="tag-type">FileOutputStream</span>(destinationBackup)) {
+
+            <span class="tag-comment">// 4 Kilobyte (4096 bytes) RAM chunk buffer</span>
+            <span class="tag-kw">byte</span>[] buffer = <span class="tag-kw">new byte</span>[<span class="tag-num">4096</span>];
+            <span class="tag-kw">int</span> bytesRead;
+            <span class="tag-kw">long</span> totalBytes = <span class="tag-num">0</span>;
+
+            <span class="tag-comment">// in.read(buffer) fills up to 4096 bytes at a time and returns actual count read</span>
+            <span class="tag-kw">while</span> ((bytesRead = in.<span class="tag-fn">read</span>(buffer)) != -<span class="tag-num">1</span>) {
+                <span class="tag-comment">// Write exactly 'bytesRead' bytes from buffer to output file</span>
+                out.<span class="tag-fn">write</span>(buffer, <span class="tag-num">0</span>, bytesRead);
+                totalBytes += bytesRead;
+            }
+
+            System.out.println(<span class="tag-str">"✅ Copy completed successfully!"</span>);
+            System.out.println(<span class="tag-str">"Total bytes transferred: "</span> + totalBytes + <span class="tag-str">" bytes"</span>);
+
+        } <span class="tag-kw">catch</span> (<span class="tag-type">IOException</span> e) {
+            System.out.println(<span class="tag-str">"❌ File Copy Exception: "</span> + e.<span class="tag-fn">getMessage</span>());
+        }
+    }
+}</code></pre>
+      </div>
+
+      <div class="alert-box alert-info">
+        <span style="font-size: 1.4rem;">💡</span>
+        <div>
+          <strong>Why <code>out.write(buffer, 0, bytesRead)</code> is Critical:</strong><br>
+          If your buffer is 4096 bytes, but the final remaining chunk of the file only has 150 bytes, writing the entire buffer would write 150 real bytes + 3946 bytes of garbage trailing data! Using <code>bytesRead</code> writes exactly what was read.
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary Box -->
+    <div class="card" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-color: #86efac;">
+      <h3 style="color: #166534; margin-bottom: 12px;">📌 Key Takeaways for Freshers</h3>
+      <ul style="padding-left: 20px; color: #14532d; line-height: 1.8;">
+        <li><code>FileOutputStream</code> writes bytes; pass <code>true</code> as the 2nd constructor argument to enable append mode.</li>
+        <li><code>FileInputStream.read()</code> returns an <code>int</code> containing 0-255, or <code>-1</code> when end of file is reached.</li>
+        <li>Always read/write binary files using a <code>byte[] buffer</code> (4KB or 8KB) instead of single bytes for speed.</li>
+        <li>Always use <code>try-with-resources</code> to guarantee that file handles and OS sockets are closed promptly.</li>
+      </ul>
+    </div>
+
+    <div class="page-nav">
+      <a href="file_class.html" class="nav-btn-link">← Prev: Deep Dive into File Class</a>
+      <a href="buffered_reader_writer.html" class="nav-btn-link">Next: BufferedReader &amp; BufferedWriter →</a>
+    </div>
+  </div>
+
+  <script>
+    function copyCode(btn) {
+      const codeBlock = btn.closest('.code-block');
+      const codeEl = codeBlock.querySelector('code, pre');
+      const text = codeEl ? codeEl.innerText : '';
+      navigator.clipboard.writeText(text).then(() => {
+        const orig = btn.innerText;
+        btn.innerText = '✓ Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.innerText = orig;
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    }
+  </script>
+</body>
+</html>
