@@ -132,6 +132,14 @@
     .alert-warning { background: #fffbeb; border-left: 5px solid var(--accent-amber); color: #92400e; }
     .alert-danger { background: #fef2f2; border-left: 5px solid var(--accent-rose); color: #991b1b; }
 
+    .output-box {
+      background: #18181b; border: 1px solid #27272a; border-radius: 10px; padding: 16px 20px;
+      font-family: 'Fira Code', monospace; font-size: 0.88rem; color: #a1a1aa; margin: 14px 0; line-height: 1.6;
+    }
+    .output-box .out-green { color: #4ade80; }
+    .output-box .out-red { color: #f87171; }
+    .output-box .out-cyan { color: #38bdf8; }
+
     .page-nav {
       display: flex; justify-content: space-between; align-items: center; margin-top: 40px; gap: 16px; flex-wrap: wrap;
     }
@@ -147,7 +155,7 @@
   <div class="container">
     <div class="top-nav">
       <a href="../index.html" class="back-btn">← Back to Java Index</a>
-      <span class="nav-tag">🛡️ Module: Exception Handling (Topic 1/6)</span>
+      <span class="nav-tag">🛡️ Module: Exception Handling (Topic 1/7)</span>
     </div>
 
     <div class="hero">
@@ -256,7 +264,7 @@
       </div>
 
       <p style="margin-bottom: 16px;">
-        Here is a simple, real-world UPI payment script simulating how an application survives an invalid bill split (division by zero) without crashing:
+        Here is a simple, real-world UPI payment script where the <code>main()</code> method calls a dedicated <code>splitBill()</code> method by passing the bill amount and number of persons, demonstrating how the application survives an invalid split (division by zero) without crashing:
       </p>
 
       <div class="code-block">
@@ -264,41 +272,85 @@
           <div class="code-file-badge">UpiBillSplitter.java (Fresher Friendly &amp; Fully Commented)</div>
           <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
         </div>
-        <pre><code><span class="tag-comment">// Real-world Indian context: UPI Dinner Bill Splitter App (e.g., Splitwise / PhonePe)</span>
+        <pre><code><span class="tag-comment">// Real-world Indian context: UPI Dinner Bill Splitter App (e.g., Splitwise / PhonePe / Google Pay)</span>
 <span class="tag-kw">public class</span> <span class="tag-type">UpiBillSplitter</span> {
 
+    <span class="tag-comment">// -------------------------------------------------------------</span>
+    <span class="tag-comment">// Helper method: Calculates per-person share by dividing amount by persons</span>
+    <span class="tag-comment">// -------------------------------------------------------------</span>
+    <span class="tag-kw">public static void</span> <span class="tag-fn">splitBill</span>(<span class="tag-kw">int</span> totalAmount, <span class="tag-kw">int</span> numberOfPersons) {
+        System.out.println(<span class="tag-str">"Calculating share for INR "</span> + totalAmount + <span class="tag-str">" among "</span> + numberOfPersons + <span class="tag-str">" person(s)..."</span>);
+
+        <span class="tag-comment">// Risky operation: If numberOfPersons is 0, JVM automatically creates and throws an ArithmeticException</span>
+        <span class="tag-kw">int</span> sharePerPerson = totalAmount / numberOfPersons;
+
+        System.out.println(<span class="tag-str">"Each person should pay: INR "</span> + sharePerPerson);
+    }
+
+    <span class="tag-comment">// -------------------------------------------------------------</span>
+    <span class="tag-comment">// main method: Entry point that calls splitBill() with inputs</span>
+    <span class="tag-comment">// -------------------------------------------------------------</span>
     <span class="tag-kw">public static void</span> <span class="tag-fn">main</span>(String[] args) {
-        System.out.println(<span class="tag-str">"--- 🇮🇳 UPI Dinner Bill Splitter Started ---"</span>);
+        System.out.println(<span class="tag-str">"=== UPI Dinner Bill Splitter Started ==="</span>);
 
-        <span class="tag-kw">int</span> totalBillAmount = <span class="tag-num">1500</span>; <span class="tag-comment">// Total restaurant bill in ₹</span>
-        <span class="tag-kw">int</span> numberOfFriends = <span class="tag-num">0</span>;    <span class="tag-comment">// Accidentally entered 0 friends!</span>
-
-        <span class="tag-comment">// Without exception handling, line below would CRASH the entire app right here:</span>
+        <span class="tag-comment">// SCENARIO 1: Valid bill split (Normal execution flow)</span>
+        System.out.println(<span class="tag-str">"\n--- Scenario 1: Valid Split (3 Friends) ---"</span>);
         <span class="tag-kw">try</span> {
-            System.out.println(<span class="tag-str">"Calculating per-person share..."</span>);
-            
-            <span class="tag-comment">// Risky operation: Division by zero triggers ArithmeticException</span>
-            <span class="tag-kw">int</span> sharePerPerson = totalBillAmount / numberOfFriends;
-            
-            System.out.println(<span class="tag-str">"Each friend should pay: ₹ "</span> + sharePerPerson);
-
+            <span class="tag-comment">// main calls splitBill by passing total bill (1500) and persons (3):</span>
+            <span class="tag-fn">splitBill</span>(<span class="tag-num">1500</span>, <span class="tag-num">3</span>);
+            System.out.println(<span class="tag-str">"[SUCCESS] Bill split completed successfully."</span>);
         } <span class="tag-kw">catch</span> (<span class="tag-type">ArithmeticException</span> ex) {
-            <span class="tag-comment">// Exception caught! We handle it gracefully instead of crashing:</span>
-            System.out.println(<span class="tag-str">"⚠️ Error: Number of friends cannot be zero!"</span>);
-            System.out.println(<span class="tag-str">"Reason from JVM: "</span> + ex.<span class="tag-fn">getMessage</span>());
-            System.out.println(<span class="tag-str">"👉 Please enter at least 1 person to split the bill."</span>);
+            System.out.println(<span class="tag-str">"[ERROR] Could not split bill: "</span> + ex.<span class="tag-fn">getMessage</span>());
         }
 
-        <span class="tag-comment">// Notice: This next line STILL executes because we handled the exception!</span>
-        System.out.println(<span class="tag-str">"--- Thank you for using UPI Payments. App running smoothly! ---"</span>);
+        <span class="tag-comment">// SCENARIO 2: Invalid bill split with 0 friends (Exception handling in action)</span>
+        System.out.println(<span class="tag-str">"\n--- Scenario 2: User accidentally enters 0 persons ---"</span>);
+        <span class="tag-kw">try</span> {
+            <span class="tag-kw">int</span> totalBill = <span class="tag-num">1500</span>;
+            <span class="tag-kw">int</span> friendsCount = <span class="tag-num">0</span>;
+
+            <span class="tag-comment">// main calls splitBill by passing amount and 0 persons:</span>
+            <span class="tag-fn">splitBill</span>(totalBill, friendsCount);
+
+            <span class="tag-comment">// This statement will NEVER execute because division by zero occurred inside splitBill():</span>
+            System.out.println(<span class="tag-str">"This message will not appear!"</span>);
+
+        } <span class="tag-kw">catch</span> (<span class="tag-type">ArithmeticException</span> ex) {
+            <span class="tag-comment">// The exception from splitBill() is caught right here in main():</span>
+            System.out.println(<span class="tag-str">"[ALERT] Error: Number of persons cannot be zero!"</span>);
+            System.out.println(<span class="tag-str">"Reason from JVM: "</span> + ex.<span class="tag-fn">getMessage</span>());
+            System.out.println(<span class="tag-str">"Guidance: Please enter at least 1 person to split the bill."</span>);
+        }
+
+        <span class="tag-comment">// Notice: This final statement STILL executes because we caught and handled the exception!</span>
+        System.out.println(<span class="tag-str">"\n=== Thank you for using UPI Payments. App running smoothly! ==="</span>);
     }
 }</code></pre>
+      </div>
+
+      <!-- Expected Console Output -->
+      <h4 style="color: var(--primary-dark); margin: 20px 0 8px 0;">Expected Console Output:</h4>
+      <div class="output-box">
+<span class="out-cyan">=== UPI Dinner Bill Splitter Started ===</span>
+
+--- Scenario 1: Valid Split (3 Friends) ---
+Calculating share for INR 1500 among 3 person(s)...
+Each person should pay: INR 500
+<span class="out-green">[SUCCESS] Bill split completed successfully.</span>
+
+--- Scenario 2: Invalid Split (0 Persons Entered) ---
+Calculating share for INR 1500 among 0 person(s)...
+<span class="out-red">[ALERT] Error: Number of persons cannot be zero!</span>
+Reason from JVM: / by zero
+Guidance: Please enter at least 1 person to split the bill.
+
+<span class="out-green">=== Thank you for using UPI Payments. App running smoothly! ===</span>
       </div>
 
       <div class="alert-box alert-warning">
         <span style="font-size: 1.3rem;">⚡</span>
         <div>
-          <strong>Notice the Crucial Takeaway:</strong> Even though division by zero occurred on line 12, the final statement (<code>"App running smoothly!"</code>) executed successfully. The application did not terminate or crash!
+          <strong>Notice the Crucial Takeaway:</strong> Even though division by zero occurred inside <code>splitBill()</code>, control jumped cleanly to the <code>catch</code> block in <code>main()</code>. The final statement (<code>"App running smoothly!"</code>) executed successfully. The application never crashed!
         </div>
       </div>
     </div>

@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Throwable, throw, throws & Exception Propagation | Java</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --secondary: #0284c7;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #ef4444;
+      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f1f5f9 100%);
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 10px 25px rgba(79, 70, 229, 0.07);
+      --shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      color: var(--text-main);
+      padding: 24px 16px;
+      line-height: 1.65;
+    }
+    .container { max-width: 1100px; margin: 0 auto; }
+    
+    .top-nav {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+    }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 8px; background: #ffffff; color: var(--primary-dark);
+      text-decoration: none; padding: 10px 20px; border-radius: 30px; font-weight: 600; font-size: 0.95rem;
+      border: 1px solid var(--card-border); box-shadow: var(--shadow-sm); transition: all 0.25s ease;
+    }
+    .back-btn:hover { background: var(--primary); color: #ffffff; transform: translateX(-4px); }
+    .nav-tag {
+      color: var(--text-muted); font-weight: 600; font-size: 0.9rem; background: rgba(255, 255, 255, 0.9);
+      padding: 6px 16px; border-radius: 20px; border: 1px solid var(--card-border);
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #4f46e5 0%, #0284c7 100%); color: #ffffff;
+      border-radius: 20px; padding: 40px 32px; text-align: center; box-shadow: var(--shadow-lg); margin-bottom: 32px;
+    }
+    .hero h1 { font-size: clamp(2rem, 4vw, 2.6rem); font-weight: 800; margin-bottom: 12px; line-height: 1.25; }
+    .hero p { font-size: 1.15rem; opacity: 0.95; max-width: 820px; margin: 0 auto 20px auto; }
+    .hero-badges { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+    .hero-badge { background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(8px); padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+
+    .card {
+      background: var(--card-bg); border-radius: 18px; padding: 32px; margin-bottom: 32px;
+      box-shadow: var(--shadow-md); border: 1px solid var(--card-border);
+    }
+    .section-title {
+      font-size: 1.5rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 18px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .section-title .icon {
+      font-size: 1.4rem; background: #eef2ff; width: 44px; height: 44px;
+      display: flex; align-items: center; justify-content: center; border-radius: 12px; color: var(--primary);
+    }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    @media (max-width: 860px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+
+    /* Concept Highlight Cards */
+    .concept-card {
+      background: #f8fafc; border: 1px solid var(--card-border); border-radius: 14px;
+      padding: 22px; transition: all 0.2s ease;
+    }
+    .concept-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-sm); }
+    .concept-card.c-throwable { border-top: 5px solid #6366f1; }
+    .concept-card.c-throw { border-top: 5px solid #ef4444; }
+    .concept-card.c-throws { border-top: 5px solid #0284c7; }
+
+    .concept-badge {
+      display: inline-block; font-size: 0.72rem; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.5px; padding: 3px 10px; border-radius: 6px; margin-bottom: 8px;
+    }
+    .badge-purple { background: #e0e7ff; color: #4338ca; }
+    .badge-red { background: #fee2e2; color: #b91c1c; }
+    .badge-blue { background: #e0f2fe; color: #0369a1; }
+
+    .concept-title {
+      font-family: 'Fira Code', monospace; font-size: 1.2rem; font-weight: 700; color: var(--text-main); margin-bottom: 8px;
+    }
+
+    /* Stack Flow Visual */
+    .stack-flow-box {
+      background: #0f172a; color: #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0;
+      border: 1px solid #1e293b; box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    }
+    .stack-step {
+      display: flex; align-items: flex-start; gap: 16px; padding: 14px 18px; border-radius: 10px; margin-bottom: 12px;
+      background: #1e293b; border-left: 4px solid #94a3b8; transition: all 0.2s ease;
+    }
+    .stack-step.step-throw { border-left-color: #ef4444; background: rgba(239, 68, 68, 0.12); }
+    .stack-step.step-propagate { border-left-color: #f59e0b; background: rgba(245, 158, 11, 0.12); }
+    .stack-step.step-catch { border-left-color: #10b981; background: rgba(16, 185, 129, 0.12); }
+    .step-num {
+      width: 32px; height: 32px; border-radius: 50%; background: #334155; font-weight: 800; font-size: 0.88rem;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #ffffff;
+    }
+    .step-throw .step-num { background: #ef4444; }
+    .step-propagate .step-num { background: #f59e0b; }
+    .step-catch .step-num { background: #10b981; }
+    .step-content { flex: 1; }
+    .step-fn-name { font-family: 'Fira Code', monospace; font-weight: 700; font-size: 0.98rem; }
+    .step-desc { font-size: 0.85rem; color: #94a3b8; margin-top: 4px; }
+
+    /* Code Blocks */
+    .code-block {
+      background: #0d1117; color: #e6edf3; border-radius: 12px; position: relative;
+      margin: 18px 0; border: 1px solid #30363d; overflow: hidden; font-family: 'Fira Code', monospace;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    }
+    .code-header {
+      display: flex; justify-content: space-between; align-items: center; padding: 10px 16px;
+      background: #161b22; border-bottom: 1px solid #30363d; font-size: 0.85rem; color: #8b949e;
+      font-family: 'Fira Code', monospace;
+    }
+    .code-file-badge {
+      display: inline-flex; align-items: center; gap: 8px; font-weight: 600; color: #c9d1d9;
+    }
+    .code-file-badge::before {
+      content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #e3b341;
+    }
+    .code-block pre {
+      margin: 0; padding: 18px 20px; overflow-x: auto; font-family: 'Fira Code', monospace;
+      font-size: 0.9rem; line-height: 1.6; white-space: pre;
+    }
+    .copy-btn {
+      background: rgba(255, 255, 255, 0.08); color: #c9d1d9; border: 1px solid #30363d;
+      padding: 5px 12px; border-radius: 6px; font-size: 0.78rem; font-weight: 500; cursor: pointer;
+      transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 6px; font-family: inherit;
+    }
+    .copy-btn:hover { background: var(--primary); color: #ffffff; border-color: var(--primary); }
+    .copy-btn.copied { background: var(--accent-green) !important; color: #ffffff !important; border-color: var(--accent-green) !important; }
+
+    .tag-kw { color: #ff7b72; font-weight: 600; }
+    .tag-type { color: #79c0ff; font-weight: 600; }
+    .tag-str { color: #a5d6ff; }
+    .tag-comment { color: #8b949e; font-style: italic; }
+    .tag-fn { color: #d2a8ff; }
+    .tag-num { color: #79c0ff; }
+
+    code:not(pre code) {
+      font-family: 'Fira Code', monospace;
+      font-size: 0.88em;
+      background: #eef2ff;
+      color: #4338ca;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .alert-box {
+      padding: 16px 20px; border-radius: 12px; margin: 18px 0; display: flex; gap: 14px; align-items: flex-start;
+      line-height: 1.6;
+    }
+    .alert-info { background: #eff6ff; border-left: 5px solid var(--secondary); color: #1e40af; }
+    .alert-warning { background: #fffbeb; border-left: 5px solid var(--accent-amber); color: #92400e; }
+    .alert-danger { background: #fef2f2; border-left: 5px solid var(--accent-rose); color: #991b1b; }
+    .alert-success { background: #f0fdf4; border-left: 5px solid var(--accent-green); color: #166534; }
+
+    .table-container { overflow-x: auto; margin: 20px 0; border: 1px solid var(--card-border); border-radius: 12px; }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th, td { padding: 14px 18px; border-bottom: 1px solid var(--card-border); font-size: 0.92rem; }
+    th { background: #f8fafc; color: var(--primary-dark); font-weight: 700; }
+    tr:hover { background: #fbfdff; }
+
+    .output-box {
+      background: #18181b; border: 1px solid #27272a; border-radius: 10px; padding: 16px 20px;
+      font-family: 'Fira Code', monospace; font-size: 0.88rem; color: #a1a1aa; margin: 14px 0; line-height: 1.6;
+    }
+    .output-box .out-green { color: #4ade80; }
+    .output-box .out-red { color: #f87171; }
+    .output-box .out-amber { color: #fbbf24; }
+    .output-box .out-cyan { color: #38bdf8; }
+
+    .page-nav {
+      display: flex; justify-content: space-between; align-items: center; margin-top: 40px; gap: 16px; flex-wrap: wrap;
+    }
+    .nav-btn-link {
+      display: inline-flex; align-items: center; gap: 8px; background: white; padding: 12px 24px;
+      border-radius: 12px; border: 1px solid var(--card-border); color: var(--primary-dark);
+      font-weight: 700; text-decoration: none; box-shadow: var(--shadow-sm); transition: all 0.2s;
+    }
+    .nav-btn-link:hover { background: var(--primary); color: white; transform: translateY(-2px); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="top-nav">
+      <a href="../index.html" class="back-btn">← Back to Java Index</a>
+      <span class="nav-tag">🛡️ Module: Exception Handling (Topic 6/7)</span>
+    </div>
+
+    <div class="hero">
+      <h1>Throwable, throw, throws &amp; Exception Propagation</h1>
+      <p>Discover how exceptions travel backwards through the method call stack, how <code>throw</code> actively raises an exception, and how <code>throws</code> delegates handling to caller methods.</p>
+      <div class="hero-badges">
+        <span class="hero-badge">🎯 Fresher-Friendly Walkthrough</span>
+        <span class="hero-badge">🪜 Call Stack Unwinding</span>
+        <span class="hero-badge">⚔️ throw vs throws</span>
+        <span class="hero-badge">➗ Divide-by-Zero Demo</span>
+      </div>
+    </div>
+
+    <!-- 1. WHY PART: THE BIG PICTURE -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">❓</span>
+        <h2>1. WHY: To Handle Locally or To Delegate to the Caller?</h2>
+      </div>
+
+      <p style="font-size: 1.05rem; margin-bottom: 16px;">
+        When a Java method encounters an impossible operation—like dividing by zero, reading a missing file, or receiving invalid data—it has exactly <strong>two choices</strong>:
+      </p>
+
+      <div class="grid-2">
+        <div class="alert-box alert-success" style="margin: 0;">
+          <div>
+            <strong style="font-size: 1.05rem;">Choice 1: Handle It Locally (Self-Handling)</strong>
+            <p style="font-size: 0.9rem; margin-top: 6px;">
+              Enclose the risky code inside a <code>try-catch</code> block right inside this method. The caller method never even knows an exception occurred!
+            </p>
+          </div>
+        </div>
+
+        <div class="alert-box alert-info" style="margin: 0;">
+          <div>
+            <strong style="font-size: 1.05rem;">Choice 2: Delegate It Upwards (Ducking with throws)</strong>
+            <p style="font-size: 0.9rem; margin-top: 6px;">
+              Don't catch the exception here. Declare <code>throws</code> in the method signature and let the <strong>caller method</strong> decide how to report or recover from the error!
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="alert-box alert-warning" style="margin-top: 20px;">
+        <span style="font-size: 1.3rem;">💡</span>
+        <div>
+          <strong>Why not catch everything locally in every method?</strong><br/>
+          Think of a simple calculator function <code>divide(a, b)</code>. It is a reusable math utility. If it catches divide-by-zero internally and prints <em>"Error!"</em> to the console, what if it's being used inside a mobile app or an Android banking screen where there is no console? By delegating with <code>throws</code>, the calling GUI or business method can show a nice alert dialog box to the user!
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. WHAT PART: THE TRIO -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">💡</span>
+        <h2>2. WHAT: Demystifying the Trio — Throwable, throw &amp; throws</h2>
+      </div>
+
+      <p style="color: var(--text-muted); margin-bottom: 20px;">
+        These three terms sound very similar to freshers, but they serve completely distinct purposes in Java:
+      </p>
+
+      <div class="grid-3">
+        <!-- Card 1: Throwable -->
+        <div class="concept-card c-throwable">
+          <span class="concept-badge badge-purple">The Class / Type (Noun)</span>
+          <div class="concept-title">Throwable</div>
+          <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 12px;">
+            The root superclass of all errors and exceptions (<code>java.lang.Throwable</code>).
+          </p>
+          <ul style="padding-left: 18px; font-size: 0.82rem; color: #475569; line-height: 1.6;">
+            <li>Only subclasses of <code>Throwable</code> can be thrown or caught in Java.</li>
+            <li>Inherits diagnostic methods: <code>getMessage()</code>, <code>printStackTrace()</code>.</li>
+          </ul>
+        </div>
+
+        <!-- Card 2: throw -->
+        <div class="concept-card c-throw">
+          <span class="concept-badge badge-red">The Action (Verb)</span>
+          <div class="concept-title">throw</div>
+          <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 12px;">
+            A Java keyword used <strong>inside a method body</strong> to explicitly create and trigger an exception.
+          </p>
+          <ul style="padding-left: 18px; font-size: 0.82rem; color: #475569; line-height: 1.6;">
+            <li>Followed by an <em>object instance</em>: <code>throw new ArithmeticException("Zero!");</code></li>
+            <li>Instantly pauses the method and transfers control out.</li>
+          </ul>
+        </div>
+
+        <!-- Card 3: throws -->
+        <div class="concept-card c-throws">
+          <span class="concept-badge badge-blue">The Warning (Declaration)</span>
+          <div class="concept-title">throws</div>
+          <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 12px;">
+            A Java keyword used in the <strong>method signature</strong> (declaration header) to advertise possible exceptions.
+          </p>
+          <ul style="padding-left: 18px; font-size: 0.82rem; color: #475569; line-height: 1.6;">
+            <li>Followed by <em>class name(s)</em>: <code>void calc() throws ArithmeticException</code></li>
+            <li>Informs caller methods that they must be prepared to handle it.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Quick Comparison Table -->
+      <h3 style="color: var(--primary-dark); margin: 28px 0 12px 0;">Summary Comparison: <code>throw</code> vs <code>throws</code></h3>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th style="color: #b91c1c;"><code>throw</code> Keyword</th>
+              <th style="color: #0369a1;"><code>throws</code> Keyword</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Where is it written?</strong></td>
+              <td>Inside the <strong>method body</strong> (executable statement)</td>
+              <td>In the <strong>method header / signature</strong> (declaration)</td>
+            </tr>
+            <tr>
+              <td><strong>What comes next?</strong></td>
+              <td>An <strong>exception object</strong>: <code>throw new Exception()</code></td>
+              <td>One or more <strong>class names</strong>: <code>throws IOException, ArithmeticException</code></td>
+            </tr>
+            <tr>
+              <td><strong>How many can it take?</strong></td>
+              <td>Only <strong>one</strong> exception object at a time</td>
+              <td>Can declare <strong>multiple</strong> comma-separated classes</td>
+            </tr>
+            <tr>
+              <td><strong>Its Primary Purpose</strong></td>
+              <td>Actively fires/throws an exception object into runtime</td>
+              <td>Ducks the exception and delegates handling to the calling method</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 3. HOW PART: DIVIDE BY ZERO WALKTHROUGH -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🛠️</span>
+        <h2>3. HOW: Method-to-Method Call Stack &amp; Divide-by-Zero Demo</h2>
+      </div>
+
+      <p style="font-size: 1.02rem; margin-bottom: 16px;">
+        To truly understand <strong>Exception Propagation</strong>, imagine a chain of three methods calling each other:
+      </p>
+
+      <!-- Visual Call Stack Unwinding Steps -->
+      <div class="stack-flow-box">
+        <h4 style="color: #38bdf8; margin-bottom: 16px; font-size: 1.05rem;">🪜 Trace the JVM Call Stack Flow (Step-by-Step):</h4>
+
+        <div class="stack-step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <div class="step-fn-name" style="color: #79c0ff;">main() Method Calls calculatePercentage(85, 0)</div>
+            <div class="step-desc"><code>main()</code> wraps the invocation inside a <code>try-catch</code> block. It pushes <code>calculatePercentage()</code> onto the call stack.</div>
+          </div>
+        </div>
+
+        <div class="stack-step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <div class="step-fn-name" style="color: #79c0ff;">calculatePercentage() Calls divide(85, 0)</div>
+            <div class="step-desc"><code>calculatePercentage()</code> does not have a try-catch. It calls <code>divide(85, 0)</code> and pushes it to the top of the stack.</div>
+          </div>
+        </div>
+
+        <div class="stack-step step-throw">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <div class="step-fn-name" style="color: #f87171;">💥 Division by Zero Occurs in divide()!</div>
+            <div class="step-desc"><code>divide()</code> attempts <code>85 / 0</code>. The JVM detects zero denominator and instantiates an <code>ArithmeticException("/ by zero")</code>. Since <code>divide()</code> has no try-catch, it pops off the stack and propagates upwards!</div>
+          </div>
+        </div>
+
+        <div class="stack-step step-propagate">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <div class="step-fn-name" style="color: #fbbf24;">⚡ Exception Unwinds Through calculatePercentage()</div>
+            <div class="step-desc">The exception lands in <code>calculatePercentage()</code>. Because it declared <code>throws ArithmeticException</code> and has no try-catch, it also pops off the stack immediately without completing remaining lines!</div>
+          </div>
+        </div>
+
+        <div class="stack-step step-catch">
+          <div class="step-num">5</div>
+          <div class="step-content">
+            <div class="step-fn-name" style="color: #4ade80;">🛡️ Caught and Handled Safely in main()!</div>
+            <div class="step-desc">The exception reaches <code>main()</code>. Since <code>main()</code> has an active <code>catch (ArithmeticException ex)</code> block, it catches the object, prints a user-friendly error, and the program continues running smoothly!</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Complete Runnable Program -->
+      <h3 style="color: var(--primary-dark); margin: 24px 0 12px 0;">Complete, Self-Contained Java Program:</h3>
+      <p style="color: var(--text-muted); margin-bottom: 12px;">
+        Here is the complete source code demonstrating both the normal case and the divide-by-zero propagation flow across 3 methods:
+      </p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-file-badge">DivideByZeroPropagationDemo.java</div>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+        </div>
+        <pre><code><span class="tag-comment">/**
+ * Demonstration of:
+ * 1. Method calling another method
+ * 2. throw keyword (explicit exception triggering)
+ * 3. throws keyword (delegating handling to caller)
+ * 4. Exception propagation backwards through the call stack
+ */</span>
+<span class="tag-kw">public class</span> <span class="tag-type">DivideByZeroPropagationDemo</span> {
+
+    <span class="tag-comment">// -------------------------------------------------------------</span>
+    <span class="tag-comment">// METHOD 1 (Worker Method): Performs the actual arithmetic</span>
+    <span class="tag-comment">// Declares 'throws ArithmeticException' to warn caller methods</span>
+    <span class="tag-comment">// -------------------------------------------------------------</span>
+    <span class="tag-kw">public static int</span> <span class="tag-fn">divide</span>(<span class="tag-kw">int</span> numerator, <span class="tag-kw">int</span> denominator) <span class="tag-kw">throws</span> <span class="tag-type">ArithmeticException</span> {
+        System.out.println(<span class="tag-str">"    [Level 3 - divide()] Starting: "</span> + numerator + <span class="tag-str">" / "</span> + denominator);
+
+        <span class="tag-comment">// Freshers: You can let Java throw automatically, or use explicit 'throw':</span>
+        <span class="tag-kw">if</span> (denominator == <span class="tag-num">0</span>) {
+            <span class="tag-comment">// Explicitly creating and throwing an ArithmeticException object:</span>
+            <span class="tag-kw">throw new</span> <span class="tag-type">ArithmeticException</span>(<span class="tag-str">"Denominator cannot be zero! Math rule violation."</span>);
+        }
+
+        <span class="tag-kw">int</span> result = numerator / denominator;
+        System.out.println(<span class="tag-str">"    [Level 3 - divide()] Division complete. Result: "</span> + result);
+        <span class="tag-kw">return</span> result;
+    }
+
+    <span class="tag-comment">// -------------------------------------------------------------</span>
+    <span class="tag-comment">// METHOD 2 (Intermediate Method): Helper that calls divide()</span>
+    <span class="tag-comment">// Does NOT catch the exception; passes (ducks) it up with 'throws'</span>
+    <span class="tag-comment">// -------------------------------------------------------------</span>
+    <span class="tag-kw">public static void</span> <span class="tag-fn">calculatePercentage</span>(<span class="tag-kw">int</span> marksScored, <span class="tag-kw">int</span> totalMarks) 
+            <span class="tag-kw">throws</span> <span class="tag-type">ArithmeticException</span> {
+        System.out.println(<span class="tag-str">"  [Level 2 - calculatePercentage()] Called with marks="</span> + marksScored + <span class="tag-str">", total="</span> + totalMarks);
+
+        <span class="tag-comment">// Calling Method 1: If divide() throws an exception, line below halts immediately</span>
+        <span class="tag-kw">int</span> ratio = <span class="tag-fn">divide</span>(marksScored, totalMarks);
+        <span class="tag-kw">int</span> percentage = ratio * <span class="tag-num">100</span>;
+
+        <span class="tag-comment">// If exception happens in divide(), this line will NEVER execute!</span>
+        System.out.println(<span class="tag-str">"  [Level 2 - calculatePercentage()] Calculated Percentage: "</span> + percentage + <span class="tag-str">"%"</span>);
+    }
+
+    <span class="tag-comment">// -------------------------------------------------------------</span>
+    <span class="tag-comment">// METHOD 3 (Root Caller / Entry Point): main()</span>
+    <span class="tag-comment">// Decides to handle the exception gracefully using try-catch!</span>
+    <span class="tag-comment">// -------------------------------------------------------------</span>
+    <span class="tag-kw">public static void</span> <span class="tag-fn">main</span>(String[] args) {
+        System.out.println(<span class="tag-str">"=== TEST CASE 1: Normal Division (Valid Inputs) ==="</span>);
+        <span class="tag-kw">try</span> {
+            <span class="tag-fn">calculatePercentage</span>(<span class="tag-num">450</span>, <span class="tag-num">500</span>);
+            System.out.println(<span class="tag-str">"[SUCCESS] Test 1 completed without issues!\n"</span>);
+        } <span class="tag-kw">catch</span> (<span class="tag-type">ArithmeticException</span> ex) {
+            System.out.println(<span class="tag-str">"[ERROR] "</span> + ex.<span class="tag-fn">getMessage</span>());
+        }
+
+        System.out.println(<span class="tag-str">"=== TEST CASE 2: Division by Zero (Exception Propagation) ==="</span>);
+        <span class="tag-kw">try</span> {
+            System.out.println(<span class="tag-str">"[Level 1 - main()] About to call calculatePercentage(85, 0)..."</span>);
+            
+            <span class="tag-comment">// Risky invocation where totalMarks is ZERO:</span>
+            <span class="tag-fn">calculatePercentage</span>(<span class="tag-num">85</span>, <span class="tag-num">0</span>);
+
+            <span class="tag-comment">// This will NOT print because control jumps directly to catch block:</span>
+            System.out.println(<span class="tag-str">"This line will NEVER be reached!"</span>);
+
+        } <span class="tag-kw">catch</span> (<span class="tag-type">ArithmeticException</span> ex) {
+            <span class="tag-comment">// The exception traveled from divide() -> calculatePercentage() -> main()</span>
+            System.out.println(<span class="tag-str">"\n[ALERT - Handled in main()] Successfully caught propagated exception!"</span>);
+            System.out.println(<span class="tag-str">"   • Exception Type : "</span> + ex.<span class="tag-fn">getClass</span>().<span class="tag-fn">getSimpleName</span>());
+            System.out.println(<span class="tag-str">"   • Error Message  : "</span> + ex.<span class="tag-fn">getMessage</span>());
+        }
+
+        System.out.println(<span class="tag-str">"\n[PROGRAM END] Execution continued normally after try-catch block."</span>);
+    }
+}</code></pre>
+      </div>
+
+      <!-- Program Console Output -->
+      <h4 style="color: var(--primary-dark); margin: 20px 0 8px 0;">Expected Program Console Output:</h4>
+      <div class="output-box">
+<span class="out-cyan">=== TEST CASE 1: Normal Division (Valid Inputs) ===</span>
+  [Level 2 - calculatePercentage()] Called with marks=450, total=500
+    [Level 3 - divide()] Starting: 450 / 500
+    [Level 3 - divide()] Division complete. Result: 0
+  [Level 2 - calculatePercentage()] Calculated Percentage: 0%
+<span class="out-green">[SUCCESS] Test 1 completed without issues!</span>
+
+<span class="out-cyan">=== TEST CASE 2: Division by Zero (Exception Propagation) ===</span>
+[Level 1 - main()] About to call calculatePercentage(85, 0)...
+  [Level 2 - calculatePercentage()] Called with marks=85, total=0
+    [Level 3 - divide()] Starting: 85 / 0
+
+<span class="out-red">[ALERT - Handled in main()] Successfully caught propagated exception!</span>
+   • Exception Type : ArithmeticException
+   • Error Message  : Denominator cannot be zero! Math rule violation.
+
+<span class="out-green">[PROGRAM END] Execution continued normally after try-catch block.</span>
+      </div>
+    </div>
+
+    <!-- 4. WHAT IF NOBODY CATCHES IT? -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🔍</span>
+        <h2>4. DEEP DIVE: What Happens If Nobody Catches the Exception?</h2>
+      </div>
+
+      <p style="font-size: 1.05rem; margin-bottom: 16px;">
+        What happens if <code>main()</code> also refuses to catch the exception and simply declares <code>throws ArithmeticException</code>?
+      </p>
+
+      <div class="alert-box alert-danger">
+        <span style="font-size: 1.4rem;">💥</span>
+        <div>
+          <strong>The JVM Default Exception Handler Takes Over!</strong><br/>
+          If an exception pops out of <code>main()</code> without being caught by any <code>catch</code> block:
+          <ol style="margin-top: 6px; padding-left: 20px; line-height: 1.7;">
+            <li>The JVM immediately terminates the thread.</li>
+            <li>The program crashes abruptly.</li>
+            <li>The JVM's <strong>Default Exception Handler</strong> prints the raw <strong>Stack Trace</strong> to standard error.</li>
+          </ol>
+        </div>
+      </div>
+
+      <h3 style="color: var(--primary-dark); margin: 24px 0 12px 0;">How to Read a Java Stack Trace Like a Pro:</h3>
+      <p style="color: var(--text-muted); margin-bottom: 12px;">
+        When freshers see red text in their terminal, it can look intimidating. Here is how to read it effortlessly from bottom to top:
+      </p>
+
+      <div class="output-box" style="border-left: 4px solid #ef4444;">
+<span class="out-red">Exception in thread "main" java.lang.ArithmeticException: / by zero</span>
+    <span class="out-amber">at DivideByZeroPropagationDemo.divide(DivideByZeroPropagationDemo.java:18)</span>        <span style="color:#64748b;">&lt;-- 1. Where it happened! (Stack Top)</span>
+    <span class="out-amber">at DivideByZeroPropagationDemo.calculatePercentage(DivideByZeroPropagationDemo.java:31)</span> <span style="color:#64748b;">&lt;-- 2. Who called it!</span>
+    <span class="out-amber">at DivideByZeroPropagationDemo.main(DivideByZeroPropagationDemo.java:47)</span>                <span style="color:#64748b;">&lt;-- 3. Where it all started!</span>
+      </div>
+
+      <div class="alert-box alert-info">
+        <span style="font-size: 1.3rem;">💡</span>
+        <div>
+          <strong>Pro-Tip for Freshers:</strong><br/>
+          Always read the <strong>first line</strong> to understand <em>WHAT</em> failed (e.g. <code>ArithmeticException: / by zero</code>), and read the <strong>very first 'at' line with your filename</strong> to see <em>WHERE</em> the line number is (line 18)!
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. SIDE-BY-SIDE: LOCAL HANDLING VS DELEGATION -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">⚖️</span>
+        <h2>5. Side-by-Side: Handling Locally vs Delegating with throws</h2>
+      </div>
+
+      <div class="grid-2">
+        <!-- Approach A -->
+        <div style="background: #f8fafc; border: 1px solid var(--card-border); border-radius: 12px; padding: 20px;">
+          <h4 style="color: #166534; font-size: 1.05rem; margin-bottom: 8px;">✅ Approach A: Handling Locally</h4>
+          <span style="display: inline-block; background: #dcfce7; color: #15803d; font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; margin-bottom: 12px;">SELF-RECOVERY</span>
+          
+          <pre style="background: #0d1117; color: #e6edf3; padding: 12px; border-radius: 8px; font-family: 'Fira Code', monospace; font-size: 0.82rem; line-height: 1.5; overflow-x: auto;"><code><span class="tag-kw">public static int</span> <span class="tag-fn">divide</span>(<span class="tag-kw">int</span> a, <span class="tag-kw">int</span> b) {
+    <span class="tag-kw">try</span> {
+        <span class="tag-kw">return</span> a / b;
+    } <span class="tag-kw">catch</span> (<span class="tag-type">ArithmeticException</span> e) {
+        System.out.println(<span class="tag-str">"Zero denominator!"</span>);
+        <span class="tag-kw">return</span> <span class="tag-num">0</span>; <span class="tag-comment">// Default fallback</span>
+    }
+}</code></pre>
+          <ul style="padding-left: 18px; font-size: 0.85rem; color: #475569; margin-top: 12px; line-height: 1.6;">
+            <li><strong>Pros:</strong> Method self-recovers; caller doesn't need to write try-catch.</li>
+            <li><strong>Cons:</strong> Masking error with a default value (<code>0</code>) can hide serious calculation bugs.</li>
+          </ul>
+        </div>
+
+        <!-- Approach B -->
+        <div style="background: #f8fafc; border: 1px solid var(--card-border); border-radius: 12px; padding: 20px;">
+          <h4 style="color: #1d4ed8; font-size: 1.05rem; margin-bottom: 8px;">📢 Approach B: Delegating with throws</h4>
+          <span style="display: inline-block; background: #dbeafe; color: #1e40af; font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; margin-bottom: 12px;">SEPARATION OF CONCERNS</span>
+
+          <pre style="background: #0d1117; color: #e6edf3; padding: 12px; border-radius: 8px; font-family: 'Fira Code', monospace; font-size: 0.82rem; line-height: 1.5; overflow-x: auto;"><code><span class="tag-kw">public static int</span> <span class="tag-fn">divide</span>(<span class="tag-kw">int</span> a, <span class="tag-kw">int</span> b) 
+        <span class="tag-kw">throws</span> <span class="tag-type">ArithmeticException</span> {
+    <span class="tag-comment">// Focus purely on business logic!</span>
+    <span class="tag-kw">return</span> a / b;
+}</code></pre>
+          <ul style="padding-left: 18px; font-size: 0.85rem; color: #475569; margin-top: 12px; line-height: 1.6;">
+            <li><strong>Pros:</strong> Code stays clean and concise; caller method chooses how to handle or alert the user.</li>
+            <li><strong>Cons:</strong> Caller methods are required to handle or continue propagating it.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. SUMMARY & FREQUENT INTERVIEW QUESTIONS -->
+    <div class="card" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-color: #86efac;">
+      <h3 style="color: #166534; margin-bottom: 14px;">📌 Key Takeaways &amp; Interview Questions for Freshers</h3>
+      
+      <div style="color: #14532d; line-height: 1.8;">
+        <p><strong>Q1: What is Exception Propagation?</strong></p>
+        <p style="margin-bottom: 10px; font-size: 0.92rem; color: #166534;">
+          ➔ When an exception occurs in a method and is NOT caught locally, it drops through the call stack to the previous calling method. This backward travel through the stack is called <em>Exception Propagation</em>.
+        </p>
+
+        <p><strong>Q2: Does <code>throws</code> prevent an exception?</strong></p>
+        <p style="margin-bottom: 10px; font-size: 0.92rem; color: #166534;">
+          ➔ <strong>NO.</strong> <code>throws</code> does not catch or handle exceptions. It is purely a warning in the method signature delegating responsibility to the caller.
+        </p>
+
+        <p><strong>Q3: Can unchecked exceptions (like ArithmeticException) propagate without declaring <code>throws</code>?</strong></p>
+        <p style="margin-bottom: 10px; font-size: 0.92rem; color: #166534;">
+          ➔ <strong>YES.</strong> Unchecked exceptions automatically propagate up the call stack by default even without the <code>throws</code> keyword. However, explicitly adding <code>throws ArithmeticException</code> is recommended in utility libraries for documentation clarity.
+        </p>
+
+        <p><strong>Q4: What is the relationship between <code>Throwable</code> and <code>throw</code>?</strong></p>
+        <p style="font-size: 0.92rem; color: #166534;">
+          ➔ <code>Throwable</code> is the superclass; <code>throw</code> is the keyword. You can only <code>throw</code> an object if its class extends <code>java.lang.Throwable</code>.
+        </p>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="page-nav">
+      <a href="try_catch_finally_throw_throws.html" class="nav-btn-link">← Prev: try, catch, finally, Multiple Catch, throw &amp; throws</a>
+      <a href="overriding_rules_exceptions.html" class="nav-btn-link">Next: Overriding Rules w.r.t throws in Inheritance →</a>
+    </div>
+  </div>
+
+  <script>
+    function copyCode(btn) {
+      const codeBlock = btn.closest('.code-block');
+      const codeEl = codeBlock.querySelector('code, pre');
+      const text = codeEl ? codeEl.innerText : '';
+      navigator.clipboard.writeText(text).then(() => {
+        const orig = btn.innerText;
+        btn.innerText = '✓ Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.innerText = orig;
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    }
+  </script>
+</body>
+</html>
