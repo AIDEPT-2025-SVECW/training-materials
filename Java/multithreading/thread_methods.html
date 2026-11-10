@@ -1,0 +1,1505 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Thread Execution &amp; Control Methods in Java: start, run, sleep, join, yield, interrupt</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --primary-light: #e0e7ff;
+      --secondary: #0284c7;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #ef4444;
+      --accent-purple: #8b5cf6;
+      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f1f5f9 100%);
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 10px 25px rgba(79, 70, 229, 0.08);
+      --shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      color: var(--text-main);
+      padding: 24px 16px;
+      line-height: 1.65;
+    }
+
+    .container {
+      max-width: 1140px;
+      margin: 0 auto;
+    }
+
+    .top-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #ffffff;
+      color: var(--primary-dark);
+      text-decoration: none;
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      border: 1px solid var(--card-border);
+      box-shadow: var(--shadow-sm);
+      transition: all 0.25s ease;
+    }
+
+    .back-btn:hover {
+      background: var(--primary);
+      color: #ffffff;
+      transform: translateX(-4px);
+    }
+
+    .nav-tag {
+      color: var(--primary-dark);
+      font-weight: 700;
+      font-size: 0.9rem;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 6px 18px;
+      border-radius: 20px;
+      border: 1px solid var(--card-border);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 40%, #312e81 80%, #0369a1 100%);
+      color: #ffffff;
+      border-radius: 20px;
+      padding: 42px 32px;
+      text-align: center;
+      box-shadow: var(--shadow-lg);
+      margin-bottom: 32px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: '';
+      position: absolute;
+      top: -50px;
+      right: -50px;
+      width: 220px;
+      height: 220px;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .hero h1 {
+      font-size: clamp(1.8rem, 3.8vw, 2.5rem);
+      font-weight: 800;
+      margin-bottom: 12px;
+      line-height: 1.25;
+    }
+
+    .hero p {
+      font-size: 1.12rem;
+      opacity: 0.95;
+      max-width: 900px;
+      margin: 0 auto 20px auto;
+    }
+
+    .hero-badges {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .hero-badge {
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(8px);
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      border: 1px solid var(--card-border);
+      padding: 30px;
+      margin-bottom: 26px;
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.2s ease;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #f1f5f9;
+      padding-bottom: 14px;
+    }
+
+    .section-title h2 {
+      font-size: 1.45rem;
+      color: var(--primary-dark);
+      font-weight: 700;
+    }
+
+    .section-title .icon {
+      font-size: 1.5rem;
+      background: #e0e7ff;
+      width: 46px;
+      height: 46px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      color: var(--primary);
+    }
+
+    .unit-tag {
+      margin-left: auto;
+      background: #ede9fe;
+      color: #6d28d9;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 860px) {
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    @media (max-width: 860px) {
+      .grid-3 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Method Catalog Card */
+    .method-pill-card {
+      border: 1.5px solid var(--card-border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      background: #f8fafc;
+      transition: all 0.2s ease;
+    }
+
+    .method-pill-card:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .method-pill-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .method-badge {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 10px;
+      text-transform: uppercase;
+    }
+
+    /* Code Blocks */
+    .code-block {
+      background: #0d1117;
+      color: #e6edf3;
+      border-radius: 12px;
+      position: relative;
+      margin: 18px 0;
+      border: 1px solid #30363d;
+      overflow: hidden;
+      font-family: 'Fira Code', monospace;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    }
+
+    .code-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 16px;
+      background: #161b22;
+      border-bottom: 1px solid #30363d;
+      font-size: 0.85rem;
+      color: #8b949e;
+      font-family: 'Fira Code', monospace;
+    }
+
+    .code-file-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      color: #c9d1d9;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+    }
+
+    .code-file-badge::before {
+      content: '';
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #e3b341;
+    }
+
+    pre {
+      margin: 0;
+      padding: 18px 20px;
+      overflow-x: auto;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      white-space: pre;
+      color: #e6edf3;
+    }
+
+    .code-block code {
+      color: #e6edf3;
+      font-family: 'Fira Code', monospace;
+    }
+
+    .copy-btn {
+      background: rgba(255, 255, 255, 0.08);
+      color: #c9d1d9;
+      border: 1px solid #30363d;
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: inherit;
+    }
+
+    .copy-btn:hover {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+    }
+
+    .copy-btn.copied {
+      background: var(--accent-green) !important;
+      color: #ffffff !important;
+      border-color: var(--accent-green) !important;
+    }
+
+    .tag-kw {
+      color: #ff7b72;
+      font-weight: 600;
+    }
+
+    .tag-type {
+      color: #79c0ff;
+      font-weight: 600;
+    }
+
+    .tag-str {
+      color: #a5d6ff;
+    }
+
+    .tag-comment {
+      color: #8b949e;
+      font-style: italic;
+    }
+
+    .tag-fn {
+      color: #d2a8ff;
+    }
+
+    .tag-num {
+      color: #79c0ff;
+    }
+
+    code:not(pre code) {
+      font-family: 'Fira Code', monospace;
+      font-size: 0.88em;
+      background: #eef2ff;
+      color: #4338ca;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .alert-box {
+      padding: 16px 20px;
+      border-radius: 12px;
+      margin: 18px 0;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      line-height: 1.6;
+    }
+
+    .alert-info {
+      background: #eff6ff;
+      border-left: 5px solid var(--secondary);
+      color: #1e40af;
+    }
+
+    .alert-warning {
+      background: #fffbeb;
+      border-left: 5px solid var(--accent-amber);
+      color: #92400e;
+    }
+
+    .alert-danger {
+      background: #fef2f2;
+      border-left: 5px solid var(--accent-rose);
+      color: #991b1b;
+    }
+
+    .alert-success {
+      background: #f0fdf4;
+      border-left: 5px solid var(--accent-green);
+      color: #166534;
+    }
+
+    .diagram-card {
+      background: #0d1117;
+      color: #e6edf3;
+      border-radius: 14px;
+      padding: 22px;
+      margin: 18px 0;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      overflow-x: auto;
+      white-space: pre;
+      border: 1px solid #30363d;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    }
+
+    .table-container {
+      overflow-x: auto;
+      margin: 20px 0;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th,
+    td {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--card-border);
+      font-size: 0.92rem;
+    }
+
+    th {
+      background: #f8fafc;
+      color: var(--primary-dark);
+      font-weight: 700;
+    }
+
+    tr:hover {
+      background: #fbfdff;
+    }
+
+    .output-box {
+      background: #18181b;
+      border: 1px solid #27272a;
+      border-radius: 10px;
+      padding: 18px 22px;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.88rem;
+      color: #a1a1aa;
+      margin: 14px 0;
+      line-height: 1.6;
+    }
+
+    .output-box .out-green {
+      color: #4ade80;
+    }
+
+    .output-box .out-cyan {
+      color: #38bdf8;
+    }
+
+    .output-box .out-amber {
+      color: #fbbf24;
+    }
+
+    .output-box .out-red {
+      color: #f87171;
+    }
+
+    /* Visual Media Display Card */
+    .media-card {
+      background: #ffffff;
+      border-radius: 16px;
+      border: 1.5px solid var(--card-border);
+      padding: 22px;
+      margin: 24px 0;
+      box-shadow: var(--shadow-sm);
+      text-align: center;
+    }
+
+    .media-card img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 10px;
+      border: 1px solid var(--card-border);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+    }
+
+    .media-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .media-title {
+      color: var(--primary-dark);
+      font-weight: 700;
+      font-size: 1.05rem;
+      text-align: left;
+    }
+
+    .media-badge {
+      background: #e0e7ff;
+      color: var(--primary);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border: 1px solid var(--card-border);
+    }
+
+    .media-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .media-btn {
+      background: #f1f5f9;
+      color: var(--text-main);
+      border: 1px solid var(--card-border);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .media-btn:hover {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    /* Simulator Panel */
+    .sim-panel {
+      background: #0f172a;
+      border-radius: 14px;
+      padding: 24px;
+      border: 1px solid #334155;
+      color: #f8fafc;
+      margin: 18px 0;
+    }
+
+    .sim-btn-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .sim-action-btn {
+      background: #1e293b;
+      color: #f8fafc;
+      border: 1px solid #475569;
+      padding: 9px 16px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .sim-action-btn:hover {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    .sim-action-btn.active {
+      background: var(--primary);
+      border-color: var(--primary);
+    }
+
+    .sim-console {
+      background: #000000;
+      border-radius: 10px;
+      border: 1px solid #334155;
+      padding: 16px 20px;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.88rem;
+      min-height: 130px;
+      color: #38bdf8;
+      line-height: 1.6;
+      white-space: pre-wrap;
+    }
+
+    /* QA Accordion */
+    .qa-box {
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      margin-bottom: 14px;
+      overflow: hidden;
+      background: #ffffff;
+      transition: all 0.2s ease;
+    }
+
+    .qa-box:hover {
+      border-color: var(--primary);
+    }
+
+    .qa-q {
+      padding: 16px 20px;
+      font-weight: 700;
+      color: var(--primary-dark);
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #fafafa;
+    }
+
+    .qa-a {
+      padding: 16px 20px;
+      font-size: 0.92rem;
+      color: var(--text-main);
+      border-top: 1px solid var(--card-border);
+      background: #ffffff;
+      line-height: 1.7;
+    }
+
+    .page-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 40px;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .nav-btn-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: white;
+      padding: 12px 24px;
+      border-radius: 12px;
+      border: 1px solid var(--card-border);
+      color: var(--primary-dark);
+      font-weight: 700;
+      text-decoration: none;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s;
+    }
+
+    .nav-btn-link:hover {
+      background: var(--primary);
+      color: white;
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="top-nav">
+      <a href="../index.html" class="back-btn">← Back to Java Index</a>
+      <span class="nav-tag">Java Multi-Threading • Control Methods</span>
+    </div>
+
+    <!-- Hero Section -->
+    <div class="hero">
+      <h1>Thread Execution &amp; Control Methods in Java</h1>
+      <p>Master how to start, pause, synchronize, yield, and safely interrupt threads. Clear, simple examples using basic
+        print statements to help students build an rock-solid understanding of thread timing and coordination.</p>
+      <div class="hero-badges">
+        <span class="hero-badge">Methods Mind Map</span>
+        <span class="hero-badge">start() vs run()</span>
+        <span class="hero-badge">Thread.sleep()</span>
+        <span class="hero-badge">thread.join()</span>
+        <span class="hero-badge">Thread.yield()</span>
+        <span class="hero-badge">thread.interrupt()</span>
+        <span class="hero-badge">InterruptedException</span>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 1: CATALOG OF THREAD CONTROL METHODS                              -->
+    <!-- ========================================================================= -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">📋</span>
+        <h2>1. Catalog of Foundational Thread Control Methods</h2>
+        <span class="unit-tag" style="background: #e0e7ff; color: var(--primary);">Quick Overview</span>
+      </div>
+      <p>
+        The <code>java.lang.Thread</code> class provides control methods to orchestrate how and when threads execute.
+        Notice carefully whether each method is <strong>static</strong> (operates on the current calling thread) or an
+        <strong>instance method</strong> (operates on a specific target thread object):
+      </p>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Method</th>
+              <th>Type</th>
+              <th>What it Does</th>
+              <th>Throws Checked Exception?</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>t.start()</code></td>
+              <td>Instance</td>
+              <td>Allocates native OS thread resources and schedules the JVM to call <code>run()</code>.</td>
+              <td>No (Throws <code>IllegalThreadStateException</code> if called twice)</td>
+            </tr>
+            <tr>
+              <td><code>t.run()</code></td>
+              <td>Instance</td>
+              <td>Contains the target task code. If called directly, executes synchronously on the <em>calling</em> thread!</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td><code>Thread.sleep(ms)</code></td>
+              <td><strong>Static</strong></td>
+              <td>Temporarily halts the <em>currently executing</em> thread for specified milliseconds. Does NOT release locks.</td>
+              <td><strong>Yes:</strong> <code>InterruptedException</code></td>
+            </tr>
+            <tr>
+              <td><code>t.join()</code></td>
+              <td>Instance</td>
+              <td>Causes the calling thread to <strong>pause and wait</strong> until thread <code>t</code> terminates.</td>
+              <td><strong>Yes:</strong> <code>InterruptedException</code></td>
+            </tr>
+            <tr>
+              <td><code>Thread.yield()</code></td>
+              <td><strong>Static</strong></td>
+              <td>A voluntary hint to the CPU scheduler that the current thread is willing to yield its time slice.</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td><code>t.interrupt()</code></td>
+              <td>Instance</td>
+              <td>Signals thread <code>t</code> to stop or wake up. Wakes sleeping/waiting threads with <code>InterruptedException</code>.</td>
+              <td>No</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Java Thread Methods Visual Mind Map -->
+      <div class="media-card" style="background: #ffffff; border: 1.5px solid var(--card-border); margin: 26px 0;">
+        <div class="media-header">
+          <div class="media-title">🗺️ Visual Mind Map: Java Thread Methods Architecture</div>
+          <div class="media-actions">
+            <span class="media-badge">Visual Mind Map</span>
+            <a href="Java%20Thread%20Methods%20Mind%20Map.png" target="_blank" class="media-btn">🔍 View Full Image</a>
+          </div>
+        </div>
+        <img src="Java%20Thread%20Methods%20Mind%20Map.png" alt="Java Thread Methods Mind Map"
+          style="border: 1px solid var(--card-border); max-height: 560px; object-fit: contain; width: 100%; border-radius: 12px; background: #fafafa;">
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 14px; text-align: left; line-height: 1.6;">
+          <strong>Mind Map Overview:</strong> A comprehensive visual classification of Java concurrency methods across <code>java.lang.Thread</code> and <code>java.lang.Object</code>. It groups methods by functional role: lifecycle ignition (<code>start()</code>, <code>run()</code>), execution pauses (<code>sleep()</code>, <code>yield()</code>), thread synchronization and joining (<code>join()</code>), graceful interruption (<code>interrupt()</code>), and inter-thread signaling (<code>wait()</code>, <code>notify()</code>).
+        </p>
+      </div>
+
+      <!-- State Transition ASCII -->
+      <h3 style="color: var(--primary-dark); margin: 26px 0 10px 0; font-size: 1.15rem;">Thread State Transitions
+        Triggered by Methods:</h3>
+      <div class="diagram-card">
+              t.start()                      Thread.sleep() / t.join()
+  [ NEW ] ──────────────► [ RUNNABLE ] ────────────────────────────────────► [ TIMED_WAITING / WAITING ]
+                             ▲                                                              │
+                             │                  Time expires OR t.interrupt()               │
+                             └──────────────────────────────────────────────────────────────┘
+                                  ▲
+                                  │ Thread.yield() (moves back to queue, remains Runnable)
+                                  └───────────────
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 2: start() vs run()                                               -->
+    <!-- ========================================================================= -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🚀</span>
+        <h2>2. start() vs. run(): The Most Critical Rule</h2>
+        <span class="unit-tag" style="background: #fef2f2; color: #991b1b;">#1 Interview Question</span>
+      </div>
+      <p>
+        Students frequently confuse <code>start()</code> with <code>run()</code>. Here is the single golden rule:
+      </p>
+
+      <div class="grid-2" style="margin: 16px 0;">
+        <div style="background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 12px; padding: 20px;">
+          <h4 style="color: #166534; font-size: 1.1rem; margin-bottom: 8px;">✓ Calling t.start()</h4>
+          <p style="font-size: 0.92rem; color: #14532d; line-height: 1.6;">
+            1. Requests an operating system thread from the kernel.<br />
+            2. Creates a <strong>new private call stack</strong>.<br />
+            3. Changes thread state to <code>RUNNABLE</code>.<br />
+            4. Asynchronously invokes <code>run()</code> on the <strong>new thread</strong>!
+          </p>
+        </div>
+
+        <div style="background: #fef2f2; border: 1.5px solid #fca5a5; border-radius: 12px; padding: 20px;">
+          <h4 style="color: #991b1b; font-size: 1.1rem; margin-bottom: 8px;">✗ Calling t.run() Directly</h4>
+          <p style="font-size: 0.92rem; color: #7f1d1d; line-height: 1.6;">
+            1. <strong>No new thread is spawned!</strong><br />
+            2. No new call stack is created.<br />
+            3. Executes sequentially on the <strong>caller thread (e.g., main)</strong> like any ordinary method call!<br />
+            4. Defeats the entire purpose of multi-threading.
+          </p>
+        </div>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-file-badge">StartVsRunDemo.java</div>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+        </div>
+        <pre><code class="language-java"><span class="tag-kw">public class</span> <span class="tag-type">StartVsRunDemo</span> {
+    <span class="tag-kw">public static void</span> <span class="tag-fn">main</span>(<span class="tag-type">String</span>[] args) {
+        <span class="tag-type">Thread</span> t = <span class="tag-kw">new</span> <span class="tag-type">Thread</span>(() -&gt; {
+            System.out.println(<span class="tag-str">"Task is running on: "</span> + <span class="tag-type">Thread</span>.<span class="tag-fn">currentThread</span>().<span class="tag-fn">getName</span>());
+        }, <span class="tag-str">"MyWorkerThread"</span>);
+
+        <span class="tag-comment">// Test 1: Calling run() directly</span>
+        System.out.println(<span class="tag-str">"Calling .run() directly:"</span>);
+        t.<span class="tag-fn">run</span>(); <span class="tag-comment">// Runs on 'main'!</span>
+
+        <span class="tag-comment">// Test 2: Calling start()</span>
+        System.out.println(<span class="tag-str">"\nCalling .start():"</span>);
+        t.<span class="tag-fn">start</span>(); <span class="tag-comment">// Spawns 'MyWorkerThread'!</span>
+    }
+}</code></pre>
+      </div>
+
+      <div class="output-box">
+Calling .run() directly:
+Task is running on: <span class="out-amber">main</span>
+
+Calling .start():
+Task is running on: <span class="out-green">MyWorkerThread</span>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 3: Thread.sleep()                                                 -->
+    <!-- ========================================================================= -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">⏳</span>
+        <h2>3. Thread.sleep(millis): Pausing Execution</h2>
+        <span class="unit-tag" style="background: #e0e7ff; color: var(--primary);">Timed Pause</span>
+      </div>
+      <p>
+        <code>Thread.sleep(long millis)</code> pauses the <strong>currently executing thread</strong> for the specified
+        number of milliseconds (1000 ms = 1 second).
+      </p>
+
+      <div class="alert-box alert-warning">
+        <span style="font-size: 1.5rem;">⚠️</span>
+        <div>
+          <strong>Two Essential Rules for sleep():</strong><br />
+          1. <strong>It is a static method:</strong> It ALWAYS pauses whichever thread invokes it. Calling <code>t1.sleep(500)</code> does NOT put <code>t1</code> to sleep; it puts the <em>current</em> thread to sleep!<br />
+          2. <strong>Throws InterruptedException:</strong> Because another thread can wake a sleeping thread early via <code>interrupt()</code>, <code>Thread.sleep()</code> is a checked exception and must be wrapped in a <code>try-catch</code> block.
+        </div>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-file-badge">SleepExample.java</div>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+        </div>
+        <pre><code class="language-java"><span class="tag-kw">public class</span> <span class="tag-type">SleepExample</span> {
+    <span class="tag-kw">public static void</span> <span class="tag-fn">main</span>(<span class="tag-type">String</span>[] args) {
+        <span class="tag-type">Thread</span> worker = <span class="tag-kw">new</span> <span class="tag-type">Thread</span>(() -&gt; {
+            System.out.println(<span class="tag-str">"Worker: Going to sleep for 500 ms..."</span>);
+            <span class="tag-kw">try</span> {
+                <span class="tag-type">Thread</span>.<span class="tag-fn">sleep</span>(<span class="tag-num">500</span>); <span class="tag-comment">// Pauses for 0.5 seconds</span>
+            } <span class="tag-kw">catch</span> (<span class="tag-type">InterruptedException</span> e) {
+                System.out.println(<span class="tag-str">"Worker was woken up early!"</span>);
+            }
+            System.out.println(<span class="tag-str">"Worker: Woke up! Resuming work."</span>);
+        });
+
+        worker.<span class="tag-fn">start</span>();
+    }
+}</code></pre>
+      </div>
+
+      <div class="output-box">
+Worker: Going to sleep for 500 ms...
+<span class="out-cyan">(0.5 second pause)</span>
+Worker: Woke up! Resuming work.
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 4: thread.join()                                                  -->
+    <!-- ========================================================================= -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🤝</span>
+        <h2>4. thread.join(): Waiting for a Thread to Finish</h2>
+        <span class="unit-tag" style="background: #e0e7ff; color: var(--primary);">Coordination</span>
+      </div>
+      <p>
+        When you spawn a child thread, the <code>main</code> thread continues running independently. If the <code>main</code>
+        thread needs the child thread's work to finish before proceeding, it calls <strong><code>childThread.join()</code></strong>.
+      </p>
+
+      <div class="alert-box alert-info">
+        <span style="font-size: 1.5rem;">💡</span>
+        <div>
+          <strong>The Simple Analogy:</strong><br />
+          <em>"Thread A calls <code>threadB.join()</code> means: Thread A pauses right here and waits until Thread B is completely done before continuing."</em>
+        </div>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-file-badge">JoinExample.java</div>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+        </div>
+        <pre><code class="language-java"><span class="tag-kw">public class</span> <span class="tag-type">JoinExample</span> {
+    <span class="tag-kw">public static void</span> <span class="tag-fn">main</span>(<span class="tag-type">String</span>[] args) <span class="tag-kw">throws</span> <span class="tag-type">InterruptedException</span> {
+        <span class="tag-type">Thread</span> child = <span class="tag-kw">new</span> <span class="tag-type">Thread</span>(() -&gt; {
+            System.out.println(<span class="tag-str">"Child: Step 1 starting..."</span>);
+            System.out.println(<span class="tag-str">"Child: Step 2 starting..."</span>);
+            System.out.println(<span class="tag-str">"Child: All steps completed!"</span>);
+        });
+
+        System.out.println(<span class="tag-str">"Main: Starting child thread..."</span>);
+        child.<span class="tag-fn">start</span>();
+
+        System.out.println(<span class="tag-str">"Main: Calling child.join()... Main will wait here!"</span>);
+        child.<span class="tag-fn">join</span>(); <span class="tag-comment">// Main thread pauses right here until child finishes!</span>
+
+        System.out.println(<span class="tag-str">"Main: Resumed! Child thread is finished. Main can exit now."</span>);
+    }
+}</code></pre>
+      </div>
+
+      <div class="output-box">
+Main: Starting child thread...
+Main: Calling child.join()... Main will wait here!
+Child: Step 1 starting...
+Child: Step 2 starting...
+Child: All steps completed!
+<span class="out-green">Main: Resumed! Child thread is finished. Main can exit now.</span>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 5: Thread.yield()                                                 -->
+    <!-- ========================================================================= -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🔀</span>
+        <h2>5. Thread.yield(): Polite Cooperation Hint</h2>
+        <span class="unit-tag" style="background: #e0e7ff; color: var(--primary);">CPU Scheduling</span>
+      </div>
+      <p>
+        <code>Thread.yield()</code> is a <strong>static method</strong> that provides a voluntary hint to the operating
+        system thread scheduler:
+      </p>
+      <div class="alert-box alert-purple">
+        <span style="font-size: 1.5rem;">🗣️</span>
+        <div>
+          <em>"I have completed part of my computation. If there are other threads of equal priority waiting for CPU
+            time, they can take a turn now."</em>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-top: 14px;">
+        <div style="background: #f8fafc; border: 1.5px solid var(--card-border); border-radius: 12px; padding: 18px;">
+          <h4 style="color: var(--primary-dark); margin-bottom: 8px;">Key Behavioral Properties:</h4>
+          <ul style="padding-left: 18px; font-size: 0.9rem; color: var(--text-muted); line-height: 1.7;">
+            <li><strong>Non-Deterministic:</strong> It is purely a hint! The OS scheduler is completely free to ignore it.</li>
+            <li><strong>Remains RUNNABLE:</strong> Does not cause the thread to sleep or block. It moves from <code>RUNNING</code> back to the ready <code>RUNNABLE</code> queue.</li>
+          </ul>
+        </div>
+
+        <div class="code-block" style="margin: 0;">
+          <div class="code-header">
+            <div class="code-file-badge">YieldSnippet.java</div>
+          </div>
+          <pre><code class="language-java"><span class="tag-kw">for</span> (<span class="tag-kw">int</span> i = <span class="tag-num">1</span>; i &lt;= <span class="tag-num">3</span>; i++) {
+    System.out.println(<span class="tag-type">Thread</span>.<span class="tag-fn">currentThread</span>().<span class="tag-fn">getName</span>() + <span class="tag-str">" -&gt; "</span> + i);
+    <span class="tag-type">Thread</span>.<span class="tag-fn">yield</span>(); <span class="tag-comment">// Give other threads a turn</span>
+}</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 6: thread.interrupt()                                             -->
+    <!-- ========================================================================= -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🛑</span>
+        <h2>6. thread.interrupt(): Safe Thread Interruption</h2>
+        <span class="unit-tag" style="background: #fef2f2; color: #991b1b;">Safe Thread Cancellation</span>
+      </div>
+      <p>
+        In older versions of Java, developers called <code>thread.stop()</code> to kill a thread. However, <code>stop()</code>
+        was <strong>deprecated</strong> because it forcefully killed threads, unlocking shared data mid-operation and
+        leaving memory corrupted! Today, <strong><code>interrupt()</code> is the official, safe mechanism</strong>.
+      </p>
+
+      <h4 style="color: var(--primary-dark); margin: 18px 0 10px 0;">How interrupt() Operates in Two Scenarios:</h4>
+      <div class="grid-2">
+        <div style="background: #fffbeb; border: 1.5px solid #fde68a; border-radius: 12px; padding: 18px;">
+          <h4 style="color: #92400e; margin-bottom: 8px;">Scenario A: Thread is Sleeping / Waiting</h4>
+          <p style="font-size: 0.9rem; color: #78350f; line-height: 1.6;">
+            If the thread is currently inside <code>Thread.sleep()</code> or <code>thread.join()</code>, calling <code>interrupt()</code> immediately terminates the sleep and throws an <strong><code>InterruptedException</code></strong> so the thread can clean up and exit gracefully.
+          </p>
+        </div>
+
+        <div style="background: #eff6ff; border: 1.5px solid #bfdbfe; border-radius: 12px; padding: 18px;">
+          <h4 style="color: #1e40af; margin-bottom: 8px;">Scenario B: Thread is Actively Computing</h4>
+          <p style="font-size: 0.9rem; color: #1e3a8a; line-height: 1.6;">
+            If the thread is in a standard loop, calling <code>interrupt()</code> sets an internal boolean flag to <code>true</code>. The thread periodically checks <code>Thread.currentThread().isInterrupted()</code> and terminates itself cleanly.
+          </p>
+        </div>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-file-badge">InterruptExample.java</div>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+        </div>
+        <pre><code class="language-java"><span class="tag-kw">public class</span> <span class="tag-type">InterruptExample</span> {
+    <span class="tag-kw">public static void</span> <span class="tag-fn">main</span>(<span class="tag-type">String</span>[] args) <span class="tag-kw">throws</span> <span class="tag-type">InterruptedException</span> {
+        <span class="tag-type">Thread</span> worker = <span class="tag-kw">new</span> <span class="tag-type">Thread</span>(() -&gt; {
+            System.out.println(<span class="tag-str">"Worker: Sleeping for 4 seconds..."</span>);
+            <span class="tag-kw">try</span> {
+                <span class="tag-type">Thread</span>.<span class="tag-fn">sleep</span>(<span class="tag-num">4000</span>);
+                System.out.println(<span class="tag-str">"Worker: Finished sleep normally."</span>);
+            } <span class="tag-kw">catch</span> (<span class="tag-type">InterruptedException</span> e) {
+                System.out.println(<span class="tag-str">"Worker: Interrupted! Woke up early. Safely exiting."</span>);
+            }
+        });
+
+        worker.<span class="tag-fn">start</span>();
+
+        <span class="tag-type">Thread</span>.<span class="tag-fn">sleep</span>(<span class="tag-num">200</span>); <span class="tag-comment">// Let worker go to sleep</span>
+        System.out.println(<span class="tag-str">"Main: Sending interrupt signal to worker..."</span>);
+        worker.<span class="tag-fn">interrupt</span>(); <span class="tag-comment">// Wakes up worker immediately!</span>
+    }
+}</code></pre>
+      </div>
+
+      <div class="output-box">
+Worker: Sleeping for 4 seconds...
+Main: Sending interrupt signal to worker...
+<span class="out-amber">Worker: Interrupted! Woke up early. Safely exiting.</span>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 7: INTERACTIVE METHODS SIMULATOR                                  -->
+    <!-- ========================================================================= -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🎮</span>
+        <h2>7. Interactive Thread Methods Simulator</h2>
+        <span class="unit-tag" style="background: #e0e7ff; color: var(--primary);">Live Interactive</span>
+      </div>
+      <p style="margin-bottom: 16px;">
+        Click any of the buttons below to simulate the execution behavior and console output of that thread control method:
+      </p>
+
+      <div class="sim-panel">
+        <div class="sim-btn-row">
+          <button class="sim-action-btn active" onclick="simulateMethod('start_vs_run')">Test start() vs run()</button>
+          <button class="sim-action-btn" onclick="simulateMethod('sleep')">Test sleep(500)</button>
+          <button class="sim-action-btn" onclick="simulateMethod('join')">Test join()</button>
+          <button class="sim-action-btn" onclick="simulateMethod('yield')">Test yield()</button>
+          <button class="sim-action-btn" onclick="simulateMethod('interrupt')">Test interrupt()</button>
+        </div>
+
+        <div style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 8px;">Simulated Console Output:</div>
+        <div class="sim-console" id="sim-output">
+&gt; Click any button above to test that method's execution output.
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 8: COMPLETE RUNNABLE JAVA DEMO                                    -->
+    <!-- ========================================================================= -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">💻</span>
+        <h2>8. Complete Verified Java Demo: ThreadMethodsDemo.java</h2>
+        <span class="unit-tag" style="background: #e0e7ff; color: var(--primary);">Verified Java 17 Demo</span>
+      </div>
+      <p>
+        The following complete program tests all 5 methods with simple, predictable console prints:
+      </p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-file-badge">ThreadMethodsDemo.java</div>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+        </div>
+        <pre><code class="language-java"><span class="tag-comment">/**
+ * Thread Execution &amp; Control Methods Demonstration
+ * 
+ * Demonstrates the 5 foundational thread control methods:
+ * 1. start() vs run()
+ * 2. Thread.sleep(millis)
+ * 3. thread.join()
+ * 4. Thread.yield()
+ * 5. thread.interrupt()
+ */</span>
+<span class="tag-kw">public class</span> <span class="tag-type">ThreadMethodsDemo</span> {
+
+    <span class="tag-kw">public static void</span> <span class="tag-fn">main</span>(<span class="tag-type">String</span>[] args) <span class="tag-kw">throws</span> <span class="tag-type">InterruptedException</span> {
+        System.out.println(<span class="tag-str">"=========================================================="</span>);
+        System.out.println(<span class="tag-str">"     THREAD EXECUTION &amp; CONTROL METHODS DEMONSTRATION     "</span>);
+        System.out.println(<span class="tag-str">"=========================================================="</span>);
+
+        <span class="tag-comment">// ---------------------------------------------------------------------</span>
+        <span class="tag-comment">// 1. start() vs run()</span>
+        <span class="tag-comment">// ---------------------------------------------------------------------</span>
+        System.out.println(<span class="tag-str">"\n--- 1. Testing start() vs run() ---"</span>);
+        <span class="tag-type">Thread</span> directRunThread = <span class="tag-kw">new</span> <span class="tag-type">Thread</span>(() -&gt; {
+            System.out.println(<span class="tag-str">"  [directRunThread] Executing on: "</span> + <span class="tag-type">Thread</span>.<span class="tag-fn">currentThread</span>().<span class="tag-fn">getName</span>());
+        });
+
+        System.out.println(<span class="tag-str">"Calling .run() directly:"</span>);
+        directRunThread.<span class="tag-fn">run</span>(); <span class="tag-comment">// Runs on main thread! No new thread created.</span>
+
+        <span class="tag-type">Thread</span> actualThread = <span class="tag-kw">new</span> <span class="tag-type">Thread</span>(() -&gt; {
+            System.out.println(<span class="tag-str">"  [actualThread] Executing on: "</span> + <span class="tag-type">Thread</span>.<span class="tag-fn">currentThread</span>().<span class="tag-fn">getName</span>());
+        }, <span class="tag-str">"Worker-NewThread"</span>);
+
+        System.out.println(<span class="tag-str">"Calling .start():"</span>);
+        actualThread.<span class="tag-fn">start</span>(); <span class="tag-comment">// Spawns new thread Worker-NewThread!</span>
+        actualThread.<span class="tag-fn">join</span>();
+
+        <span class="tag-comment">// ---------------------------------------------------------------------</span>
+        <span class="tag-comment">// 2. Thread.sleep()</span>
+        <span class="tag-comment">// ---------------------------------------------------------------------</span>
+        System.out.println(<span class="tag-str">"\n--- 2. Testing Thread.sleep(400) ---"</span>);
+        <span class="tag-type">Thread</span> sleeper = <span class="tag-kw">new</span> <span class="tag-type">Thread</span>(() -&gt; {
+            System.out.println(<span class="tag-str">"  [Sleeper] Thread started. Going to sleep for 400 ms..."</span>);
+            <span class="tag-kw">try</span> {
+                <span class="tag-type">Thread</span>.<span class="tag-fn">sleep</span>(<span class="tag-num">400</span>);
+            } <span class="tag-kw">catch</span> (<span class="tag-type">InterruptedException</span> e) {
+                System.out.println(<span class="tag-str">"  [Sleeper] Woken up early!"</span>);
+            }
+            System.out.println(<span class="tag-str">"  [Sleeper] Woke up! Finished sleep."</span>);
+        }, <span class="tag-str">"SleeperThread"</span>);
+
+        sleeper.<span class="tag-fn">start</span>();
+        sleeper.<span class="tag-fn">join</span>();
+
+        <span class="tag-comment">// ---------------------------------------------------------------------</span>
+        <span class="tag-comment">// 3. thread.join()</span>
+        <span class="tag-comment">// ---------------------------------------------------------------------</span>
+        System.out.println(<span class="tag-str">"\n--- 3. Testing thread.join() ---"</span>);
+        <span class="tag-type">Thread</span> childThread = <span class="tag-kw">new</span> <span class="tag-type">Thread</span>(() -&gt; {
+            System.out.println(<span class="tag-str">"  [ChildThread] Step 1 starting..."</span>);
+            <span class="tag-kw">try</span> { <span class="tag-type">Thread</span>.<span class="tag-fn">sleep</span>(<span class="tag-num">200</span>); } <span class="tag-kw">catch</span> (<span class="tag-type">InterruptedException</span> ignored) {}
+            System.out.println(<span class="tag-str">"  [ChildThread] Step 2 starting..."</span>);
+            <span class="tag-kw">try</span> { <span class="tag-type">Thread</span>.<span class="tag-fn">sleep</span>(<span class="tag-num">200</span>); } <span class="tag-kw">catch</span> (<span class="tag-type">InterruptedException</span> ignored) {}
+            System.out.println(<span class="tag-str">"  [ChildThread] All steps completed!"</span>);
+        }, <span class="tag-str">"ChildThread"</span>);
+
+        System.out.println(<span class="tag-str">"Main: Starting childThread..."</span>);
+        childThread.<span class="tag-fn">start</span>();
+        System.out.println(<span class="tag-str">"Main: Calling childThread.join()... Main is waiting!"</span>);
+        childThread.<span class="tag-fn">join</span>(); <span class="tag-comment">// Main thread pauses right here until childThread finishes!</span>
+        System.out.println(<span class="tag-str">"Main: Resumed! Child thread has completed."</span>);
+
+        <span class="tag-comment">// ---------------------------------------------------------------------</span>
+        <span class="tag-comment">// 4. Thread.yield()</span>
+        <span class="tag-comment">// ---------------------------------------------------------------------</span>
+        System.out.println(<span class="tag-str">"\n--- 4. Testing Thread.yield() ---"</span>);
+        <span class="tag-type">Runnable</span> yieldTask = () -&gt; {
+            <span class="tag-kw">for</span> (<span class="tag-kw">int</span> i = <span class="tag-num">1</span>; i &lt;= <span class="tag-num">3</span>; i++) {
+                System.out.println(<span class="tag-str">"  ["</span> + <span class="tag-type">Thread</span>.<span class="tag-fn">currentThread</span>().<span class="tag-fn">getName</span>() + <span class="tag-str">"] Count: "</span> + i);
+                <span class="tag-type">Thread</span>.<span class="tag-fn">yield</span>(); <span class="tag-comment">// Voluntary hint to CPU scheduler</span>
+            }
+        };
+
+        <span class="tag-type">Thread</span> y1 = <span class="tag-kw">new</span> <span class="tag-type">Thread</span>(yieldTask, <span class="tag-str">"YieldThread-A"</span>);
+        <span class="tag-type">Thread</span> y2 = <span class="tag-kw">new</span> <span class="tag-type">Thread</span>(yieldTask, <span class="tag-str">"YieldThread-B"</span>);
+        y1.<span class="tag-fn">start</span>();
+        y2.<span class="tag-fn">start</span>();
+        y1.<span class="tag-fn">join</span>();
+        y2.<span class="tag-fn">join</span>();
+
+        <span class="tag-comment">// ---------------------------------------------------------------------</span>
+        <span class="tag-comment">// 5. thread.interrupt()</span>
+        <span class="tag-comment">// ---------------------------------------------------------------------</span>
+        System.out.println(<span class="tag-str">"\n--- 5. Testing thread.interrupt() ---"</span>);
+        <span class="tag-type">Thread</span> sleepingWorker = <span class="tag-kw">new</span> <span class="tag-type">Thread</span>(() -&gt; {
+            System.out.println(<span class="tag-str">"  [InterruptWorker] Sleeping for 4000 ms (4 seconds)..."</span>);
+            <span class="tag-kw">try</span> {
+                <span class="tag-type">Thread</span>.<span class="tag-fn">sleep</span>(<span class="tag-num">4000</span>);
+                System.out.println(<span class="tag-str">"  [InterruptWorker] Finished sleep normally."</span>);
+            } <span class="tag-kw">catch</span> (<span class="tag-type">InterruptedException</span> e) {
+                System.out.println(<span class="tag-str">"  [InterruptWorker] Received interrupt! InterruptedException caught."</span>);
+                System.out.println(<span class="tag-str">"  [InterruptWorker] Safely exiting early."</span>);
+            }
+        }, <span class="tag-str">"InterruptWorker"</span>);
+
+        sleepingWorker.<span class="tag-fn">start</span>();
+        <span class="tag-type">Thread</span>.<span class="tag-fn">sleep</span>(<span class="tag-num">200</span>); <span class="tag-comment">// Give worker 200ms to enter sleep</span>
+        System.out.println(<span class="tag-str">"Main: Calling sleepingWorker.interrupt()..."</span>);
+        sleepingWorker.<span class="tag-fn">interrupt</span>();
+        sleepingWorker.<span class="tag-fn">join</span>();
+
+        System.out.println(<span class="tag-str">"\n=========================================================="</span>);
+        System.out.println(<span class="tag-str">"All thread control methods tested successfully!"</span>);
+        System.out.println(<span class="tag-str">"=========================================================="</span>);
+    }
+}</code></pre>
+      </div>
+
+      <!-- Live Actual Execution Output -->
+      <h4 style="color: var(--primary-dark); margin: 18px 0 8px 0;">Actual Execution Console Output:</h4>
+      <div class="output-box">
+==========================================================
+     THREAD EXECUTION &amp; CONTROL METHODS DEMONSTRATION     
+==========================================================
+
+--- 1. Testing start() vs run() ---
+Calling .run() directly:
+  [directRunThread] Executing on: <span class="out-amber">main</span>
+Calling .start():
+  [actualThread] Executing on: <span class="out-green">Worker-NewThread</span>
+
+--- 2. Testing Thread.sleep(400) ---
+  [Sleeper] Thread started. Going to sleep for 400 ms...
+  [Sleeper] Woke up! Finished sleep.
+
+--- 3. Testing thread.join() ---
+Main: Starting childThread...
+Main: Calling childThread.join()... Main is waiting!
+  [ChildThread] Step 1 starting...
+  [ChildThread] Step 2 starting...
+  [ChildThread] All steps completed!
+Main: Resumed! Child thread has completed.
+
+--- 4. Testing Thread.yield() ---
+  [YieldThread-A] Count: 1
+  [YieldThread-A] Count: 2
+  [YieldThread-A] Count: 3
+  [YieldThread-B] Count: 1
+  [YieldThread-B] Count: 2
+  [YieldThread-B] Count: 3
+
+--- 5. Testing thread.interrupt() ---
+  [InterruptWorker] Sleeping for 4000 ms (4 seconds)...
+Main: Calling sleepingWorker.interrupt()...
+  <span class="out-amber">[InterruptWorker] Received interrupt! InterruptedException caught.</span>
+  <span class="out-green">[InterruptWorker] Safely exiting early.</span>
+
+==========================================================
+<span class="out-green">All thread control methods tested successfully!</span>
+==========================================================
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 9: DEPRECATED METHODS WARNING                                     -->
+    <!-- ========================================================================= -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🚫</span>
+        <h2>9. Deprecated Thread Methods: Why You Must Never Use Them</h2>
+        <span class="unit-tag" style="background: #fef2f2; color: #991b1b;">Crucial Anti-Patterns</span>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Deprecated Method</th>
+              <th>Why it Was Banned / Deprecated</th>
+              <th>Modern Safe Alternative</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>thread.stop()</code></td>
+              <td>Forces the thread to die instantly and unlocks all monitored locks. If an object was mid-modification, it is left corrupted and invalid.</td>
+              <td>Use <code>thread.interrupt()</code> and check <code>isInterrupted()</code> to exit gracefully.</td>
+            </tr>
+            <tr>
+              <td><code>thread.suspend()</code></td>
+              <td>Freezes a thread without releasing any locks. If the thread holding the lock needed to resume it is blocked, instant deadlock occurs!</td>
+              <td>Use <code>wait()</code> and <code>notify()</code> or <code>LockSupport.park()</code>.</td>
+            </tr>
+            <tr>
+              <td><code>thread.resume()</code></td>
+              <td>Direct counterpart of <code>suspend()</code>, inherently deadlock-prone.</td>
+              <td>Use <code>notify()</code> / <code>notifyAll()</code> or <code>LockSupport.unpark()</code>.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 10: FREQUENTLY ASKED QUESTIONS & INTERVIEW CONCEPTS               -->
+    <!-- ========================================================================= -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🎓</span>
+        <h2>10. Frequently Asked Questions &amp; Interview Concepts</h2>
+        <span class="unit-tag" style="background: #e0e7ff; color: var(--primary);">Interview Preparation</span>
+      </div>
+      <p style="margin-bottom: 16px;">
+        Click any question to reveal the comprehensive interview-grade answer:
+      </p>
+
+      <div class="qa-box">
+        <div class="qa-q" onclick="toggleQA(this)">
+          <span>Q1. What is the fundamental difference between Thread.sleep() and Object.wait()?</span>
+          <span>▼</span>
+        </div>
+        <div class="qa-a">
+          <strong>Answer:</strong> This is one of Java's most famous interview questions:<br />
+          • <strong>Class &amp; Method:</strong> <code>sleep()</code> is a <code>static</code> method in <code>java.lang.Thread</code>. <code>wait()</code> is an instance method in <code>java.lang.Object</code>.<br />
+          • <strong>Lock Behavior:</strong> <code>Thread.sleep()</code> <strong>never releases locks</strong> (if inside a synchronized block, other threads remain locked out). <code>wait()</code> <strong>temporarily releases the object monitor lock</strong> so other waiting threads can acquire it.<br />
+          • <strong>Waking Up:</strong> <code>sleep()</code> wakes up after time expires or via <code>interrupt()</code>. <code>wait()</code> wakes up when another thread calls <code>notify()</code> / <code>notifyAll()</code> on the same object.
+        </div>
+      </div>
+
+      <div class="qa-box">
+        <div class="qa-q" onclick="toggleQA(this)">
+          <span>Q2. Can one thread put another thread to sleep by calling t2.sleep(1000)?</span>
+          <span>▼</span>
+        </div>
+        <div class="qa-a">
+          <strong>Answer:</strong> <strong>No!</strong> <code>Thread.sleep()</code> is a <code>static</code> method. Even if written as <code>t2.sleep(1000)</code>, the Java compiler resolves it statically as <code>Thread.sleep(1000)</code>. It will put whichever thread is currently executing that statement to sleep, NOT <code>t2</code>!
+        </div>
+      </div>
+
+      <div class="qa-box">
+        <div class="qa-q" onclick="toggleQA(this)">
+          <span>Q3. What happens if join() is called on a thread that has not started or is already dead?</span>
+          <span>▼</span>
+        </div>
+        <div class="qa-a">
+          <strong>Answer:</strong> The <code>join()</code> method checks <code>isAlive()</code> internally. If the target thread has not been started yet, or if it has already finished executing, <code>isAlive()</code> returns <code>false</code> and <code>join()</code> returns immediately without pausing the calling thread.
+        </div>
+      </div>
+
+      <div class="qa-box">
+        <div class="qa-q" onclick="toggleQA(this)">
+          <span>Q4. Why is Thread.yield() described as non-deterministic?</span>
+          <span>▼</span>
+        </div>
+        <div class="qa-a">
+          <strong>Answer:</strong> <code>yield()</code> only sends a polite suggestion to the underlying operating system thread scheduler. The JVM does not enforce scheduling; the OS kernel determines thread dispatching based on priorities and core availability. The scheduler is free to ignore the hint and immediately re-dispatch the exact same thread. Therefore, you should never rely on <code>yield()</code> for critical program synchronization.
+        </div>
+      </div>
+
+      <div class="qa-box">
+        <div class="qa-q" onclick="toggleQA(this)">
+          <span>Q5. What is the difference between interrupt() and isInterrupted()?</span>
+          <span>▼</span>
+        </div>
+        <div class="qa-a">
+          <strong>Answer:</strong><br />
+          • <code>t.interrupt()</code>: Action method that sends the interrupt signal to thread <code>t</code>.<br />
+          • <code>t.isInterrupted()</code>: Query method that returns <code>true</code> if thread <code>t</code> has been interrupted, without clearing the flag.<br />
+          • <code>Thread.interrupted()</code>: Static method that tests whether the current thread has been interrupted AND clears the interrupt flag!
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 11: CORE SUMMARY & KEY TAKEAWAYS                                  -->
+    <!-- ========================================================================= -->
+    <div class="card" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-color: #86efac;">
+      <h3 style="color: #166534; margin-bottom: 12px; font-size: 1.25rem;">📌 Core Summary &amp; Key Takeaways</h3>
+      <ul style="padding-left: 20px; color: #14532d; line-height: 1.8; font-size: 0.95rem;">
+        <li><strong>start() creates the thread:</strong> Always call <code>.start()</code>. Never call <code>.run()</code> directly unless you want sequential execution on the caller thread.</li>
+        <li><strong>Thread.sleep() pauses current thread:</strong> Static method; holds all locks; throws checked <code>InterruptedException</code>.</li>
+        <li><strong>thread.join() synchronizes completion:</strong> The calling thread blocks and waits until the target thread finishes execution.</li>
+        <li><strong>Thread.yield() gives other threads a chance:</strong> Voluntary hint; does not block; thread remains in <code>RUNNABLE</code> queue.</li>
+        <li><strong>thread.interrupt() is the modern stop:</strong> Wakes sleeping threads via <code>InterruptedException</code> and allows graceful, clean shutdown without resource leaks.</li>
+      </ul>
+    </div>
+
+    <!-- Bottom Page Navigation -->
+    <div class="page-nav">
+      <a href="creating_threads.html" class="nav-btn-link">← Prev: Creating Threads in Java</a>
+      <a href="../index.html" class="nav-btn-link">🏠 Java Curriculum Index</a>
+      <a href="thread_priorities_daemon.html" class="nav-btn-link">Next: Thread Priorities &amp; Daemon Threads →</a>
+    </div>
+  </div>
+
+  <!-- Interactive Scripts -->
+  <script>
+    // Copy Code Helper
+    function copyCode(btn) {
+      const codeBlock = btn.closest('.code-block');
+      const codeEl = codeBlock.querySelector('code, pre');
+      const text = codeEl ? codeEl.innerText : '';
+      navigator.clipboard.writeText(text).then(() => {
+        const orig = btn.innerText;
+        btn.innerText = '✓ Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.innerText = orig;
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    }
+
+    // QA Accordion Toggle
+    function toggleQA(el) {
+      const ans = el.nextElementSibling;
+      const arrow = el.querySelector('span:last-child');
+      if (ans.style.display === 'none' || !ans.style.display) {
+        ans.style.display = 'block';
+        if (arrow) arrow.innerText = '▲';
+      } else {
+        ans.style.display = 'none';
+        if (arrow) arrow.innerText = '▼';
+      }
+    }
+
+    // Initialize all QA answers to hidden
+    document.addEventListener("DOMContentLoaded", () => {
+      document.querySelectorAll('.qa-a').forEach(a => a.style.display = 'none');
+    });
+
+    // Interactive Methods Simulator
+    function simulateMethod(action) {
+      const consoleEl = document.getElementById('sim-output');
+      const buttons = document.querySelectorAll('.sim-action-btn');
+      
+      buttons.forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+
+      if (action === 'start_vs_run') {
+        consoleEl.innerHTML = 
+`[TEST: start() vs run()]
+Calling t.run() directly:
+  &gt; Thread Name: main  (Synchronous execution! NO new OS thread created.)
+Calling t.start():
+  &gt; Thread Name: MyWorkerThread  (Asynchronous execution! NEW OS thread created.)`;
+      } else if (action === 'sleep') {
+        consoleEl.innerHTML = 
+`[TEST: Thread.sleep(500)]
+Time 0.00s: [Worker] Entering sleep for 500 ms...
+Time 0.00s: [Worker State] TIMED_WAITING
+Time 0.50s: [Worker] Woke up! State: RUNNABLE
+Time 0.50s: [Worker] Completed execution.`;
+      } else if (action === 'join') {
+        consoleEl.innerHTML = 
+`[TEST: thread.join()]
+[Main] Starting ChildThread...
+[Main] Calling child.join()... Main is now PAUSED (State: WAITING)
+  [Child] Step 1 executing...
+  [Child] Step 2 executing...
+  [Child] Completed! Child thread TERMINATED.
+[Main] Resumed from join()! State: RUNNABLE. Main thread finishes.`;
+      } else if (action === 'yield') {
+        consoleEl.innerHTML = 
+`[TEST: Thread.yield()]
+[YieldThread-A] Count 1 -&gt; Calls Thread.yield()
+[Scheduler] Yield hint received: Switches turn to YieldThread-B
+[YieldThread-B] Count 1 -&gt; Calls Thread.yield()
+[YieldThread-A] Count 2
+[YieldThread-B] Count 2`;
+      } else if (action === 'interrupt') {
+        consoleEl.innerHTML = 
+`[TEST: thread.interrupt()]
+[Worker] Sleeping for 4000 ms... (State: TIMED_WAITING)
+[Main] Calling worker.interrupt()...
+[Worker] InterruptedException caught! Sleep interrupted.
+[Worker] Safely closing files and terminating cleanly.`;
+      }
+    }
+  </script>
+</body>
+
+</html>
+

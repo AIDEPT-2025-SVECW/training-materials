@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inter-Thread Communication in Java: wait, notify, notifyAll &amp; Producer-Consumer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --primary-light: #e0e7ff;
+      --secondary: #0284c7;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #ef4444;
+      --accent-purple: #8b5cf6;
+      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f1f5f9 100%);
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 10px 25px rgba(79, 70, 229, 0.08);
+      --shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      color: var(--text-main);
+      padding: 24px 16px;
+      line-height: 1.65;
+    }
+
+    .container {
+      max-width: 1140px;
+      margin: 0 auto;
+    }
+
+    .top-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #ffffff;
+      color: var(--primary-dark);
+      text-decoration: none;
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      border: 1px solid var(--card-border);
+      box-shadow: var(--shadow-sm);
+      transition: all 0.25s ease;
+    }
+
+    .back-btn:hover {
+      background: var(--primary);
+      color: #ffffff;
+      transform: translateX(-4px);
+    }
+
+    .nav-tag {
+      color: var(--primary-dark);
+      font-weight: 700;
+      font-size: 0.9rem;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 6px 18px;
+      border-radius: 20px;
+      border: 1px solid var(--card-border);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #1e1b4b 0%, #4338ca 40%, #0284c7 75%, #059669 100%);
+      color: #ffffff;
+      border-radius: 20px;
+      padding: 42px 32px;
+      text-align: center;
+      box-shadow: var(--shadow-lg);
+      margin-bottom: 32px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: '';
+      position: absolute;
+      top: -50px;
+      right: -50px;
+      width: 220px;
+      height: 220px;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .hero h1 {
+      font-size: clamp(1.8rem, 3.8vw, 2.5rem);
+      font-weight: 800;
+      margin-bottom: 12px;
+      line-height: 1.25;
+    }
+
+    .hero p {
+      font-size: 1.12rem;
+      opacity: 0.95;
+      max-width: 900px;
+      margin: 0 auto 20px auto;
+    }
+
+    .hero-badges {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .hero-badge {
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(8px);
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      border: 1px solid var(--card-border);
+      padding: 30px;
+      margin-bottom: 26px;
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.2s ease;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #f1f5f9;
+      padding-bottom: 14px;
+    }
+
+    .section-title h2 {
+      font-size: 1.45rem;
+      color: var(--primary-dark);
+      font-weight: 700;
+    }
+
+    .section-title .icon {
+      font-size: 1.5rem;
+      background: #e0e7ff;
+      width: 46px;
+      height: 46px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      color: var(--primary);
+    }
+
+    .unit-tag {
+      margin-left: auto;
+      background: #ede9fe;
+      color: #6d28d9;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 860px) {
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    @media (max-width: 860px) {
+      .grid-3 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Code Blocks */
+    .code-block {
+      background: #0d1117;
+      color: #e6edf3;
+      border-radius: 12px;
+      position: relative;
+      margin: 18px 0;
+      border: 1px solid #30363d;
+      overflow: hidden;
+      font-family: 'Fira Code', monospace;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    }
+
+    .code-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 16px;
+      background: #161b22;
+      border-bottom: 1px solid #30363d;
+      font-size: 0.85rem;
+      color: #8b949e;
+      font-family: 'Fira Code', monospace;
+    }
+
+    .code-file-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      color: #c9d1d9;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+    }
+
+    .code-file-badge::before {
+      content: '';
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #e3b341;
+    }
+
+    pre {
+      margin: 0;
+      padding: 18px 20px;
+      overflow-x: auto;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      white-space: pre;
+      color: #e6edf3;
+    }
+
+    .code-block code {
+      color: #e6edf3;
+      font-family: 'Fira Code', monospace;
+    }
+
+    .copy-btn {
+      background: rgba(255, 255, 255, 0.08);
+      color: #c9d1d9;
+      border: 1px solid #30363d;
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: inherit;
+    }
+
+    .copy-btn:hover {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+    }
+
+    .copy-btn.copied {
+      background: var(--accent-green) !important;
+      color: #ffffff !important;
+      border-color: var(--accent-green) !important;
+    }
+
+    .tag-kw {
+      color: #ff7b72;
+      font-weight: 600;
+    }
+
+    .tag-type {
+      color: #79c0ff;
+      font-weight: 600;
+    }
+
+    .tag-str {
+      color: #a5d6ff;
+    }
+
+    .tag-comment {
+      color: #8b949e;
+      font-style: italic;
+    }
+
+    .tag-fn {
+      color: #d2a8ff;
+    }
+
+    .tag-num {
+      color: #79c0ff;
+    }
+
+    code:not(pre code) {
+      font-family: 'Fira Code', monospace;
+      font-size: 0.88em;
+      background: #eef2ff;
+      color: #4338ca;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .alert-box {
+      padding: 16px 20px;
+      border-radius: 12px;
+      margin: 18px 0;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      line-height: 1.6;
+    }
+
+    .alert-info {
+      background: #eff6ff;
+      border-left: 5px solid var(--secondary);
+      color: #1e40af;
+    }
+
+    .alert-warning {
+      background: #fffbeb;
+      border-left: 5px solid var(--accent-amber);
+      color: #92400e;
+    }
+
+    .alert-danger {
+      background: #fef2f2;
+      border-left: 5px solid var(--accent-rose);
+      color: #991b1b;
+    }
+
+    .alert-success {
+      background: #f0fdf4;
+      border-left: 5px solid var(--accent-green);
+      color: #166534;
+    }
+
+    .diagram-card {
+      background: #0d1117;
+      color: #e6edf3;
+      border-radius: 14px;
+      padding: 22px;
+      margin: 18px 0;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      overflow-x: auto;
+      white-space: pre;
+      border: 1px solid #30363d;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    }
+
+    .table-container {
+      overflow-x: auto;
+      margin: 20px 0;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th,
+    td {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--card-border);
+      font-size: 0.92rem;
+    }
+
+    th {
+      background: #f8fafc;
+      color: var(--primary-dark);
+      font-weight: 700;
+    }
+
+    tr:hover {
+      background: #fbfdff;
+    }
+
+    .output-box {
+      background: #18181b;
+      border: 1px solid #27272a;
+      border-radius: 10px;
+      padding: 18px 22px;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.88rem;
+      color: #a1a1aa;
+      margin: 14px 0;
+      line-height: 1.6;
+    }
+
+    .output-box .out-green {
+      color: #4ade80;
+    }
+
+    .output-box .out-cyan {
+      color: #38bdf8;
+    }
+
+    .output-box .out-amber {
+      color: #fbbf24;
+    }
+
+    /* Interactive Signaling Simulator */
+    .sim-panel {
+      background: #0f172a;
+      border-radius: 14px;
+      padding: 24px;
+      border: 1px solid #334155;
+      color: #f8fafc;
+      margin: 18px 0;
+    }
+
+    .sim-console {
+      background: #000000;
+      border-radius: 10px;
+      border: 1px solid #334155;
+      padding: 16px 20px;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.88rem;
+      min-height: 120px;
+      color: #38bdf8;
+      line-height: 1.6;
+      white-space: pre-wrap;
+    }
+
+    /* QA Accordion */
+    .qa-box {
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      margin-bottom: 14px;
+      overflow: hidden;
+      background: #ffffff;
+      transition: all 0.2s ease;
+    }
+
+    .qa-box:hover {
+      border-color: var(--primary);
+    }
+
+    .qa-q {
+      padding: 16px 20px;
+      font-weight: 700;
+      color: var(--primary-dark);
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #fafafa;
+    }
+
+    .qa-a {
+      padding: 16px 20px;
+      font-size: 0.92rem;
+      color: var(--text-main);
+      border-top: 1px solid var(--card-border);
+      background: #ffffff;
+      line-height: 1.7;
+    }
+
+    .page-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 40px;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .nav-btn-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: white;
+      padding: 12px 24px;
+      border-radius: 12px;
+      border: 1px solid var(--card-border);
+      color: var(--primary-dark);
+      font-weight: 700;
+      text-decoration: none;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s;
+    }
+
+    .nav-btn-link:hover {
+      background: var(--primary);
+      color: white;
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="top-nav">
+      <a href="../index.html" class="back-btn">← Back to Java Index</a>
+      <span class="nav-tag">Java Multi-Threading • Inter-Thread Communication</span>
+    </div>
+
+    <!-- Hero Section -->
+    <div class="hero">
+      <h1>Inter-Thread Communication in Java</h1>
+      <p>Discover how threads communicate and coordinate execution using <code>wait()</code>, <code>notify()</code>, and
+        <code>notifyAll()</code>. Master the classic Producer-Consumer pattern and learn why waiting in a while loop
+        protects against spurious wakeups.</p>
+      <div class="hero-badges">
+        <span class="hero-badge">wait()</span>
+        <span class="hero-badge">notify()</span>
+        <span class="hero-badge">notifyAll()</span>
+        <span class="hero-badge">Producer-Consumer</span>
+        <span class="hero-badge">Object Wait Set</span>
+        <span class="hero-badge">Spurious Wakeups</span>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 1: THE POLLING PROBLEM & SIGNALING SOLUTION                       -->
+    <!-- ========================================================================= -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">📡</span>
+        <h2>1. The Polling Problem vs. Event-Driven Signaling</h2>
+        <span class="unit-tag" style="background: #e0e7ff; color: var(--primary);">Architecture</span>
+      </div>
+      <p>
+        Suppose Thread A needs data that Thread B is producing. How should Thread A wait until the data is ready?
+      </p>
+
+      <div class="grid-2" style="margin: 18px 0;">
+        <div style="background: #fef2f2; border: 1.5px solid #fca5a5; border-radius: 12px; padding: 20px;">
+          <h4 style="color: #991b1b; font-size: 1.05rem; margin-bottom: 8px;">❌ The Bad Approach: Busy-Waiting (Polling)</h4>
+          <p style="font-size: 0.9rem; color: #7f1d1d; line-height: 1.6;">
+            Writing a loop like <code>while (!hasData) { /* do nothing */ }</code>.<br />
+            • <strong>Catastrophic CPU waste:</strong> Thread A burns 100% CPU cycles spinning in a loop doing zero useful work.<br />
+            • Prevents other threads from getting CPU time.
+          </p>
+        </div>
+
+        <div style="background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 12px; padding: 20px;">
+          <h4 style="color: #166534; font-size: 1.05rem; margin-bottom: 8px;">✓ The Java Solution: Signaling (wait &amp; notify)</h4>
+          <p style="font-size: 0.9rem; color: #14532d; line-height: 1.6;">
+            Thread A voluntarily releases the lock and goes to sleep via <code>wait()</code> (0% CPU). When Thread B produces data, it awakens Thread A with <code>notify()</code>.<br />
+            • <strong>Zero CPU waste</strong> while waiting!
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 2: THE THREE SIGNALING METHODS                                    -->
+    <!-- ========================================================================= -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🔔</span>
+        <h2>2. The Core Methods: wait(), notify(), and notifyAll()</h2>
+        <span class="unit-tag" style="background: #ede9fe; color: #6d28d9;">java.lang.Object</span>
+      </div>
+      <p>
+        Notice an important architectural detail: <strong>these methods belong to <code>java.lang.Object</code>, NOT
+          <code>java.lang.Thread</code>!</strong> Why? Because locks belong to individual object monitors, and threads
+        wait on an object's monitor lock.
+      </p>
+
+      <div class="grid-3" style="margin: 18px 0;">
+        <div style="background: #f8fafc; border: 1.5px solid var(--card-border); border-radius: 12px; padding: 18px;">
+          <h4 style="color: var(--primary-dark); margin-bottom: 6px;">object.wait()</h4>
+          <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.6;">
+            1. Releases monitor lock.<br />
+            2. Suspends current thread into the object's <strong>Wait Set</strong>.<br />
+            3. Must re-acquire lock to resume!
+          </p>
+        </div>
+
+        <div style="background: #f8fafc; border: 1.5px solid var(--card-border); border-radius: 12px; padding: 18px;">
+          <h4 style="color: var(--primary-dark); margin-bottom: 6px;">object.notify()</h4>
+          <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.6;">
+            Wakes up a <strong>single arbitrary thread</strong> waiting in this object's Wait Set. Choice is non-deterministic.
+          </p>
+        </div>
+
+        <div style="background: #f8fafc; border: 1.5px solid var(--card-border); border-radius: 12px; padding: 18px;">
+          <h4 style="color: var(--primary-dark); margin-bottom: 6px;">object.notifyAll()</h4>
+          <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.6;">
+            Wakes up <strong>ALL threads</strong> waiting in this object's Wait Set. They then contend for the lock.
+          </p>
+        </div>
+      </div>
+
+      <div class="alert-box alert-danger">
+        <span style="font-size: 1.5rem;">🚫</span>
+        <div>
+          <strong>The Golden Prerequisite:</strong><br />
+          You <strong>MUST</strong> call <code>wait()</code>, <code>notify()</code>, and <code>notifyAll()</code> inside
+          a <strong><code>synchronized</code></strong> method or block on that exact same object!<br />
+          Calling them outside a synchronized context throws an immediate <strong><code>IllegalMonitorStateException</code></strong>!
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 3: THE WHILE-LOOP RULE & SPURIOUS WAKEUPS                         -->
+    <!-- ========================================================================= -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🔄</span>
+        <h2>3. The While-Loop Rule: Guarding Against Spurious Wakeups</h2>
+        <span class="unit-tag" style="background: #fef2f2; color: #991b1b;">#1 Coding Trap</span>
+      </div>
+      <p>
+        One of the most dangerous and common junior mistakes is calling <code>wait()</code> inside an <code>if</code>
+        statement instead of a <code>while</code> loop:
+      </p>
+
+      <div class="grid-2" style="margin: 16px 0;">
+        <div style="background: #fef2f2; border: 1.5px solid #fca5a5; border-radius: 12px; padding: 18px;">
+          <h4 style="color: #991b1b; margin-bottom: 8px;">❌ DANGEROUS: Using if</h4>
+          <div class="code-block" style="margin: 0;">
+            <pre><code class="language-java"><span class="tag-kw">if</span> (!hasData) {
+    <span class="tag-fn">wait</span>(); <span class="tag-comment">// BUG! Never do this!</span>
+}
+<span class="tag-comment">// Blindly consumes data without rechecking!</span></code></pre>
+          </div>
+        </div>
+
+        <div style="background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 12px; padding: 18px;">
+          <h4 style="color: #166534; margin-bottom: 8px;">✓ CORRECT: Always use while</h4>
+          <div class="code-block" style="margin: 0;">
+            <pre><code class="language-java"><span class="tag-kw">while</span> (!hasData) {
+    <span class="tag-fn">wait</span>(); <span class="tag-comment">// Safe and robust!</span>
+}
+<span class="tag-comment">// Re-validates condition upon waking!</span></code></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="alert-box alert-warning">
+        <span style="font-size: 1.5rem;">⚠️</span>
+        <div>
+          <strong>Why is the while loop mandatory?</strong><br />
+          1. <strong>Spurious Wakeups:</strong> Due to underlying OS thread scheduling behavior, a thread in the wait set can occasionally wake up without any thread calling <code>notify()</code>!<br />
+          2. <strong>Contention with Multiple Consumers:</strong> If two consumer threads wake up, Consumer 1 grabs the item first. When Consumer 2 acquires the lock, the buffer is empty again! The <code>while</code> loop forces Consumer 2 to check again and safely go back to sleep.
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 4: THE PRODUCER-CONSUMER PATTERN                                  -->
+    <!-- ========================================================================= -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">📦</span>
+        <h2>4. The Classic Producer-Consumer Coordination Pattern</h2>
+        <span class="unit-tag" style="background: #dcfce7; color: #166534;">Design Pattern</span>
+      </div>
+      <p>
+        The <strong>Producer-Consumer Pattern</strong> is the textbook demonstration of thread coordination:
+        • A <strong>Producer</strong> creates data and deposits it into a shared buffer.<br />
+        • A <strong>Consumer</strong> retrieves and processes data from the buffer.<br />
+        • If the buffer is full, the Producer waits. If the buffer is empty, the Consumer waits.
+      </p>
+
+      <div class="diagram-card">
+  [ PRODUCER THREAD ]                          [ SHARED BUFFER ]                         [ CONSUMER THREAD ]
+          │                                            │                                          │
+          ├── Is buffer full? YES ──► wait()           │                                          │
+          │                           (re-check while) │                                          │
+          │                                            │                                          │
+          ├── Put item into buffer ───────────────────►│                                          │
+          │                                            ├── Is buffer empty? YES ◄── wait()        │
+          └── notify() ────────────────────────────────┼────────────────────────► Wakes Consumer! │
+                                                       │                                          │
+                                                       │◄── Read item from buffer ────────────────┤
+                                                       │                                          │
+                                                       │◄── notify() ─────────────────────────────┘
+                                                       │    (Wakes Producer if buffer was full)
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 5: COMPLETE VERIFIED RUNNABLE JAVA DEMO                           -->
+    <!-- ========================================================================= -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">💻</span>
+        <h2>5. Complete Verified Java Demo: InterThreadCommunicationDemo.java</h2>
+        <span class="unit-tag" style="background: #e0e7ff; color: var(--primary);">Verified Java 17 Demo</span>
+      </div>
+      <p>
+        The following self-contained program coordinates a Producer and Consumer using simple console prints:
+      </p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-file-badge">InterThreadCommunicationDemo.java</div>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+        </div>
+        <pre><code class="language-java"><span class="tag-comment">/**
+ * Inter-Thread Communication Demonstration in Java
+ * 
+ * Demonstrates:
+ * 1. The wait() and notify() mechanisms
+ * 2. Why wait() must be called in a while loop
+ * 3. Simple alternating Producer-Consumer coordination with simple prints
+ */</span>
+<span class="tag-kw">public class</span> <span class="tag-type">InterThreadCommunicationDemo</span> {
+
+    <span class="tag-comment">// A simple 1-item shared buffer</span>
+    <span class="tag-kw">static class</span> <span class="tag-type">SimpleBuffer</span> {
+        <span class="tag-kw">private int</span> data;
+        <span class="tag-kw">private boolean</span> hasData = <span class="tag-kw">false</span>;
+
+        <span class="tag-comment">// Producer calls this</span>
+        <span class="tag-kw">public synchronized void</span> <span class="tag-fn">produce</span>(<span class="tag-kw">int</span> value) {
+            <span class="tag-comment">// Wait while buffer is full</span>
+            <span class="tag-kw">while</span> (hasData) {
+                <span class="tag-kw">try</span> {
+                    <span class="tag-fn">wait</span>(); <span class="tag-comment">// Releases lock and enters Wait Set</span>
+                } <span class="tag-kw">catch</span> (<span class="tag-type">InterruptedException</span> e) {
+                    <span class="tag-type">Thread</span>.<span class="tag-fn">currentThread</span>().<span class="tag-fn">interrupt</span>();
+                }
+            }
+
+            <span class="tag-kw">this</span>.data = value;
+            <span class="tag-kw">this</span>.hasData = <span class="tag-kw">true</span>;
+            System.out.println(<span class="tag-str">"  [Producer] Produced data item: "</span> + value);
+
+            <span class="tag-comment">// Notify consumer that data is ready</span>
+            <span class="tag-fn">notify</span>();
+        }
+
+        <span class="tag-comment">// Consumer calls this</span>
+        <span class="tag-kw">public synchronized int</span> <span class="tag-fn">consume</span>() {
+            <span class="tag-comment">// Wait while buffer is empty</span>
+            <span class="tag-kw">while</span> (!hasData) {
+                <span class="tag-kw">try</span> {
+                    <span class="tag-fn">wait</span>(); <span class="tag-comment">// Releases lock and enters Wait Set</span>
+                } <span class="tag-kw">catch</span> (<span class="tag-type">InterruptedException</span> e) {
+                    <span class="tag-type">Thread</span>.<span class="tag-fn">currentThread</span>().<span class="tag-fn">interrupt</span>();
+                }
+            }
+
+            <span class="tag-kw">int</span> value = <span class="tag-kw">this</span>.data;
+            <span class="tag-kw">this</span>.hasData = <span class="tag-kw">false</span>;
+            System.out.println(<span class="tag-str">"  [Consumer] Consumed data item: "</span> + value);
+
+            <span class="tag-comment">// Notify producer that buffer is empty</span>
+            <span class="tag-fn">notify</span>();
+            <span class="tag-kw">return</span> value;
+        }
+    }
+
+    <span class="tag-kw">public static void</span> <span class="tag-fn">main</span>(<span class="tag-type">String</span>[] args) <span class="tag-kw">throws</span> <span class="tag-type">InterruptedException</span> {
+        System.out.println(<span class="tag-str">"=========================================================="</span>);
+        System.out.println(<span class="tag-str">"    INTER-THREAD COMMUNICATION: wait() &amp; notify() DEMO    "</span>);
+        System.out.println(<span class="tag-str">"=========================================================="</span>);
+
+        <span class="tag-type">SimpleBuffer</span> buffer = <span class="tag-kw">new</span> <span class="tag-type">SimpleBuffer</span>();
+
+        <span class="tag-comment">// Producer Thread</span>
+        <span class="tag-type">Thread</span> producer = <span class="tag-kw">new</span> <span class="tag-type">Thread</span>(() -&gt; {
+            <span class="tag-kw">for</span> (<span class="tag-kw">int</span> i = <span class="tag-num">1</span>; i &lt;= <span class="tag-num">3</span>; i++) {
+                buffer.<span class="tag-fn">produce</span>(i * <span class="tag-num">100</span>);
+                <span class="tag-kw">try</span> { <span class="tag-type">Thread</span>.<span class="tag-fn">sleep</span>(<span class="tag-num">50</span>); } <span class="tag-kw">catch</span> (<span class="tag-type">InterruptedException</span> ignored) {}
+            }
+        }, <span class="tag-str">"ProducerThread"</span>);
+
+        <span class="tag-comment">// Consumer Thread</span>
+        <span class="tag-type">Thread</span> consumer = <span class="tag-kw">new</span> <span class="tag-type">Thread</span>(() -&gt; {
+            <span class="tag-kw">for</span> (<span class="tag-kw">int</span> i = <span class="tag-num">1</span>; i &lt;= <span class="tag-num">3</span>; i++) {
+                buffer.<span class="tag-fn">consume</span>();
+                <span class="tag-kw">try</span> { <span class="tag-type">Thread</span>.<span class="tag-fn">sleep</span>(<span class="tag-num">50</span>); } <span class="tag-kw">catch</span> (<span class="tag-type">InterruptedException</span> ignored) {}
+            }
+        }, <span class="tag-str">"ConsumerThread"</span>);
+
+        consumer.<span class="tag-fn">start</span>(); <span class="tag-comment">// Consumer starts first to prove it waits!</span>
+        <span class="tag-type">Thread</span>.<span class="tag-fn">sleep</span>(<span class="tag-num">100</span>);
+        producer.<span class="tag-fn">start</span>();
+
+        producer.<span class="tag-fn">join</span>();
+        consumer.<span class="tag-fn">join</span>();
+
+        System.out.println(<span class="tag-str">"\n=========================================================="</span>);
+        System.out.println(<span class="tag-str">"Inter-thread communication demonstrated successfully!"</span>);
+        System.out.println(<span class="tag-str">"=========================================================="</span>);
+    }
+}</code></pre>
+      </div>
+
+      <!-- Live Actual Execution Output -->
+      <h4 style="color: var(--primary-dark); margin: 18px 0 8px 0;">Actual Execution Console Output:</h4>
+      <div class="output-box">
+==========================================================
+    INTER-THREAD COMMUNICATION: wait() &amp; notify() DEMO    
+==========================================================
+  <span class="out-green">[Producer] Produced data item: 100</span>
+  <span class="out-cyan">[Consumer] Consumed data item: 100</span>
+  <span class="out-green">[Producer] Produced data item: 200</span>
+  <span class="out-cyan">[Consumer] Consumed data item: 200</span>
+  <span class="out-green">[Producer] Produced data item: 300</span>
+  <span class="out-cyan">[Consumer] Consumed data item: 300</span>
+
+==========================================================
+<span class="out-green">Inter-thread communication demonstrated successfully!</span>
+==========================================================
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 6: FREQUENTLY ASKED QUESTIONS & INTERVIEW CONCEPTS                -->
+    <!-- ========================================================================= -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🎓</span>
+        <h2>6. Frequently Asked Questions &amp; Interview Concepts</h2>
+        <span class="unit-tag" style="background: #e0e7ff; color: var(--primary);">Interview Preparation</span>
+      </div>
+      <p style="margin-bottom: 16px;">
+        Click any question to reveal the comprehensive interview-grade answer:
+      </p>
+
+      <div class="qa-box">
+        <div class="qa-q" onclick="toggleQA(this)">
+          <span>Q1. Why are wait(), notify(), and notifyAll() defined in Object instead of Thread?</span>
+          <span>▼</span>
+        </div>
+        <div class="qa-a">
+          <strong>Answer:</strong> Because locks are bound to individual <strong>objects</strong> on the Heap, not to threads. A thread waits on a specific object's monitor lock, and another thread signals on that same object's monitor lock. If these methods were defined on <code>Thread</code>, you could not synchronize and coordinate on arbitrary shared resources like queues or buffers.
+        </div>
+      </div>
+
+      <div class="qa-box">
+        <div class="qa-q" onclick="toggleQA(this)">
+          <span>Q2. What happens if you call wait() outside a synchronized block?</span>
+          <span>▼</span>
+        </div>
+        <div class="qa-a">
+          <strong>Answer:</strong> The JVM throws an <strong><code>IllegalMonitorStateException</code></strong> at runtime. You must own the monitor lock of the object before you can ask the current thread to release it and wait.
+        </div>
+      </div>
+
+      <div class="qa-box">
+        <div class="qa-q" onclick="toggleQA(this)">
+          <span>Q3. What is the difference between notify() and notifyAll()?</span>
+          <span>▼</span>
+        </div>
+        <div class="qa-a">
+          <strong>Answer:</strong><br />
+          • <code>notify()</code> wakes up <strong>only one single thread</strong> from the wait set chosen arbitrarily by the JVM. If that thread cannot proceed, the system can stall.<br />
+          • <code>notifyAll()</code> wakes up <strong>every thread</strong> currently in the wait set. All awakened threads move to <code>BLOCKED</code> and compete for the monitor lock. It is the safer choice when threads wait for different conditions.
+        </div>
+      </div>
+
+      <div class="qa-box">
+        <div class="qa-q" onclick="toggleQA(this)">
+          <span>Q4. What is the fundamental difference between sleep() and wait()?</span>
+          <span>▼</span>
+        </div>
+        <div class="qa-a">
+          <strong>Answer:</strong><br />
+          • <code>Thread.sleep(ms)</code> is a static method in <code>Thread</code> that <strong>never releases locks</strong>.<br />
+          • <code>object.wait()</code> is an instance method in <code>Object</code> that <strong>releases the monitor lock</strong> while sleeping, allowing other threads to enter synchronized blocks.
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 7: CORE SUMMARY & KEY TAKEAWAYS                                   -->
+    <!-- ========================================================================= -->
+    <div class="card" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-color: #86efac;">
+      <h3 style="color: #166534; margin-bottom: 12px; font-size: 1.25rem;">📌 Core Summary &amp; Key Takeaways</h3>
+      <ul style="padding-left: 20px; color: #14532d; line-height: 1.8; font-size: 0.95rem;">
+        <li><strong>Signaling over Polling:</strong> <code>wait()</code> and <code>notify()</code> eliminate 100% CPU spinning busy-waits.</li>
+        <li><strong>Belongs to Object:</strong> Defined in <code>java.lang.Object</code> because locks belong to objects.</li>
+        <li><strong>Synchronized Requirement:</strong> Must be called inside a synchronized block; otherwise throws <code>IllegalMonitorStateException</code>.</li>
+        <li><strong>The While-Loop Rule:</strong> Always test conditions in a <code>while</code> loop to protect against spurious wakeups.</li>
+        <li><strong>Lock Release:</strong> <code>wait()</code> releases the monitor lock; re-acquires it before returning.</li>
+      </ul>
+    </div>
+
+    <!-- Bottom Page Navigation -->
+    <div class="page-nav">
+      <a href="synchronized_methods_blocks.html" class="nav-btn-link">← Prev: Synchronized Methods &amp; Blocks</a>
+      <a href="../index.html" class="nav-btn-link">🏠 Java Curriculum Index</a>
+      <a href="deadlock_prevention.html" class="nav-btn-link">Next: Deadlock Causes &amp; Prevention →</a>
+    </div>
+  </div>
+
+  <!-- Interactive Scripts -->
+  <script>
+    // Copy Code Helper
+    function copyCode(btn) {
+      const codeBlock = btn.closest('.code-block');
+      const codeEl = codeBlock.querySelector('code, pre');
+      const text = codeEl ? codeEl.innerText : '';
+      navigator.clipboard.writeText(text).then(() => {
+        const orig = btn.innerText;
+        btn.innerText = '✓ Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.innerText = orig;
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    }
+
+    // QA Accordion Toggle
+    function toggleQA(el) {
+      const ans = el.nextElementSibling;
+      const arrow = el.querySelector('span:last-child');
+      if (ans.style.display === 'none' || !ans.style.display) {
+        ans.style.display = 'block';
+        if (arrow) arrow.innerText = '▲';
+      } else {
+        ans.style.display = 'none';
+        if (arrow) arrow.innerText = '▼';
+      }
+    }
+
+    // Initialize all QA answers to hidden
+    document.addEventListener("DOMContentLoaded", () => {
+      document.querySelectorAll('.qa-a').forEach(a => a.style.display = 'none');
+    });
+  </script>
+</body>
+
+</html>

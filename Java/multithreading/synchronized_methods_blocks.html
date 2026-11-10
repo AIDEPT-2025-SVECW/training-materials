@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Synchronized Methods &amp; Blocks in Java | Java Concurrency Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --primary-light: #e0e7ff;
+      --secondary: #0284c7;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #ef4444;
+      --accent-purple: #8b5cf6;
+      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f1f5f9 100%);
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 10px 25px rgba(79, 70, 229, 0.08);
+      --shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      color: var(--text-main);
+      padding: 24px 16px;
+      line-height: 1.65;
+    }
+
+    .container {
+      max-width: 1140px;
+      margin: 0 auto;
+    }
+
+    .top-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #ffffff;
+      color: var(--primary-dark);
+      text-decoration: none;
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      border: 1px solid var(--card-border);
+      box-shadow: var(--shadow-sm);
+      transition: all 0.25s ease;
+    }
+
+    .back-btn:hover {
+      background: var(--primary);
+      color: #ffffff;
+      transform: translateX(-4px);
+    }
+
+    .nav-tag {
+      color: var(--primary-dark);
+      font-weight: 700;
+      font-size: 0.9rem;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 6px 18px;
+      border-radius: 20px;
+      border: 1px solid var(--card-border);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #1e1b4b 0%, #3730a3 40%, #0369a1 75%, #0891b2 100%);
+      color: #ffffff;
+      border-radius: 20px;
+      padding: 42px 32px;
+      text-align: center;
+      box-shadow: var(--shadow-lg);
+      margin-bottom: 32px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: '';
+      position: absolute;
+      top: -50px;
+      right: -50px;
+      width: 220px;
+      height: 220px;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .hero h1 {
+      font-size: clamp(1.8rem, 3.8vw, 2.5rem);
+      font-weight: 800;
+      margin-bottom: 12px;
+      line-height: 1.25;
+    }
+
+    .hero p {
+      font-size: 1.12rem;
+      opacity: 0.95;
+      max-width: 900px;
+      margin: 0 auto 20px auto;
+    }
+
+    .hero-badges {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .hero-badge {
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(8px);
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      border: 1px solid var(--card-border);
+      padding: 30px;
+      margin-bottom: 26px;
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.2s ease;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #f1f5f9;
+      padding-bottom: 14px;
+    }
+
+    .section-title h2 {
+      font-size: 1.45rem;
+      color: var(--primary-dark);
+      font-weight: 700;
+    }
+
+    .section-title .icon {
+      font-size: 1.5rem;
+      background: #e0e7ff;
+      width: 46px;
+      height: 46px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      color: var(--primary);
+    }
+
+    .unit-tag {
+      margin-left: auto;
+      background: #ede9fe;
+      color: #6d28d9;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 860px) {
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    @media (max-width: 860px) {
+      .grid-3 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Code Blocks */
+    .code-block {
+      background: #0d1117;
+      color: #e6edf3;
+      border-radius: 12px;
+      position: relative;
+      margin: 18px 0;
+      border: 1px solid #30363d;
+      overflow: hidden;
+      font-family: 'Fira Code', monospace;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    }
+
+    .code-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 16px;
+      background: #161b22;
+      border-bottom: 1px solid #30363d;
+      font-size: 0.85rem;
+      color: #8b949e;
+      font-family: 'Fira Code', monospace;
+    }
+
+    .code-file-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      color: #c9d1d9;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+    }
+
+    .code-file-badge::before {
+      content: '';
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #e3b341;
+    }
+
+    pre {
+      margin: 0;
+      padding: 18px 20px;
+      overflow-x: auto;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      white-space: pre;
+      color: #e6edf3;
+    }
+
+    .code-block code {
+      color: #e6edf3;
+      font-family: 'Fira Code', monospace;
+    }
+
+    .copy-btn {
+      background: rgba(255, 255, 255, 0.08);
+      color: #c9d1d9;
+      border: 1px solid #30363d;
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: inherit;
+    }
+
+    .copy-btn:hover {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+    }
+
+    .copy-btn.copied {
+      background: var(--accent-green) !important;
+      color: #ffffff !important;
+      border-color: var(--accent-green) !important;
+    }
+
+    .tag-kw {
+      color: #ff7b72;
+      font-weight: 600;
+    }
+
+    .tag-type {
+      color: #79c0ff;
+      font-weight: 600;
+    }
+
+    .tag-str {
+      color: #a5d6ff;
+    }
+
+    .tag-comment {
+      color: #8b949e;
+      font-style: italic;
+    }
+
+    .tag-fn {
+      color: #d2a8ff;
+    }
+
+    .tag-num {
+      color: #79c0ff;
+    }
+
+    code:not(pre code) {
+      font-family: 'Fira Code', monospace;
+      font-size: 0.88em;
+      background: #eef2ff;
+      color: #4338ca;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .alert-box {
+      padding: 16px 20px;
+      border-radius: 12px;
+      margin: 18px 0;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      line-height: 1.6;
+    }
+
+    .alert-info {
+      background: #eff6ff;
+      border-left: 5px solid var(--secondary);
+      color: #1e40af;
+    }
+
+    .alert-warning {
+      background: #fffbeb;
+      border-left: 5px solid var(--accent-amber);
+      color: #92400e;
+    }
+
+    .alert-danger {
+      background: #fef2f2;
+      border-left: 5px solid var(--accent-rose);
+      color: #991b1b;
+    }
+
+    .alert-success {
+      background: #f0fdf4;
+      border-left: 5px solid var(--accent-green);
+      color: #166534;
+    }
+
+    .diagram-card {
+      background: #0d1117;
+      color: #e6edf3;
+      border-radius: 14px;
+      padding: 22px;
+      margin: 18px 0;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      overflow-x: auto;
+      white-space: pre;
+      border: 1px solid #30363d;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    }
+
+    .table-container {
+      overflow-x: auto;
+      margin: 20px 0;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th,
+    td {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--card-border);
+      font-size: 0.92rem;
+    }
+
+    th {
+      background: #f8fafc;
+      color: var(--primary-dark);
+      font-weight: 700;
+    }
+
+    tr:hover {
+      background: #fbfdff;
+    }
+
+    .output-box {
+      background: #18181b;
+      border: 1px solid #27272a;
+      border-radius: 10px;
+      padding: 18px 22px;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.88rem;
+      color: #a1a1aa;
+      margin: 14px 0;
+      line-height: 1.6;
+    }
+
+    .output-box .out-green {
+      color: #4ade80;
+    }
+
+    .output-box .out-cyan {
+      color: #38bdf8;
+    }
+
+    .output-box .out-amber {
+      color: #fbbf24;
+    }
+
+    /* Granularity Timeline Widget */
+    .timeline-widget {
+      background: #0f172a;
+      border-radius: 14px;
+      padding: 24px;
+      border: 1px solid #334155;
+      color: #f8fafc;
+      margin: 18px 0;
+    }
+
+    .timeline-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 12px 0;
+    }
+
+    .timeline-label {
+      width: 140px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #94a3b8;
+    }
+
+    .timeline-bar {
+      flex: 1;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      overflow: hidden;
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-align: center;
+      line-height: 32px;
+    }
+
+    /* QA Accordion */
+    .qa-box {
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      margin-bottom: 14px;
+      overflow: hidden;
+      background: #ffffff;
+      transition: all 0.2s ease;
+    }
+
+    .qa-box:hover {
+      border-color: var(--primary);
+    }
+
+    .qa-q {
+      padding: 16px 20px;
+      font-weight: 700;
+      color: var(--primary-dark);
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #fafafa;
+    }
+
+    .qa-a {
+      padding: 16px 20px;
+      font-size: 0.92rem;
+      color: var(--text-main);
+      border-top: 1px solid var(--card-border);
+      background: #ffffff;
+      line-height: 1.7;
+    }
+
+    .page-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 40px;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .nav-btn-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: white;
+      padding: 12px 24px;
+      border-radius: 12px;
+      border: 1px solid var(--card-border);
+      color: var(--primary-dark);
+      font-weight: 700;
+      text-decoration: none;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s;
+    }
+
+    .nav-btn-link:hover {
+      background: var(--primary);
+      color: white;
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="top-nav">
+      <a href="../index.html" class="back-btn">← Back to Java Index</a>
+      <span class="nav-tag">Java Multi-Threading • Synchronized Methods &amp; Blocks</span>
+    </div>
+
+    <!-- Hero Section -->
+    <div class="hero">
+      <h1>Synchronized Methods &amp; Synchronized Blocks in Java</h1>
+      <p>Master Java's built-in locking mechanisms. Compare coarse-grained synchronized methods with fine-grained
+        synchronized blocks, understand lock scopes (<code>this</code> vs. private lock vs. class-level), and discover
+        how lock reentrancy prevents self-deadlock.</p>
+      <div class="hero-badges">
+        <span class="hero-badge">Synchronized Method</span>
+        <span class="hero-badge">Synchronized Block</span>
+        <span class="hero-badge">Lock Scope (this)</span>
+        <span class="hero-badge">Private Final Lock</span>
+        <span class="hero-badge">Class-Level Lock</span>
+        <span class="hero-badge">Lock Reentrancy</span>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 1: THE INTRINSIC MONITOR LOCK                                     -->
+    <!-- ========================================================================= -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🔐</span>
+        <h2>1. The Object Monitor Lock &amp; Synchronization Scopes</h2>
+        <span class="unit-tag" style="background: #e0e7ff; color: var(--primary);">Foundations</span>
+      </div>
+      <p>
+        Every single Java object instance created in memory possesses an invisible built-in lock called an
+        <strong>Intrinsic Lock</strong> or <strong>Monitor Lock</strong>. When you use the <code>synchronized</code> keyword,
+        Java requires the thread to acquire this monitor lock before executing code.
+      </p>
+
+      <div class="grid-3" style="margin-top: 18px;">
+        <div style="background: #f8fafc; border: 1.5px solid var(--card-border); border-radius: 12px; padding: 18px;">
+          <h4 style="color: var(--primary-dark); margin-bottom: 6px;">1. Instance Method</h4>
+          <code style="font-size: 0.82rem;">public synchronized void m()</code>
+          <p style="font-size: 0.88rem; color: var(--text-muted); margin-top: 8px;">
+            Locks on <strong><code>this</code></strong> (the calling object instance).
+          </p>
+        </div>
+
+        <div style="background: #f8fafc; border: 1.5px solid var(--card-border); border-radius: 12px; padding: 18px;">
+          <h4 style="color: var(--primary-dark); margin-bottom: 6px;">2. Synchronized Block</h4>
+          <code style="font-size: 0.82rem;">synchronized(lockObject) { }</code>
+          <p style="font-size: 0.88rem; color: var(--text-muted); margin-top: 8px;">
+            Locks on the <strong>specific object</strong> passed inside parentheses.
+          </p>
+        </div>
+
+        <div style="background: #f8fafc; border: 1.5px solid var(--card-border); border-radius: 12px; padding: 18px;">
+          <h4 style="color: var(--primary-dark); margin-bottom: 6px;">3. Static Method</h4>
+          <code style="font-size: 0.82rem;">public static synchronized void m()</code>
+          <p style="font-size: 0.88rem; color: var(--text-muted); margin-top: 8px;">
+            Locks on the <strong><code>ClassName.class</code></strong> object (Class-level lock).
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 2: SYNCHRONIZED METHODS (COARSE-GRAINED LOCKING)                  -->
+    <!-- ========================================================================= -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">📦</span>
+        <h2>2. Synchronized Methods (Coarse-Grained Locking)</h2>
+        <span class="unit-tag" style="background: #fef3c7; color: #92400e;">Method-Level</span>
+      </div>
+      <p>
+        Simply adding the <code>synchronized</code> keyword to an instance method's declaration tells the JVM to guard the
+        <strong>entire method body</strong> using the calling instance (<code>this</code>) as the lock:
+      </p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-file-badge">SynchronizedMethodExample.java</div>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+        </div>
+        <pre><code class="language-java"><span class="tag-kw">class</span> <span class="tag-type">Printer</span> {
+    <span class="tag-comment">// The entire method is synchronized on 'this'</span>
+    <span class="tag-kw">public synchronized void</span> <span class="tag-fn">printDocument</span>(<span class="tag-type">String</span> docName) {
+        System.out.println(<span class="tag-str">"Printing started: "</span> + docName);
+        <span class="tag-kw">for</span> (<span class="tag-kw">int</span> i = <span class="tag-num">1</span>; i &lt;= <span class="tag-num">3</span>; i++) {
+            System.out.println(<span class="tag-str">"  Page "</span> + i + <span class="tag-str">" of "</span> + docName);
+        }
+        System.out.println(<span class="tag-str">"Printing finished: "</span> + docName);
+    }
+}</code></pre>
+      </div>
+
+      <div class="grid-2" style="margin-top: 14px;">
+        <div style="background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 12px; padding: 18px;">
+          <h4 style="color: #166534; margin-bottom: 6px;">✓ Advantage:</h4>
+          <p style="font-size: 0.9rem; color: #14532d; line-height: 1.6;">
+            Extremely simple and readable. Ideal when the entire method is purely dedicated to updating shared mutable fields.
+          </p>
+        </div>
+
+        <div style="background: #fef2f2; border: 1.5px solid #fca5a5; border-radius: 12px; padding: 18px;">
+          <h4 style="color: #991b1b; margin-bottom: 6px;">✗ Major Drawback (Coarse-Grained):</h4>
+          <p style="font-size: 0.9rem; color: #7f1d1d; line-height: 1.6;">
+            If the method performs expensive calculations, database lookups, or file I/O, other threads are forced to sit idle in the <code>BLOCKED</code> state waiting, crushing application throughput!
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 3: SYNCHRONIZED BLOCKS (FINE-GRAINED LOCKING)                     -->
+    <!-- ========================================================================= -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🎯</span>
+        <h2>3. Synchronized Blocks (Fine-Grained Locking)</h2>
+        <span class="unit-tag" style="background: #dcfce7; color: #166534;">Best Practice</span>
+      </div>
+      <p>
+        A <strong>Synchronized Block</strong> allows you to lock <strong>only the exact critical section</strong> where
+        shared fields are modified, allowing non-critical operations (like input parsing, calculations, or logging) to
+        run concurrently in parallel:
+      </p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-file-badge">SynchronizedBlockExample.java</div>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+        </div>
+        <pre><code class="language-java"><span class="tag-kw">class</span> <span class="tag-type">OrderProcessor</span> {
+    <span class="tag-kw">private int</span> totalOrders = <span class="tag-num">0</span>;
+    <span class="tag-kw">private final</span> <span class="tag-type">Object</span> lock = <span class="tag-kw">new</span> <span class="tag-type">Object</span>(); <span class="tag-comment">// Private lock object</span>
+
+    <span class="tag-kw">public void</span> <span class="tag-fn">processOrder</span>(<span class="tag-type">String</span> orderId) {
+        <span class="tag-comment">// 1. Heavy computation runs CONCURRENTLY on multiple threads!</span>
+        System.out.println(<span class="tag-str">"Validating order data for: "</span> + orderId);
+
+        <span class="tag-comment">// 2. Only the tiny critical section acquires the lock:</span>
+        <span class="tag-kw">synchronized</span> (lock) {
+            totalOrders++; <span class="tag-comment">// Protected update!</span>
+        }
+
+        <span class="tag-comment">// 3. Post-processing runs CONCURRENTLY again!</span>
+        System.out.println(<span class="tag-str">"Confirmation sent for: "</span> + orderId);
+    }
+}</code></pre>
+      </div>
+
+      <!-- Comparison Visualizer -->
+      <h3 style="color: var(--primary-dark); margin: 24px 0 10px 0; font-size: 1.15rem;">Throughput Comparison: Method vs. Block:</h3>
+      <div class="timeline-widget">
+        <div class="timeline-row">
+          <div class="timeline-label">Synchronized Method:</div>
+          <div class="timeline-bar">
+            <span style="background: #ef4444; width: 100%;">Thread 1 Holds Lock for Entire Method (500 ms) — Thread 2 BLOCKED</span>
+          </div>
+        </div>
+
+        <div class="timeline-row">
+          <div class="timeline-label">Synchronized Block:</div>
+          <div class="timeline-bar">
+            <span style="background: #10b981; width: 45%;">Parallel Prep (200ms)</span>
+            <span style="background: #f59e0b; width: 10%;">Lock (20ms)</span>
+            <span style="background: #10b981; width: 45%;">Parallel Done (200ms)</span>
+          </div>
+        </div>
+        <p style="font-size: 0.85rem; color: #94a3b8; margin-top: 10px;">
+          💡 With synchronized blocks, threads execute 90% of their logic simultaneously in parallel on separate silicon cores!
+        </p>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 4: THE PRIVATE FINAL LOCK PATTERN                                 -->
+    <!-- ========================================================================= -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🛡️</span>
+        <h2>4. The Private Final Lock Pattern (Industry Standard)</h2>
+        <span class="unit-tag" style="background: #ede9fe; color: #6d28d9;">Security Pattern</span>
+      </div>
+      <p>
+        Students frequently write <code>synchronized(this)</code>. While functional, it has a serious architectural risk:
+      </p>
+
+      <div class="alert-box alert-warning">
+        <span style="font-size: 1.5rem;">⚠️</span>
+        <div>
+          <strong>The Danger of synchronized(this):</strong><br />
+          <code>this</code> is a publicly exposed reference. Any external code that holds a reference to your object can
+          write <code>synchronized(myObject) { ... }</code> and accidentally freeze or deadlock your entire service!
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-top: 16px;">
+        <div style="background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 12px; padding: 20px;">
+          <h4 style="color: #166534; font-size: 1.05rem; margin-bottom: 8px;">✓ The Solution: Private Final Lock</h4>
+          <div class="code-block" style="margin: 8px 0;">
+            <pre><code class="language-java"><span class="tag-kw">private final</span> <span class="tag-type">Object</span> lock = <span class="tag-kw">new</span> <span class="tag-type">Object</span>();
+
+<span class="tag-kw">public void</span> <span class="tag-fn">update</span>() {
+    <span class="tag-kw">synchronized</span> (lock) {
+        <span class="tag-comment">// Fully encapsulated!</span>
+    }
+}</code></pre>
+          </div>
+          <p style="font-size: 0.88rem; color: #14532d; line-height: 1.6;">
+            Because <code>lock</code> is <code>private</code>, external classes cannot see or synchronize on it. Because it is <code>final</code>, the lock reference can never be reassigned mid-execution.
+          </p>
+        </div>
+
+        <div style="background: #fef2f2; border: 1.5px solid #fca5a5; border-radius: 12px; padding: 20px;">
+          <h4 style="color: #991b1b; font-size: 1.05rem; margin-bottom: 8px;">🚫 Warning: Never Lock on Strings or Boxed Primitives!</h4>
+          <p style="font-size: 0.88rem; color: #7f1d1d; line-height: 1.6;">
+            Never write <code>synchronized("MY_LOCK")</code> or <code>synchronized(Integer.valueOf(1))</code>!<br /><br />
+            • <strong>String Pool:</strong> Identical string literals share the exact same object across the entire JVM.<br />
+            • <strong>Integer Cache:</strong> Integers between -128 and 127 are cached.<br />
+            Unrelated third-party libraries synchronizing on the same literal will cause cross-application deadlocks!
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 5: OBJECT-LEVEL LOCK VS CLASS-LEVEL LOCK                          -->
+    <!-- ========================================================================= -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">⚖️</span>
+        <h2>5. Object-Level Locks vs. Class-Level Locks</h2>
+        <span class="unit-tag" style="background: #e0e7ff; color: var(--primary);">Comparison</span>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Criteria</th>
+              <th>Object-Level Lock</th>
+              <th>Class-Level Lock</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>How to Declare</strong></td>
+              <td><code>public synchronized void m()</code> or <code>synchronized(this)</code></td>
+              <td><code>public static synchronized void m()</code> or <code>synchronized(Class.class)</code></td>
+            </tr>
+            <tr>
+              <td><strong>Lock Target</strong></td>
+              <td>The specific object instance (<code>this</code>)</td>
+              <td>The <code>java.lang.Class</code> object in Metaspace</td>
+            </tr>
+            <tr>
+              <td><strong>Multi-Instance Behavior</strong></td>
+              <td>If Thread 1 calls <code>obj1.m()</code> and Thread 2 calls <code>obj2.m()</code>, they <strong>run simultaneously</strong> in parallel!</td>
+              <td>Blocks <strong>ALL threads across ALL instances</strong> in the entire JVM!</td>
+            </tr>
+            <tr>
+              <td><strong>Use Case</strong></td>
+              <td>Guarding non-static instance fields</td>
+              <td>Guarding shared <code>static</code> class fields</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 6: LOCK REENTRANCY                                                -->
+    <!-- ========================================================================= -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🔄</span>
+        <h2>6. Lock Reentrancy (Reentrant Synchronization)</h2>
+        <span class="unit-tag" style="background: #e0e7ff; color: var(--primary);">Self-Deadlock Prevention</span>
+      </div>
+      <p>
+        What happens if a thread that already holds a lock calls another method that requires the <strong>exact same lock</strong>?
+      </p>
+
+      <div class="alert-box alert-success">
+        <span style="font-size: 1.5rem;">💡</span>
+        <div>
+          <strong>Java Locks are Reentrant:</strong><br />
+          <em>"A thread cannot deadlock itself on a lock it already owns."</em><br />
+          When a thread attempts to acquire a monitor lock it already holds, the JVM simply increments an internal
+          <strong>acquisition counter</strong> and allows the thread to proceed immediately.
+        </div>
+      </div>
+
+      <div class="diagram-card">
+  Thread enters outer() ──► Acquires Lock [Count = 1]
+                                 │
+                                 ▼
+  Thread calls inner()  ──► Re-enters SAME Lock! [Count = 2] (Allowed! No deadlock)
+                                 │
+                                 ▼
+  Thread exits inner()  ──► Decrements Lock [Count = 1]
+                                 │
+                                 ▼
+  Thread exits outer()  ──► Decrements Lock [Count = 0] ──► Lock fully released for other threads!
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 7: COMPLETE VERIFIED JAVA DEMO                                    -->
+    <!-- ========================================================================= -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">💻</span>
+        <h2>7. Complete Verified Java Demo: SynchronizedMethodsAndBlocksDemo.java</h2>
+        <span class="unit-tag" style="background: #e0e7ff; color: var(--primary);">Verified Java 17 Demo</span>
+      </div>
+      <p>
+        The following self-contained program demonstrates synchronized methods, synchronized blocks with private locks,
+        and lock reentrancy with simple, clear console prints:
+      </p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-file-badge">SynchronizedMethodsAndBlocksDemo.java</div>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+        </div>
+        <pre><code class="language-java"><span class="tag-comment">/**
+ * Synchronized Methods &amp; Synchronized Blocks Demonstration
+ * 
+ * Demonstrates:
+ * 1. Synchronized Instance Method (locks on 'this')
+ * 2. Synchronized Block with Private Lock (fine-grained locking)
+ * 3. Static Synchronized Method (locks on ClassName.class)
+ * 4. Reentrant Nature of Java Intrinsic Locks
+ */</span>
+<span class="tag-kw">public class</span> <span class="tag-type">SynchronizedMethodsAndBlocksDemo</span> {
+
+    <span class="tag-comment">// 1. Synchronized Instance Method</span>
+    <span class="tag-kw">static class</span> <span class="tag-type">InstanceSyncDemo</span> {
+        <span class="tag-kw">public synchronized void</span> <span class="tag-fn">printNumbers</span>(<span class="tag-type">String</span> threadName) {
+            System.out.println(<span class="tag-str">"  ["</span> + threadName + <span class="tag-str">"] Entered synchronized method (Lock: this)"</span>);
+            <span class="tag-kw">for</span> (<span class="tag-kw">int</span> i = <span class="tag-num">1</span>; i &lt;= <span class="tag-num">3</span>; i++) {
+                System.out.println(<span class="tag-str">"  ["</span> + threadName + <span class="tag-str">"] Method count: "</span> + i);
+                <span class="tag-kw">try</span> { <span class="tag-type">Thread</span>.<span class="tag-fn">sleep</span>(<span class="tag-num">50</span>); } <span class="tag-kw">catch</span> (<span class="tag-type">InterruptedException</span> ignored) {}
+            }
+            System.out.println(<span class="tag-str">"  ["</span> + threadName + <span class="tag-str">"] Exiting synchronized method"</span>);
+        }
+    }
+
+    <span class="tag-comment">// 2. Synchronized Block with Private Lock (Fine-Grained)</span>
+    <span class="tag-kw">static class</span> <span class="tag-type">BlockSyncDemo</span> {
+        <span class="tag-kw">private final</span> <span class="tag-type">Object</span> lock = <span class="tag-kw">new</span> <span class="tag-type">Object</span>(); <span class="tag-comment">// Private lock object</span>
+
+        <span class="tag-kw">public void</span> <span class="tag-fn">executeTask</span>(<span class="tag-type">String</span> threadName) {
+            <span class="tag-comment">// Unsynchronized section runs concurrently!</span>
+            System.out.println(<span class="tag-str">"  ["</span> + threadName + <span class="tag-str">"] Concurrent preparation (outside lock)"</span>);
+
+            <span class="tag-comment">// Synchronized block: only this critical section is locked</span>
+            <span class="tag-kw">synchronized</span> (lock) {
+                System.out.println(<span class="tag-str">"  ["</span> + threadName + <span class="tag-str">"] &gt;&gt; ENTERED synchronized block (Lock: private lock)"</span>);
+                <span class="tag-kw">for</span> (<span class="tag-kw">int</span> i = <span class="tag-num">1</span>; i &lt;= <span class="tag-num">2</span>; i++) {
+                    System.out.println(<span class="tag-str">"  ["</span> + threadName + <span class="tag-str">"] &gt;&gt; Critical work: "</span> + i);
+                    <span class="tag-kw">try</span> { <span class="tag-type">Thread</span>.<span class="tag-fn">sleep</span>(<span class="tag-num">50</span>); } <span class="tag-kw">catch</span> (<span class="tag-type">InterruptedException</span> ignored) {}
+                }
+                System.out.println(<span class="tag-str">"  ["</span> + threadName + <span class="tag-str">"] &gt;&gt; EXITED synchronized block"</span>);
+            }
+        }
+    }
+
+    <span class="tag-comment">// 3. Reentrant Lock Demonstration</span>
+    <span class="tag-kw">static class</span> <span class="tag-type">ReentrantDemo</span> {
+        <span class="tag-kw">public synchronized void</span> <span class="tag-fn">outerMethod</span>() {
+            System.out.println(<span class="tag-str">"  [OuterMethod] Acquired lock. Now calling innerMethod()..."</span>);
+            <span class="tag-fn">innerMethod</span>(); <span class="tag-comment">// Re-enters synchronized method on the SAME lock!</span>
+            System.out.println(<span class="tag-str">"  [OuterMethod] Successfully completed innerMethod()"</span>);
+        }
+
+        <span class="tag-kw">public synchronized void</span> <span class="tag-fn">innerMethod</span>() {
+            System.out.println(<span class="tag-str">"  [InnerMethod] Successfully re-entered with same lock! No deadlock occurred."</span>);
+        }
+    }
+
+    <span class="tag-kw">public static void</span> <span class="tag-fn">main</span>(<span class="tag-type">String</span>[] args) <span class="tag-kw">throws</span> <span class="tag-type">InterruptedException</span> {
+        System.out.println(<span class="tag-str">"=========================================================="</span>);
+        System.out.println(<span class="tag-str">"   SYNCHRONIZED METHODS &amp; BLOCKS: CONCURRENCY DEMO        "</span>);
+        System.out.println(<span class="tag-str">"=========================================================="</span>);
+
+        <span class="tag-comment">// --- 1. Synchronized Method Test ---</span>
+        System.out.println(<span class="tag-str">"\n--- 1. Testing Synchronized Instance Method ---"</span>);
+        <span class="tag-type">InstanceSyncDemo</span> methodDemo = <span class="tag-kw">new</span> <span class="tag-type">InstanceSyncDemo</span>();
+        <span class="tag-type">Thread</span> t1 = <span class="tag-kw">new</span> <span class="tag-type">Thread</span>(() -&gt; methodDemo.<span class="tag-fn">printNumbers</span>(<span class="tag-str">"Thread-1"</span>));
+        <span class="tag-type">Thread</span> t2 = <span class="tag-kw">new</span> <span class="tag-type">Thread</span>(() -&gt; methodDemo.<span class="tag-fn">printNumbers</span>(<span class="tag-str">"Thread-2"</span>));
+        t1.<span class="tag-fn">start</span>(); t2.<span class="tag-fn">start</span>();
+        t1.<span class="tag-fn">join</span>(); t2.<span class="tag-fn">join</span>();
+
+        <span class="tag-comment">// --- 2. Synchronized Block Test ---</span>
+        System.out.println(<span class="tag-str">"\n--- 2. Testing Synchronized Block (Fine-Grained) ---"</span>);
+        <span class="tag-type">BlockSyncDemo</span> blockDemo = <span class="tag-kw">new</span> <span class="tag-type">BlockSyncDemo</span>();
+        <span class="tag-type">Thread</span> t3 = <span class="tag-kw">new</span> <span class="tag-type">Thread</span>(() -&gt; blockDemo.<span class="tag-fn">executeTask</span>(<span class="tag-str">"Thread-A"</span>));
+        <span class="tag-type">Thread</span> t4 = <span class="tag-kw">new</span> <span class="tag-type">Thread</span>(() -&gt; blockDemo.<span class="tag-fn">executeTask</span>(<span class="tag-str">"Thread-B"</span>));
+        t3.<span class="tag-fn">start</span>(); t4.<span class="tag-fn">start</span>();
+        t3.<span class="tag-fn">join</span>(); t4.<span class="tag-fn">join</span>();
+
+        <span class="tag-comment">// --- 3. Reentrant Lock Test ---</span>
+        System.out.println(<span class="tag-str">"\n--- 3. Testing Lock Reentrancy ---"</span>);
+        <span class="tag-type">ReentrantDemo</span> reentrantDemo = <span class="tag-kw">new</span> <span class="tag-type">ReentrantDemo</span>();
+        reentrantDemo.<span class="tag-fn">outerMethod</span>();
+
+        System.out.println(<span class="tag-str">"\n=========================================================="</span>);
+        System.out.println(<span class="tag-str">"All synchronization mechanisms demonstrated successfully!"</span>);
+        System.out.println(<span class="tag-str">"=========================================================="</span>);
+    }
+}</code></pre>
+      </div>
+
+      <!-- Live Actual Execution Output -->
+      <h4 style="color: var(--primary-dark); margin: 18px 0 8px 0;">Actual Execution Console Output:</h4>
+      <div class="output-box">
+==========================================================
+   SYNCHRONIZED METHODS &amp; BLOCKS: CONCURRENCY DEMO        
+==========================================================
+
+--- 1. Testing Synchronized Instance Method ---
+  [Thread-1] Entered synchronized method (Lock: this)
+  [Thread-1] Method count: 1
+  [Thread-1] Method count: 2
+  [Thread-1] Method count: 3
+  [Thread-1] Exiting synchronized method
+  [Thread-2] Entered synchronized method (Lock: this)
+  [Thread-2] Method count: 1
+  [Thread-2] Method count: 2
+  [Thread-2] Method count: 3
+  [Thread-2] Exiting synchronized method
+
+--- 2. Testing Synchronized Block (Fine-Grained) ---
+  [Thread-A] Concurrent preparation (outside lock)
+  [Thread-B] Concurrent preparation (outside lock)
+  [Thread-A] &gt;&gt; ENTERED synchronized block (Lock: private lock)
+  [Thread-A] &gt;&gt; Critical work: 1
+  [Thread-A] &gt;&gt; Critical work: 2
+  [Thread-A] &gt;&gt; EXITED synchronized block
+  [Thread-B] &gt;&gt; ENTERED synchronized block (Lock: private lock)
+  [Thread-B] &gt;&gt; Critical work: 1
+  [Thread-B] &gt;&gt; Critical work: 2
+  [Thread-B] &gt;&gt; EXITED synchronized block
+
+--- 3. Testing Lock Reentrancy ---
+  [OuterMethod] Acquired lock. Now calling innerMethod()...
+  <span class="out-green">[InnerMethod] Successfully re-entered with same lock! No deadlock occurred.</span>
+  [OuterMethod] Successfully completed innerMethod()
+
+==========================================================
+<span class="out-green">All synchronization mechanisms demonstrated successfully!</span>
+==========================================================
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 8: FREQUENTLY ASKED QUESTIONS & INTERVIEW CONCEPTS                -->
+    <!-- ========================================================================= -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🎓</span>
+        <h2>8. Frequently Asked Questions &amp; Interview Concepts</h2>
+        <span class="unit-tag" style="background: #e0e7ff; color: var(--primary);">Interview Preparation</span>
+      </div>
+      <p style="margin-bottom: 16px;">
+        Click any question to reveal the comprehensive interview-grade answer:
+      </p>
+
+      <div class="qa-box">
+        <div class="qa-q" onclick="toggleQA(this)">
+          <span>Q1. What is the difference between a synchronized method and a synchronized block?</span>
+          <span>▼</span>
+        </div>
+        <div class="qa-a">
+          <strong>Answer:</strong><br />
+          • <strong>Scope:</strong> A synchronized method locks the entire method from start to finish. A synchronized block locks only the designated critical section lines.<br />
+          • <strong>Lock Target:</strong> Synchronized instance methods always lock on <code>this</code>. Synchronized blocks can lock on any custom object (such as a <code>private final Object lock</code>).<br />
+          • <strong>Performance:</strong> Synchronized blocks provide finer granularity, allowing non-critical code to execute in parallel, yielding much higher concurrency throughput.
+        </div>
+      </div>
+
+      <div class="qa-box">
+        <div class="qa-q" onclick="toggleQA(this)">
+          <span>Q2. What is lock reentrancy and why is it essential?</span>
+          <span>▼</span>
+        </div>
+        <div class="qa-a">
+          <strong>Answer:</strong> Lock reentrancy means that if a thread already owns a lock, it can re-acquire the same lock without blocking or deadlocking itself. In Java, all intrinsic monitor locks are reentrant. If Java locks were not reentrant, a synchronized method calling another synchronized method on the same object would freeze forever waiting for itself to release the lock!
+        </div>
+      </div>
+
+      <div class="qa-box">
+        <div class="qa-q" onclick="toggleQA(this)">
+          <span>Q3. Can two threads execute two different synchronized instance methods on the same object at the same time?</span>
+          <span>▼</span>
+        </div>
+        <div class="qa-a">
+          <strong>Answer:</strong> <strong>No!</strong> Both synchronized instance methods lock on the exact same monitor lock: <strong><code>this</code></strong>. While Thread 1 is executing <code>methodA()</code> on object <code>obj</code>, Thread 2 attempting to invoke <code>methodB()</code> on that same <code>obj</code> will be blocked until Thread 1 finishes and releases the lock on <code>obj</code>.
+        </div>
+      </div>
+
+      <div class="qa-box">
+        <div class="qa-q" onclick="toggleQA(this)">
+          <span>Q4. Can two threads execute a static synchronized method and an instance synchronized method simultaneously?</span>
+          <span>▼</span>
+        </div>
+        <div class="qa-a">
+          <strong>Answer:</strong> <strong>Yes!</strong> Because they lock on two completely different objects:<br />
+          • The static synchronized method locks on the class object (<code>MyClass.class</code>).<br />
+          • The instance synchronized method locks on the instance object (<code>this</code>).<br />
+          Since the locks are distinct, the two threads will NOT block each other.
+        </div>
+      </div>
+
+      <div class="qa-box">
+        <div class="qa-q" onclick="toggleQA(this)">
+          <span>Q5. Why should lock objects always be declared 'private final Object'?</span>
+          <span>▼</span>
+        </div>
+        <div class="qa-a">
+          <strong>Answer:</strong><br />
+          • <strong><code>private</code>:</strong> Ensures no external client code can see or synchronize on your lock, preventing accidental interference and denial-of-service deadlocks.<br />
+          • <strong><code>final</code>:</strong> Guarantees the lock object reference can never be reassigned. If a lock reference changes while threads are running, different threads would synchronize on different objects, destroying mutual exclusion!
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 9: CORE SUMMARY & KEY TAKEAWAYS                                   -->
+    <!-- ========================================================================= -->
+    <div class="card" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-color: #86efac;">
+      <h3 style="color: #166534; margin-bottom: 12px; font-size: 1.25rem;">📌 Core Summary &amp; Key Takeaways</h3>
+      <ul style="padding-left: 20px; color: #14532d; line-height: 1.8; font-size: 0.95rem;">
+        <li><strong>Synchronized Methods:</strong> Coarse-grained locking on <code>this</code> (instance) or <code>Class.class</code> (static).</li>
+        <li><strong>Synchronized Blocks:</strong> Fine-grained locking on a designated object; allows non-critical logic to execute in parallel.</li>
+        <li><strong>Private Final Lock Pattern:</strong> Best practice to prevent external code from interfering with internal synchronization.</li>
+        <li><strong>Avoid String/Integer Locks:</strong> String pooling and boxed caching cause unexpected cross-application lock contention.</li>
+        <li><strong>Reentrant Locking:</strong> A thread can re-enter synchronized blocks guarded by the same lock without self-deadlock.</li>
+      </ul>
+    </div>
+
+    <!-- Bottom Page Navigation -->
+    <div class="page-nav">
+      <a href="synchronization_race_conditions.html" class="nav-btn-link">← Prev: Race Conditions &amp; Sync Fundamentals</a>
+      <a href="../index.html" class="nav-btn-link">🏠 Java Curriculum Index</a>
+      <a href="interthread_communication.html" class="nav-btn-link">Next: Inter-Thread Communication →</a>
+    </div>
+  </div>
+
+  <!-- Interactive Scripts -->
+  <script>
+    // Copy Code Helper
+    function copyCode(btn) {
+      const codeBlock = btn.closest('.code-block');
+      const codeEl = codeBlock.querySelector('code, pre');
+      const text = codeEl ? codeEl.innerText : '';
+      navigator.clipboard.writeText(text).then(() => {
+        const orig = btn.innerText;
+        btn.innerText = '✓ Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.innerText = orig;
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    }
+
+    // QA Accordion Toggle
+    function toggleQA(el) {
+      const ans = el.nextElementSibling;
+      const arrow = el.querySelector('span:last-child');
+      if (ans.style.display === 'none' || !ans.style.display) {
+        ans.style.display = 'block';
+        if (arrow) arrow.innerText = '▲';
+      } else {
+        ans.style.display = 'none';
+        if (arrow) arrow.innerText = '▼';
+      }
+    }
+
+    // Initialize all QA answers to hidden
+    document.addEventListener("DOMContentLoaded", () => {
+      document.querySelectorAll('.qa-a').forEach(a => a.style.display = 'none');
+    });
+  </script>
+</body>
+
+</html>
+

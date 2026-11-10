@@ -1,0 +1,1664 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Introduction to Multithreading, CPU Cores &amp; Concurrency | Java Multithreading Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --primary-light: #e0e7ff;
+      --secondary: #0284c7;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #ef4444;
+      --accent-purple: #8b5cf6;
+      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f1f5f9 100%);
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 10px 25px rgba(79, 70, 229, 0.08);
+      --shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      color: var(--text-main);
+      padding: 24px 16px;
+      line-height: 1.65;
+    }
+
+    .container {
+      max-width: 1140px;
+      margin: 0 auto;
+    }
+
+    .top-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #ffffff;
+      color: var(--primary-dark);
+      text-decoration: none;
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      border: 1px solid var(--card-border);
+      box-shadow: var(--shadow-sm);
+      transition: all 0.25s ease;
+    }
+
+    .back-btn:hover {
+      background: var(--primary);
+      color: #ffffff;
+      transform: translateX(-4px);
+    }
+
+    .nav-tag {
+      color: var(--primary-dark);
+      font-weight: 700;
+      font-size: 0.9rem;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 6px 18px;
+      border-radius: 20px;
+      border: 1px solid var(--card-border);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #3730a3 0%, #4f46e5 50%, #0284c7 100%);
+      color: #ffffff;
+      border-radius: 20px;
+      padding: 42px 32px;
+      text-align: center;
+      box-shadow: var(--shadow-lg);
+      margin-bottom: 32px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: '';
+      position: absolute;
+      top: -50px;
+      right: -50px;
+      width: 220px;
+      height: 220px;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .hero h1 {
+      font-size: clamp(1.8rem, 3.8vw, 2.5rem);
+      font-weight: 800;
+      margin-bottom: 12px;
+      line-height: 1.25;
+    }
+
+    .hero p {
+      font-size: 1.12rem;
+      opacity: 0.95;
+      max-width: 900px;
+      margin: 0 auto 20px auto;
+    }
+
+    .hero-badges {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .hero-badge {
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(8px);
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      border: 1px solid var(--card-border);
+      padding: 30px;
+      margin-bottom: 26px;
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.2s ease;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #f1f5f9;
+      padding-bottom: 14px;
+    }
+
+    .section-title h2 {
+      font-size: 1.45rem;
+      color: var(--primary-dark);
+      font-weight: 700;
+    }
+
+    .section-title .icon {
+      font-size: 1.5rem;
+      background: #e0e7ff;
+      width: 46px;
+      height: 46px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      color: var(--primary);
+    }
+
+    .unit-tag {
+      margin-left: auto;
+      background: #ede9fe;
+      color: #6d28d9;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 860px) {
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    @media (max-width: 860px) {
+      .grid-3 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Code Blocks */
+    .code-block {
+      background: #0d1117;
+      color: #e6edf3;
+      border-radius: 12px;
+      position: relative;
+      margin: 18px 0;
+      border: 1px solid #30363d;
+      overflow: hidden;
+      font-family: 'Fira Code', monospace;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    }
+
+    .code-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 16px;
+      background: #161b22;
+      border-bottom: 1px solid #30363d;
+      font-size: 0.85rem;
+      color: #8b949e;
+      font-family: 'Fira Code', monospace;
+    }
+
+    .code-file-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      color: #c9d1d9;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+    }
+
+    .code-file-badge::before {
+      content: '';
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #e3b341;
+    }
+
+    pre {
+      margin: 0;
+      padding: 18px 20px;
+      overflow-x: auto;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      white-space: pre;
+      color: #e6edf3;
+    }
+
+    .code-block code {
+      color: #e6edf3;
+      font-family: 'Fira Code', monospace;
+    }
+
+    .copy-btn {
+      background: rgba(255, 255, 255, 0.08);
+      color: #c9d1d9;
+      border: 1px solid #30363d;
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: inherit;
+    }
+
+    .copy-btn:hover {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+    }
+
+    .copy-btn.copied {
+      background: var(--accent-green) !important;
+      color: #ffffff !important;
+      border-color: var(--accent-green) !important;
+    }
+
+    .tag-kw {
+      color: #ff7b72;
+      font-weight: 600;
+    }
+
+    .tag-type {
+      color: #79c0ff;
+      font-weight: 600;
+    }
+
+    .tag-str {
+      color: #a5d6ff;
+    }
+
+    .tag-comment {
+      color: #8b949e;
+      font-style: italic;
+    }
+
+    .tag-fn {
+      color: #d2a8ff;
+    }
+
+    .tag-num {
+      color: #79c0ff;
+    }
+
+    code:not(pre code) {
+      font-family: 'Fira Code', monospace;
+      font-size: 0.88em;
+      background: #eef2ff;
+      color: #4338ca;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .alert-box {
+      padding: 16px 20px;
+      border-radius: 12px;
+      margin: 18px 0;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      line-height: 1.6;
+    }
+
+    .alert-info {
+      background: #eff6ff;
+      border-left: 5px solid var(--secondary);
+      color: #1e40af;
+    }
+
+    .alert-warning {
+      background: #fffbeb;
+      border-left: 5px solid var(--accent-amber);
+      color: #92400e;
+    }
+
+    .alert-danger {
+      background: #fef2f2;
+      border-left: 5px solid var(--accent-rose);
+      color: #991b1b;
+    }
+
+    .alert-success {
+      background: #f0fdf4;
+      border-left: 5px solid var(--accent-green);
+      color: #166534;
+    }
+
+    .alert-purple {
+      background: #faf5ff;
+      border-left: 5px solid var(--accent-purple);
+      color: #581c87;
+    }
+
+    .diagram-card {
+      background: #0d1117;
+      color: #e6edf3;
+      border-radius: 14px;
+      padding: 22px;
+      margin: 18px 0;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      overflow-x: auto;
+      white-space: pre;
+      border: 1px solid #30363d;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    }
+
+    .table-container {
+      overflow-x: auto;
+      margin: 20px 0;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th,
+    td {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--card-border);
+      font-size: 0.92rem;
+    }
+
+    th {
+      background: #f8fafc;
+      color: var(--primary-dark);
+      font-weight: 700;
+    }
+
+    tr:hover {
+      background: #fbfdff;
+    }
+
+    .output-box {
+      background: #18181b;
+      border: 1px solid #27272a;
+      border-radius: 10px;
+      padding: 18px 22px;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.88rem;
+      color: #a1a1aa;
+      margin: 14px 0;
+      line-height: 1.6;
+    }
+
+    .output-box .out-green {
+      color: #4ade80;
+    }
+
+    .output-box .out-red {
+      color: #f87171;
+    }
+
+    .output-box .out-cyan {
+      color: #38bdf8;
+    }
+
+    .output-box .out-amber {
+      color: #fbbf24;
+    }
+
+    .output-box .out-purple {
+      color: #c084fc;
+    }
+
+    /* Visual Media Display Card */
+    .media-card {
+      background: #0f172a;
+      border-radius: 16px;
+      border: 1px solid #334155;
+      padding: 20px;
+      margin: 20px 0;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      text-align: center;
+    }
+
+    .media-card img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 10px;
+      border: 1px solid #1e293b;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    }
+
+    .media-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .media-title {
+      color: #f8fafc;
+      font-weight: 700;
+      font-size: 1.05rem;
+      text-align: left;
+    }
+
+    .media-badge {
+      background: #1e293b;
+      color: #38bdf8;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border: 1px solid #334155;
+    }
+
+    .media-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .media-btn {
+      background: #334155;
+      color: #f8fafc;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .media-btn:hover {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    /* Interactive Simulation Tabs */
+    .sim-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .sim-tab-btn {
+      padding: 10px 18px;
+      border-radius: 10px;
+      border: 1px solid var(--card-border);
+      background: #f8fafc;
+      color: var(--text-muted);
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .sim-tab-btn.active {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+    }
+
+    .sim-content {
+      display: none;
+      background: #0f172a;
+      border-radius: 14px;
+      padding: 22px;
+      color: #f8fafc;
+      border: 1px solid #334155;
+    }
+
+    .sim-content.active {
+      display: block;
+    }
+
+    /* Interactive Controls */
+    .sim-controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+
+    .ctl-btn {
+      background: #1e293b;
+      color: #f8fafc;
+      border: 1px solid #475569;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .ctl-btn:hover {
+      background: var(--secondary);
+      color: #ffffff;
+      border-color: var(--secondary);
+    }
+
+    .ctl-btn.play-btn {
+      background: #059669;
+      border-color: #10b981;
+    }
+
+    .ctl-btn.play-btn:hover {
+      background: #047857;
+    }
+
+    .ctl-btn.pause-btn {
+      background: #b45309;
+      border-color: #f59e0b;
+    }
+
+    /* QA Accordion */
+    .qa-box {
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      margin-bottom: 14px;
+      overflow: hidden;
+      background: #ffffff;
+      transition: all 0.2s ease;
+    }
+
+    .qa-box:hover {
+      border-color: var(--primary);
+    }
+
+    .qa-q {
+      padding: 16px 20px;
+      font-weight: 700;
+      color: var(--primary-dark);
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #fafafa;
+    }
+
+    .qa-a {
+      padding: 16px 20px;
+      font-size: 0.92rem;
+      color: var(--text-main);
+      border-top: 1px solid var(--card-border);
+      background: #ffffff;
+      line-height: 1.7;
+    }
+
+    .page-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 40px;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .nav-btn-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: white;
+      padding: 12px 24px;
+      border-radius: 12px;
+      border: 1px solid var(--card-border);
+      color: var(--primary-dark);
+      font-weight: 700;
+      text-decoration: none;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s;
+    }
+
+    .nav-btn-link:hover {
+      background: var(--primary);
+      color: white;
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="top-nav">
+      <a href="../index.html" class="back-btn">← Back to Java Index</a>
+      <span class="nav-tag">Java Multi-Threading • Fundamentals &amp; Concurrency</span>
+    </div>
+
+    <!-- Hero Section -->
+    <div class="hero">
+      <h1>Introduction to Multi-Threading: Cores, Concurrency &amp; Execution Models</h1>
+      <p>Master the foundational pillars of high-performance Java: what threads are, why modern computing hardware
+        demands multi-threading, the physical clock frequency limit (~15 GHz), how single-core time-slicing differs from
+        true multi-core hardware parallelism, and how multi-threading scales throughput and responsiveness across computing systems.</p>
+      <div class="hero-badges">
+        <span class="hero-badge">Thread Fundamentals</span>
+        <span class="hero-badge">Light-weight Processes</span>
+        <span class="hero-badge">Concurrency vs Parallelism</span>
+        <span class="hero-badge">15 GHz Cooling Barrier</span>
+        <span class="hero-badge">Single-Core vs Multi-Core</span>
+        <span class="hero-badge">Process vs Thread</span>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 1: WHAT IS MULTI-THREADING? CORE CONCEPTS                         -->
+    <!-- ========================================================================= -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">💡</span>
+        <h2>1. What is a Thread &amp; Why Do We Need Multi-Threading?</h2>
+        <span class="unit-tag" style="background: #e0e7ff; color: var(--primary);">Core Concept</span>
+      </div>
+      <p>
+        In modern operating systems and runtime environments:
+      </p>
+      <div class="alert-box alert-purple">
+        <span style="font-size: 1.6rem;">📖</span>
+        <div>
+          <strong>Standard Definition:</strong><br />
+          <em>"<strong>Multithreading</strong> is a Java feature that allows concurrent execution of two or more parts
+            of a program for maximum utilization of CPU processing power. Each part of such a program is called a
+            <strong>thread</strong>. Threads are <strong>light-weight processes within a process</strong>."</em>
+        </div>
+      </div>
+
+      <h3 style="color: var(--primary-dark); margin: 22px 0 10px 0; font-size: 1.15rem;">Key Foundations of Threads:
+      </h3>
+      <ul style="padding-left: 22px; color: var(--text-muted); line-height: 1.8;">
+        <li><strong>Program Segmentation:</strong> Some computer programs may be divided into segments that can run
+          independent of each other or with minimal interaction between them.</li>
+        <li><strong>Independent Path of Execution:</strong> Each segment may be considered as an independent path of
+          execution called a <strong>thread</strong>.</li>
+        <li><strong>Multi-Processor Systems:</strong> If the computer has multiple processors, the threads may run
+          concurrently on different processors, thus saving computing time.</li>
+        <li><strong>Single-Core Processor Usefulness:</strong> Threads are remarkably useful <em>even if the computer
+            has only a single-core processor</em> because <strong>the different processes and tasks in a computer take
+            different times</strong> (e.g. while Thread 1 waits on file reading, network data, or database responses,
+          the single CPU can execute Thread 2 instead of sitting idle).</li>
+      </ul>
+
+      <!-- Real-World Visual Analogy -->
+      <div class="media-card" style="background: #ffffff; border: 1.5px solid var(--card-border); margin: 24px 0;">
+        <div class="media-header">
+          <div class="media-title" style="color: var(--primary-dark);">🎨 Real-World Visual Analogy: Single-Thread vs.
+            Multi-Threaded Execution</div>
+          <div class="media-actions">
+            <span class="media-badge" style="background: #e0e7ff; color: var(--primary);">Conceptual Analogy</span>
+            <a href="Analogy-MultiThreading.png" target="_blank" class="media-btn">🔍 View Full Image</a>
+          </div>
+        </div>
+        <img src="Analogy-MultiThreading.png" alt="Multi-Threading Real-World Analogy"
+          style="border: 1px solid var(--card-border); max-height: 520px; object-fit: contain; width: 100%; border-radius: 12px; background: #fafafa;">
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 12px; text-align: left; line-height: 1.6;">
+          <strong>Visual Analogy:</strong> In a single-threaded workflow, a single worker must execute every sequential
+          step alone—if one task stalls on I/O, the entire flow freezes. With multi-threading, independent workers
+          (threads) execute distinct paths concurrently, dramatically elevating throughput and responsiveness.
+        </p>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 2: NEED FOR MULTIPLE THREADS & MULTI-CORE HARDWARE EVOLUTION       -->
+    <!-- ========================================================================= -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">⚡</span>
+        <h2>2. The Need for Multiple Threads &amp; Multi-Core Evolution</h2>
+        <span class="unit-tag" style="background: #e0e7ff; color: var(--primary);">Hardware &amp; Performance</span>
+      </div>
+
+      <div class="grid-2">
+        <div>
+          <h3 style="color: var(--primary-dark); margin-bottom: 10px;">The ~15 GHz Physical Barrier &amp; Thermal Crisis
+          </h3>
+          <p style="color: var(--text-muted); font-size: 0.92rem; line-height: 1.7;">
+            Why didn't CPU designers simply make a single CPU core run at 20 GHz, 50 GHz, or 100 GHz?
+          </p>
+          <div class="alert-box alert-danger" style="margin: 12px 0;">
+            <span style="font-size: 1.5rem;">🔥</span>
+            <div>
+              <strong>Physical Law of Silicon Hardware:</strong><br />
+              <em>"The present speed of about <strong>~15 GHz is about the upper theoretical limit</strong> because
+                beyond this, the <strong>cooling problems are tremendous</strong>."</em><br />
+              In physics, power consumption and heat dissipation scale cubically with clock frequency. Pushing a single
+              silicon core beyond 4 to 6 GHz generates extreme heat that melts standard silicon chips!
+            </div>
+          </div>
+          <p style="color: var(--text-muted); font-size: 0.92rem; line-height: 1.7;">
+            Therefore, increasing computer throughput by just boosting raw clock frequency hit a physical dead-end.
+          </p>
+        </div>
+
+        <div>
+          <h3 style="color: var(--primary-dark); margin-bottom: 10px;">Throughput Scaling via Decomposition</h3>
+          <ul style="padding-left: 20px; color: var(--text-muted); font-size: 0.92rem; line-height: 1.7;">
+            <li><strong>Throughput Increase:</strong> Increase in throughput is possible only by dividing a program into
+              segments that can be processed simultaneously by more than one processor, thus decreasing total
+              computation time.</li>
+            <li><strong>Supercomputer Foundation:</strong> This is the basis on which <strong>supercomputers</strong>
+              are built! In a supercomputer, thousands of processors are employed to concurrently process data.</li>
+            <li><strong>The Silicon Revolution: Multi-Core CPUs:</strong> Hardware engineers placed more than one core
+              processor on the same silicon CPU chip!</li>
+          </ul>
+          <div class="alert-box alert-success" style="margin: 12px 0;">
+            <span style="font-size: 1.5rem;">💻</span>
+            <div>
+              <strong>Multi-Core CPUs in Everyday Life:</strong><br />
+              A CPU may have two cores (dual core), four cores (quad core), six cores, eight cores, or even <strong>50+
+                cores</strong>. Today, multi-core CPUs are affordable and standard in everyday computers, laptops, and
+              servers.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="alert-box alert-info" style="margin-top: 18px;">
+        <span style="font-size: 1.6rem;">🎯</span>
+        <div>
+          <strong>Why Software Architecture Must Adapt to Hardware:</strong><br />
+          <em>"Advancements in hardware are forcing the development of suitable software for optimal utilization of
+            processor capacity. <strong>Multithread processing is the solution.</strong> Multithread programming is
+            inbuilt in Java and CPU capacity utilization may be improved by having multiple threads that concurrently
+            execute different parts of a program."</em>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 3: VISUAL DEMONSTRATIONS OF EXECUTION ARCHITECTURES               -->
+    <!-- ========================================================================= -->
+    <div class="card" style="border: 2px solid #818cf8;">
+      <div class="section-title">
+        <span class="icon">🎬</span>
+        <h2>3. Visual Demonstrations: Single Core vs. Multi-Core Multi-Threading</h2>
+        <span class="unit-tag" style="background: #e0e7ff; color: var(--primary);">Execution Architectures</span>
+      </div>
+      <p style="margin-bottom: 18px;">
+        To thoroughly understand how processors schedule and execute threads, explore the animated visual
+        representations of the three primary execution models below:
+      </p>
+
+      <!-- Complete Comparison Diagram Display -->
+      <div class="media-card">
+        <div class="media-header">
+          <div class="media-title">📊 Architectural Overview: Comparing Sequential, Time-Sliced, and Parallel Execution
+          </div>
+          <div class="media-actions">
+            <span class="media-badge">Vector SVG / High-Res PNG</span>
+            <a href="execution_models_comparison.svg" target="_blank" class="media-btn">🔍 View Fullscreen SVG</a>
+            <a href="execution_models_comparison.png" download class="media-btn">⬇ Download PNG</a>
+          </div>
+        </div>
+        <img src="execution_models_comparison.svg" alt="Execution Models Comparison (Diagrams a, b, c)"
+          style="background: #ffffff; padding: 8px;">
+        <p style="color: #94a3b8; font-size: 0.85rem; margin-top: 10px; text-align: left;">
+          <strong>Figure 1:</strong> Direct visual comparison of: <strong>(a)</strong> Single sequence sequential
+          execution, <strong>(b)</strong> Single processor time-sliced multi-threading, and <strong>(c)</strong>
+          Multi-core concurrent multi-threading with task distribution and output aggregation.
+        </p>
+      </div>
+
+      <!-- Animated GIF Demonstrations Side-by-Side -->
+      <div class="grid-2" style="margin-top: 26px;">
+        <!-- Single Core Animated GIF -->
+        <div class="media-card">
+          <div class="media-header">
+            <div class="media-title">⏱ Single-Core Multi-Threading [Time-Slicing Concurrency]</div>
+            <div class="media-actions">
+              <span class="media-badge" style="color: #38bdf8;">Time-Slicing Concurrency</span>
+              <a href="single_core_threading.gif" download class="media-btn">⬇ GIF</a>
+              <a href="single_core_threading.svg" target="_blank" class="media-btn">SVG</a>
+            </div>
+          </div>
+          <img src="single_core_threading.gif" alt="Single Core Multi-Threading Animated GIF">
+          <p style="color: #94a3b8; font-size: 0.84rem; margin-top: 10px; text-align: left;">
+            <strong>How it works:</strong> The single CPU core cannot run two instructions at the exact same nanosecond.
+            Instead, it rapidly switches between Thread 1, 2, and 3. When a thread finishes its time-slice or goes to
+            <strong>sleep</strong>, the CPU immediately executes the next thread.
+          </p>
+        </div>
+
+        <!-- Multi-Core Animated GIF -->
+        <div class="media-card">
+          <div class="media-header">
+            <div class="media-title">🚀 Multi-Core Multi-Threading [True Hardware Parallelism]</div>
+            <div class="media-actions">
+              <span class="media-badge" style="color: #34d399;">True Hardware Parallelism</span>
+              <a href="multi_core_threading.gif" download class="media-btn">⬇ GIF</a>
+              <a href="multi_core_threading.svg" target="_blank" class="media-btn">SVG</a>
+            </div>
+          </div>
+          <img src="multi_core_threading.gif" alt="Multi Core Multi-Threading Animated GIF">
+          <p style="color: #94a3b8; font-size: 0.84rem; margin-top: 10px; text-align: left;">
+            <strong>How it works:</strong> Master Core 0 reads incoming tasks and distributes them across Core 1, Core
+            2, and Core 3. All 3 worker cores execute concurrently at the exact same physical clock cycle, cutting
+            computation time to 1/3rd!
+          </p>
+        </div>
+      </div>
+
+      <!-- ========================================================================= -->
+      <!-- INTERACTIVE ANIMATION SIMULATOR WIDGET                                    -->
+      <!-- ========================================================================= -->
+      <div
+        style="margin-top: 32px; background: #1e1b4b; border-radius: 16px; padding: 24px; border: 1.5px solid #6366f1;">
+        <div
+          style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+          <h3 style="color: #f8fafc; font-size: 1.25rem;">🎮 Interactive Step-by-Step Execution Simulator</h3>
+          <span
+            style="background: #4338ca; color: #c7d2fe; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700;">Hands-On
+            Learning</span>
+        </div>
+        <p style="color: #cbd5e1; font-size: 0.9rem; margin-bottom: 18px;">
+          Select an execution model below to see how instructions move through the processor(s). Click
+          <strong>Play</strong> or <strong>Next Step</strong> to observe scheduling and parallelism in real time:
+        </p>
+
+        <!-- Simulation Tabs -->
+        <div class="sim-tabs">
+          <button class="sim-tab-btn active" onclick="switchSimTab(0)">A. Single Processor: Single Sequence</button>
+          <button class="sim-tab-btn" onclick="switchSimTab(1)">B. Single Processor: Threads Share Time</button>
+          <button class="sim-tab-btn" onclick="switchSimTab(2)">C. Multi-Core: Concurrency &amp; Parallelism</button>
+        </div>
+
+        <!-- Simulation Content 0: Sequential -->
+        <div id="sim-view-0" class="sim-content active">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 12px; align-items: center;">
+            <span style="font-weight: 700; color: #38bdf8;">Model A: Pure Sequential Execution (1 Core, No
+              Overlap)</span>
+            <span id="seq-step-indicator" style="font-size: 0.85rem; color: #94a3b8;">Step: Ready</span>
+          </div>
+          <div id="seq-canvas" style="display: flex; gap: 8px; overflow-x: auto; padding: 12px 0;">
+            <!-- Rendered via JS -->
+          </div>
+          <div id="seq-explanation"
+            style="margin-top: 12px; font-size: 0.88rem; color: #cbd5e1; background: #1e293b; padding: 12px; border-radius: 8px; border-left: 4px solid #38bdf8;">
+            Click 'Play' or 'Next Step' to trace sequential execution. Notice: Task 2 cannot start until Task 1
+            completes all 3 phases (Read, Process, Output).
+          </div>
+        </div>
+
+        <!-- Simulation Content 1: Single Core Time Sharing -->
+        <div id="sim-view-1" class="sim-content">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 12px; align-items: center;">
+            <span style="font-weight: 700; color: #34d399;">Model B: Single-Core Time Slicing (Threads Share Processor
+              Time)</span>
+            <span id="sc-step-indicator" style="font-size: 0.85rem; color: #94a3b8;">Step: Ready</span>
+          </div>
+          <div id="sc-canvas" style="display: flex; flex-direction: column; gap: 10px;">
+            <!-- Rendered via JS -->
+          </div>
+          <div id="sc-explanation"
+            style="margin-top: 12px; font-size: 0.88rem; color: #cbd5e1; background: #1e293b; padding: 12px; border-radius: 8px; border-left: 4px solid #34d399;">
+            Notice: While Thread 1 sleeps after reading, the single CPU doesn't stay idle; it executes Thread 2.
+            Interleaving gives responsiveness.
+          </div>
+        </div>
+
+        <!-- Simulation Content 2: Multi-Core Parallelism -->
+        <div id="sim-view-2" class="sim-content">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 12px; align-items: center;">
+            <span style="font-weight: 700; color: #fbbf24;">Model C: Multi-Core Concurrent Parallelism (True Silicon
+              Parallelism)</span>
+            <span id="mc-step-indicator" style="font-size: 0.85rem; color: #94a3b8;">Phase: Ready</span>
+          </div>
+          <div id="mc-canvas" style="display: flex; flex-direction: column; gap: 10px;">
+            <!-- Rendered via JS -->
+          </div>
+          <div id="mc-explanation"
+            style="margin-top: 12px; font-size: 0.88rem; color: #cbd5e1; background: #1e293b; padding: 12px; border-radius: 8px; border-left: 4px solid #fbbf24;">
+            Notice: Cores 1, 2, and 3 execute Task 1, 2, and 3 at the EXACT SAME TIME in parallel. Total time is reduced
+            by 66%!
+          </div>
+        </div>
+
+        <!-- Simulator Interactive Buttons -->
+        <div class="sim-controls">
+          <button id="btn-play" class="ctl-btn play-btn" onclick="togglePlay()">▶ Play Animation</button>
+          <button class="ctl-btn" onclick="stepForward()">⏭ Next Step</button>
+          <button class="ctl-btn" onclick="resetSim()">↺ Reset</button>
+          <button id="btn-speed" class="ctl-btn" onclick="toggleSpeed()">Speed: 1x</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 4: MULTI-TASKING VS MULTI-THREADING (PROCESS VS THREAD)           -->
+    <!-- ========================================================================= -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">⚖️</span>
+        <h2>4. Multi-Tasking vs. Multi-Threading: Process vs. Thread</h2>
+        <span class="unit-tag" style="background: #e0e7ff; color: var(--primary);">Architectural Comparison</span>
+      </div>
+      <p>
+        To understand why threads are called <strong>"light-weight processes within a process"</strong>, consider how
+        modern Operating Systems handle multi-tasking compared to Java multi-threading:
+      </p>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Criteria</th>
+              <th>Process-Based Multi-Tasking</th>
+              <th>Thread-Based Multi-Threading</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Definition</strong></td>
+              <td>Executing multiple distinct <strong>programs (processes)</strong> simultaneously managed by OS.</td>
+              <td>Executing multiple concurrent <strong>threads within the SAME program (process)</strong>.</td>
+            </tr>
+            <tr>
+              <td><strong>Real-World Example</strong></td>
+              <td>Running Google Chrome, Spotify, and Eclipse IDE at the same time on your PC.</td>
+              <td>In Eclipse: One thread compiles code, another highlights syntax, a third auto-saves files.</td>
+            </tr>
+            <tr>
+              <td><strong>Memory Isolation</strong></td>
+              <td>Each process has its own <strong>separate, isolated memory address space</strong>. Process A cannot
+                read Process B's memory.</td>
+              <td>All threads of a Java process <strong>share the same Heap memory and Method Area</strong>.</td>
+            </tr>
+            <tr>
+              <td><strong>Context Switching Cost</strong></td>
+              <td><strong>Heavy &amp; Expensive:</strong> CPU must flush cache, change page tables, and switch virtual
+                memory address spaces.</td>
+              <td><strong>Lightweight &amp; Fast:</strong> Threads share memory; CPU only needs to swap thread registers
+                and call stack pointer!</td>
+            </tr>
+            <tr>
+              <td><strong>Communication</strong></td>
+              <td>Complex and slow (Inter-Process Communication / IPC using sockets, pipes, files).</td>
+              <td>Fast and direct (Threads read and write to the same shared Java object references).</td>
+            </tr>
+            <tr>
+              <td><strong>Crash Impact</strong></td>
+              <td>If Spotify crashes, your Chrome browser and Java IDE continue running untouched.</td>
+              <td>If one thread causes an unhandled memory corruption or fatal error, it can crash the JVM!</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 5: RUNNABLE CODE DEMO & BENCHMARK                                 -->
+    <!-- ========================================================================= -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">💻</span>
+        <h2>5. Runnable Benchmark: Testing Sequential vs. Multi-Threaded Execution</h2>
+        <span class="unit-tag" style="background: #e0e7ff; color: var(--primary);">Verified Java 17 Demo</span>
+      </div>
+      <p>
+        The following self-contained program demonstrates these core concepts: querying hardware CPU cores, inspecting
+        the main thread, and comparing <strong>Sequential Execution</strong> against <strong>Concurrent Multi-Threaded
+          Execution</strong>:
+      </p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-file-badge">MultiThreadingIntroAndCoresDemo.java</div>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+        </div>
+        <pre><code class="language-java"><span class="tag-comment">/**
+ * Multithreaded Programming: Introduction &amp; CPU Cores Demonstration
+ * Covers:
+ * 1. CPU Cores detection via Runtime.getRuntime().availableProcessors()
+ * 2. JVM Main Thread inspection
+ * 3. The Two Creation Mechanisms (Extending Thread &amp; Implementing Runnable)
+ * 4. Thread Initialization &amp; State Transition via start()
+ * 5. Benchmark comparing Sequential Execution vs Concurrent Execution
+ */</span>
+<span class="tag-kw">public class</span> <span class="tag-type">MultiThreadingIntroAndCoresDemo</span> {
+
+    <span class="tag-comment">// Mechanism 1: Extending the Thread class</span>
+    <span class="tag-kw">static class</span> <span class="tag-type">TaskWorkerThread</span> <span class="tag-kw">extends</span> <span class="tag-type">Thread</span> {
+        <span class="tag-kw">private final</span> <span class="tag-type">String</span> taskName;
+
+        <span class="tag-kw">public</span> <span class="tag-fn">TaskWorkerThread</span>(<span class="tag-type">String</span> taskName) {
+            <span class="tag-kw">super</span>(taskName); <span class="tag-comment">// Assign thread name</span>
+            <span class="tag-kw">this</span>.taskName = taskName;
+        }
+
+        <span class="tag-kw">@Override</span>
+        <span class="tag-kw">public void</span> <span class="tag-fn">run</span>() {
+            System.out.println(<span class="tag-str">"  ["</span> + <span class="tag-fn">getName</span>() + <span class="tag-str">"] Stage 1: READ data started..."</span>);
+            <span class="tag-fn">simulateWork</span>(<span class="tag-num">100</span>);
+
+            System.out.println(<span class="tag-str">"  ["</span> + <span class="tag-fn">getName</span>() + <span class="tag-str">"] Stage 2: PROCESS calculations..."</span>);
+            <span class="tag-fn">simulateWork</span>(<span class="tag-num">100</span>);
+
+            System.out.println(<span class="tag-str">"  ["</span> + <span class="tag-fn">getName</span>() + <span class="tag-str">"] Stage 3: SEND output completed!"</span>);
+            <span class="tag-fn">simulateWork</span>(<span class="tag-num">100</span>);
+        }
+    }
+
+    <span class="tag-comment">// Mechanism 2: Implementing the Runnable interface</span>
+    <span class="tag-kw">static class</span> <span class="tag-type">TaskRunnable</span> <span class="tag-kw">implements</span> <span class="tag-type">Runnable</span> {
+        <span class="tag-kw">private final</span> <span class="tag-type">String</span> taskName;
+
+        <span class="tag-kw">public</span> <span class="tag-fn">TaskRunnable</span>(<span class="tag-type">String</span> taskName) {
+            <span class="tag-kw">this</span>.taskName = taskName;
+        }
+
+        <span class="tag-kw">@Override</span>
+        <span class="tag-kw">public void</span> <span class="tag-fn">run</span>() {
+            <span class="tag-type">String</span> tName = <span class="tag-type">Thread</span>.<span class="tag-fn">currentThread</span>().<span class="tag-fn">getName</span>();
+            System.out.println(<span class="tag-str">"  ["</span> + tName + <span class="tag-str">"] (Runnable) Processing "</span> + taskName);
+            <span class="tag-fn">simulateWork</span>(<span class="tag-num">150</span>);
+        }
+    }
+
+    <span class="tag-kw">public static void</span> <span class="tag-fn">main</span>(String[] args) {
+        System.out.println(<span class="tag-str">"=================================================================="</span>);
+        System.out.println(<span class="tag-str">"      MULTITHREADED PROGRAMMING - CORES &amp; CONCURRENCY DEMO        "</span>);
+        System.out.println(<span class="tag-str">"=================================================================="</span>);
+
+        <span class="tag-comment">// 1. HARDWARE CPU CORES DETECTION</span>
+        <span class="tag-kw">int</span> cores = Runtime.<span class="tag-fn">getRuntime</span>().<span class="tag-fn">availableProcessors</span>();
+        <span class="tag-kw">long</span> freeMem = Runtime.<span class="tag-fn">getRuntime</span>().<span class="tag-fn">freeMemory</span>() / (<span class="tag-num">1024</span> * <span class="tag-num">1024</span>);
+        <span class="tag-kw">long</span> totalMem = Runtime.<span class="tag-fn">getRuntime</span>().<span class="tag-fn">totalMemory</span>() / (<span class="tag-num">1024</span> * <span class="tag-num">1024</span>);
+
+        System.out.println(<span class="tag-str">"\n[SECTION 1: SYSTEM SILICON HARDWARE DETECTED]"</span>);
+        System.out.println(<span class="tag-str">"  Available CPU Cores / Logical Processors : "</span> + cores);
+        System.out.println(<span class="tag-str">"  JVM Initial Heap Memory                  : "</span> + totalMem + <span class="tag-str">" MB"</span>);
+        System.out.println(<span class="tag-str">"  JVM Free Heap Memory                     : "</span> + freeMem + <span class="tag-str">" MB"</span>);
+
+        <span class="tag-comment">// 2. MAIN THREAD INSPECTION</span>
+        System.out.println(<span class="tag-str">"\n[SECTION 2: AUTOMATIC MAIN THREAD]"</span>);
+        <span class="tag-type">Thread</span> mainThread = <span class="tag-type">Thread</span>.<span class="tag-fn">currentThread</span>();
+        System.out.println(<span class="tag-str">"  Thread Name     : "</span> + mainThread.<span class="tag-fn">getName</span>());
+        System.out.println(<span class="tag-str">"  Thread ID       : "</span> + mainThread.<span class="tag-fn">getId</span>());
+        System.out.println(<span class="tag-str">"  Thread Priority : "</span> + mainThread.<span class="tag-fn">getPriority</span>() + <span class="tag-str">" (NORM_PRIORITY = 5, Range 1 to 10)"</span>);
+        System.out.println(<span class="tag-str">"  Thread State    : "</span> + mainThread.<span class="tag-fn">getState</span>());
+
+        <span class="tag-comment">// 3. THREAD INITIALIZATION &amp; START</span>
+        System.out.println(<span class="tag-str">"\n[SECTION 3: THREAD INITIALIZATION &amp; START]"</span>);
+        <span class="tag-type">TaskWorkerThread</span> t1 = <span class="tag-kw">new</span> <span class="tag-type">TaskWorkerThread</span>(<span class="tag-str">"Worker-Thread-1"</span>);
+        System.out.println(<span class="tag-str">"  Created t1: "</span> + t1.<span class="tag-fn">getName</span>() + <span class="tag-str">" -&gt; State: "</span> + t1.<span class="tag-fn">getState</span>());
+        System.out.println(<span class="tag-str">"  Key Concept: Thread state is NEW. The CPU does not execute it yet."</span>);
+        System.out.println(<span class="tag-str">"  Invoking t1.start() registers it with the OS dispatcher and transitions state to RUNNABLE."</span>);
+
+        <span class="tag-comment">// 4. BENCHMARK: SEQUENTIAL VS. MULTI-THREADED</span>
+        System.out.println(<span class="tag-str">"\n[SECTION 4: BENCHMARK - SEQUENTIAL VS. MULTI-THREADED]"</span>);
+
+        <span class="tag-comment">// --- PART A: Pure Sequential Execution ---</span>
+        <span class="tag-kw">long</span> seqStart = System.<span class="tag-fn">currentTimeMillis</span>();
+        <span class="tag-fn">executeTaskSequentially</span>(<span class="tag-str">"Task 1 (Payment Verification)"</span>);
+        <span class="tag-fn">executeTaskSequentially</span>(<span class="tag-str">"Task 2 (Inventory Allocation)"</span>);
+        <span class="tag-fn">executeTaskSequentially</span>(<span class="tag-str">"Task 3 (Order Notification)"</span>);
+        <span class="tag-kw">long</span> seqDuration = System.<span class="tag-fn">currentTimeMillis</span>() - seqStart;
+        System.out.println(<span class="tag-str">"Sequential Execution Time: "</span> + seqDuration + <span class="tag-str">" ms"</span>);
+
+        <span class="tag-comment">// --- PART B: Multi-Threaded Execution ---</span>
+        <span class="tag-kw">long</span> mtStart = System.<span class="tag-fn">currentTimeMillis</span>();
+        <span class="tag-type">TaskWorkerThread</span> worker1 = <span class="tag-kw">new</span> <span class="tag-type">TaskWorkerThread</span>(<span class="tag-str">"Worker-Core1"</span>);
+        <span class="tag-type">TaskWorkerThread</span> worker2 = <span class="tag-kw">new</span> <span class="tag-type">TaskWorkerThread</span>(<span class="tag-str">"Worker-Core2"</span>);
+        <span class="tag-type">TaskWorkerThread</span> worker3 = <span class="tag-kw">new</span> <span class="tag-type">TaskWorkerThread</span>(<span class="tag-str">"Worker-Core3"</span>);
+
+        worker1.<span class="tag-fn">start</span>();
+        worker2.<span class="tag-fn">start</span>();
+        worker3.<span class="tag-fn">start</span>();
+
+        <span class="tag-kw">try</span> {
+            worker1.<span class="tag-fn">join</span>();
+            worker2.<span class="tag-fn">join</span>();
+            worker3.<span class="tag-fn">join</span>();
+        } <span class="tag-kw">catch</span> (<span class="tag-type">InterruptedException</span> e) {
+            <span class="tag-type">Thread</span>.<span class="tag-fn">currentThread</span>().<span class="tag-fn">interrupt</span>();
+        }
+
+        <span class="tag-kw">long</span> mtDuration = System.<span class="tag-fn">currentTimeMillis</span>() - mtStart;
+        System.out.println(<span class="tag-str">"Multi-Threaded Execution Time: "</span> + mtDuration + <span class="tag-str">" ms"</span>);
+
+        <span class="tag-kw">double</span> speedup = (<span class="tag-kw">double</span>) seqDuration / Math.<span class="tag-fn">max</span>(mtDuration, <span class="tag-num">1</span>);
+        System.out.printf(<span class="tag-str">"\n&gt;&gt; Performance Gain: %.2fx faster with Multi-Threading!\n"</span>, speedup);
+    }
+
+    <span class="tag-kw">private static void</span> <span class="tag-fn">executeTaskSequentially</span>(<span class="tag-type">String</span> taskName) {
+        System.out.println(<span class="tag-str">"  [Sequential] "</span> + taskName + <span class="tag-str">" -&gt; Read"</span>);
+        <span class="tag-fn">simulateWork</span>(<span class="tag-num">100</span>);
+        System.out.println(<span class="tag-str">"  [Sequential] "</span> + taskName + <span class="tag-str">" -&gt; Process"</span>);
+        <span class="tag-fn">simulateWork</span>(<span class="tag-num">100</span>);
+        System.out.println(<span class="tag-str">"  [Sequential] "</span> + taskName + <span class="tag-str">" -&gt; Output"</span>);
+        <span class="tag-fn">simulateWork</span>(<span class="tag-num">100</span>);
+    }
+
+    <span class="tag-kw">private static void</span> <span class="tag-fn">simulateWork</span>(<span class="tag-kw">long</span> millis) {
+        <span class="tag-kw">try</span> {
+            <span class="tag-type">Thread</span>.<span class="tag-fn">sleep</span>(millis);
+        } <span class="tag-kw">catch</span> (<span class="tag-type">InterruptedException</span> e) {
+            <span class="tag-type">Thread</span>.<span class="tag-fn">currentThread</span>().<span class="tag-fn">interrupt</span>();
+        }
+    }
+}</code></pre>
+      </div>
+
+      <!-- Live Actual Execution Output -->
+      <h4 style="color: var(--primary-dark); margin: 18px 0 8px 0;">Actual Execution Console Output:</h4>
+      <div class="output-box">
+        ==================================================================
+        MULTITHREADED PROGRAMMING - CORES &amp; CONCURRENCY DEMO
+        ==================================================================
+
+        [SECTION 1: SYSTEM SILICON HARDWARE DETECTED]
+        Available CPU Cores / Logical Processors : <span class="out-green">8</span>
+        JVM Initial Heap Memory : <span class="out-cyan">254 MB</span>
+        JVM Free Heap Memory : <span class="out-cyan">248 MB</span>
+        <span class="out-green">&gt;&gt; Status: Multi-Core CPU detected! Capable of TRUE HARDWARE PARALLELISM.</span>
+        CPUs with 2, 4, 8, 16, and up to 50+ cores can execute distinct threads simultaneously.
+
+        [SECTION 2: AUTOMATIC MAIN THREAD]
+        Thread Name : <span class="out-cyan">main</span>
+        Thread ID : <span class="out-cyan">1</span>
+        Thread Priority : <span class="out-amber">5 (NORM_PRIORITY = 5, Range 1 to 10)</span>
+        Thread State : <span class="out-green">RUNNABLE</span>
+        Note: JVM automatically creates 'main' thread even if no threads are explicitly created.
+
+        [SECTION 3: THREAD INITIALIZATION &amp; START]
+        Created t1: Worker-Thread-1 -&gt; State: <span class="out-amber">NEW</span>
+        Key Concept: Thread state is NEW. The CPU does not execute it yet.
+        Invoking t1.start() registers it with the OS dispatcher and transitions state to RUNNABLE.
+
+        [SECTION 4: BENCHMARK - SEQUENTIAL VS. MULTI-THREADED]
+
+        --- RUNNING PART A: Sequential Execution ---
+        [Sequential] Task 1 (Payment Verification) -&gt; Read
+        [Sequential] Task 1 (Payment Verification) -&gt; Process
+        [Sequential] Task 1 (Payment Verification) -&gt; Output
+        [Sequential] Task 2 (Inventory Allocation) -&gt; Read
+        [Sequential] Task 2 (Inventory Allocation) -&gt; Process
+        [Sequential] Task 2 (Inventory Allocation) -&gt; Output
+        [Sequential] Task 3 (Order Notification) -&gt; Read
+        [Sequential] Task 3 (Order Notification) -&gt; Process
+        [Sequential] Task 3 (Order Notification) -&gt; Output
+        <span class="out-red">Sequential Execution Time: 981 ms</span>
+
+        --- RUNNING PART B: Multi-Threaded Execution ---
+        [Worker-Core1] Stage 1: READ data started...
+        [Worker-Core2] Stage 1: READ data started...
+        [Worker-Core3] Stage 1: READ data started...
+        [Worker-Core1] Stage 2: PROCESS calculations...
+        [Worker-Core2] Stage 2: PROCESS calculations...
+        [Worker-Core3] Stage 2: PROCESS calculations...
+        [Worker-Core1] Stage 3: SEND output completed!
+        [Worker-Core2] Stage 3: SEND output completed!
+        [Worker-Core3] Stage 3: SEND output completed!
+        <span class="out-green">Multi-Threaded Execution Time: 326 ms</span>
+
+        <span class="out-green">&gt;&gt; Performance Gain: 3.01x faster with Multi-Threading!</span>
+        &gt;&gt; Notice: Interleaved log outputs demonstrate concurrent time-sharing and parallelism.
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 6: FREQUENTLY ASKED QUESTIONS & INTERVIEW CONCEPTS                -->
+    <!-- ========================================================================= -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🎓</span>
+        <h2>6. Frequently Asked Questions &amp; Interview Concepts</h2>
+        <span class="unit-tag" style="background: #e0e7ff; color: var(--primary);">Interview Preparation</span>
+      </div>
+      <p style="margin-bottom: 16px;">
+        These questions test essential conceptual and architectural understanding of multi-threading. Click any question
+        to reveal the detailed answer:
+      </p>
+
+      <div class="qa-box">
+        <div class="qa-q" onclick="toggleQA(this)">
+          <span>Q1. Define Multithreading and explain why threads are called "light-weight processes".</span>
+          <span>▼</span>
+        </div>
+        <div class="qa-a">
+          <strong>Answer:</strong> <strong>Multithreading</strong> is a Java feature that allows concurrent execution of
+          two or more parts of a program for maximum utilization of CPU. Each part of such program is called a
+          <strong>thread</strong>.<br />
+          Threads are termed <strong>"light-weight processes"</strong> because unlike operating system processes (which
+          each possess isolated memory address spaces and incur heavy context switching overhead), threads within the
+          same JVM process share the common <strong>Heap memory and Method Area</strong>. Creating and switching between
+          threads only requires swapping thread registers and stack pointers, which is orders of magnitude faster.
+        </div>
+      </div>
+
+      <div class="qa-box">
+        <div class="qa-q" onclick="toggleQA(this)">
+          <span>Q2. What is the fundamental difference between Concurrency and Parallelism?</span>
+          <span>▼</span>
+        </div>
+        <div class="qa-a">
+          <strong>Answer:</strong> As famously framed by Rob Pike:<br />
+          • <strong>Concurrency</strong> is about <em>dealing with</em> lots of things at once (structure/composition).
+          On a single CPU core, threads take turns via rapid time-slicing (pseudo-parallelism).<br />
+          • <strong>Parallelism</strong> is about <em>doing</em> lots of things at once (hardware execution). It
+          physically requires multiple silicon cores executing instructions at the exact same physical nanosecond.
+        </div>
+      </div>
+
+      <div class="qa-box">
+        <div class="qa-q" onclick="toggleQA(this)">
+          <span>Q3. Why is multithreading useful even on a computer with a single-core processor?</span>
+          <span>▼</span>
+        </div>
+        <div class="qa-a">
+          <strong>Answer:</strong> Because <em>"the different processes and operations in a computer take vastly
+            different times."</em><br />
+          Even on a 1-core processor, programs frequently perform I/O operations (reading from disk, querying a
+          database, waiting for network packets, or waiting for user clicks) which take milliseconds, while CPU cycles
+          take nanoseconds. In a single-threaded program, the single CPU sits idle waiting for I/O. In a multithreaded
+          program, while Thread 1 waits on I/O or sleeps, the CPU immediately executes Thread 2, maximizing CPU
+          utilization and keeping the application responsive.
+        </div>
+      </div>
+
+      <div class="qa-box">
+        <div class="qa-q" onclick="toggleQA(this)">
+          <span>Q4. Explain the physical clock frequency limit (~15 GHz) and why chip makers created multi-core
+            CPUs.</span>
+          <span>▼</span>
+        </div>
+        <div class="qa-a">
+          <strong>Answer:</strong> The theoretical maximum speed of silicon microprocessors is roughly <strong>15
+            GHz</strong> (with practical production chips maxing around 4-5 GHz). Beyond this frequency, heat generation
+          and power dissipation scale cubically, creating insurmountable <strong>thermal cooling
+            problems</strong>.<br />
+          Because individual clock speeds cannot increase further, hardware developers placed <strong>more than one
+            physical processing core on the same CPU chip</strong> (dual, quad, octa, up to 50+ cores). Throughput is
+          increased by dividing programs into segments that are processed simultaneously across multiple cores.
+        </div>
+      </div>
+
+      <div class="qa-box">
+        <div class="qa-q" onclick="toggleQA(this)">
+          <span>Q5. What memory components are shared among threads, and what is kept private to each thread?</span>
+          <span>▼</span>
+        </div>
+        <div class="qa-a">
+          <strong>Answer:</strong> In Java, all threads within the same process share the common <strong>Heap memory</strong>
+          (where all object instances and class static variables reside) and the <strong>Method Area</strong>.<br />
+          Conversely, each thread is allocated its own private <strong>Thread Call Stack</strong> (which tracks local
+          variables and activation frames for method calls) and a private <strong>Program Counter (PC) Register</strong>
+          (which holds the address of the JVM instruction currently being executed by that thread).
+        </div>
+      </div>
+
+      <div class="qa-box">
+        <div class="qa-q" onclick="toggleQA(this)">
+          <span>Q6. Differentiate between Single-Processor Time-Sharing and Multi-Core Concurrent Execution.</span>
+          <span>▼</span>
+        </div>
+        <div class="qa-a">
+          <strong>Answer:</strong><br />
+          • <strong>Single Processor Time-Sharing:</strong> There is only 1 physical core. Threads take turns via rapid
+          time-slicing (e.g. 10ms intervals). When Thread 1 finishes its slice or sleeps/waits, the CPU switches to
+          Thread 2. This is <strong>Concurrency / Pseudo-Parallelism</strong>.<br />
+          • <strong>Multi-Core Concurrent Execution:</strong> There are multiple physically separate hardware silicon
+          cores. The system acts as a coordinator, and worker cores execute distinct tasks at the <strong>exact same
+            nanosecond</strong>. This is <strong>True Hardware Parallelism</strong>.
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 7: CORE SUMMARY & KEY TAKEAWAYS                                   -->
+    <!-- ========================================================================= -->
+    <div class="card" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-color: #86efac;">
+      <h3 style="color: #166534; margin-bottom: 12px; font-size: 1.25rem;">📌 Core Summary &amp; Key Takeaways</h3>
+      <ul style="padding-left: 20px; color: #14532d; line-height: 1.8; font-size: 0.95rem;">
+        <li><strong>Thread Definition:</strong> Smallest, lightweight unit of execution within a process; shares Heap
+          and Method Area.</li>
+        <li><strong>Concurrency vs. Parallelism:</strong> Concurrency is time-sliced interleaving on 1 core; Parallelism
+          is simultaneous execution on multiple physical silicon cores.</li>
+        <li><strong>Hardware Thermal Wall:</strong> Clock speed limit is ~15 GHz due to severe cooling problems;
+          resolved by placing multiple cores on one chip.</li>
+        <li><strong>Multi-Core Scalability:</strong> Dual-core, Quad-core, 6-core, 8-core, up to 50+ cores in modern
+          computers.</li>
+        <li><strong>Single-Core Benefit:</strong> Interleaving prevents CPU waste while threads wait for disk I/O,
+          network data, or sleep.</li>
+        <li><strong>Process vs. Thread:</strong> Processes have isolated address spaces with heavy context switching;
+          threads share JVM heap memory with lightweight context switching.</li>
+      </ul>
+    </div>
+
+    <!-- Bottom Page Navigation -->
+    <div class="page-nav">
+      <a href="../strings/strings_assessment.html" class="nav-btn-link">← Prev: Strings Assessment</a>
+      <a href="../index.html" class="nav-btn-link">🏠 Java Curriculum Index</a>
+      <a href="creating_threads.html" class="nav-btn-link">Next: Creating Threads in Java →</a>
+    </div>
+  </div>
+
+  <!-- Interactive Simulator & Utility Scripts -->
+  <script>
+    // Copy Code Helper
+    function copyCode(btn) {
+      const codeBlock = btn.closest('.code-block');
+      const codeEl = codeBlock.querySelector('code, pre');
+      const text = codeEl ? codeEl.innerText : '';
+      navigator.clipboard.writeText(text).then(() => {
+        const orig = btn.innerText;
+        btn.innerText = '✓ Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.innerText = orig;
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    }
+
+    // QA Accordion Toggle
+    function toggleQA(headerEl) {
+      const answerEl = headerEl.nextElementSibling;
+      const arrow = headerEl.querySelector('span:last-child');
+      if (answerEl.style.display === 'none' || answerEl.style.display === '') {
+        answerEl.style.display = 'block';
+        arrow.textContent = '▲';
+      } else {
+        answerEl.style.display = 'none';
+        arrow.textContent = '▼';
+      }
+    }
+
+    // =========================================================================
+    // INTERACTIVE STEP-BY-STEP SIMULATION ENGINE
+    // =========================================================================
+    let currentSimTab = 0;
+    let simStep = 0;
+    let isPlaying = false;
+    let timerId = null;
+    let simSpeedMs = 1200;
+
+    const seqSteps = [
+      { task: "Task 1", stage: "Read", color: "#0284c7", desc: "Core 1 executes Task 1: READ from disk/network. CPU is busy with Task 1." },
+      { task: "Task 1", stage: "Process", color: "#0284c7", desc: "Core 1 executes Task 1: PROCESS logic & computations." },
+      { task: "Task 1", stage: "Output", color: "#0284c7", desc: "Core 1 executes Task 1: SEND OUTPUT. Task 1 is now complete!" },
+      { task: "Task 2", stage: "Read", color: "#10b981", desc: "Core 1 starts Task 2: READ. Notice Task 2 had to wait until Task 1 fully completed." },
+      { task: "Task 2", stage: "Process", color: "#10b981", desc: "Core 1 executes Task 2: PROCESS logic." },
+      { task: "Task 2", stage: "Output", color: "#10b981", desc: "Core 1 executes Task 2: SEND OUTPUT. Task 2 complete!" },
+      { task: "Task 3", stage: "Read", color: "#f59e0b", desc: "Core 1 starts Task 3: READ. Task 3 had to wait for Tasks 1 and 2 to finish." },
+      { task: "Task 3", stage: "Process", color: "#f59e0b", desc: "Core 1 executes Task 3: PROCESS logic." },
+      { task: "Task 3", stage: "Output", color: "#f59e0b", desc: "Core 1 executes Task 3: SEND OUTPUT. All 3 sequential tasks finished!" }
+    ];
+
+    const scSteps = [
+      { t: 1, action: "Read Task 1", desc: "Thread 1 RUNS: Read Task 1. Threads 2 and 3 are waiting/sleeping." },
+      { t: 2, action: "Read Task 2", desc: "Thread 1 goes to SLEEP. Thread 2 RUNS: Read Task 2. CPU switches context." },
+      { t: 3, action: "Read Task 3", desc: "Thread 2 goes to SLEEP. Thread 3 RUNS: Read Task 3. Rapid time-slicing active." },
+      { t: 1, action: "Process Task 1", desc: "Thread 1 wakes up & RUNS: Process Task 1 calculations." },
+      { t: 2, action: "Process Task 2", desc: "Thread 1 sleeps. Thread 2 wakes up & RUNS: Process Task 2." },
+      { t: 3, action: "Process Task 3", desc: "Thread 2 sleeps. Thread 3 wakes up & RUNS: Process Task 3." },
+      { t: 1, action: "Output Task 1", desc: "Thread 1 RUNS: Output Task 1. Task 1 fully completed!" },
+      { t: 2, action: "Output Task 2", desc: "Thread 2 RUNS: Output Task 2. Task 2 fully completed!" },
+      { t: 3, action: "Output Task 3", desc: "Thread 3 RUNS: Output Task 3. All interleaved threads complete!" }
+    ];
+
+    const mcPhases = [
+      { phase: "Dispatch", desc: "Core 0 (Master) reads incoming tasks and dispatches Task 1, 2, and 3 to Cores 1, 2, and 3." },
+      { phase: "Parallel Read", desc: "PARALLEL EXECUTION: Core 1, Core 2, and Core 3 simultaneously READ data in silicon at the exact same clock tick!" },
+      { phase: "Parallel Process", desc: "PARALLEL EXECUTION: Cores 1, 2, and 3 simultaneously PROCESS computation in parallel!" },
+      { phase: "Parallel Output", desc: "PARALLEL EXECUTION: Cores 1, 2, and 3 send outputs simultaneously to the Collector." },
+      { phase: "Complete", desc: "Master collects all 3 outputs into final result. Total execution time is ~1/3rd of sequential!" }
+    ];
+
+    function initSim() {
+      renderSeq();
+      renderSc();
+      renderMc();
+    }
+
+    function switchSimTab(tabIdx) {
+      currentSimTab = tabIdx;
+      document.querySelectorAll('.sim-tab-btn').forEach((btn, i) => {
+        btn.classList.toggle('active', i === tabIdx);
+      });
+      document.querySelectorAll('.sim-content').forEach((c, i) => {
+        c.classList.toggle('active', i === tabIdx);
+      });
+      resetSim();
+    }
+
+    function renderSeq() {
+      const container = document.getElementById('seq-canvas');
+      let html = '';
+      seqSteps.forEach((s, idx) => {
+        const isActive = idx === simStep;
+        const isDone = idx < simStep;
+        const bg = isActive ? s.color : isDone ? '#1e293b' : '#0f172a';
+        const border = isActive ? '#ffffff' : isDone ? s.color : '#334155';
+        const opacity = (!isDone && !isActive) ? '0.4' : '1';
+        html += `
+          <div style="min-width: 90px; background: ${bg}; border: 2px solid ${border}; border-radius: 8px; padding: 10px 6px; text-align: center; opacity: ${opacity}; transition: all 0.3s ease;">
+            <div style="font-size: 0.75rem; font-weight: 700; color: #f8fafc;">${s.task}</div>
+            <div style="font-size: 0.85rem; font-weight: 800; color: #ffffff; margin-top: 4px;">${s.stage}</div>
+            <div style="font-size: 0.65rem; color: #cbd5e1; margin-top: 4px;">${isDone ? '✓ Done' : isActive ? '● Active' : 'Waiting'}</div>
+          </div>
+        `;
+        if (idx < seqSteps.length - 1) {
+          html += `<div style="display:flex; align-items:center; color: #64748b; font-size: 1.1rem;">→</div>`;
+        }
+      });
+      container.innerHTML = html;
+      const cur = Math.min(simStep, seqSteps.length - 1);
+      document.getElementById('seq-step-indicator').textContent = `Step ${simStep + 1} of ${seqSteps.length}`;
+      document.getElementById('seq-explanation').innerHTML = `<strong>Step ${simStep + 1}:</strong> ${seqSteps[cur].desc}`;
+    }
+
+    function renderSc() {
+      const container = document.getElementById('sc-canvas');
+      const curStep = Math.min(simStep, scSteps.length - 1);
+      const activeT = scSteps[curStep].t;
+
+      let html = `
+        <div style="display: grid; grid-template-columns: 180px 1fr; gap: 14px; align-items: center;">
+          <div style="background: #1e293b; border: 2px solid #6366f1; border-radius: 10px; padding: 14px; text-align: center;">
+            <div style="color: #a5b4fc; font-size: 0.8rem; font-weight: 800;">SINGLE CPU CORE</div>
+            <div style="font-size: 1.15rem; font-weight: 800; color: ${activeT === 1 ? '#38bdf8' : activeT === 2 ? '#34d399' : '#fbbf24'}; margin-top: 6px;">
+              Thread ${activeT} RUNNING
+            </div>
+            <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 4px;">Time Slice: 10ms</div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+      `;
+
+      [1, 2, 3].forEach(tNum => {
+        const isRun = (tNum === activeT);
+        const col = tNum === 1 ? '#0284c7' : tNum === 2 ? '#10b981' : '#f59e0b';
+        const txtCol = tNum === 1 ? '#38bdf8' : tNum === 2 ? '#34d399' : '#fbbf24';
+        html += `
+          <div style="display: flex; align-items: center; justify-content: space-between; background: ${isRun ? '#1e293b' : '#0f172a'}; border: 1.5px solid ${isRun ? col : '#334155'}; border-radius: 8px; padding: 8px 14px; transition: all 0.3s ease;">
+            <span style="font-weight: 800; color: ${txtCol}; font-size: 0.9rem;">Thread ${tNum}</span>
+            <span style="background: ${isRun ? col : '#334155'}; color: #ffffff; padding: 3px 12px; border-radius: 12px; font-size: 0.78rem; font-weight: 700;">
+              ${isRun ? '🟢 ' + scSteps[curStep].action : '💤 SLEEPING (Relinquished CPU)'}
+            </span>
+          </div>
+        `;
+      });
+
+      html += `</div></div>`;
+      container.innerHTML = html;
+      document.getElementById('sc-step-indicator').textContent = `Slot ${simStep + 1} of ${scSteps.length}`;
+      document.getElementById('sc-explanation').innerHTML = `<strong>Time Slot ${simStep + 1}:</strong> ${scSteps[curStep].desc}`;
+    }
+
+    function renderMc() {
+      const container = document.getElementById('mc-canvas');
+      const p = Math.min(simStep, mcPhases.length - 1);
+      const isDispatch = (p === 0);
+      const isRead = (p === 1);
+      const isProc = (p === 2);
+      const isOut = (p === 3);
+      const isDone = (p === 4);
+
+      let html = `
+        <div style="display: grid; grid-template-columns: 160px 1fr 150px; gap: 14px; align-items: center;">
+          <!-- Core 0 (Master) -->
+          <div style="background: ${isDispatch || isDone ? '#4338ca' : '#1e1b4b'}; border: 2px solid #818cf8; border-radius: 10px; padding: 14px; text-align: center;">
+            <div style="color: #c7d2fe; font-size: 0.8rem; font-weight: 800;">CORE 0 (MASTER)</div>
+            <div style="font-size: 0.95rem; font-weight: 700; color: #ffffff; margin-top: 8px;">
+              ${isDispatch ? 'Distributing Tasks' : isDone ? 'Collecting Outputs' : 'Coordinating'}
+            </div>
+            <div style="font-size: 0.72rem; color: #a5b4fc; margin-top: 6px;">Master Dispatcher</div>
+          </div>
+
+          <!-- 3 Worker Cores executing simultaneously in parallel -->
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+      `;
+
+      const coreColors = ['#0284c7', '#10b981', '#f59e0b'];
+      const coreNames = ['Core 1 (Thread 1)', 'Core 2 (Thread 2)', 'Core 3 (Thread 3)'];
+      const stages = ['Task 1', 'Task 2', 'Task 3'];
+
+      [0, 1, 2].forEach(i => {
+        let actionTxt = isDispatch ? 'Waiting for Tasks' :
+          isRead ? `${stages[i]}: READ Data (Simultaneous)` :
+            isProc ? `${stages[i]}: PROCESS Logic (Simultaneous)` :
+              isOut ? `${stages[i]}: SEND Output (Simultaneous)` : 'Task Complete ✓';
+
+        html += `
+          <div style="display: flex; justify-content: space-between; align-items: center; background: #1e293b; border: 2px solid ${coreColors[i]}; border-radius: 8px; padding: 8px 14px;">
+            <span style="font-weight: 800; color: #ffffff; font-size: 0.85rem;">${coreNames[i]}</span>
+            <span style="background: ${coreColors[i]}; color: #ffffff; padding: 3px 12px; border-radius: 12px; font-size: 0.78rem; font-weight: 700;">
+              ⚡ ${actionTxt}
+            </span>
+          </div>
+        `;
+      });
+
+      html += `
+          </div>
+
+          <!-- Output Collector -->
+          <div style="background: ${isDone ? '#047857' : '#064e3b'}; border: 2px solid #34d399; border-radius: 10px; padding: 14px; text-align: center;">
+            <div style="color: #a7f3d0; font-size: 0.8rem; font-weight: 800;">COLLECTOR</div>
+            <div style="font-size: 0.95rem; font-weight: 700; color: #ffffff; margin-top: 8px;">
+              ${isDone ? 'All Outputs Ready!' : 'Awaiting Streams'}
+            </div>
+            <div style="font-size: 0.72rem; color: #a7f3d0; margin-top: 6px;">${isDone ? 'Job Finished ✓' : 'Workers Busy'}</div>
+          </div>
+        </div>
+      `;
+
+      container.innerHTML = html;
+      document.getElementById('mc-step-indicator').textContent = `Phase ${p + 1} of ${mcPhases.length}`;
+      document.getElementById('mc-explanation').innerHTML = `<strong>Phase ${p + 1} (${mcPhases[p].phase}):</strong> ${mcPhases[p].desc}`;
+    }
+
+    function stepForward() {
+      const maxSteps = (currentSimTab === 0) ? seqSteps.length :
+        (currentSimTab === 1) ? scSteps.length : mcPhases.length;
+      simStep = (simStep + 1) % maxSteps;
+      if (currentSimTab === 0) renderSeq();
+      else if (currentSimTab === 1) renderSc();
+      else renderMc();
+    }
+
+    function resetSim() {
+      simStep = 0;
+      if (isPlaying) togglePlay();
+      if (currentSimTab === 0) renderSeq();
+      else if (currentSimTab === 1) renderSc();
+      else renderMc();
+    }
+
+    function togglePlay() {
+      isPlaying = !isPlaying;
+      const btn = document.getElementById('btn-play');
+      if (isPlaying) {
+        btn.textContent = '⏸ Pause';
+        btn.classList.remove('play-btn');
+        btn.classList.add('pause-btn');
+        timerId = setInterval(stepForward, simSpeedMs);
+      } else {
+        btn.textContent = '▶ Play Animation';
+        btn.classList.remove('pause-btn');
+        btn.classList.add('play-btn');
+        clearInterval(timerId);
+      }
+    }
+
+    function toggleSpeed() {
+      const btn = document.getElementById('btn-speed');
+      if (simSpeedMs === 1200) {
+        simSpeedMs = 600;
+        btn.textContent = 'Speed: 2x';
+      } else {
+        simSpeedMs = 1200;
+        btn.textContent = 'Speed: 1x';
+      }
+      if (isPlaying) {
+        clearInterval(timerId);
+        timerId = setInterval(stepForward, simSpeedMs);
+      }
+    }
+
+    // Initialize on load
+    window.addEventListener('DOMContentLoaded', initSim);
+  </script>
+</body>
+
+</html>

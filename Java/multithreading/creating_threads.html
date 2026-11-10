@@ -1,0 +1,1459 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Creating Threads in Java: Thread vs Runnable vs Callable | Java Concurrency Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --primary-light: #e0e7ff;
+      --secondary: #0284c7;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #ef4444;
+      --accent-purple: #8b5cf6;
+      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f1f5f9 100%);
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 10px 25px rgba(79, 70, 229, 0.08);
+      --shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      color: var(--text-main);
+      padding: 24px 16px;
+      line-height: 1.65;
+    }
+
+    .container {
+      max-width: 1140px;
+      margin: 0 auto;
+    }
+
+    .top-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #ffffff;
+      color: var(--primary-dark);
+      text-decoration: none;
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      border: 1px solid var(--card-border);
+      box-shadow: var(--shadow-sm);
+      transition: all 0.25s ease;
+    }
+
+    .back-btn:hover {
+      background: var(--primary);
+      color: #ffffff;
+      transform: translateX(-4px);
+    }
+
+    .nav-tag {
+      color: var(--primary-dark);
+      font-weight: 700;
+      font-size: 0.9rem;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 6px 18px;
+      border-radius: 20px;
+      border: 1px solid var(--card-border);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #1e1b4b 0%, #3730a3 50%, #0284c7 100%);
+      color: #ffffff;
+      border-radius: 20px;
+      padding: 42px 32px;
+      text-align: center;
+      box-shadow: var(--shadow-lg);
+      margin-bottom: 32px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: '';
+      position: absolute;
+      top: -50px;
+      right: -50px;
+      width: 220px;
+      height: 220px;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .hero h1 {
+      font-size: clamp(1.8rem, 3.8vw, 2.5rem);
+      font-weight: 800;
+      margin-bottom: 12px;
+      line-height: 1.25;
+    }
+
+    .hero p {
+      font-size: 1.12rem;
+      opacity: 0.95;
+      max-width: 900px;
+      margin: 0 auto 20px auto;
+    }
+
+    .hero-badges {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .hero-badge {
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(8px);
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      border: 1px solid var(--card-border);
+      padding: 30px;
+      margin-bottom: 26px;
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.2s ease;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #f1f5f9;
+      padding-bottom: 14px;
+    }
+
+    .section-title h2 {
+      font-size: 1.45rem;
+      color: var(--primary-dark);
+      font-weight: 700;
+    }
+
+    .section-title .icon {
+      font-size: 1.5rem;
+      background: #e0e7ff;
+      width: 46px;
+      height: 46px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      color: var(--primary);
+    }
+
+    .unit-tag {
+      margin-left: auto;
+      background: #ede9fe;
+      color: #6d28d9;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 860px) {
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    @media (max-width: 860px) {
+      .grid-3 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Mechanism Overview Cards */
+    .mech-card {
+      border: 1.5px solid var(--card-border);
+      border-radius: 14px;
+      padding: 22px;
+      background: #f8fafc;
+      transition: all 0.25s ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .mech-card:hover {
+      border-color: var(--primary);
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .mech-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .mech-badge {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 12px;
+      text-transform: uppercase;
+    }
+
+    /* Code Blocks */
+    .code-block {
+      background: #0d1117;
+      color: #e6edf3;
+      border-radius: 12px;
+      position: relative;
+      margin: 18px 0;
+      border: 1px solid #30363d;
+      overflow: hidden;
+      font-family: 'Fira Code', monospace;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    }
+
+    .code-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 16px;
+      background: #161b22;
+      border-bottom: 1px solid #30363d;
+      font-size: 0.85rem;
+      color: #8b949e;
+      font-family: 'Fira Code', monospace;
+    }
+
+    .code-file-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      color: #c9d1d9;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+    }
+
+    .code-file-badge::before {
+      content: '';
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #e3b341;
+    }
+
+    pre {
+      margin: 0;
+      padding: 18px 20px;
+      overflow-x: auto;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      white-space: pre;
+      color: #e6edf3;
+    }
+
+    .code-block code {
+      color: #e6edf3;
+      font-family: 'Fira Code', monospace;
+    }
+
+    .copy-btn {
+      background: rgba(255, 255, 255, 0.08);
+      color: #c9d1d9;
+      border: 1px solid #30363d;
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: inherit;
+    }
+
+    .copy-btn:hover {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+    }
+
+    .copy-btn.copied {
+      background: var(--accent-green) !important;
+      color: #ffffff !important;
+      border-color: var(--accent-green) !important;
+    }
+
+    .tag-kw {
+      color: #ff7b72;
+      font-weight: 600;
+    }
+
+    .tag-type {
+      color: #79c0ff;
+      font-weight: 600;
+    }
+
+    .tag-str {
+      color: #a5d6ff;
+    }
+
+    .tag-comment {
+      color: #8b949e;
+      font-style: italic;
+    }
+
+    .tag-fn {
+      color: #d2a8ff;
+    }
+
+    .tag-num {
+      color: #79c0ff;
+    }
+
+    code:not(pre code) {
+      font-family: 'Fira Code', monospace;
+      font-size: 0.88em;
+      background: #eef2ff;
+      color: #4338ca;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .alert-box {
+      padding: 16px 20px;
+      border-radius: 12px;
+      margin: 18px 0;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      line-height: 1.6;
+    }
+
+    .alert-info {
+      background: #eff6ff;
+      border-left: 5px solid var(--secondary);
+      color: #1e40af;
+    }
+
+    .alert-warning {
+      background: #fffbeb;
+      border-left: 5px solid var(--accent-amber);
+      color: #92400e;
+    }
+
+    .alert-danger {
+      background: #fef2f2;
+      border-left: 5px solid var(--accent-rose);
+      color: #991b1b;
+    }
+
+    .alert-success {
+      background: #f0fdf4;
+      border-left: 5px solid var(--accent-green);
+      color: #166534;
+    }
+
+    .alert-purple {
+      background: #faf5ff;
+      border-left: 5px solid var(--accent-purple);
+      color: #581c87;
+    }
+
+    .diagram-card {
+      background: #0d1117;
+      color: #e6edf3;
+      border-radius: 14px;
+      padding: 22px;
+      margin: 18px 0;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      overflow-x: auto;
+      white-space: pre;
+      border: 1px solid #30363d;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    }
+
+    .table-container {
+      overflow-x: auto;
+      margin: 20px 0;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th,
+    td {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--card-border);
+      font-size: 0.92rem;
+    }
+
+    th {
+      background: #f8fafc;
+      color: var(--primary-dark);
+      font-weight: 700;
+    }
+
+    tr:hover {
+      background: #fbfdff;
+    }
+
+    .output-box {
+      background: #18181b;
+      border: 1px solid #27272a;
+      border-radius: 10px;
+      padding: 18px 22px;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.88rem;
+      color: #a1a1aa;
+      margin: 14px 0;
+      line-height: 1.6;
+    }
+
+    .output-box .out-green {
+      color: #4ade80;
+    }
+
+    .output-box .out-cyan {
+      color: #38bdf8;
+    }
+
+    .output-box .out-amber {
+      color: #fbbf24;
+    }
+
+    /* Interactive Tab Switcher */
+    .tab-bar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      padding: 10px 20px;
+      border-radius: 10px;
+      border: 1px solid var(--card-border);
+      background: #f8fafc;
+      color: var(--text-muted);
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn.active {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .tab-panel {
+      display: none;
+      background: #f8fafc;
+      border: 1.5px solid var(--card-border);
+      border-radius: 14px;
+      padding: 22px;
+    }
+
+    .tab-panel.active {
+      display: block;
+    }
+
+    /* QA Accordion */
+    .qa-box {
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      margin-bottom: 14px;
+      overflow: hidden;
+      background: #ffffff;
+      transition: all 0.2s ease;
+    }
+
+    .qa-box:hover {
+      border-color: var(--primary);
+    }
+
+    .qa-q {
+      padding: 16px 20px;
+      font-weight: 700;
+      color: var(--primary-dark);
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #fafafa;
+    }
+
+    .qa-a {
+      padding: 16px 20px;
+      font-size: 0.92rem;
+      color: var(--text-main);
+      border-top: 1px solid var(--card-border);
+      background: #ffffff;
+      line-height: 1.7;
+    }
+
+    .page-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 40px;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .nav-btn-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: white;
+      padding: 12px 24px;
+      border-radius: 12px;
+      border: 1px solid var(--card-border);
+      color: var(--primary-dark);
+      font-weight: 700;
+      text-decoration: none;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s;
+    }
+
+    .nav-btn-link:hover {
+      background: var(--primary);
+      color: white;
+      transform: translateY(-2px);
+    }
+
+    .step-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      background: var(--primary);
+      color: white;
+      border-radius: 50%;
+      font-size: 0.82rem;
+      font-weight: 700;
+      margin-right: 8px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="top-nav">
+      <a href="../index.html" class="back-btn">← Back to Java Index</a>
+      <span class="nav-tag">Java Multi-Threading • Thread Creation</span>
+    </div>
+
+    <!-- Hero Section -->
+    <div class="hero">
+      <h1>Creating Threads in Java: Thread vs. Runnable vs. Callable</h1>
+      <p>Master the three foundational ways to define and launch concurrent tasks in Java. Understand why implementing
+        <code>Runnable</code> is preferred over extending <code>Thread</code>, and how Java 5's <code>Callable</code>
+        empowers you to return values and throw checked exceptions.</p>
+      <div class="hero-badges">
+        <span class="hero-badge">Thread Class</span>
+        <span class="hero-badge">Runnable Interface</span>
+        <span class="hero-badge">Callable &amp; FutureTask</span>
+        <span class="hero-badge">Lambda Expressions</span>
+        <span class="hero-badge">Separation of Concerns</span>
+        <span class="hero-badge">start() vs run()</span>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 1: OVERVIEW OF THE 3 MECHANISMS                                   -->
+    <!-- ========================================================================= -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🧭</span>
+        <h2>1. The Three Ways to Create Threads in Java</h2>
+        <span class="unit-tag" style="background: #e0e7ff; color: var(--primary);">Architecture</span>
+      </div>
+      <p>
+        In Java, a thread requires two components: <strong>a task to execute</strong> (the instructions) and <strong>an
+          execution worker</strong> (an OS thread allocated by the JVM). Java provides three core mechanisms to define
+        and run thread tasks:
+      </p>
+
+      <div class="grid-3" style="margin-top: 18px;">
+        <!-- Card 1 -->
+        <div class="mech-card">
+          <div class="mech-header">
+            <span style="font-size: 1.5rem;">1️⃣</span>
+            <strong style="color: var(--primary-dark);">Extending Thread</strong>
+            <span class="mech-badge" style="background: #fef3c7; color: #92400e; margin-left: auto;">Inheritance</span>
+          </div>
+          <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.6;">
+            Subclass <code>java.lang.Thread</code> and override its <code>run()</code> method.
+          </p>
+          <div style="margin-top: 12px; font-size: 0.85rem; background: #ffffff; padding: 10px; border-radius: 8px; border: 1px solid var(--card-border);">
+            • Method: <code>public void run()</code><br />
+            • Return: <strong>void</strong> (no result)<br />
+            • Checked Exceptions: <strong>No</strong>
+          </div>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="mech-card">
+          <div class="mech-header">
+            <span style="font-size: 1.5rem;">2️⃣</span>
+            <strong style="color: var(--primary-dark);">Implementing Runnable</strong>
+            <span class="mech-badge" style="background: #dcfce7; color: #166534; margin-left: auto;">Preferred</span>
+          </div>
+          <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.6;">
+            Implement <code>java.lang.Runnable</code> and pass the instance to <code>new Thread(runnable)</code>.
+          </p>
+          <div style="margin-top: 12px; font-size: 0.85rem; background: #ffffff; padding: 10px; border-radius: 8px; border: 1px solid var(--card-border);">
+            • Method: <code>public void run()</code><br />
+            • Return: <strong>void</strong> (no result)<br />
+            • Supports Lambdas: <strong>Yes</strong>
+          </div>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="mech-card">
+          <div class="mech-header">
+            <span style="font-size: 1.5rem;">3️⃣</span>
+            <strong style="color: var(--primary-dark);">Implementing Callable</strong>
+            <span class="mech-badge" style="background: #ede9fe; color: #6d28d9; margin-left: auto;">Java 5+</span>
+          </div>
+          <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.6;">
+            Implement <code>Callable&lt;V&gt;</code>, wrap with <code>FutureTask&lt;V&gt;</code>, and retrieve result via <code>get()</code>.
+          </p>
+          <div style="margin-top: 12px; font-size: 0.85rem; background: #ffffff; padding: 10px; border-radius: 8px; border: 1px solid var(--card-border);">
+            • Method: <code>V call() throws Exception</code><br />
+            • Return: <strong>Generic Value V</strong><br />
+            • Checked Exceptions: <strong>Yes</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Architectural Diagram -->
+      <h3 style="color: var(--primary-dark); margin: 26px 0 10px 0; font-size: 1.15rem;">Conceptual Execution Model:</h3>
+      <div class="diagram-card">
+┌─────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                   HOW JAVA EXECUTES THREADS                                     │
+├─────────────────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                                 │
+│  [Task Definition]                              [Thread Worker]              [OS Kernel]        │
+│  ─────────────────                              ───────────────              ───────────        │
+│                                                                                                 │
+│  Option A: extends Thread                     ┌─────────────────┐                               │
+│  Option B: implements Runnable  ───────────►  │  new Thread()   │                               │
+│  Option C: implements Callable (FutureTask)   └────────┬────────┘                               │
+│                                                        │                                        │
+│                                                Calls .start()                                   │
+│                                                        │                                        │
+│                                                        ▼                                        │
+│                                               ┌─────────────────┐          ┌─────────────────┐  │
+│                                               │ JVM Thread Init │ ───────► │ Native OS Thread│  │
+│                                               └─────────────────┘          │ Executes run()  │  │
+│                                                                            └─────────────────┘  │
+└─────────────────────────────────────────────────────────────────────────────────────────────────┘
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 2: MECHANISM 1 - EXTENDING THREAD CLASS                           -->
+    <!-- ========================================================================= -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🧵</span>
+        <h2>2. Mechanism 1: Extending the Thread Class</h2>
+        <span class="unit-tag" style="background: #fef3c7; color: #92400e;">Basic Mechanism</span>
+      </div>
+      <p>
+        The simplest and most direct approach is to create a subclass of Java's built-in <code>java.lang.Thread</code>
+        class and override its <code>run()</code> method.
+      </p>
+
+      <div style="margin: 18px 0;">
+        <h4 style="color: var(--primary-dark); margin-bottom: 10px;">The 3-Step Procedure:</h4>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div><span class="step-badge">1</span> <strong>Define a Class:</strong> Create a class that <code>extends Thread</code>.</div>
+          <div><span class="step-badge">2</span> <strong>Override run():</strong> Put your code inside <code>public void run()</code>. This code executes on the new thread.</div>
+          <div><span class="step-badge">3</span> <strong>Instantiate and Call start():</strong> Create an object with <code>new MyThread()</code> and invoke <code>.start()</code>.</div>
+        </div>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-file-badge">SimpleThreadExample.java</div>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+        </div>
+        <pre><code class="language-java"><span class="tag-comment">// Step 1: Subclass Thread</span>
+<span class="tag-kw">class</span> <span class="tag-type">MyThread</span> <span class="tag-kw">extends</span> <span class="tag-type">Thread</span> {
+
+    <span class="tag-kw">public</span> <span class="tag-fn">MyThread</span>(<span class="tag-type">String</span> name) {
+        <span class="tag-kw">super</span>(name); <span class="tag-comment">// Optional: assign a friendly name to the thread</span>
+    }
+
+    <span class="tag-comment">// Step 2: Override run()</span>
+    <span class="tag-kw">@Override</span>
+    <span class="tag-kw">public void</span> <span class="tag-fn">run</span>() {
+        System.out.println(<span class="tag-str">"Thread is running! Name: "</span> + <span class="tag-fn">getName</span>());
+    }
+}
+
+<span class="tag-kw">public class</span> <span class="tag-type">SimpleThreadExample</span> {
+    <span class="tag-kw">public static void</span> <span class="tag-fn">main</span>(<span class="tag-type">String</span>[] args) {
+        <span class="tag-comment">// Step 3: Instantiate and start</span>
+        <span class="tag-type">MyThread</span> t1 = <span class="tag-kw">new</span> <span class="tag-type">MyThread</span>(<span class="tag-str">"Thread-A"</span>);
+        t1.<span class="tag-fn">start</span>(); <span class="tag-comment">// Spawns a new OS thread and invokes run()</span>
+    }
+}</code></pre>
+      </div>
+
+      <div class="output-box">
+        Thread is running! Name: Thread-A
+      </div>
+
+      <!-- Pros and Cons -->
+      <div class="grid-2" style="margin-top: 18px;">
+        <div style="background: #f0fdf4; border: 1.5px solid #bbf7d0; border-radius: 12px; padding: 18px;">
+          <h4 style="color: #166534; margin-bottom: 8px;">✓ Advantages:</h4>
+          <ul style="padding-left: 20px; font-size: 0.9rem; color: #14532d; line-height: 1.7;">
+            <li>Direct and very easy for beginners to understand.</li>
+            <li>Direct access to built-in <code>Thread</code> methods like <code>getName()</code>, <code>getPriority()</code>, <code>interrupt()</code> without needing <code>Thread.currentThread()</code>.</li>
+          </ul>
+        </div>
+
+        <div style="background: #fef2f2; border: 1.5px solid #fecaca; border-radius: 12px; padding: 18px;">
+          <h4 style="color: #991b1b; margin-bottom: 8px;">✗ Critical Disadvantages:</h4>
+          <ul style="padding-left: 20px; font-size: 0.9rem; color: #7f1d1d; line-height: 1.7;">
+            <li><strong>Single Inheritance Limitation:</strong> Java does not allow multiple class inheritance. If your class extends <code>Thread</code>, it <strong>cannot extend any other class</strong> (such as <code>Person</code>, <code>Vehicle</code>, or <code>JPanel</code>)!</li>
+            <li><strong>Tight Coupling:</strong> The job/task is permanently coupled to the thread execution mechanism.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 3: MECHANISM 2 - IMPLEMENTING RUNNABLE INTERFACE                   -->
+    <!-- ========================================================================= -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">⚡</span>
+        <h2>3. Mechanism 2: Implementing the Runnable Interface (Best Practice)</h2>
+        <span class="unit-tag" style="background: #dcfce7; color: #166534;">Industry Standard</span>
+      </div>
+      <p>
+        The <strong>recommended and most popular</strong> way to create threads in Java is by implementing the
+        <code>java.lang.Runnable</code> interface. It represents a <strong>functional interface</strong> containing a
+        single abstract method: <code>public void run();</code>.
+      </p>
+
+      <div style="margin: 18px 0;">
+        <h4 style="color: var(--primary-dark); margin-bottom: 10px;">The 3-Step Procedure:</h4>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div><span class="step-badge">1</span> <strong>Implement Runnable:</strong> Create a class with <code>implements Runnable</code>.</div>
+          <div><span class="step-badge">2</span> <strong>Implement run():</strong> Put your simple task code inside <code>public void run()</code>.</div>
+          <div><span class="step-badge">3</span> <strong>Pass to Thread and Call start():</strong> Pass your runnable instance to <code>new Thread(runnableTask)</code>, then call <code>.start()</code>.</div>
+        </div>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-file-badge">SimpleRunnableExample.java</div>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+        </div>
+        <pre><code class="language-java"><span class="tag-comment">// Step 1: Implement Runnable</span>
+<span class="tag-kw">class</span> <span class="tag-type">MyTask</span> <span class="tag-kw">implements</span> <span class="tag-type">Runnable</span> {
+
+    <span class="tag-comment">// Step 2: Implement run()</span>
+    <span class="tag-kw">@Override</span>
+    <span class="tag-kw">public void</span> <span class="tag-fn">run</span>() {
+        <span class="tag-comment">// Note: Must use Thread.currentThread() because MyTask is not a Thread object</span>
+        System.out.println(<span class="tag-str">"Task is running! Thread Name: "</span> + <span class="tag-type">Thread</span>.<span class="tag-fn">currentThread</span>().<span class="tag-fn">getName</span>());
+    }
+}
+
+<span class="tag-kw">public class</span> <span class="tag-type">SimpleRunnableExample</span> {
+    <span class="tag-kw">public static void</span> <span class="tag-fn">main</span>(<span class="tag-type">String</span>[] args) {
+        <span class="tag-comment">// Step 3: Create task instance and pass into Thread worker</span>
+        <span class="tag-type">MyTask</span> task = <span class="tag-kw">new</span> <span class="tag-type">MyTask</span>();
+        <span class="tag-type">Thread</span> t1 = <span class="tag-kw">new</span> <span class="tag-type">Thread</span>(task, <span class="tag-str">"WorkerThread-1"</span>);
+        t1.<span class="tag-fn">start</span>(); <span class="tag-comment">// Starts thread and runs MyTask.run()</span>
+    }
+}</code></pre>
+      </div>
+
+      <div class="output-box">
+        Task is running! Thread Name: WorkerThread-1
+      </div>
+
+      <!-- Modern Java 8 Lambda Version -->
+      <h3 style="color: var(--primary-dark); margin: 26px 0 10px 0; font-size: 1.15rem;">Modern Java 8+ Lambda Shortcut:
+      </h3>
+      <p style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 12px;">
+        Because <code>Runnable</code> has only one abstract method, you can write concise inline threads without creating
+        a separate class:
+      </p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-file-badge">LambdaThreadExample.java</div>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+        </div>
+        <pre><code class="language-java"><span class="tag-kw">public class</span> <span class="tag-type">LambdaThreadExample</span> {
+    <span class="tag-kw">public static void</span> <span class="tag-fn">main</span>(<span class="tag-type">String</span>[] args) {
+        <span class="tag-comment">// Ultra-clean one-liner using Lambda Expression:</span>
+        <span class="tag-type">Thread</span> t = <span class="tag-kw">new</span> <span class="tag-type">Thread</span>(() -&gt; {
+            System.out.println(<span class="tag-str">"Lambda thread running: "</span> + <span class="tag-type">Thread</span>.<span class="tag-fn">currentThread</span>().<span class="tag-fn">getName</span>());
+        }, <span class="tag-str">"QuickLambdaThread"</span>);
+
+        t.<span class="tag-fn">start</span>();
+    }
+}</code></pre>
+      </div>
+
+      <div class="alert-box alert-success">
+        <span style="font-size: 1.6rem;">💡</span>
+        <div>
+          <strong>Why is Runnable the Industry Standard?</strong><br />
+          1. <strong>OOP Flexibility:</strong> Your class remains free to extend any other class (e.g. <code>class StudentTask extends Student implements Runnable</code>).<br />
+          2. <strong>Separation of Concerns:</strong> Separates <em>what work to do</em> (Runnable) from <em>how to run it</em> (Thread worker / Thread Pool).<br />
+          3. <strong>Executor &amp; Thread Pool Ready:</strong> You can pass <code>Runnable</code> tasks straight into modern thread pools (<code>ExecutorService</code>).
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 4: MECHANISM 3 - IMPLEMENTING CALLABLE INTERFACE                  -->
+    <!-- ========================================================================= -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🎁</span>
+        <h2>4. Mechanism 3: Implementing Callable &amp; FutureTask (Java 5+)</h2>
+        <span class="unit-tag" style="background: #ede9fe; color: #6d28d9;">Return Value &amp; Exceptions</span>
+      </div>
+      <p>
+        Both <code>Thread</code> and <code>Runnable</code> suffer from two major architectural limitations:
+      </p>
+      <div class="alert-box alert-warning">
+        <span style="font-size: 1.5rem;">⚠️</span>
+        <div>
+          <strong>The Two Limitations of Runnable.run():</strong><br />
+          1. <strong>Cannot Return a Result:</strong> <code>public void run()</code> has a <code>void</code> return type. If a thread calculates a value, it cannot directly return it to the caller thread.<br />
+          2. <strong>Cannot Throw Checked Exceptions:</strong> <code>run()</code> cannot declare <code>throws IOException</code> or <code>throws SQLException</code>; all checked exceptions must be caught inside.
+        </div>
+      </div>
+
+      <p style="margin-top: 14px;">
+        To solve this, Java 5 introduced <code>java.util.concurrent.Callable&lt;V&gt;</code>:
+      </p>
+      <div class="diagram-card">
+public interface Callable&lt;V&gt; {
+    V call() throws Exception; // Returns generic type V, and can throw checked exceptions!
+}
+      </div>
+
+      <h4 style="color: var(--primary-dark); margin: 20px 0 10px 0;">How to Execute a Callable: The FutureTask Bridge</h4>
+      <p style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 12px;">
+        The <code>Thread</code> constructor only accepts a <code>Runnable</code>. To run a <code>Callable</code> with a standard <code>Thread</code>, Java provides <code>FutureTask&lt;V&gt;</code>, which implements both <code>Runnable</code> and <code>Future</code>!
+      </p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-file-badge">SimpleCallableExample.java</div>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+        </div>
+        <pre><code class="language-java"><span class="tag-kw">import</span> java.util.concurrent.<span class="tag-type">Callable</span>;
+<span class="tag-kw">import</span> java.util.concurrent.<span class="tag-type">FutureTask</span>;
+
+<span class="tag-comment">// Step 1: Implement Callable with desired return type (e.g., String)</span>
+<span class="tag-kw">class</span> <span class="tag-type">MyCallable</span> <span class="tag-kw">implements</span> <span class="tag-type">Callable</span>&lt;<span class="tag-type">String</span>&gt; {
+
+    <span class="tag-comment">// Step 2: Implement call()</span>
+    <span class="tag-kw">@Override</span>
+    <span class="tag-kw">public</span> <span class="tag-type">String</span> <span class="tag-fn">call</span>() <span class="tag-kw">throws</span> <span class="tag-type">Exception</span> {
+        System.out.println(<span class="tag-str">"Callable is running on: "</span> + <span class="tag-type">Thread</span>.<span class="tag-fn">currentThread</span>().<span class="tag-fn">getName</span>());
+        <span class="tag-kw">return</span> <span class="tag-str">"SUCCESS_DATA_100"</span>; <span class="tag-comment">// Return result to caller!</span>
+    }
+}
+
+<span class="tag-kw">public class</span> <span class="tag-type">SimpleCallableExample</span> {
+    <span class="tag-kw">public static void</span> <span class="tag-fn">main</span>(<span class="tag-type">String</span>[] args) <span class="tag-kw">throws</span> <span class="tag-type">Exception</span> {
+        <span class="tag-comment">// Step 3: Wrap Callable inside FutureTask</span>
+        <span class="tag-type">Callable</span>&lt;<span class="tag-type">String</span>&gt; task = <span class="tag-kw">new</span> <span class="tag-type">MyCallable</span>();
+        <span class="tag-type">FutureTask</span>&lt;<span class="tag-type">String</span>&gt; futureTask = <span class="tag-kw">new</span> <span class="tag-type">FutureTask</span>&lt;&gt;(task);
+
+        <span class="tag-comment">// Step 4: Pass FutureTask to Thread worker and start</span>
+        <span class="tag-type">Thread</span> t = <span class="tag-kw">new</span> <span class="tag-type">Thread</span>(futureTask, <span class="tag-str">"CallableWorker-1"</span>);
+        t.<span class="tag-fn">start</span>();
+
+        <span class="tag-comment">// Step 5: Retrieve returned value (blocks until the thread finishes)</span>
+        <span class="tag-type">String</span> result = futureTask.<span class="tag-fn">get</span>();
+        System.out.println(<span class="tag-str">"Main thread received result: "</span> + result);
+    }
+}</code></pre>
+      </div>
+
+      <div class="output-box">
+        Callable is running on: CallableWorker-1<br />
+        Main thread received result: <span class="out-green">SUCCESS_DATA_100</span>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 5: INTERACTIVE ARCHITECTURE VISUALIZER                            -->
+    <!-- ========================================================================= -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🔍</span>
+        <h2>5. Interactive Comparison Visualizer</h2>
+        <span class="unit-tag" style="background: #e0e7ff; color: var(--primary);">Interactive Explorer</span>
+      </div>
+      <p style="margin-bottom: 16px;">
+        Click between the three tabs below to compare code blueprints, OOP structures, and memory behaviors:
+      </p>
+
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="switchTab(0)">1. Extending Thread</button>
+        <button class="tab-btn" onclick="switchTab(1)">2. Implementing Runnable</button>
+        <button class="tab-btn" onclick="switchTab(2)">3. Implementing Callable</button>
+      </div>
+
+      <!-- Tab 1 -->
+      <div class="tab-panel active" id="tab-0">
+        <h3 style="color: var(--primary-dark); font-size: 1.15rem; margin-bottom: 8px;">Extending Thread Class</h3>
+        <p style="color: var(--text-muted); font-size: 0.92rem; margin-bottom: 12px;">
+          Best for simple, quick demonstrations where class inheritance is not needed.
+        </p>
+        <div class="diagram-card">
+  ┌───────────────────────────────────────────────┐
+  │              java.lang.Thread                 │
+  └──────────────────────▲────────────────────────┘
+                         │ (extends)
+  ┌──────────────────────┴────────────────────────┐
+  │                 MyThread                      │
+  │  • Overrides: public void run()               │
+  │  • Starts via: myThread.start()               │
+  └───────────────────────────────────────────────┘
+  * Note: MyThread CANNOT extend any other class!
+        </div>
+      </div>
+
+      <!-- Tab 2 -->
+      <div class="tab-panel" id="tab-1">
+        <h3 style="color: #166534; font-size: 1.15rem; margin-bottom: 8px;">Implementing Runnable Interface</h3>
+        <p style="color: var(--text-muted); font-size: 0.92rem; margin-bottom: 12px;">
+          The enterprise standard. Decouples task instructions from execution thread.
+        </p>
+        <div class="diagram-card">
+  ┌───────────────────────┐            ┌────────────────────────────────────────┐
+  │  java.lang.Runnable   │            │           java.lang.Thread             │
+  └───────────▲───────────┘            └───────────────────▲────────────────────┘
+              │ (implements)                               │ (passed into worker)
+  ┌───────────┴───────────┐                                │
+  │        MyTask         │ ───────────────────────────────┘
+  │ • Implements run()    │    new Thread(myTask).start()
+  │ • Can extend Person!  │
+  └───────────────────────┘
+        </div>
+      </div>
+
+      <!-- Tab 3 -->
+      <div class="tab-panel" id="tab-2">
+        <h3 style="color: #6d28d9; font-size: 1.15rem; margin-bottom: 8px;">Implementing Callable &amp; FutureTask</h3>
+        <p style="color: var(--text-muted); font-size: 0.92rem; margin-bottom: 12px;">
+          Required when your task needs to return calculated data or report checked exceptions.
+        </p>
+        <div class="diagram-card">
+  ┌───────────────────────┐
+  │     Callable&lt;V&gt;       │
+  │  • V call() throws Ex │
+  └───────────▲───────────┘
+              │ (wrapped inside)
+  ┌───────────┴───────────┐            ┌────────────────────────────────────────┐
+  │    FutureTask&lt;V&gt;      │ ─────────► │           java.lang.Thread             │
+  │ (implements Runnable) │            │     new Thread(futureTask).start()     │
+  └───────────────────────┘            └────────────────────────────────────────┘
+              │
+              └──────────────► futureTask.get() returns value V to caller!
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 6: DETAILED COMPARISON MATRIX                                     -->
+    <!-- ========================================================================= -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">⚖️</span>
+        <h2>6. Comprehensive Comparison Matrix: Thread vs. Runnable vs. Callable</h2>
+        <span class="unit-tag" style="background: #e0e7ff; color: var(--primary);">Quick Revision</span>
+      </div>
+      <p>
+        Use this side-by-side reference table to memorize the differences for exams and technical interviews:
+      </p>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th>Extending Thread</th>
+              <th>Implementing Runnable</th>
+              <th>Implementing Callable&lt;V&gt;</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Type</strong></td>
+              <td>Class</td>
+              <td>Functional Interface</td>
+              <td>Generic Functional Interface</td>
+            </tr>
+            <tr>
+              <td><strong>Package</strong></td>
+              <td><code>java.lang.Thread</code></td>
+              <td><code>java.lang.Runnable</code></td>
+              <td><code>java.util.concurrent.Callable</code></td>
+            </tr>
+            <tr>
+              <td><strong>Execution Method</strong></td>
+              <td><code>public void run()</code></td>
+              <td><code>public void run()</code></td>
+              <td><code>public V call() throws Exception</code></td>
+            </tr>
+            <tr>
+              <td><strong>Return Value</strong></td>
+              <td><strong>None</strong> (<code>void</code>)</td>
+              <td><strong>None</strong> (<code>void</code>)</td>
+              <td><strong>Yes</strong> (Returns Generic Type <code>V</code>)</td>
+            </tr>
+            <tr>
+              <td><strong>Checked Exceptions</strong></td>
+              <td><strong>Cannot throw</strong> checked exceptions</td>
+              <td><strong>Cannot throw</strong> checked exceptions</td>
+              <td><strong>Can throw</strong> checked exceptions directly</td>
+            </tr>
+            <tr>
+              <td><strong>Multiple Inheritance</strong></td>
+              <td><strong>No:</strong> Prevents extending any other class</td>
+              <td><strong>Yes:</strong> Class can extend another class</td>
+              <td><strong>Yes:</strong> Class can extend another class</td>
+            </tr>
+            <tr>
+              <td><strong>Lambda Support</strong></td>
+              <td>No</td>
+              <td><strong>Yes</strong> (<code>() -&gt; { ... }</code>)</td>
+              <td><strong>Yes</strong> (<code>() -&gt; { return val; }</code>)</td>
+            </tr>
+            <tr>
+              <td><strong>How to Start</strong></td>
+              <td><code>t.start()</code></td>
+              <td><code>new Thread(task).start()</code></td>
+              <td><code>new Thread(new FutureTask&lt;&gt;(task)).start()</code></td>
+            </tr>
+            <tr>
+              <td><strong>Best Used For</strong></td>
+              <td>Basic academic exercises</td>
+              <td>Standard multi-threading tasks without return values</td>
+              <td>Tasks returning computation data or throwing exceptions</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 7: VERIFIED RUNNABLE CODE DEMO                                    -->
+    <!-- ========================================================================= -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">💻</span>
+        <h2>7. Complete Verified Java Demo: CreatingThreadsDemo.java</h2>
+        <span class="unit-tag" style="background: #e0e7ff; color: var(--primary);">Verified Java 17 Demo</span>
+      </div>
+      <p>
+        The following self-contained program demonstrates all three mechanisms using simple, readable print statements:
+      </p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-file-badge">CreatingThreadsDemo.java</div>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+        </div>
+        <pre><code class="language-java"><span class="tag-kw">import</span> java.util.concurrent.<span class="tag-type">Callable</span>;
+<span class="tag-kw">import</span> java.util.concurrent.<span class="tag-type">ExecutionException</span>;
+<span class="tag-kw">import</span> java.util.concurrent.<span class="tag-type">FutureTask</span>;
+
+<span class="tag-comment">/**
+ * Creating Threads in Java Demonstration
+ * 
+ * Demonstrates the 3 mechanisms to create and run threads in Java:
+ * 1. Extending java.lang.Thread
+ * 2. Implementing java.lang.Runnable (Class and Lambda)
+ * 3. Implementing java.util.concurrent.Callable with FutureTask
+ */</span>
+<span class="tag-kw">public class</span> <span class="tag-type">CreatingThreadsDemo</span> {
+
+    <span class="tag-comment">// -------------------------------------------------------------------------</span>
+    <span class="tag-comment">// Approach 1: Extending the Thread class</span>
+    <span class="tag-comment">// -------------------------------------------------------------------------</span>
+    <span class="tag-kw">static class</span> <span class="tag-type">MyThread</span> <span class="tag-kw">extends</span> <span class="tag-type">Thread</span> {
+        <span class="tag-kw">public</span> <span class="tag-fn">MyThread</span>(<span class="tag-type">String</span> name) {
+            <span class="tag-kw">super</span>(name); <span class="tag-comment">// Set custom thread name</span>
+        }
+
+        <span class="tag-kw">@Override</span>
+        <span class="tag-kw">public void</span> <span class="tag-fn">run</span>() {
+            System.out.println(<span class="tag-str">"  [Thread Class] Hello from MyThread! Thread Name: "</span> + <span class="tag-fn">getName</span>());
+        }
+    }
+
+    <span class="tag-comment">// -------------------------------------------------------------------------</span>
+    <span class="tag-comment">// Approach 2: Implementing the Runnable interface</span>
+    <span class="tag-comment">// -------------------------------------------------------------------------</span>
+    <span class="tag-kw">static class</span> <span class="tag-type">MyRunnable</span> <span class="tag-kw">implements</span> <span class="tag-type">Runnable</span> {
+        <span class="tag-kw">@Override</span>
+        <span class="tag-kw">public void</span> <span class="tag-fn">run</span>() {
+            System.out.println(<span class="tag-str">"  [Runnable] Hello from MyRunnable! Thread Name: "</span> + <span class="tag-type">Thread</span>.<span class="tag-fn">currentThread</span>().<span class="tag-fn">getName</span>());
+        }
+    }
+
+    <span class="tag-comment">// -------------------------------------------------------------------------</span>
+    <span class="tag-comment">// Approach 3: Implementing the Callable interface</span>
+    <span class="tag-comment">// -------------------------------------------------------------------------</span>
+    <span class="tag-kw">static class</span> <span class="tag-type">MyCallable</span> <span class="tag-kw">implements</span> <span class="tag-type">Callable</span>&lt;<span class="tag-type">String</span>&gt; {
+        <span class="tag-kw">@Override</span>
+        <span class="tag-kw">public</span> <span class="tag-type">String</span> <span class="tag-fn">call</span>() <span class="tag-kw">throws</span> <span class="tag-type">Exception</span> {
+            System.out.println(<span class="tag-str">"  [Callable] Computing on thread: "</span> + <span class="tag-type">Thread</span>.<span class="tag-fn">currentThread</span>().<span class="tag-fn">getName</span>());
+            <span class="tag-kw">return</span> <span class="tag-str">"SUCCESS_DATA_100"</span>; <span class="tag-comment">// Can return a value!</span>
+        }
+    }
+
+    <span class="tag-kw">public static void</span> <span class="tag-fn">main</span>(<span class="tag-type">String</span>[] args) <span class="tag-kw">throws</span> <span class="tag-type">InterruptedException</span>, <span class="tag-type">ExecutionException</span> {
+        System.out.println(<span class="tag-str">"=========================================================="</span>);
+        System.out.println(<span class="tag-str">"     CREATING THREADS IN JAVA: THREE CORE MECHANISMS      "</span>);
+        System.out.println(<span class="tag-str">"=========================================================="</span>);
+
+        <span class="tag-comment">// --- 1. Extending Thread Class ---</span>
+        System.out.println(<span class="tag-str">"\n--- 1. Extending Thread Class ---"</span>);
+        <span class="tag-type">MyThread</span> t1 = <span class="tag-kw">new</span> <span class="tag-type">MyThread</span>(<span class="tag-str">"WorkerThread-1"</span>);
+        t1.<span class="tag-fn">start</span>();
+        t1.<span class="tag-fn">join</span>(); <span class="tag-comment">// Wait so console output displays in order</span>
+
+        <span class="tag-comment">// --- 2. Implementing Runnable Interface ---</span>
+        System.out.println(<span class="tag-str">"\n--- 2. Implementing Runnable Interface ---"</span>);
+        <span class="tag-type">MyRunnable</span> myTask = <span class="tag-kw">new</span> <span class="tag-type">MyRunnable</span>();
+        <span class="tag-type">Thread</span> t2 = <span class="tag-kw">new</span> <span class="tag-type">Thread</span>(myTask, <span class="tag-str">"WorkerRunnable-2"</span>);
+        t2.<span class="tag-fn">start</span>();
+        t2.<span class="tag-fn">join</span>();
+
+        <span class="tag-comment">// --- 2b. Runnable using Modern Lambda (Java 8+) ---</span>
+        System.out.println(<span class="tag-str">"\n--- 2b. Runnable using Modern Lambda (Java 8+) ---"</span>);
+        <span class="tag-type">Thread</span> t3 = <span class="tag-kw">new</span> <span class="tag-type">Thread</span>(() -&gt; {
+            System.out.println(<span class="tag-str">"  [Lambda] Quick inline task running on: "</span> + <span class="tag-type">Thread</span>.<span class="tag-fn">currentThread</span>().<span class="tag-fn">getName</span>());
+        }, <span class="tag-str">"LambdaThread-3"</span>);
+        t3.<span class="tag-fn">start</span>();
+        t3.<span class="tag-fn">join</span>();
+
+        <span class="tag-comment">// --- 3. Implementing Callable &amp; FutureTask ---</span>
+        System.out.println(<span class="tag-str">"\n--- 3. Implementing Callable &amp; FutureTask ---"</span>);
+        <span class="tag-type">Callable</span>&lt;<span class="tag-type">String</span>&gt; callableTask = <span class="tag-kw">new</span> <span class="tag-type">MyCallable</span>();
+        <span class="tag-type">FutureTask</span>&lt;<span class="tag-type">String</span>&gt; futureTask = <span class="tag-kw">new</span> <span class="tag-type">FutureTask</span>&lt;&gt;(callableTask);
+        <span class="tag-type">Thread</span> t4 = <span class="tag-kw">new</span> <span class="tag-type">Thread</span>(futureTask, <span class="tag-str">"CallableThread-4"</span>);
+        t4.<span class="tag-fn">start</span>();
+
+        <span class="tag-comment">// futureTask.get() blocks until the thread finishes and returns the result</span>
+        <span class="tag-type">String</span> result = futureTask.<span class="tag-fn">get</span>();
+        System.out.println(<span class="tag-str">"  [Main Thread] Received returned result from Callable: "</span> + result);
+
+        System.out.println(<span class="tag-str">"\n=========================================================="</span>);
+        System.out.println(<span class="tag-str">"All thread creation demonstrations executed successfully!"</span>);
+        System.out.println(<span class="tag-str">"=========================================================="</span>);
+    }
+}</code></pre>
+      </div>
+
+      <!-- Live Execution Console Output -->
+      <h4 style="color: var(--primary-dark); margin: 18px 0 8px 0;">Actual Execution Console Output:</h4>
+      <div class="output-box">
+==========================================================
+     CREATING THREADS IN JAVA: THREE CORE MECHANISMS      
+==========================================================
+
+--- 1. Extending Thread Class ---
+  [Thread Class] Hello from MyThread! Thread Name: <span class="out-cyan">WorkerThread-1</span>
+
+--- 2. Implementing Runnable Interface ---
+  [Runnable] Hello from MyRunnable! Thread Name: <span class="out-cyan">WorkerRunnable-2</span>
+
+--- 2b. Runnable using Modern Lambda (Java 8+) ---
+  [Lambda] Quick inline task running on: <span class="out-cyan">LambdaThread-3</span>
+
+--- 3. Implementing Callable &amp; FutureTask ---
+  [Callable] Computing on thread: <span class="out-cyan">CallableThread-4</span>
+  [Main Thread] Received returned result from Callable: <span class="out-green">SUCCESS_DATA_100</span>
+
+==========================================================
+<span class="out-green">All thread creation demonstrations executed successfully!</span>
+==========================================================
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 8: COMMON BEGINNER PITFALLS                                       -->
+    <!-- ========================================================================= -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">⚠️</span>
+        <h2>8. Common Beginner Pitfalls &amp; Mistakes to Avoid</h2>
+        <span class="unit-tag" style="background: #fef2f2; color: #991b1b;">Crucial Rules</span>
+      </div>
+
+      <div class="grid-2">
+        <div style="background: #fffbeb; border: 1.5px solid #fde68a; border-radius: 12px; padding: 20px;">
+          <h4 style="color: #92400e; margin-bottom: 8px;">❌ Mistake 1: Calling run() instead of start()</h4>
+          <p style="font-size: 0.9rem; color: #78350f; line-height: 1.6;">
+            If you call <code>t.run()</code> directly, <strong>no new thread is spawned</strong>! The code inside <code>run()</code> simply executes synchronously on the current <code>main</code> thread like an ordinary method call. Always call <code>t.start()</code> to request a separate OS thread!
+          </p>
+        </div>
+
+        <div style="background: #fffbeb; border: 1.5px solid #fde68a; border-radius: 12px; padding: 20px;">
+          <h4 style="color: #92400e; margin-bottom: 8px;">❌ Mistake 2: Starting a Thread Twice</h4>
+          <p style="font-size: 0.9rem; color: #78350f; line-height: 1.6;">
+            Once a thread completes or starts running, calling <code>t.start()</code> a second time throws an immediate <strong><code>IllegalThreadStateException</code></strong>. Threads in Java have a one-time lifecycle; create a new instance if you need to run the task again.
+          </p>
+        </div>
+
+        <div style="background: #fffbeb; border: 1.5px solid #fde68a; border-radius: 12px; padding: 20px;">
+          <h4 style="color: #92400e; margin-bottom: 8px;">❌ Mistake 3: Forgetting to Pass Runnable to Thread</h4>
+          <p style="font-size: 0.9rem; color: #78350f; line-height: 1.6;">
+            Writing <code>Thread t = new Thread(); t.start();</code> does nothing! Because no <code>Runnable</code> was passed, the default <code>Thread.run()</code> method is empty and immediately terminates. Always pass the task: <code>new Thread(myRunnable).start()</code>.
+          </p>
+        </div>
+
+        <div style="background: #fffbeb; border: 1.5px solid #fde68a; border-radius: 12px; padding: 20px;">
+          <h4 style="color: #92400e; margin-bottom: 8px;">❌ Mistake 4: Calling future.get() Prematurely</h4>
+          <p style="font-size: 0.9rem; color: #78350f; line-height: 1.6;">
+            The <code>futureTask.get()</code> method is a <strong>blocking call</strong>. If called right after starting the thread, the calling thread will pause and wait until the computation completes, effectively making the execution sequential unless managed properly.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 9: FREQUENTLY ASKED QUESTIONS & INTERVIEW CONCEPTS                -->
+    <!-- ========================================================================= -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🎓</span>
+        <h2>9. Frequently Asked Questions &amp; Interview Concepts</h2>
+        <span class="unit-tag" style="background: #e0e7ff; color: var(--primary);">Interview Preparation</span>
+      </div>
+      <p style="margin-bottom: 16px;">
+        Click any question to reveal the comprehensive interview-grade answer:
+      </p>
+
+      <div class="qa-box">
+        <div class="qa-q" onclick="toggleQA(this)">
+          <span>Q1. Why is implementing Runnable considered superior to extending Thread?</span>
+          <span>▼</span>
+        </div>
+        <div class="qa-a">
+          <strong>Answer:</strong> There are three primary design reasons:<br />
+          1. <strong>Multiple Inheritance:</strong> Java does not support multiple class inheritance. If your class extends <code>Thread</code>, it cannot extend any other class. Implementing <code>Runnable</code> leaves your class free to inherit from your business model or GUI hierarchy.<br />
+          2. <strong>Separation of Concerns:</strong> <code>Runnable</code> defines <em>what code to execute</em>, whereas <code>Thread</code> defines <em>how to execute it</em>. Decoupling them follows clean Object-Oriented principles.<br />
+          3. <strong>Executor Framework Compatibility:</strong> Modern enterprise applications rarely create threads with <code>new Thread()</code>. They use thread pools (<code>ExecutorService</code>), which directly consume <code>Runnable</code> and <code>Callable</code> tasks.
+        </div>
+      </div>
+
+      <div class="qa-box">
+        <div class="qa-q" onclick="toggleQA(this)">
+          <span>Q2. What is the fundamental difference between Runnable and Callable?</span>
+          <span>▼</span>
+        </div>
+        <div class="qa-a">
+          <strong>Answer:</strong><br />
+          • <strong>Method Name &amp; Signature:</strong> <code>Runnable</code> defines <code>public void run()</code>; <code>Callable&lt;V&gt;</code> defines <code>public V call() throws Exception</code>.<br />
+          • <strong>Return Value:</strong> <code>Runnable</code> cannot return a value (it is <code>void</code>). <code>Callable</code> returns a generic type <code>V</code>.<br />
+          • <strong>Checked Exceptions:</strong> <code>Runnable.run()</code> cannot declare or throw checked exceptions (must handle internally with try/catch). <code>Callable.call()</code> can throw checked exceptions directly to the caller.
+        </div>
+      </div>
+
+      <div class="qa-box">
+        <div class="qa-q" onclick="toggleQA(this)">
+          <span>Q3. Can a thread be restarted after it finishes execution?</span>
+          <span>▼</span>
+        </div>
+        <div class="qa-a">
+          <strong>Answer:</strong> No. Once a thread completes its <code>run()</code> method, its state permanently becomes <code>TERMINATED</code> (dead). If you attempt to call <code>t.start()</code> again on the same <code>Thread</code> instance, the JVM throws an <code>IllegalThreadStateException</code> at runtime. To run the same task again, you must instantiate a new <code>Thread</code> object.
+        </div>
+      </div>
+
+      <div class="qa-box">
+        <div class="qa-q" onclick="toggleQA(this)">
+          <span>Q4. What is FutureTask and why is it used with Callable?</span>
+          <span>▼</span>
+        </div>
+        <div class="qa-a">
+          <strong>Answer:</strong> The <code>java.lang.Thread</code> constructor only accepts a <code>Runnable</code> target; it does not accept a <code>Callable</code>. <code>FutureTask&lt;V&gt;</code> is a concrete class that implements the <code>RunnableFuture&lt;V&gt;</code> interface (which extends both <code>Runnable</code> and <code>Future&lt;V&gt;</code>). It acts as a bridge: you pass your <code>Callable</code> to <code>FutureTask</code>, and because <code>FutureTask</code> is a <code>Runnable</code>, you can pass it to <code>new Thread(futureTask)</code>. Once executed, the caller retrieves the returned value using <code>futureTask.get()</code>.
+        </div>
+      </div>
+
+      <div class="qa-box">
+        <div class="qa-q" onclick="toggleQA(this)">
+          <span>Q5. What happens if an unhandled RuntimeException occurs inside a thread's run() method?</span>
+          <span>▼</span>
+        </div>
+        <div class="qa-a">
+          <strong>Answer:</strong> The unhandled exception prints a stack trace to <code>System.err</code>, and that particular thread terminates immediately. However, unless the exception kills the <code>main</code> thread or corrupts shared static state, other independent threads and the JVM continue running normally. You can catch unhandled thread exceptions globally using <code>Thread.setDefaultUncaughtExceptionHandler()</code>.
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 10: CORE SUMMARY & KEY TAKEAWAYS                                  -->
+    <!-- ========================================================================= -->
+    <div class="card" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-color: #86efac;">
+      <h3 style="color: #166534; margin-bottom: 12px; font-size: 1.25rem;">📌 Core Summary &amp; Key Takeaways</h3>
+      <ul style="padding-left: 20px; color: #14532d; line-height: 1.8; font-size: 0.95rem;">
+        <li><strong>Extending Thread:</strong> Simplest approach; override <code>run()</code>. Limited because Java disallows multiple class inheritance.</li>
+        <li><strong>Implementing Runnable:</strong> Best practice standard; separates the task logic from the thread worker. Clean, multiple-inheritance friendly, and works with Java 8+ lambdas.</li>
+        <li><strong>Implementing Callable:</strong> Solves <code>Runnable</code>'s limits by returning a generic value and throwing checked exceptions. Wrapped in <code>FutureTask</code> when executed with standard threads.</li>
+        <li><strong>start() vs run():</strong> Always call <code>.start()</code> to allocate an operating system thread. Calling <code>.run()</code> directly only executes synchronously on the current caller thread.</li>
+        <li><strong>One-Time Lifecycle:</strong> A thread cannot be restarted once started. Calling <code>start()</code> twice throws <code>IllegalThreadStateException</code>.</li>
+      </ul>
+    </div>
+
+    <!-- Bottom Page Navigation -->
+    <div class="page-nav">
+      <a href="multithreading_intro_cores.html" class="nav-btn-link">← Prev: Intro to Multi-Threading &amp; Cores</a>
+      <a href="../index.html" class="nav-btn-link">🏠 Java Curriculum Index</a>
+      <a href="thread_methods.html" class="nav-btn-link">Next: Thread Execution &amp; Control Methods →</a>
+    </div>
+  </div>
+
+  <!-- Interactive Scripts -->
+  <script>
+    // Copy Code Helper
+    function copyCode(btn) {
+      const codeBlock = btn.closest('.code-block');
+      const codeEl = codeBlock.querySelector('code, pre');
+      const text = codeEl ? codeEl.innerText : '';
+      navigator.clipboard.writeText(text).then(() => {
+        const orig = btn.innerText;
+        btn.innerText = '✓ Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.innerText = orig;
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    }
+
+    // QA Accordion Toggle
+    function toggleQA(el) {
+      const ans = el.nextElementSibling;
+      const arrow = el.querySelector('span:last-child');
+      if (ans.style.display === 'none' || !ans.style.display) {
+        ans.style.display = 'block';
+        if (arrow) arrow.innerText = '▲';
+      } else {
+        ans.style.display = 'none';
+        if (arrow) arrow.innerText = '▼';
+      }
+    }
+
+    // Initialize all QA answers to hidden
+    document.addEventListener("DOMContentLoaded", () => {
+      document.querySelectorAll('.qa-a').forEach(a => a.style.display = 'none');
+    });
+
+    // Tab Switcher for Architecture Visualizer
+    function switchTab(index) {
+      const buttons = document.querySelectorAll('.tab-btn');
+      const panels = document.querySelectorAll('.tab-panel');
+
+      buttons.forEach((btn, i) => {
+        if (i === index) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+
+      panels.forEach((panel, i) => {
+        if (i === index) {
+          panel.classList.add('active');
+        } else {
+          panel.classList.remove('active');
+        }
+      });
+    }
+  </script>
+</body>
+
+</html>
+

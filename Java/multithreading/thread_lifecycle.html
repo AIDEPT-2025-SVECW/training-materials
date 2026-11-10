@@ -1,0 +1,1351 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Thread Lifecycle &amp; States in Java (6-State Model) | Java Multithreading Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --primary-light: #e0e7ff;
+      --secondary: #0284c7;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #ef4444;
+      --accent-purple: #8b5cf6;
+      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f1f5f9 100%);
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 10px 25px rgba(79, 70, 229, 0.08);
+      --shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      color: var(--text-main);
+      padding: 24px 16px;
+      line-height: 1.65;
+    }
+
+    .container {
+      max-width: 1140px;
+      margin: 0 auto;
+    }
+
+    .top-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #ffffff;
+      color: var(--primary-dark);
+      text-decoration: none;
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      border: 1px solid var(--card-border);
+      box-shadow: var(--shadow-sm);
+      transition: all 0.25s ease;
+    }
+
+    .back-btn:hover {
+      background: var(--primary);
+      color: #ffffff;
+      transform: translateX(-4px);
+    }
+
+    .nav-tag {
+      color: var(--primary-dark);
+      font-weight: 700;
+      font-size: 0.9rem;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 6px 18px;
+      border-radius: 20px;
+      border: 1px solid var(--card-border);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #090d16 0%, #1e1b4b 35%, #3730a3 70%, #0284c7 100%);
+      color: #ffffff;
+      border-radius: 20px;
+      padding: 42px 32px;
+      text-align: center;
+      box-shadow: var(--shadow-lg);
+      margin-bottom: 32px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: '';
+      position: absolute;
+      top: -50px;
+      right: -50px;
+      width: 220px;
+      height: 220px;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .hero h1 {
+      font-size: clamp(1.8rem, 3.8vw, 2.5rem);
+      font-weight: 800;
+      margin-bottom: 12px;
+      line-height: 1.25;
+    }
+
+    .hero p {
+      font-size: 1.12rem;
+      opacity: 0.95;
+      max-width: 900px;
+      margin: 0 auto 20px auto;
+    }
+
+    .hero-badges {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .hero-badge {
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(8px);
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      border: 1px solid var(--card-border);
+      padding: 30px;
+      margin-bottom: 26px;
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.2s ease;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #f1f5f9;
+      padding-bottom: 14px;
+    }
+
+    .section-title h2 {
+      font-size: 1.45rem;
+      color: var(--primary-dark);
+      font-weight: 700;
+    }
+
+    .section-title .icon {
+      font-size: 1.5rem;
+      background: #e0e7ff;
+      width: 46px;
+      height: 46px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      color: var(--primary);
+    }
+
+    .unit-tag {
+      margin-left: auto;
+      background: #ede9fe;
+      color: #6d28d9;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 860px) {
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    @media (max-width: 860px) {
+      .grid-3 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* State Cards */
+    .state-card {
+      border: 1.5px solid var(--card-border);
+      border-radius: 14px;
+      padding: 20px;
+      background: #f8fafc;
+      transition: all 0.2s ease;
+    }
+
+    .state-card:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .state-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .state-badge {
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-family: 'Fira Code', monospace;
+    }
+
+    /* Code Blocks */
+    .code-block {
+      background: #0d1117;
+      color: #e6edf3;
+      border-radius: 12px;
+      position: relative;
+      margin: 18px 0;
+      border: 1px solid #30363d;
+      overflow: hidden;
+      font-family: 'Fira Code', monospace;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    }
+
+    .code-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 16px;
+      background: #161b22;
+      border-bottom: 1px solid #30363d;
+      font-size: 0.85rem;
+      color: #8b949e;
+      font-family: 'Fira Code', monospace;
+    }
+
+    .code-file-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      color: #c9d1d9;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+    }
+
+    .code-file-badge::before {
+      content: '';
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #e3b341;
+    }
+
+    pre {
+      margin: 0;
+      padding: 18px 20px;
+      overflow-x: auto;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      white-space: pre;
+      color: #e6edf3;
+    }
+
+    .code-block code {
+      color: #e6edf3;
+      font-family: 'Fira Code', monospace;
+    }
+
+    .copy-btn {
+      background: rgba(255, 255, 255, 0.08);
+      color: #c9d1d9;
+      border: 1px solid #30363d;
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: inherit;
+    }
+
+    .copy-btn:hover {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+    }
+
+    .copy-btn.copied {
+      background: var(--accent-green) !important;
+      color: #ffffff !important;
+      border-color: var(--accent-green) !important;
+    }
+
+    .tag-kw {
+      color: #ff7b72;
+      font-weight: 600;
+    }
+
+    .tag-type {
+      color: #79c0ff;
+      font-weight: 600;
+    }
+
+    .tag-str {
+      color: #a5d6ff;
+    }
+
+    .tag-comment {
+      color: #8b949e;
+      font-style: italic;
+    }
+
+    .tag-fn {
+      color: #d2a8ff;
+    }
+
+    .tag-num {
+      color: #79c0ff;
+    }
+
+    code:not(pre code) {
+      font-family: 'Fira Code', monospace;
+      font-size: 0.88em;
+      background: #eef2ff;
+      color: #4338ca;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .alert-box {
+      padding: 16px 20px;
+      border-radius: 12px;
+      margin: 18px 0;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      line-height: 1.6;
+    }
+
+    .alert-info {
+      background: #eff6ff;
+      border-left: 5px solid var(--secondary);
+      color: #1e40af;
+    }
+
+    .alert-warning {
+      background: #fffbeb;
+      border-left: 5px solid var(--accent-amber);
+      color: #92400e;
+    }
+
+    .alert-danger {
+      background: #fef2f2;
+      border-left: 5px solid var(--accent-rose);
+      color: #991b1b;
+    }
+
+    .alert-success {
+      background: #f0fdf4;
+      border-left: 5px solid var(--accent-green);
+      color: #166534;
+    }
+
+    .diagram-card {
+      background: #0d1117;
+      color: #e6edf3;
+      border-radius: 14px;
+      padding: 22px;
+      margin: 18px 0;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      overflow-x: auto;
+      white-space: pre;
+      border: 1px solid #30363d;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    }
+
+    .table-container {
+      overflow-x: auto;
+      margin: 20px 0;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th,
+    td {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--card-border);
+      font-size: 0.92rem;
+    }
+
+    th {
+      background: #f8fafc;
+      color: var(--primary-dark);
+      font-weight: 700;
+    }
+
+    tr:hover {
+      background: #fbfdff;
+    }
+
+    .output-box {
+      background: #18181b;
+      border: 1px solid #27272a;
+      border-radius: 10px;
+      padding: 18px 22px;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.88rem;
+      color: #a1a1aa;
+      margin: 14px 0;
+      line-height: 1.6;
+    }
+
+    .output-box .out-green {
+      color: #4ade80;
+    }
+
+    .output-box .out-cyan {
+      color: #38bdf8;
+    }
+
+    .output-box .out-amber {
+      color: #fbbf24;
+    }
+
+    /* Visual Media Display Card */
+    .media-card {
+      background: #ffffff;
+      border-radius: 16px;
+      border: 1.5px solid var(--card-border);
+      padding: 22px;
+      margin: 24px 0;
+      box-shadow: var(--shadow-sm);
+      text-align: center;
+    }
+
+    .media-card img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 10px;
+      border: 1px solid var(--card-border);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+    }
+
+    .media-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .media-title {
+      color: var(--primary-dark);
+      font-weight: 700;
+      font-size: 1.05rem;
+      text-align: left;
+    }
+
+    .media-badge {
+      background: #e0e7ff;
+      color: var(--primary);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border: 1px solid var(--card-border);
+    }
+
+    .media-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .media-btn {
+      background: #f1f5f9;
+      color: var(--text-main);
+      border: 1px solid var(--card-border);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .media-btn:hover {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    /* State Machine Interactive Explorer */
+    .state-btn-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    @media (max-width: 860px) {
+      .state-btn-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    .state-tab-btn {
+      padding: 10px 8px;
+      border-radius: 10px;
+      border: 1.5px solid var(--card-border);
+      background: #f8fafc;
+      color: var(--text-muted);
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s ease;
+      font-family: 'Fira Code', monospace;
+    }
+
+    .state-tab-btn.active {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .state-detail-panel {
+      background: #0f172a;
+      border-radius: 14px;
+      padding: 24px;
+      border: 1px solid #334155;
+      color: #f8fafc;
+      margin: 18px 0;
+    }
+
+    /* QA Accordion */
+    .qa-box {
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      margin-bottom: 14px;
+      overflow: hidden;
+      background: #ffffff;
+      transition: all 0.2s ease;
+    }
+
+    .qa-box:hover {
+      border-color: var(--primary);
+    }
+
+    .qa-q {
+      padding: 16px 20px;
+      font-weight: 700;
+      color: var(--primary-dark);
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #fafafa;
+    }
+
+    .qa-a {
+      padding: 16px 20px;
+      font-size: 0.92rem;
+      color: var(--text-main);
+      border-top: 1px solid var(--card-border);
+      background: #ffffff;
+      line-height: 1.7;
+    }
+
+    .page-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 40px;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .nav-btn-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: white;
+      padding: 12px 24px;
+      border-radius: 12px;
+      border: 1px solid var(--card-border);
+      color: var(--primary-dark);
+      font-weight: 700;
+      text-decoration: none;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s;
+    }
+
+    .nav-btn-link:hover {
+      background: var(--primary);
+      color: white;
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="top-nav">
+      <a href="../index.html" class="back-btn">← Back to Java Index</a>
+      <span class="nav-tag">Java Multi-Threading • Thread Lifecycle</span>
+    </div>
+
+    <!-- Hero Section -->
+    <div class="hero">
+      <h1>Thread Lifecycle &amp; States in Java (6-State Model)</h1>
+      <p>Master the complete lifecycle of a Java thread defined in <code>java.lang.Thread.State</code>: NEW, RUNNABLE,
+        BLOCKED, WAITING, TIMED_WAITING, and TERMINATED. Understand transition triggers and lock contention with clear,
+        visual demonstrations.</p>
+      <div class="hero-badges">
+        <span class="hero-badge">Thread.State Enum</span>
+        <span class="hero-badge">Lifecycle Road Trip</span>
+        <span class="hero-badge">NEW</span>
+        <span class="hero-badge">RUNNABLE</span>
+        <span class="hero-badge">BLOCKED (Locks)</span>
+        <span class="hero-badge">WAITING</span>
+        <span class="hero-badge">TIMED_WAITING</span>
+        <span class="hero-badge">TERMINATED</span>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 1: THE 6 THREAD STATES OVERVIEW                                   -->
+    <!-- ========================================================================= -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🧬</span>
+        <h2>1. The Six States Defined in java.lang.Thread.State</h2>
+        <span class="unit-tag" style="background: #e0e7ff; color: var(--primary);">Standard Enum</span>
+      </div>
+      <p>
+        In Java, thread states are strictly defined in the <code>java.lang.Thread.State</code> public enum. You can
+        inspect any thread's current state at any moment by invoking:
+      </p>
+
+      <div class="code-block" style="margin: 14px 0;">
+        <pre><code class="language-java"><span class="tag-type">Thread</span>.<span class="tag-type">State</span> currentState = thread.<span class="tag-fn">getState</span>();</code></pre>
+      </div>
+
+      <div class="grid-3" style="margin-top: 20px;">
+        <!-- State 1 -->
+        <div class="state-card">
+          <div class="state-header">
+            <strong>1. NEW</strong>
+            <span class="state-badge" style="background: #fef3c7; color: #92400e;">State: NEW</span>
+          </div>
+          <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.6;">
+            The thread object has been created (<code>new Thread()</code>) but <code>start()</code> has not been invoked yet.
+          </p>
+        </div>
+
+        <!-- State 2 -->
+        <div class="state-card">
+          <div class="state-header">
+            <strong>2. RUNNABLE</strong>
+            <span class="state-badge" style="background: #dcfce7; color: #166534;">State: RUNNABLE</span>
+          </div>
+          <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.6;">
+            The thread is eligible for CPU execution. It is either actively running or waiting in the OS ready queue.
+          </p>
+        </div>
+
+        <!-- State 3 -->
+        <div class="state-card">
+          <div class="state-header">
+            <strong>3. BLOCKED</strong>
+            <span class="state-badge" style="background: #fee2e2; color: #991b1b;">State: BLOCKED</span>
+          </div>
+          <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.6;">
+            Waiting to acquire a <strong>monitor lock</strong> to enter or re-enter a <code>synchronized</code> block/method.
+          </p>
+        </div>
+
+        <!-- State 4 -->
+        <div class="state-card">
+          <div class="state-header">
+            <strong>4. WAITING</strong>
+            <span class="state-badge" style="background: #ede9fe; color: #6d28d9;">State: WAITING</span>
+          </div>
+          <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.6;">
+            Waiting indefinitely for another thread to perform a specific action (e.g. <code>wait()</code>, <code>join()</code>).
+          </p>
+        </div>
+
+        <!-- State 5 -->
+        <div class="state-card">
+          <div class="state-header">
+            <strong>5. TIMED_WAITING</strong>
+            <span class="state-badge" style="background: #e0f2fe; color: #0369a1;">State: TIMED_WAITING</span>
+          </div>
+          <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.6;">
+            Waiting for a specified time period (e.g. <code>sleep(ms)</code>, <code>wait(ms)</code>, <code>join(ms)</code>).
+          </p>
+        </div>
+
+        <!-- State 6 -->
+        <div class="state-card">
+          <div class="state-header">
+            <strong>6. TERMINATED</strong>
+            <span class="state-badge" style="background: #f1f5f9; color: #475569;">State: TERMINATED</span>
+          </div>
+          <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.6;">
+            The thread has finished its <code>run()</code> method execution, or died due to an unhandled exception.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 2: THE STATE TRANSITION DIAGRAM                                   -->
+    <!-- ========================================================================= -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🗺️</span>
+        <h2>2. Comprehensive Thread State Transition Diagram</h2>
+        <span class="unit-tag" style="background: #e0e7ff; color: var(--primary);">Architectural Diagram</span>
+      </div>
+      <p>
+        The following visual road trip and architectural state diagram illustrate all valid pathways between the 6
+        states, including the exact method calls and OS events that trigger each transition:
+      </p>
+
+      <!-- Java Thread Life Cycle Road Trip Visual Infographic -->
+      <div class="media-card" style="background: #ffffff; border: 1.5px solid var(--card-border); margin: 26px 0;">
+        <div class="media-header">
+          <div class="media-title">🚗 Visual Analogy: Java Thread Life Cycle Road Trip</div>
+          <div class="media-actions">
+            <span class="media-badge">Visual Road Trip</span>
+            <a href="Java%20Thread%20Life%20Cycle%20Road%20Trip.png" target="_blank" class="media-btn">🔍 View Full Image</a>
+          </div>
+        </div>
+        <img src="Java%20Thread%20Life%20Cycle%20Road%20Trip.png" alt="Java Thread Life Cycle Road Trip"
+          style="border: 1px solid var(--card-border); max-height: 560px; object-fit: contain; width: 100%; border-radius: 12px; background: #fafafa;">
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 14px; text-align: left; line-height: 1.6;">
+          <strong>Road Trip Analogy:</strong> Think of a thread's journey like a cross-country road trip: Packing your bags in the driveway is the <code>NEW</code> state; hitting the open highway is <code>RUNNABLE</code>; encountering a toll booth or locked gate waiting for keys is <code>BLOCKED</code>; stopping indefinitely at a rest area waiting for a call is <code>WAITING</code>; pulling into a motel for an overnight timed sleep is <code>TIMED_WAITING</code>; and finally reaching your vacation destination and turning off the engine is <code>TERMINATED</code>!
+        </p>
+      </div>
+
+      <!-- State Transition ASCII -->
+      <h3 style="color: var(--primary-dark); margin: 26px 0 10px 0; font-size: 1.15rem;">Formal JVM State Machine
+        Flowchart:</h3>
+      <div class="diagram-card">
+               start()
+  [ NEW ] ──────────────────► [ RUNNABLE ] ──────────────────────────────────► [ TERMINATED ]
+                                 ▲   │                   run() completed
+                                 │   │                   or uncaught exception
+               Lock acquired     │   │ Needs monitor lock
+               ─────────────     │   ▼ for synchronized block
+                                 [ BLOCKED ]
+                                 
+                                 ▲   │
+       notify() / notifyAll()    │   │ wait()
+       or target thread finishes │   ▼ join()
+                                 [ WAITING ]
+                                 
+                                 ▲   │
+       Time expires / interrupt()│   │ sleep(ms), wait(ms)
+       or notify() / notifyAll() │   ▼ join(ms)
+                               [ TIMED_WAITING ]
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 3: DEEP-DIVE INTO EACH STATE                                      -->
+    <!-- ========================================================================= -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🔍</span>
+        <h2>3. Deep-Dive: Understanding State Behaviors</h2>
+        <span class="unit-tag" style="background: #e0e7ff; color: var(--primary);">Detailed Analysis</span>
+      </div>
+
+      <div class="grid-2">
+        <div style="background: #f8fafc; border: 1.5px solid var(--card-border); border-radius: 12px; padding: 20px;">
+          <h4 style="color: var(--primary-dark); font-size: 1.1rem; margin-bottom: 8px;">1. NEW</h4>
+          <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.6;">
+            • <strong>How it enters:</strong> When you execute <code>Thread t = new Thread(task);</code>.<br />
+            • <strong>State of the thread:</strong> Merely a regular Java heap object. No operating system execution thread or call stack exists yet!<br />
+            • <strong>How it leaves:</strong> Calling <code>t.start()</code> moves it to <code>RUNNABLE</code>.
+          </p>
+        </div>
+
+        <div style="background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 12px; padding: 20px;">
+          <h4 style="color: #166534; font-size: 1.1rem; margin-bottom: 8px;">2. RUNNABLE (Ready + Running)</h4>
+          <p style="font-size: 0.9rem; color: #14532d; line-height: 1.6;">
+            • <strong>Important nuance:</strong> Java combines both <em>Ready to Run</em> (waiting in OS queue) and <em>Actively Running</em> (executing on a silicon core) under the single state <code>RUNNABLE</code>.<br />
+            • <strong>Why?</strong> The OS scheduler constantly switches threads in microseconds. The JVM leaves CPU scheduling details to the operating system.
+          </p>
+        </div>
+
+        <div style="background: #fef2f2; border: 1.5px solid #fca5a5; border-radius: 12px; padding: 20px;">
+          <h4 style="color: #991b1b; font-size: 1.1rem; margin-bottom: 8px;">3. BLOCKED (Lock Contention)</h4>
+          <p style="font-size: 0.9rem; color: #7f1d1d; line-height: 1.6;">
+            • <strong>How it enters:</strong> A thread tries to enter a <code>synchronized</code> method or block, but another thread already holds the monitor lock.<br />
+            • <strong>CPU Consumption:</strong> 0% CPU. The thread is parked by the JVM until the holding thread releases the lock.<br />
+            • <strong>How it leaves:</strong> Once the lock is released, the thread re-enters <code>RUNNABLE</code>.
+          </p>
+        </div>
+
+        <div style="background: #faf5ff; border: 1.5px solid #d8b4fe; border-radius: 12px; padding: 20px;">
+          <h4 style="color: #6b21a8; font-size: 1.1rem; margin-bottom: 8px;">4. WAITING (Indefinite Wait)</h4>
+          <p style="font-size: 0.9rem; color: #581c87; line-height: 1.6;">
+            • <strong>How it enters:</strong> Calling <code>object.wait()</code>, <code>thread.join()</code>, or <code>LockSupport.park()</code> without timeouts.<br />
+            • <strong>Behavior:</strong> The thread will wait forever until another thread explicitly calls <code>notify()</code>, <code>notifyAll()</code>, or the target joined thread finishes.
+          </p>
+        </div>
+
+        <div style="background: #eff6ff; border: 1.5px solid #bfdbfe; border-radius: 12px; padding: 20px;">
+          <h4 style="color: #1e40af; font-size: 1.1rem; margin-bottom: 8px;">5. TIMED_WAITING (Timed Pause)</h4>
+          <p style="font-size: 0.9rem; color: #1e3a8a; line-height: 1.6;">
+            • <strong>How it enters:</strong> Calling <code>Thread.sleep(millis)</code>, <code>object.wait(millis)</code>, or <code>thread.join(millis)</code>.<br />
+            • <strong>Behavior:</strong> Wakes up automatically when the timer reaches zero, or when interrupted via <code>interrupt()</code>.
+          </p>
+        </div>
+
+        <div style="background: #f1f5f9; border: 1.5px solid #cbd5e1; border-radius: 12px; padding: 20px;">
+          <h4 style="color: #334155; font-size: 1.1rem; margin-bottom: 8px;">6. TERMINATED (Dead)</h4>
+          <p style="font-size: 0.9rem; color: #475569; line-height: 1.6;">
+            • <strong>How it enters:</strong> When the thread's <code>run()</code> method finishes execution, or when an unhandled exception crashes the thread.<br />
+            • <strong>Crucial rule:</strong> A terminated thread cannot be restarted. Calling <code>start()</code> again throws <code>IllegalThreadStateException</code>.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 4: INTERACTIVE STATE EXPLORER                                     -->
+    <!-- ========================================================================= -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🎮</span>
+        <h2>4. Interactive State Explorer</h2>
+        <span class="unit-tag" style="background: #e0e7ff; color: var(--primary);">Interactive Explorer</span>
+      </div>
+      <p style="margin-bottom: 16px;">
+        Click any of the 6 state buttons below to inspect its trigger methods, CPU consumption, and exit conditions:
+      </p>
+
+      <div class="state-btn-grid">
+        <button class="state-tab-btn active" onclick="showStateInfo('NEW')">NEW</button>
+        <button class="state-tab-btn" onclick="showStateInfo('RUNNABLE')">RUNNABLE</button>
+        <button class="state-tab-btn" onclick="showStateInfo('BLOCKED')">BLOCKED</button>
+        <button class="state-tab-btn" onclick="showStateInfo('WAITING')">WAITING</button>
+        <button class="state-tab-btn" onclick="showStateInfo('TIMED_WAITING')">TIMED_WAITING</button>
+        <button class="state-tab-btn" onclick="showStateInfo('TERMINATED')">TERMINATED</button>
+      </div>
+
+      <div class="state-detail-panel" id="state-detail">
+        <h3 id="panel-title" style="color: #38bdf8; font-size: 1.2rem; margin-bottom: 8px;">State: NEW</h3>
+        <p id="panel-desc" style="color: #cbd5e1; font-size: 0.95rem; line-height: 1.7; margin-bottom: 12px;">
+          The thread has been instantiated using <code>Thread t = new Thread()</code>, but <code>t.start()</code> has not yet been invoked.
+        </p>
+        <div style="background: #1e293b; border-radius: 8px; padding: 12px 16px; font-size: 0.88rem; color: #94a3b8; line-height: 1.7;">
+          • <strong>CPU Consumption:</strong> 0% (Thread is inactive)<br />
+          • <strong>Method to Enter:</strong> <code>new Thread()</code><br />
+          • <strong>Method to Exit:</strong> <code>start()</code> (moves to <code>RUNNABLE</code>)<br />
+          • <strong>Hold Monitor Locks:</strong> No
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 5: BLOCKED VS WAITING VS TIMED_WAITING                            -->
+    <!-- ========================================================================= -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">⚖️</span>
+        <h2>5. The Big Comparison: BLOCKED vs. WAITING vs. TIMED_WAITING</h2>
+        <span class="unit-tag" style="background: #fef2f2; color: #991b1b;">Interview Hotspot</span>
+      </div>
+      <p>
+        Examiners love to ask the difference between the three inactive states. Memorize these distinct roles:
+      </p>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Criteria</th>
+              <th>BLOCKED</th>
+              <th>WAITING</th>
+              <th>TIMED_WAITING</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Reason for Waiting</strong></td>
+              <td>Waiting strictly to acquire a <strong>synchronized monitor lock</strong>.</td>
+              <td>Waiting indefinitely for another thread's signal or completion.</td>
+              <td>Waiting for a specified duration of time.</td>
+            </tr>
+            <tr>
+              <td><strong>Typical Triggers</strong></td>
+              <td>Lock contention on entering a <code>synchronized</code> block.</td>
+              <td><code>object.wait()</code>, <code>thread.join()</code>.</td>
+              <td><code>Thread.sleep(ms)</code>, <code>wait(ms)</code>, <code>join(ms)</code>.</td>
+            </tr>
+            <tr>
+              <td><strong>How it Wakes Up</strong></td>
+              <td>The lock holder leaves the synchronized block and JVM assigns lock.</td>
+              <td>Another thread invokes <code>notify()</code> or target thread completes.</td>
+              <td>Timeout counter expires or <code>interrupt()</code> is called.</td>
+            </tr>
+            <tr>
+              <td><strong>CPU Usage</strong></td>
+              <td>0%</td>
+              <td>0%</td>
+              <td>0%</td>
+            </tr>
+            <tr>
+              <td><strong>Holds Existing Locks?</strong></td>
+              <td>No</td>
+              <td>Releases monitor lock while waiting!</td>
+              <td><code>sleep()</code> retains all locks!</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 6: COMPLETE VERIFIED JAVA DEMO                                    -->
+    <!-- ========================================================================= -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">💻</span>
+        <h2>6. Complete Verified Java Demo: ThreadLifecycleDemo.java</h2>
+        <span class="unit-tag" style="background: #e0e7ff; color: var(--primary);">Verified Java 17 Demo</span>
+      </div>
+      <p>
+        The following self-contained program programmatically transitions threads through all six states and prints
+        each state using <code>thread.getState()</code>:
+      </p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-file-badge">ThreadLifecycleDemo.java</div>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+        </div>
+        <pre><code class="language-java"><span class="tag-comment">/**
+ * Thread Lifecycle &amp; States Demonstration in Java
+ * 
+ * Demonstrates the 6 thread states defined in java.lang.Thread.State:
+ * 1. NEW
+ * 2. RUNNABLE
+ * 3. TIMED_WAITING
+ * 4. WAITING
+ * 5. BLOCKED
+ * 6. TERMINATED
+ */</span>
+<span class="tag-kw">public class</span> <span class="tag-type">ThreadLifecycleDemo</span> {
+
+    <span class="tag-kw">private static final</span> <span class="tag-type">Object</span> LOCK = <span class="tag-kw">new</span> <span class="tag-type">Object</span>();
+
+    <span class="tag-kw">public static void</span> <span class="tag-fn">main</span>(<span class="tag-type">String</span>[] args) <span class="tag-kw">throws</span> <span class="tag-type">InterruptedException</span> {
+        System.out.println(<span class="tag-str">"=========================================================="</span>);
+        System.out.println(<span class="tag-str">"      JAVA THREAD LIFECYCLE &amp; 6 STATES DEMONSTRATION      "</span>);
+        System.out.println(<span class="tag-str">"=========================================================="</span>);
+
+        <span class="tag-comment">// ---------------------------------------------------------------------</span>
+        <span class="tag-comment">// 1. NEW, RUNNABLE, TIMED_WAITING &amp; TERMINATED</span>
+        <span class="tag-comment">// ---------------------------------------------------------------------</span>
+        System.out.println(<span class="tag-str">"\n--- Step 1: NEW, RUNNABLE, TIMED_WAITING &amp; TERMINATED ---"</span>);
+
+        <span class="tag-type">Thread</span> t1 = <span class="tag-kw">new</span> <span class="tag-type">Thread</span>(() -&gt; {
+            <span class="tag-kw">try</span> {
+                <span class="tag-comment">// Thread enters TIMED_WAITING while sleeping</span>
+                <span class="tag-type">Thread</span>.<span class="tag-fn">sleep</span>(<span class="tag-num">400</span>);
+            } <span class="tag-kw">catch</span> (<span class="tag-type">InterruptedException</span> ignored) {}
+        }, <span class="tag-str">"WorkerThread-1"</span>);
+
+        <span class="tag-comment">// State 1: NEW (created but start() not called yet)</span>
+        System.out.println(<span class="tag-str">"  t1 State after instantiation : "</span> + t1.<span class="tag-fn">getState</span>()); <span class="tag-comment">// NEW</span>
+
+        <span class="tag-comment">// State 2: RUNNABLE (start() called, eligible for CPU)</span>
+        t1.<span class="tag-fn">start</span>();
+        System.out.println(<span class="tag-str">"  t1 State after start() called: "</span> + t1.<span class="tag-fn">getState</span>()); <span class="tag-comment">// RUNNABLE</span>
+
+        <span class="tag-comment">// Wait 100ms to let t1 enter Thread.sleep()</span>
+        <span class="tag-type">Thread</span>.<span class="tag-fn">sleep</span>(<span class="tag-num">100</span>);
+        <span class="tag-comment">// State 3: TIMED_WAITING</span>
+        System.out.println(<span class="tag-str">"  t1 State while inside sleep(): "</span> + t1.<span class="tag-fn">getState</span>()); <span class="tag-comment">// TIMED_WAITING</span>
+
+        <span class="tag-comment">// Wait for t1 to finish</span>
+        t1.<span class="tag-fn">join</span>();
+        <span class="tag-comment">// State 4: TERMINATED</span>
+        System.out.println(<span class="tag-str">"  t1 State after run() finishes: "</span> + t1.<span class="tag-fn">getState</span>()); <span class="tag-comment">// TERMINATED</span>
+
+        <span class="tag-comment">// ---------------------------------------------------------------------</span>
+        <span class="tag-comment">// 2. WAITING (Indefinite Wait via join)</span>
+        <span class="tag-comment">// ---------------------------------------------------------------------</span>
+        System.out.println(<span class="tag-str">"\n--- Step 2: WAITING State ---"</span>);
+        <span class="tag-type">Thread</span> helper = <span class="tag-kw">new</span> <span class="tag-type">Thread</span>(() -&gt; {
+            <span class="tag-kw">try</span> {
+                <span class="tag-type">Thread</span>.<span class="tag-fn">sleep</span>(<span class="tag-num">300</span>);
+            } <span class="tag-kw">catch</span> (<span class="tag-type">InterruptedException</span> ignored) {}
+        }, <span class="tag-str">"HelperThread"</span>);
+
+        <span class="tag-type">Thread</span> waiter = <span class="tag-kw">new</span> <span class="tag-type">Thread</span>(() -&gt; {
+            <span class="tag-kw">try</span> {
+                <span class="tag-comment">// Waits indefinitely for helper thread to finish</span>
+                helper.<span class="tag-fn">join</span>();
+            } <span class="tag-kw">catch</span> (<span class="tag-type">InterruptedException</span> ignored) {}
+        }, <span class="tag-str">"WaiterThread"</span>);
+
+        helper.<span class="tag-fn">start</span>();
+        waiter.<span class="tag-fn">start</span>();
+
+        <span class="tag-type">Thread</span>.<span class="tag-fn">sleep</span>(<span class="tag-num">100</span>); <span class="tag-comment">// Give waiter time to call helper.join()</span>
+        <span class="tag-comment">// State 5: WAITING</span>
+        System.out.println(<span class="tag-str">"  waiter State while inside helper.join(): "</span> + waiter.<span class="tag-fn">getState</span>()); <span class="tag-comment">// WAITING</span>
+
+        helper.<span class="tag-fn">join</span>();
+        waiter.<span class="tag-fn">join</span>();
+
+        <span class="tag-comment">// ---------------------------------------------------------------------</span>
+        <span class="tag-comment">// 3. BLOCKED (Waiting to acquire synchronized lock)</span>
+        <span class="tag-comment">// ---------------------------------------------------------------------</span>
+        System.out.println(<span class="tag-str">"\n--- Step 3: BLOCKED State ---"</span>);
+
+        <span class="tag-type">Thread</span> lockHolder = <span class="tag-kw">new</span> <span class="tag-type">Thread</span>(() -&gt; {
+            <span class="tag-kw">synchronized</span> (LOCK) {
+                <span class="tag-kw">try</span> {
+                    <span class="tag-comment">// Holds the lock for 500 ms</span>
+                    <span class="tag-type">Thread</span>.<span class="tag-fn">sleep</span>(<span class="tag-num">500</span>);
+                } <span class="tag-kw">catch</span> (<span class="tag-type">InterruptedException</span> ignored) {}
+            }
+        }, <span class="tag-str">"LockHolder"</span>);
+
+        <span class="tag-type">Thread</span> lockContender = <span class="tag-kw">new</span> <span class="tag-type">Thread</span>(() -&gt; {
+            <span class="tag-comment">// Attempts to enter synchronized block while lockHolder owns it</span>
+            <span class="tag-kw">synchronized</span> (LOCK) {
+                System.out.println(<span class="tag-str">"  LockContender finally acquired lock!"</span>);
+            }
+        }, <span class="tag-str">"LockContender"</span>);
+
+        lockHolder.<span class="tag-fn">start</span>();
+        <span class="tag-type">Thread</span>.<span class="tag-fn">sleep</span>(<span class="tag-num">50</span>); <span class="tag-comment">// Ensure lockHolder acquires LOCK first</span>
+
+        lockContender.<span class="tag-fn">start</span>();
+        <span class="tag-type">Thread</span>.<span class="tag-fn">sleep</span>(<span class="tag-num">50</span>); <span class="tag-comment">// Ensure lockContender tries to acquire LOCK and blocks</span>
+
+        <span class="tag-comment">// State 6: BLOCKED</span>
+        System.out.println(<span class="tag-str">"  lockContender State waiting for lock: "</span> + lockContender.<span class="tag-fn">getState</span>()); <span class="tag-comment">// BLOCKED</span>
+
+        lockHolder.<span class="tag-fn">join</span>();
+        lockContender.<span class="tag-fn">join</span>();
+
+        System.out.println(<span class="tag-str">"\n=========================================================="</span>);
+        System.out.println(<span class="tag-str">"All 6 thread states verified successfully!"</span>);
+        System.out.println(<span class="tag-str">"=========================================================="</span>);
+    }
+}</code></pre>
+      </div>
+
+      <!-- Live Actual Execution Output -->
+      <h4 style="color: var(--primary-dark); margin: 18px 0 8px 0;">Actual Execution Console Output:</h4>
+      <div class="output-box">
+==========================================================
+      JAVA THREAD LIFECYCLE &amp; 6 STATES DEMONSTRATION      
+==========================================================
+
+--- Step 1: NEW, RUNNABLE, TIMED_WAITING &amp; TERMINATED ---
+  t1 State after instantiation : <span class="out-amber">NEW</span>
+  t1 State after start() called: <span class="out-green">RUNNABLE</span>
+  t1 State while inside sleep(): <span class="out-cyan">TIMED_WAITING</span>
+  t1 State after run() finishes: <span class="out-amber">TERMINATED</span>
+
+--- Step 2: WAITING State ---
+  waiter State while inside helper.join(): <span class="out-cyan">WAITING</span>
+
+--- Step 3: BLOCKED State ---
+  lockContender State waiting for lock: <span class="out-red">BLOCKED</span>
+  LockContender finally acquired lock!
+
+==========================================================
+<span class="out-green">All 6 thread states verified successfully!</span>
+==========================================================
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 7: FREQUENTLY ASKED QUESTIONS & INTERVIEW CONCEPTS               -->
+    <!-- ========================================================================= -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon">🎓</span>
+        <h2>7. Frequently Asked Questions &amp; Interview Concepts</h2>
+        <span class="unit-tag" style="background: #e0e7ff; color: var(--primary);">Interview Preparation</span>
+      </div>
+      <p style="margin-bottom: 16px;">
+        Click any question to reveal the comprehensive interview-grade answer:
+      </p>
+
+      <div class="qa-box">
+        <div class="qa-q" onclick="toggleQA(this)">
+          <span>Q1. Why does Java not have separate "RUNNING" and "READY" states in Thread.State?</span>
+          <span>▼</span>
+        </div>
+        <div class="qa-a">
+          <strong>Answer:</strong> Modern operating systems use preemptive multithreading where CPU cores execute threads in tiny time-slices (quanta, e.g. 10ms). The OS thread scheduler switches between "ready in queue" and "running on CPU" thousands of times per second. Because this switching occurs at the OS kernel level and changes too rapidly for the JVM to accurately track or report, Java unifies both conditions under a single state: <strong><code>RUNNABLE</code></strong>.
+        </div>
+      </div>
+
+      <div class="qa-box">
+        <div class="qa-q" onclick="toggleQA(this)">
+          <span>Q2. What is the fundamental difference between BLOCKED and WAITING states?</span>
+          <span>▼</span>
+        </div>
+        <div class="qa-a">
+          <strong>Answer:</strong><br />
+          • <strong>BLOCKED:</strong> A thread is waiting strictly to acquire a <strong>monitor lock</strong> to enter or re-enter a <code>synchronized</code> block or method. It cannot do anything until another thread leaves the synchronized block.<br />
+          • <strong>WAITING:</strong> A thread has voluntarily paused itself by calling <code>wait()</code> or <code>join()</code>. It is not waiting for a lock; it is waiting for another thread to send a signal via <code>notify()</code> / <code>notifyAll()</code> or for the target thread to complete execution.
+        </div>
+      </div>
+
+      <div class="qa-box">
+        <div class="qa-q" onclick="toggleQA(this)">
+          <span>Q3. Can a thread transition directly from NEW to TERMINATED?</span>
+          <span>▼</span>
+        </div>
+        <div class="qa-a">
+          <strong>Answer:</strong> No. A thread in the <code>NEW</code> state has never been started. It must first transition to <code>RUNNABLE</code> when <code>start()</code> is called. Only after entering <code>RUNNABLE</code> can it execute and eventually transition to <code>TERMINATED</code> upon completing <code>run()</code> or throwing an uncaught exception. If you never call <code>start()</code>, the object is eventually garbage-collected from the Heap as an unstarted object.
+        </div>
+      </div>
+
+      <div class="qa-box">
+        <div class="qa-q" onclick="toggleQA(this)">
+          <span>Q4. What is the difference between Thread.isAlive() and Thread.getState()?</span>
+          <span>▼</span>
+        </div>
+        <div class="qa-a">
+          <strong>Answer:</strong><br />
+          • <code>isAlive()</code> returns a boolean (<code>true</code> if the thread has been started and has not yet died). It returns <code>false</code> for both <code>NEW</code> and <code>TERMINATED</code> threads.<br />
+          • <code>getState()</code> returns one of the 6 precise enum constants (<code>NEW</code>, <code>RUNNABLE</code>, <code>BLOCKED</code>, <code>WAITING</code>, <code>TIMED_WAITING</code>, <code>TERMINATED</code>), allowing detailed diagnostic inspection.
+        </div>
+      </div>
+
+      <div class="qa-box">
+        <div class="qa-q" onclick="toggleQA(this)">
+          <span>Q5. Does a thread in the TIMED_WAITING state release its synchronized locks?</span>
+          <span>▼</span>
+        </div>
+        <div class="qa-a">
+          <strong>Answer:</strong> It depends on the method used:<br />
+          • If it entered <code>TIMED_WAITING</code> via <strong><code>Thread.sleep(ms)</code></strong>, it <strong>retains all acquired locks</strong>. No other thread can access those synchronized blocks.<br />
+          • If it entered <code>TIMED_WAITING</code> via <strong><code>object.wait(ms)</code></strong>, it <strong>temporarily releases the monitor lock</strong> on that object while waiting!
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 8: CORE SUMMARY & KEY TAKEAWAYS                                   -->
+    <!-- ========================================================================= -->
+    <div class="card" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-color: #86efac;">
+      <h3 style="color: #166534; margin-bottom: 12px; font-size: 1.25rem;">📌 Core Summary &amp; Key Takeaways</h3>
+      <ul style="padding-left: 20px; color: #14532d; line-height: 1.8; font-size: 0.95rem;">
+        <li><strong>Six Standard States:</strong> <code>NEW</code>, <code>RUNNABLE</code>, <code>BLOCKED</code>, <code>WAITING</code>, <code>TIMED_WAITING</code>, <code>TERMINATED</code>.</li>
+        <li><strong>RUNNABLE encompasses both Ready and Running:</strong> The JVM lets the OS kernel handle fast preemptive time-slicing.</li>
+        <li><strong>BLOCKED is for locks:</strong> Occurs strictly when waiting to enter a <code>synchronized</code> block/method.</li>
+        <li><strong>WAITING vs TIMED_WAITING:</strong> WAITING has no deadline; TIMED_WAITING has an automatic expiration countdown.</li>
+        <li><strong>Dead is Dead:</strong> Once a thread reaches <code>TERMINATED</code>, it cannot be restarted. Calling <code>start()</code> throws <code>IllegalThreadStateException</code>.</li>
+      </ul>
+    </div>
+
+    <!-- Bottom Page Navigation -->
+    <div class="page-nav">
+      <a href="thread_priorities_daemon.html" class="nav-btn-link">← Prev: Priorities &amp; Daemon Threads</a>
+      <a href="../index.html" class="nav-btn-link">🏠 Java Curriculum Index</a>
+      <a href="synchronization_race_conditions.html" class="nav-btn-link">Next: Race Conditions &amp; Synchronization →</a>
+    </div>
+  </div>
+
+  <!-- Interactive Scripts -->
+  <script>
+    // Copy Code Helper
+    function copyCode(btn) {
+      const codeBlock = btn.closest('.code-block');
+      const codeEl = codeBlock.querySelector('code, pre');
+      const text = codeEl ? codeEl.innerText : '';
+      navigator.clipboard.writeText(text).then(() => {
+        const orig = btn.innerText;
+        btn.innerText = '✓ Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.innerText = orig;
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    }
+
+    // QA Accordion Toggle
+    function toggleQA(el) {
+      const ans = el.nextElementSibling;
+      const arrow = el.querySelector('span:last-child');
+      if (ans.style.display === 'none' || !ans.style.display) {
+        ans.style.display = 'block';
+        if (arrow) arrow.innerText = '▲';
+      } else {
+        ans.style.display = 'none';
+        if (arrow) arrow.innerText = '▼';
+      }
+    }
+
+    // Initialize all QA answers to hidden
+    document.addEventListener("DOMContentLoaded", () => {
+      document.querySelectorAll('.qa-a').forEach(a => a.style.display = 'none');
+    });
+
+    // Interactive State Explorer Data
+    const stateData = {
+      NEW: {
+        title: "State: NEW",
+        desc: "The thread object has been created in heap memory via <code>Thread t = new Thread(task);</code>, but <code>t.start()</code> has not yet been invoked.",
+        cpu: "0% (Thread inactive)",
+        enter: "<code>new Thread()</code>",
+        exit: "<code>start()</code> (moves to <code>RUNNABLE</code>)",
+        locks: "No"
+      },
+      RUNNABLE: {
+        title: "State: RUNNABLE (Ready or Running)",
+        desc: "The thread has started. It is either actively executing instructions on a CPU silicon core, or waiting in the OS scheduler's ready queue for its time slice.",
+        cpu: "Active (Consuming CPU quanta)",
+        enter: "<code>t.start()</code>, or returning from waiting/blocked",
+        exit: "Entering synchronized lock (<code>BLOCKED</code>), calling <code>wait()</code>/<code>sleep()</code>, or completing <code>run()</code>",
+        locks: "Can acquire and hold locks"
+      },
+      BLOCKED: {
+        title: "State: BLOCKED (Lock Contention)",
+        desc: "The thread is ready to execute, but is suspended waiting to acquire an object monitor lock to enter or re-enter a <code>synchronized</code> block or method.",
+        cpu: "0% (Thread is parked by JVM)",
+        enter: "Contention on <code>synchronized(lock)</code>",
+        exit: "Lock becomes free and JVM grants lock to this thread (returns to <code>RUNNABLE</code>)",
+        locks: "Waiting to acquire target lock"
+      },
+      WAITING: {
+        title: "State: WAITING (Indefinite Wait)",
+        desc: "The thread is waiting indefinitely for another thread to perform a specific action (like calling <code>notify()</code> or terminating). It has no timeout.",
+        cpu: "0% (Passive wait)",
+        enter: "<code>object.wait()</code>, <code>thread.join()</code>, <code>LockSupport.park()</code>",
+        exit: "<code>notify()</code>, <code>notifyAll()</code>, or joined thread completes",
+        locks: "Releases monitor lock while waiting on wait()"
+      },
+      TIMED_WAITING: {
+        title: "State: TIMED_WAITING (Timed Wait)",
+        desc: "The thread is suspended for a specified duration of time. It automatically wakes up when the time period expires.",
+        cpu: "0% (Timer managed by OS)",
+        enter: "<code>Thread.sleep(ms)</code>, <code>wait(ms)</code>, <code>join(ms)</code>",
+        exit: "Time expires, <code>interrupt()</code>, or <code>notify()</code>",
+        locks: "<code>sleep()</code> RETAINS all locks; <code>wait(ms)</code> releases lock"
+      },
+      TERMINATED: {
+        title: "State: TERMINATED (Dead)",
+        desc: "The thread has completed execution of its <code>run()</code> method, or was aborted due to an uncaught runtime exception. It cannot be restarted.",
+        cpu: "0% (Thread destroyed)",
+        enter: "Normal completion of <code>run()</code>, or uncaught exception",
+        exit: "None (Permanent end of thread lifecycle)",
+        locks: "All locks released automatically"
+      }
+    };
+
+    function showStateInfo(stKey) {
+      const data = stateData[stKey];
+      const buttons = document.querySelectorAll('.state-tab-btn');
+      buttons.forEach(btn => {
+        if (btn.innerText === stKey) btn.classList.add('active');
+        else btn.classList.remove('active');
+      });
+
+      const panel = document.getElementById('state-detail');
+      panel.innerHTML = `
+        <h3 style="color: #38bdf8; font-size: 1.2rem; margin-bottom: 8px;">${data.title}</h3>
+        <p style="color: #cbd5e1; font-size: 0.95rem; line-height: 1.7; margin-bottom: 12px;">${data.desc}</p>
+        <div style="background: #1e293b; border-radius: 8px; padding: 12px 16px; font-size: 0.88rem; color: #94a3b8; line-height: 1.7;">
+          • <strong>CPU Consumption:</strong> ${data.cpu}<br />
+          • <strong>Method to Enter:</strong> ${data.enter}<br />
+          • <strong>Method to Exit:</strong> ${data.exit}<br />
+          • <strong>Hold Monitor Locks:</strong> ${data.locks}
+        </div>
+      `;
+    }
+  </script>
+</body>
+
+</html>
+
