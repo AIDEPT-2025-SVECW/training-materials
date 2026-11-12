@@ -1,1178 +1,219 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Race Conditions &amp; Thread Synchronization Fundamentals | Java Concurrency Guide</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap"
-    rel="stylesheet">
-  <style>
-    :root {
-      --primary: #4f46e5;
-      --primary-dark: #3730a3;
-      --primary-light: #e0e7ff;
-      --secondary: #0284c7;
-      --accent-green: #10b981;
-      --accent-amber: #f59e0b;
-      --accent-rose: #ef4444;
-      --accent-purple: #8b5cf6;
-      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f1f5f9 100%);
-      --card-bg: #ffffff;
-      --card-border: #e2e8f0;
-      --text-main: #0f172a;
-      --text-muted: #475569;
-      --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
-      --shadow-md: 0 10px 25px rgba(79, 70, 229, 0.08);
-      --shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.12);
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
-      background: var(--bg-gradient);
-      min-height: 100vh;
-      color: var(--text-main);
-      padding: 24px 16px;
-      line-height: 1.65;
-    }
-
-    .container {
-      max-width: 1140px;
-      margin: 0 auto;
-    }
-
-    .top-nav {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 24px;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-
-    .back-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: #ffffff;
-      color: var(--primary-dark);
-      text-decoration: none;
-      padding: 10px 20px;
-      border-radius: 30px;
-      font-weight: 600;
-      font-size: 0.95rem;
-      border: 1px solid var(--card-border);
-      box-shadow: var(--shadow-sm);
-      transition: all 0.25s ease;
-    }
-
-    .back-btn:hover {
-      background: var(--primary);
-      color: #ffffff;
-      transform: translateX(-4px);
-    }
-
-    .nav-tag {
-      color: var(--primary-dark);
-      font-weight: 700;
-      font-size: 0.9rem;
-      background: rgba(255, 255, 255, 0.95);
-      padding: 6px 18px;
-      border-radius: 20px;
-      border: 1px solid var(--card-border);
-      box-shadow: var(--shadow-sm);
-    }
-
-    .hero {
-      background: linear-gradient(135deg, #1e1b4b 0%, #4338ca 45%, #7c3aed 80%, #9333ea 100%);
-      color: #ffffff;
-      border-radius: 20px;
-      padding: 42px 32px;
-      text-align: center;
-      box-shadow: var(--shadow-lg);
-      margin-bottom: 32px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .hero::after {
-      content: '';
-      position: absolute;
-      top: -50px;
-      right: -50px;
-      width: 220px;
-      height: 220px;
-      background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 70%);
-      border-radius: 50%;
-      pointer-events: none;
-    }
-
-    .hero h1 {
-      font-size: clamp(1.8rem, 3.8vw, 2.5rem);
-      font-weight: 800;
-      margin-bottom: 12px;
-      line-height: 1.25;
-    }
-
-    .hero p {
-      font-size: 1.12rem;
-      opacity: 0.95;
-      max-width: 900px;
-      margin: 0 auto 20px auto;
-    }
-
-    .hero-badges {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .hero-badge {
-      background: rgba(255, 255, 255, 0.2);
-      backdrop-filter: blur(8px);
-      padding: 6px 16px;
-      border-radius: 20px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      border: 1px solid rgba(255, 255, 255, 0.25);
-    }
-
-    .card {
-      background: var(--card-bg);
-      border-radius: 16px;
-      border: 1px solid var(--card-border);
-      padding: 30px;
-      margin-bottom: 26px;
-      box-shadow: var(--shadow-sm);
-      transition: transform 0.2s ease;
-    }
-
-    .section-title {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      margin-bottom: 20px;
-      border-bottom: 2px solid #f1f5f9;
-      padding-bottom: 14px;
-    }
-
-    .section-title h2 {
-      font-size: 1.45rem;
-      color: var(--primary-dark);
-      font-weight: 700;
-    }
-
-    .section-title .icon {
-      font-size: 1.5rem;
-      background: #e0e7ff;
-      width: 46px;
-      height: 46px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 12px;
-      color: var(--primary);
-    }
-
-    .unit-tag {
-      margin-left: auto;
-      background: #ede9fe;
-      color: #6d28d9;
-      padding: 4px 12px;
-      border-radius: 12px;
-      font-size: 0.78rem;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-    }
-
-    .grid-2 {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 24px;
-    }
-
-    @media (max-width: 860px) {
-      .grid-2 {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .grid-3 {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
-    }
-
-    @media (max-width: 860px) {
-      .grid-3 {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    /* Code Blocks */
-    .code-block {
-      background: #0d1117;
-      color: #e6edf3;
-      border-radius: 12px;
-      position: relative;
-      margin: 18px 0;
-      border: 1px solid #30363d;
-      overflow: hidden;
-      font-family: 'Fira Code', monospace;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
-    }
-
-    .code-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 16px;
-      background: #161b22;
-      border-bottom: 1px solid #30363d;
-      font-size: 0.85rem;
-      color: #8b949e;
-      font-family: 'Fira Code', monospace;
-    }
-
-    .code-file-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-weight: 600;
-      color: #c9d1d9;
-      font-family: 'Fira Code', monospace;
-      font-size: 0.85rem;
-    }
-
-    .code-file-badge::before {
-      content: '';
-      display: inline-block;
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: #e3b341;
-    }
-
-    pre {
-      margin: 0;
-      padding: 18px 20px;
-      overflow-x: auto;
-      font-family: 'Fira Code', monospace;
-      font-size: 0.9rem;
-      line-height: 1.6;
-      white-space: pre;
-      color: #e6edf3;
-    }
-
-    .code-block code {
-      color: #e6edf3;
-      font-family: 'Fira Code', monospace;
-    }
-
-    .copy-btn {
-      background: rgba(255, 255, 255, 0.08);
-      color: #c9d1d9;
-      border: 1px solid #30363d;
-      padding: 5px 12px;
-      border-radius: 6px;
-      font-size: 0.78rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-family: inherit;
-    }
-
-    .copy-btn:hover {
-      background: var(--primary);
-      color: #ffffff;
-      border-color: var(--primary);
-    }
-
-    .copy-btn.copied {
-      background: var(--accent-green) !important;
-      color: #ffffff !important;
-      border-color: var(--accent-green) !important;
-    }
-
-    .tag-kw {
-      color: #ff7b72;
-      font-weight: 600;
-    }
-
-    .tag-type {
-      color: #79c0ff;
-      font-weight: 600;
-    }
-
-    .tag-str {
-      color: #a5d6ff;
-    }
-
-    .tag-comment {
-      color: #8b949e;
-      font-style: italic;
-    }
-
-    .tag-fn {
-      color: #d2a8ff;
-    }
-
-    .tag-num {
-      color: #79c0ff;
-    }
-
-    code:not(pre code) {
-      font-family: 'Fira Code', monospace;
-      font-size: 0.88em;
-      background: #eef2ff;
-      color: #4338ca;
-      padding: 2px 6px;
-      border-radius: 4px;
-    }
-
-    .alert-box {
-      padding: 16px 20px;
-      border-radius: 12px;
-      margin: 18px 0;
-      display: flex;
-      gap: 14px;
-      align-items: flex-start;
-      line-height: 1.6;
-    }
-
-    .alert-info {
-      background: #eff6ff;
-      border-left: 5px solid var(--secondary);
-      color: #1e40af;
-    }
-
-    .alert-warning {
-      background: #fffbeb;
-      border-left: 5px solid var(--accent-amber);
-      color: #92400e;
-    }
-
-    .alert-danger {
-      background: #fef2f2;
-      border-left: 5px solid var(--accent-rose);
-      color: #991b1b;
-    }
-
-    .alert-success {
-      background: #f0fdf4;
-      border-left: 5px solid var(--accent-green);
-      color: #166534;
-    }
-
-    .diagram-card {
-      background: #0d1117;
-      color: #e6edf3;
-      border-radius: 14px;
-      padding: 22px;
-      margin: 18px 0;
-      font-family: 'Fira Code', monospace;
-      font-size: 0.85rem;
-      line-height: 1.6;
-      overflow-x: auto;
-      white-space: pre;
-      border: 1px solid #30363d;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
-    }
-
-    .table-container {
-      overflow-x: auto;
-      margin: 20px 0;
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      text-align: left;
-    }
-
-    th,
-    td {
-      padding: 14px 18px;
-      border-bottom: 1px solid var(--card-border);
-      font-size: 0.92rem;
-    }
-
-    th {
-      background: #f8fafc;
-      color: var(--primary-dark);
-      font-weight: 700;
-    }
-
-    tr:hover {
-      background: #fbfdff;
-    }
-
-    .output-box {
-      background: #18181b;
-      border: 1px solid #27272a;
-      border-radius: 10px;
-      padding: 18px 22px;
-      font-family: 'Fira Code', monospace;
-      font-size: 0.88rem;
-      color: #a1a1aa;
-      margin: 14px 0;
-      line-height: 1.6;
-    }
-
-    .output-box .out-green {
-      color: #4ade80;
-    }
-
-    .output-box .out-cyan {
-      color: #38bdf8;
-    }
-
-    .output-box .out-amber {
-      color: #fbbf24;
-    }
-
-    .output-box .out-red {
-      color: #f87171;
-    }
-
-    /* Step Simulator Component */
-    .step-sim {
-      background: #0f172a;
-      border-radius: 14px;
-      padding: 24px;
-      border: 1px solid #334155;
-      color: #f8fafc;
-      margin: 18px 0;
-    }
-
-    .step-sim-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-
-    .sim-step-box {
-      background: #000000;
-      border: 1px solid #334155;
-      border-radius: 10px;
-      padding: 18px;
-      font-family: 'Fira Code', monospace;
-      font-size: 0.9rem;
-      line-height: 1.6;
-      min-height: 110px;
-    }
-
-    /* QA Accordion */
-    .qa-box {
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      margin-bottom: 14px;
-      overflow: hidden;
-      background: #ffffff;
-      transition: all 0.2s ease;
-    }
-
-    .qa-box:hover {
-      border-color: var(--primary);
-    }
-
-    .qa-q {
-      padding: 16px 20px;
-      font-weight: 700;
-      color: var(--primary-dark);
-      cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #fafafa;
-    }
-
-    .qa-a {
-      padding: 16px 20px;
-      font-size: 0.92rem;
-      color: var(--text-main);
-      border-top: 1px solid var(--card-border);
-      background: #ffffff;
-      line-height: 1.7;
-    }
-
-    .page-nav {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 40px;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-
-    .nav-btn-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: white;
-      padding: 12px 24px;
-      border-radius: 12px;
-      border: 1px solid var(--card-border);
-      color: var(--primary-dark);
-      font-weight: 700;
-      text-decoration: none;
-      box-shadow: var(--shadow-sm);
-      transition: all 0.2s;
-    }
-
-    .nav-btn-link:hover {
-      background: var(--primary);
-      color: white;
-      transform: translateY(-2px);
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Java Race Conditions & Synchronization — Bank Account Example</title>
+<style>
+:root{--navy:#172554;--blue:#2563eb;--blue2:#dbeafe;--green:#15803d;--green2:#dcfce7;--red:#b91c1c;--red2:#fee2e2;--amber:#b45309;--amber2:#fef3c7;--ink:#172033;--muted:#526078;--line:#dbe3ef;--paper:#f5f7fb}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.65 system-ui,-apple-system,Segoe UI,sans-serif}
+.container{max-width:1120px;margin:auto;padding:22px 18px 50px}.hero{background:linear-gradient(125deg,#172554,#3730a3,#6d28d9);color:white;border-radius:22px;padding:36px 28px;text-align:center;box-shadow:0 14px 35px #17255422}
+.hero h1{font-size:clamp(1.8rem,4vw,2.7rem);line-height:1.15;margin:0 0 12px}.hero p{max-width:850px;margin:0 auto 18px;color:#e0e7ff}.pills{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}.pill{background:#ffffff20;border:1px solid #ffffff55;padding:5px 12px;border-radius:99px;font-size:.85rem}
+.card{background:white;border:1px solid var(--line);border-radius:17px;padding:26px;margin:22px 0;box-shadow:0 5px 18px #1725540b}.heading{display:flex;align-items:center;gap:12px;border-bottom:2px solid #eef2f7;padding-bottom:12px;margin-bottom:18px}.heading .num{background:#e0e7ff;color:#3730a3;border-radius:12px;padding:6px 12px;font-weight:800}.heading h2{margin:0;color:var(--navy);font-size:1.35rem}
+.lead{color:var(--muted)}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.panel{padding:17px;border-radius:14px;border:1px solid var(--line);background:#fbfdff}.danger{background:var(--red2);border-color:#fecaca}.success{background:var(--green2);border-color:#bbf7d0}.info{background:var(--blue2);border-color:#bfdbfe}.warn{background:var(--amber2);border-color:#fde68a}
+h3{margin:0 0 10px;color:var(--navy)}p{margin:9px 0}ul,ol{padding-left:22px}li{margin:5px 0}
+.bank-visual{width:100%;height:auto;display:block;border-radius:14px;background:#f8fafc;border:1px solid var(--line);margin:14px 0}
+.media-figure{margin:18px 0 4px;padding:16px;border-radius:14px;border:1px solid var(--line);background:#fbfdff}
+.media-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.media-head strong{color:var(--navy);font-size:1rem}
+.media-actions{display:flex;gap:8px;align-items:center}
+.media-link{display:inline-block;padding:4px 10px;border-radius:8px;background:#eef2ff;color:#312e81;text-decoration:none;font-size:.82rem;font-weight:700;border:1px solid #c7d2fe}
+.media-link:hover{background:var(--blue);color:#fff;border-color:var(--blue)}
+.media-figure img{width:100%;height:auto;max-height:600px;object-fit:contain;display:block;border-radius:10px;border:1px solid var(--line);background:#fff}
+.media-caption{margin:10px 0 0;color:var(--muted);font-size:.9rem;line-height:1.55}
+.tag{display:inline-block;padding:3px 9px;border-radius:99px;font-weight:700;font-size:.8rem}.tag.red{background:#fee2e2;color:#991b1b}.tag.green{background:#dcfce7;color:#166534}.tag.blue{background:#dbeafe;color:#1e40af}
+code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;background:#eef2ff;color:#312e81;padding:2px 5px;border-radius:5px;font-size:.92em}
+pre{background:#0b1220;color:#e5edf8;padding:18px;border-radius:13px;overflow:auto;font:13.5px/1.6 ui-monospace,Consolas,monospace;white-space:pre}
+pre code{background:none;color:inherit;padding:0}.code-label{font-weight:700;color:#334155;margin:12px 0 4px}
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:.94rem}th,td{border:1px solid var(--line);padding:10px;text-align:left;vertical-align:top}th{background:#eff4ff;color:#1e3a8a}
+.callout{border-left:5px solid var(--blue);background:#eff6ff;padding:14px 17px;border-radius:8px;margin:14px 0}.callout.redline{border-color:var(--red);background:#fff1f2}.callout.greenline{border-color:var(--green);background:#f0fdf4}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.step{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fff}.step b{display:block;color:var(--blue);margin-bottom:5px}
+button{border:0;background:var(--blue);color:white;padding:10px 16px;border-radius:9px;font-weight:700;cursor:pointer}button.secondary{background:#475569}.controls{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}.sim-box{background:#f8fafc;border:1px solid var(--line);border-radius:14px;padding:16px}.sim-status{font-weight:700;margin:8px 0;color:var(--navy);min-height:54px}.balance{font-size:1.8rem;font-weight:800;color:var(--navy)}.footer{color:var(--muted);text-align:center;font-size:.88rem;padding:18px}
+@media(max-width:760px){.grid,.grid3{grid-template-columns:1fr}.steps{grid-template-columns:1fr 1fr}.card{padding:18px}.hero{padding:28px 18px}table{font-size:.83rem}th,td{padding:7px}}
+</style>
 </head>
-
 <body>
-  <div class="container">
-    <div class="top-nav">
-      <a href="../index.html" class="back-btn">← Back to Java Index</a>
-      <span class="nav-tag">Java Multi-Threading • Synchronization Fundamentals</span>
-    </div>
+<div class="container">
+<header class="hero">
+<h1>Java Race Conditions &amp; Thread Synchronization</h1>
+<p>One shared bank account. Two withdrawal requests. Learn how a race condition happens — and how Java's <code>synchronized</code> keyword protects the balance.</p>
+<div class="pills"><span class="pill">Shared Data</span><span class="pill">Race Condition</span><span class="pill">Critical Section</span><span class="pill">Monitor Lock</span><span class="pill">Mutual Exclusion</span></div>
+</header>
 
-    <!-- Hero Section -->
-    <div class="hero">
-      <h1>Race Conditions &amp; Thread Synchronization Fundamentals</h1>
-      <p>Uncover the dangers of shared mutable state in concurrent programming. Learn why <code>count++</code> is not
-        atomic, what a Critical Section is, and how Java's Monitor Locks guarantee Mutual Exclusion.</p>
-      <div class="hero-badges">
-        <span class="hero-badge">Shared Mutable State</span>
-        <span class="hero-badge">Race Condition</span>
-        <span class="hero-badge">Atomicity (Read-Modify-Write)</span>
-        <span class="hero-badge">Critical Section</span>
-        <span class="hero-badge">Mutual Exclusion (Mutex)</span>
-        <span class="hero-badge">Intrinsic Lock (Monitor)</span>
-      </div>
-    </div>
+<section class="card">
+<div class="heading"><span class="num">01</span><h2>The shared bank account</h2></div>
+<p>Throughout this lesson, use the <strong>same joint bank account</strong> and the same two customers:</p>
+<div class="grid">
+<div class="panel info"><h3>🏦 Account details</h3><p class="balance">₹5,000</p><p>Starting balance in one shared account object.</p></div>
+<div class="panel"><h3>👥 Withdrawal requests</h3><p><strong>Rahul (Thread T1):</strong> withdraw ₹4,000</p><p><strong>Pooja (Thread T2):</strong> withdraw ₹3,000</p></div>
+</div>
+<div class="callout"><strong>Shared mutable state:</strong> Both threads access and may change the same <code>balance</code> field. The balance is shared because both threads use the same <code>BankAccount</code> object.</div>
+</section>
 
-    <!-- ========================================================================= -->
-    <!-- SECTION 1: THE SHARED MUTABLE STATE PROBLEM                               -->
-    <!-- ========================================================================= -->
-    <div class="card">
-      <div class="section-title">
-        <span class="icon">💥</span>
-        <h2>1. The Shared Mutable State Problem</h2>
-        <span class="unit-tag" style="background: #e0e7ff; color: var(--primary);">Root Cause</span>
-      </div>
-      <p>
-        In a single-threaded program, variables are updated one step at a time in predictable sequential order.
-        However, in multi-threaded programming:
-      </p>
+<section class="card">
+<div class="heading"><span class="num">02</span><h2>What is a race condition?</h2></div>
+<p>A <strong>race condition</strong> occurs when the result depends on the unpredictable timing or order in which threads access shared data.</p>
+<svg class="bank-visual" viewBox="0 0 1000 390" role="img" aria-label="Rahul and Pooja both read the same five thousand rupee balance and overwrite each other's updates">
+<rect x="18" y="18" width="964" height="354" rx="18" fill="#fff"/>
+<text x="500" y="52" text-anchor="middle" font-size="24" font-weight="700" fill="#172554">WITHOUT SYNCHRONIZATION — an unsafe possible interleaving</text>
+<rect x="40" y="85" width="250" height="90" rx="14" fill="#dbeafe" stroke="#60a5fa" stroke-width="2"/>
+<text x="165" y="118" text-anchor="middle" font-size="20" font-weight="700" fill="#1e40af">Shared balance</text><text x="165" y="151" text-anchor="middle" font-size="27" font-weight="800" fill="#172554">₹5,000</text>
+<path d="M290 130 H350 V105 H390" fill="none" stroke="#2563eb" stroke-width="4"/><path d="M350 130 V235 H390" fill="none" stroke="#db2777" stroke-width="4"/>
+<rect x="390" y="75" width="260" height="95" rx="14" fill="#eff6ff" stroke="#60a5fa" stroke-width="2"/>
+<text x="520" y="108" text-anchor="middle" font-size="20" font-weight="700" fill="#1d4ed8">T1 — Rahul</text><text x="520" y="140" text-anchor="middle" font-size="18" fill="#172554">Reads ₹5,000</text>
+<rect x="390" y="205" width="260" height="95" rx="14" fill="#fdf2f8" stroke="#f472b6" stroke-width="2"/>
+<text x="520" y="238" text-anchor="middle" font-size="20" font-weight="700" fill="#be185d">T2 — Pooja</text><text x="520" y="270" text-anchor="middle" font-size="18" fill="#172554">Reads ₹5,000</text>
+<path d="M650 122 H715" stroke="#2563eb" stroke-width="4"/><path d="M650 252 H715" stroke="#db2777" stroke-width="4"/>
+<rect x="715" y="75" width="245" height="95" rx="14" fill="#dcfce7" stroke="#4ade80" stroke-width="2"/>
+<text x="837" y="108" text-anchor="middle" font-size="18" font-weight="700" fill="#166534">Rahul writes</text><text x="837" y="140" text-anchor="middle" font-size="23" font-weight="800" fill="#166534">₹1,000</text>
+<rect x="715" y="205" width="245" height="95" rx="14" fill="#fee2e2" stroke="#f87171" stroke-width="2"/>
+<text x="837" y="238" text-anchor="middle" font-size="18" font-weight="700" fill="#991b1b">Pooja writes</text><text x="837" y="270" text-anchor="middle" font-size="23" font-weight="800" fill="#991b1b">₹2,000</text>
+<text x="500" y="342" text-anchor="middle" font-size="18" font-weight="700" fill="#991b1b">Pooja's stale calculation overwrites Rahul's update → incorrect final balance</text>
+</svg>
+<div class="callout redline"><strong>Illustrative interleaving:</strong> Both threads read ₹5,000 before either writes. Rahul calculates ₹1,000; Pooja calculates ₹2,000 (₹5,000 − ₹3,000). If Rahul writes first and Pooja writes last, the final stored balance becomes ₹2,000 — not −₹2,000. The key bug is the lost update, not necessarily an overdraft.</div>
+<h3>Step-by-step: how the lost update occurs</h3>
+<table><thead><tr><th>Order</th><th>Rahul (T1)</th><th>Pooja (T2)</th><th>Stored balance</th></tr></thead><tbody>
+<tr><td>1</td><td>Reads ₹5,000</td><td>—</td><td>₹5,000</td></tr>
+<tr><td>2</td><td>Calculates ₹1,000 locally</td><td>Reads ₹5,000</td><td>₹5,000</td></tr>
+<tr><td>3</td><td>—</td><td>Calculates ₹2,000 locally</td><td>₹5,000</td></tr>
+<tr><td>4</td><td>Writes ₹1,000</td><td>—</td><td>₹1,000</td></tr>
+<tr><td>5</td><td>—</td><td>Writes stale result ₹2,000</td><td><strong style="color:#b91c1c">₹2,000 (incorrect)</strong></td></tr>
+</tbody></table>
+<p><strong>Correct business result:</strong> Only one withdrawal can succeed. If Rahul's ₹4,000 withdrawal is processed first, the balance becomes ₹1,000 and Pooja's ₹3,000 request must be rejected.</p>
+<figure class="media-figure">
+<div class="media-head"><strong>Visual Guide — Race Condition in Java (Bank Account Example)</strong><div class="media-actions"><a class="media-link" href="racecondition.png" target="_blank" rel="noopener">🔍 View Full Image</a></div></div>
+<img src="racecondition.png" alt="Race Condition in Java with Bank Account Example">
+<figcaption class="media-caption"><strong>Two ways an unsynchronized race goes wrong:</strong> In the stale-overwrite trace above, both threads read ₹5,000 and the second write overwrites the first (leaving <code>₹2,000</code>). In the visual flow here, both pass the check before either updates and deduct consecutively, pushing the shared balance to <code>−₹2,000 (Incorrect!)</code> — whereas with synchronization, only Rahul's withdrawal succeeds and the balance stays <code>₹1,000</code>.</figcaption>
+</figure>
+</section>
 
-      <div class="alert-box alert-purple">
-        <span style="font-size: 1.5rem;">🧠</span>
-        <div>
-          <strong>The Golden Concurrency Rule:</strong><br />
-          <em>"When two or more threads concurrently access the <strong>same memory location (shared state)</strong>, and
-            at least one thread performs a <strong>write (mutable state)</strong> without synchronization, bugs and data
-            corruption are guaranteed to happen."</em>
-        </div>
-      </div>
+<section class="card">
+<div class="heading"><span class="num">03</span><h2>Critical section and mutual exclusion</h2></div>
+<div class="grid">
+<div class="panel warn"><h3>Critical section</h3><p>The part of the program that checks the balance and deducts the withdrawal amount.</p><p><code>if (balance &gt;= amount) balance -= amount;</code></p></div>
+<div class="panel success"><h3>Mutual exclusion</h3><p>Only one thread at a time is allowed inside the critical section for the same account object.</p><p>Think of one bank counter serving one customer at a time.</p></div>
+</div>
+<svg class="bank-visual" viewBox="0 0 1000 245" role="img" aria-label="Rahul enters the bank account lock while Pooja waits outside">
+<rect x="20" y="20" width="960" height="205" rx="16" fill="#f8fafc"/>
+<rect x="55" y="68" width="210" height="105" rx="14" fill="#dbeafe" stroke="#60a5fa" stroke-width="2"/><text x="160" y="108" text-anchor="middle" font-size="21" font-weight="700" fill="#1e40af">Rahul (T1)</text><text x="160" y="140" text-anchor="middle" font-size="17" fill="#172554">₹4,000 request</text>
+<path d="M265 120 H360" stroke="#2563eb" stroke-width="5"/><path d="M345 108 L360 120 L345 132" fill="none" stroke="#2563eb" stroke-width="5"/>
+<rect x="360" y="48" width="290" height="145" rx="16" fill="#dcfce7" stroke="#22c55e" stroke-width="3"/><text x="505" y="91" text-anchor="middle" font-size="22" font-weight="800" fill="#166534">🔒 LOCKED</text><text x="505" y="123" text-anchor="middle" font-size="18" fill="#14532d">Critical section</text><text x="505" y="153" text-anchor="middle" font-size="17" fill="#14532d">Check + deduct balance</text>
+<rect x="735" y="68" width="210" height="105" rx="14" fill="#fce7f3" stroke="#f472b6" stroke-width="2"/><text x="840" y="108" text-anchor="middle" font-size="21" font-weight="700" fill="#9d174d">Pooja (T2)</text><text x="840" y="140" text-anchor="middle" font-size="17" fill="#831843">BLOCKED / waiting</text>
+<path d="M735 120 H690" stroke="#db2777" stroke-width="4" stroke-dasharray="8 7"/>
+<text x="500" y="215" text-anchor="middle" font-size="15" fill="#475569">When Rahul exits, Java releases the monitor lock; Pooja can then acquire it.</text>
+</svg>
+</section>
 
-      <div class="grid-2" style="margin-top: 18px;">
-        <div style="background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 12px; padding: 20px;">
-          <h4 style="color: #166534; font-size: 1.05rem; margin-bottom: 8px;">✓ Thread-Safe: Stateless &amp; Immutable</h4>
-          <p style="font-size: 0.9rem; color: #14532d; line-height: 1.6;">
-            • If data is read-only (e.g. <code>final String name = "Java";</code>), hundreds of threads can read it simultaneously without any synchronization.<br />
-            • If threads only use local variables on their private call stacks, no interference can occur.
-          </p>
-        </div>
+<section class="card">
+<div class="heading"><span class="num">04</span><h2>How Java's synchronized keyword works</h2></div>
+<ol>
+<li>Before entering a <code>synchronized</code> method or block, a thread must acquire that object's monitor lock.</li>
+<li>If another thread already owns that same lock, the arriving thread waits in the Java <code>BLOCKED</code> state. It is not actively executing Java code while blocked.</li>
+<li>When the lock-owning thread exits the synchronized method/block, Java automatically releases the lock — including when it exits by throwing an exception.</li>
+<li>One of the waiting threads can then acquire the lock and continue. Java does not guarantee which waiting thread wins.</li>
+</ol>
+<div class="callout"><strong>Remember:</strong> <code>synchronized</code> protects the code only when competing threads use the <strong>same lock object</strong>. Synchronizing on two different account objects does not protect one shared balance.</div>
+<figure class="media-figure">
+<div class="media-head"><strong>Visual Guide — How the synchronized Keyword Works (Bank Account Withdrawal)</strong><div class="media-actions"><a class="media-link" href="synchronization-example.png" target="_blank" rel="noopener">🔍 View Full Image</a></div></div>
+<img src="synchronization-example.png" alt="How the synchronized Keyword Works - Bank Account Withdrawal Example">
+<figcaption class="media-caption"><strong>Step-by-step monitor lock flow:</strong> <strong>1.</strong> Thread 1 (Rahul) acquires the monitor lock and withdraws ₹4,000, reducing the balance from ₹5,000 to ₹1,000. <strong>2.</strong> Thread 2 (Pooja) transitions from <code>RUNNABLE</code> to <code>BLOCKED</code> (0% CPU) until the lock is free. <strong>3.</strong> Thread 1 releases the lock automatically on exit (even on exception), allowing Thread 2 to run and safely reject the ₹3,000 request, keeping the Final Balance at <code>₹1,000</code>.</figcaption>
+</figure>
+</section>
 
-        <div style="background: #fef2f2; border: 1.5px solid #fca5a5; border-radius: 12px; padding: 20px;">
-          <h4 style="color: #991b1b; font-size: 1.05rem; margin-bottom: 8px;">✗ Dangerous: Shared Mutable State</h4>
-          <p style="font-size: 0.9rem; color: #7f1d1d; line-height: 1.6;">
-            • When multiple threads read and modify shared heap fields (e.g. <code>counter++</code>, bank balance, shared lists).<br />
-            • Without locks, threads interleave unpredictably and overwrite each other's updates!
-          </p>
-        </div>
-      </div>
-    </div>
+<section class="card">
+<div class="heading"><span class="num">05</span><h2>Complete Java example — same bank account</h2></div>
+<p>Both threads share one <code>BankAccount</code> instance. The balance check and deduction happen inside one synchronized method.</p>
+<pre><code>class BankAccount {
+    private int balance = 5000;
 
-    <!-- ========================================================================= -->
-    <!-- SECTION 2: WHAT IS A RACE CONDITION? THE count++ ANATOMY                  -->
-    <!-- ========================================================================= -->
-    <div class="card">
-      <div class="section-title">
-        <span class="icon">🏎️</span>
-        <h2>2. What is a Race Condition? The Anatomy of count++</h2>
-        <span class="unit-tag" style="background: #fef2f2; color: #991b1b;">Core Concept</span>
-      </div>
-      <p>
-        A <strong>Race Condition</strong> occurs when the correct execution and output of a program depends on the
-        unpredictable relative timing or interleaving of threads.
-      </p>
+    public synchronized void withdraw(String name, int amount) {
+        System.out.println(name + " wants to withdraw Rs." + amount);
 
-      <h3 style="color: var(--primary-dark); margin: 20px 0 10px 0; font-size: 1.15rem;">Why is count++ NOT Atomic?</h3>
-      <p style="color: var(--text-muted); font-size: 0.95rem;">
-        In Java source code, <code>count++</code> appears as a single simple line. However, the Java compiler decomposes
-        it into <strong>three distinct, separate bytecode operations</strong>:
-      </p>
-
-      <div class="grid-3" style="margin: 16px 0;">
-        <div style="background: #f8fafc; border: 1px solid var(--card-border); border-radius: 12px; padding: 16px;">
-          <strong style="color: var(--primary-dark);">1. READ (ILOAD)</strong>
-          <p style="font-size: 0.88rem; color: var(--text-muted); margin-top: 6px;">
-            Fetch current value of <code>count</code> from main heap memory into CPU local register.
-          </p>
-        </div>
-
-        <div style="background: #f8fafc; border: 1px solid var(--card-border); border-radius: 12px; padding: 16px;">
-          <strong style="color: var(--primary-dark);">2. MODIFY (IADD)</strong>
-          <p style="font-size: 0.88rem; color: var(--text-muted); margin-top: 6px;">
-            Add 1 to the temporary register value inside the CPU ALU.
-          </p>
-        </div>
-
-        <div style="background: #f8fafc; border: 1px solid var(--card-border); border-radius: 12px; padding: 16px;">
-          <strong style="color: var(--primary-dark);">3. WRITE (ISTORE)</strong>
-          <p style="font-size: 0.88rem; color: var(--text-muted); margin-top: 6px;">
-            Write the updated register value back to the shared heap variable in RAM.
-          </p>
-        </div>
-      </div>
-
-      <!-- Interleaving Table -->
-      <h4 style="color: #991b1b; margin: 22px 0 10px 0;">The "Lost Update" Interleaving Anomaly:</h4>
-      <div class="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>Time</th>
-              <th>Thread 1 (Core 1)</th>
-              <th>Thread 2 (Core 2)</th>
-              <th>Shared count in Memory</th>
-              <th>What Happened?</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><code>T0</code></td>
-              <td>-</td>
-              <td>-</td>
-              <td><strong>10</strong></td>
-              <td>Initial state</td>
-            </tr>
-            <tr>
-              <td><code>T1</code></td>
-              <td>Reads <code>count</code> (sees 10)</td>
-              <td>-</td>
-              <td>10</td>
-              <td>Thread 1 loads 10 into its CPU register</td>
-            </tr>
-            <tr>
-              <td><code>T2</code></td>
-              <td>Preempted / Paused by OS</td>
-              <td>Reads <code>count</code> (sees 10)</td>
-              <td>10</td>
-              <td>Thread 2 also loads 10 into its CPU register!</td>
-            </tr>
-            <tr>
-              <td><code>T3</code></td>
-              <td>-</td>
-              <td>Adds 1 (11) &amp; writes <strong>11</strong> to RAM</td>
-              <td><strong style="color: #0284c7;">11</strong></td>
-              <td>Thread 2 finishes its increment</td>
-            </tr>
-            <tr>
-              <td><code>T4</code></td>
-              <td>Resumes: adds 1 (11) &amp; writes <strong>11</strong> to RAM</td>
-              <td>-</td>
-              <td><strong style="color: #dc2626;">11 (OVERWRITTEN!)</strong></td>
-              <td>Thread 1 overwrites RAM with 11! The increment is lost!</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <p style="font-size: 0.9rem; color: #991b1b; font-weight: 600; margin-top: 6px;">
-        ⚠️ Result: Both threads ran, but the final count is 11 instead of 12! One entire increment vanished into thin air!
-      </p>
-    </div>
-
-    <!-- ========================================================================= -->
-    <!-- SECTION 3: CRITICAL SECTION & MUTUAL EXCLUSION                            -->
-    <!-- ========================================================================= -->
-    <div class="card">
-      <div class="section-title">
-        <span class="icon">🛡️</span>
-        <h2>3. Critical Section &amp; Mutual Exclusion (Mutex)</h2>
-        <span class="unit-tag" style="background: #e0e7ff; color: var(--primary);">Concurrency Pillars</span>
-      </div>
-
-      <div class="grid-2">
-        <div style="background: #fffbeb; border: 1.5px solid #fde68a; border-radius: 12px; padding: 20px;">
-          <h4 style="color: #92400e; font-size: 1.1rem; margin-bottom: 8px;">🚧 What is a Critical Section?</h4>
-          <p style="font-size: 0.92rem; color: #78350f; line-height: 1.6;">
-            A <strong>Critical Section</strong> is the specific block of code that accesses, reads, or writes to shared
-            mutable data. To prevent race conditions, only <strong>one thread at a time</strong> may be permitted inside
-            the critical section.
-          </p>
-        </div>
-
-        <div style="background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 12px; padding: 20px;">
-          <h4 style="color: #166534; font-size: 1.1rem; margin-bottom: 8px;">🔒 What is Mutual Exclusion (Mutex)?</h4>
-          <p style="font-size: 0.92rem; color: #14532d; line-height: 1.6;">
-            <strong>Mutual Exclusion</strong> guarantees that while Thread A is executing inside the critical section,
-            all other threads are <strong>locked out</strong> and must wait until Thread A exits and unlocks the resource.
-          </p>
-        </div>
-      </div>
-
-      <!-- Diagram -->
-      <h4 style="color: var(--primary-dark); margin: 24px 0 10px 0;">Visualizing Mutual Exclusion (The Bathroom Lock Analogy):</h4>
-      <div class="diagram-card">
-   Thread 1 ─────────► [ ACQUIRES LOCK ] ──► [ Critical Section: count++ ] ──► [ RELEASES LOCK ]
-                              │
-   Thread 2 ─────────► [ Tries to enter ] 
-                              │
-                              ▼
-                     [ CANNOT ENTER! ] ──► State: BLOCKED (waits until Thread 1 releases lock)
-      </div>
-    </div>
-
-    <!-- ========================================================================= -->
-    <!-- SECTION 4: INTRINSIC LOCKS (MONITORS) & SYNCHRONIZED                      -->
-    <!-- ========================================================================= -->
-    <div class="card">
-      <div class="section-title">
-        <span class="icon">🔐</span>
-        <h2>4. Java's Solution: Intrinsic Locks &amp; synchronized Keyword</h2>
-        <span class="unit-tag" style="background: #dcfce7; color: #166534;">Core Mechanism</span>
-      </div>
-      <p>
-        In Java, every single object in memory (inheriting from <code>java.lang.Object</code>) has an associated hidden
-        lock called an <strong>Intrinsic Lock</strong> or <strong>Monitor Lock</strong>.
-      </p>
-
-      <div class="alert-box alert-info">
-        <span style="font-size: 1.5rem;">🔑</span>
-        <div>
-          <strong>How the synchronized Keyword Works:</strong><br />
-          1. Before entering a <code>synchronized</code> method or block, a thread <strong>must acquire the monitor lock</strong> of the target object.<br />
-          2. If the lock is already held by another thread, the arriving thread is automatically moved to the <strong><code>BLOCKED</code></strong> state (0% CPU).<br />
-          3. When the owning thread exits the synchronized block, it <strong>automatically releases the lock</strong> (even if an exception occurs!), allowing one waiting thread to acquire it and proceed.
-        </div>
-      </div>
-
-      <div class="code-block">
-        <div class="code-header">
-          <div class="code-file-badge">SynchronizedMethodExample.java</div>
-          <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
-        </div>
-        <pre><code class="language-java"><span class="tag-kw">class</span> <span class="tag-type">SafeCounter</span> {
-    <span class="tag-kw">private int</span> count = <span class="tag-num">0</span>;
-
-    <span class="tag-comment">// Adding 'synchronized' makes the entire method a protected Critical Section</span>
-    <span class="tag-kw">public synchronized void</span> <span class="tag-fn">increment</span>() {
-        count++; <span class="tag-comment">// Guaranteed to execute atomically with Mutual Exclusion!</span>
+        if (balance &gt;= amount) {
+            System.out.println(name + " is processing withdrawal...");
+            balance -= amount;
+            System.out.println(name + " withdrawal successful.");
+            System.out.println("Remaining balance: Rs." + balance);
+        } else {
+            System.out.println(name + ": Insufficient balance!");
+            System.out.println("Available balance: Rs." + balance);
+        }
     }
+}
 
-    <span class="tag-kw">public synchronized int</span> <span class="tag-fn">getCount</span>() {
-        <span class="tag-kw">return</span> count;
+public class BankSynchronizationDemo {
+    public static void main(String[] args) {
+        BankAccount account = new BankAccount();
+
+        Thread rahul = new Thread(
+            () -&gt; account.withdraw("Rahul", 4000)
+        );
+
+        Thread pooja = new Thread(
+            () -&gt; account.withdraw("Pooja", 3000)
+        );
+
+        rahul.start();
+        pooja.start();
     }
 }</code></pre>
-      </div>
-    </div>
+<div class="callout greenline"><strong>Possible correct outcome:</strong> If Rahul gets the lock first, he withdraws ₹4,000 and leaves ₹1,000. Pooja then sees ₹1,000 and her ₹3,000 request is rejected. If Pooja gets the lock first, her withdrawal succeeds and Rahul's request is rejected. Either way, the balance never becomes negative.</div>
+<p><strong>Important:</strong> The order of thread execution is not guaranteed, so either customer may be served first. The exact console line order can vary.</p>
+</section>
 
-    <!-- ========================================================================= -->
-    <!-- SECTION 5: INTERACTIVE RACE CONDITION STEP SIMULATOR                      -->
-    <!-- ========================================================================= -->
-    <div class="card">
-      <div class="section-title">
-        <span class="icon">🎮</span>
-        <h2>5. Interactive Race Condition Step Simulator</h2>
-        <span class="unit-tag" style="background: #e0e7ff; color: var(--primary);">Live Interactive</span>
-      </div>
-      <p style="margin-bottom: 16px;">
-        Click <strong>"Next Step ⏭"</strong> to watch Thread 1 and Thread 2 interleave their operations on a shared
-        counter and see how a lost update occurs in slow motion:
-      </p>
+<section class="card">
+<div class="heading"><span class="num">06</span><h2>Try the synchronized execution simulator</h2></div>
+<p>Step through one possible execution where Rahul acquires the lock first.</p>
+<div class="sim-box">
+<div class="grid">
+<div><div class="lead">Current account balance</div><div class="balance" id="balance">₹5,000</div></div>
+<div><div class="lead">Monitor lock owner</div><div class="balance" id="owner" style="font-size:1.25rem">Free</div></div>
+</div>
+<div class="sim-status" id="status">Press “Next step” to begin. Both requests target the same account object.</div>
+<div class="controls"><button onclick="nextStep()">Next step →</button><button class="secondary" onclick="resetSim()">Reset</button></div>
+<div id="log" class="panel" aria-live="polite">Ready: Rahul requests ₹4,000; Pooja requests ₹3,000.</div>
+</div>
+</section>
 
-      <div class="step-sim">
-        <div class="step-sim-header">
-          <div>
-            <span style="font-weight: 700; color: #38bdf8;">Simulation Step: </span>
-            <span id="sim-step-num" style="font-weight: 700; color: #fbbf24;">0 / 4</span>
-          </div>
-          <div style="display: flex; gap: 8px;">
-            <button class="back-btn" style="background: var(--primary); color: white; border: none; padding: 6px 14px; font-size: 0.85rem;"
-              onclick="nextSimStep()">Next Step ⏭</button>
-            <button class="back-btn" style="background: #334155; color: white; border: none; padding: 6px 14px; font-size: 0.85rem;"
-              onclick="resetSimStep()">Reset ↺</button>
-          </div>
-        </div>
+<section class="card">
+<div class="heading"><span class="num">07</span><h2>Common mistakes to avoid</h2></div>
+<div class="grid">
+<div class="panel danger"><h3>❌ Locking different objects</h3><p>If Rahul synchronizes on <code>accountA</code> and Pooja on <code>accountB</code>, they do not exclude each other when both modify the same shared data.</p></div>
+<div class="panel danger"><h3>❌ Protecting only the deduction</h3><p>The balance check and deduction must be protected together. Otherwise, both threads may pass the check using the same old balance.</p></div>
+<div class="panel warn"><h3>⚠️ Assuming a fixed thread order</h3><p>Synchronization guarantees mutual exclusion, not that Rahul always runs before Pooja.</p></div>
+<div class="panel success"><h3>✓ Forgetting to release the lock?</h3><p>With <code>synchronized</code>, Java releases the monitor automatically when the synchronized method/block exits, even due to an exception.</p></div>
+</div>
+</section>
 
-        <div class="sim-step-box" id="sim-box">
-&gt; Initial State: Shared count in RAM = 10.
-&gt; Both Thread 1 and Thread 2 are ready to execute count++.
-&gt; Click "Next Step ⏭" to observe the race condition!
-        </div>
-      </div>
-    </div>
+<section class="card">
+<div class="heading"><span class="num">08</span><h2>Quick revision questions</h2></div>
+<details><summary><strong>Q1. What is the shared resource in this example?</strong></summary><p>The <code>balance</code> field inside the single shared <code>BankAccount</code> object.</p></details>
+<details><summary><strong>Q2. Which statements form the critical section?</strong></summary><p>The balance check and the deduction. They must execute together under the same lock.</p></details>
+<details><summary><strong>Q3. What happens to Pooja if Rahul owns the monitor lock?</strong></summary><p>Pooja's thread becomes <code>BLOCKED</code> while trying to enter the synchronized method. It can proceed after acquiring the lock.</p></details>
+<details><summary><strong>Q4. Does synchronized guarantee Rahul withdraws first?</strong></summary><p>No. It guarantees that only one thread at a time enters the protected section on the same object. The order is not guaranteed.</p></details>
+<details><summary><strong>Q5. Does Java release the monitor if an exception occurs?</strong></summary><p>Yes. The monitor is released when control exits the synchronized method or block, including exceptional exit.</p></details>
+</section>
 
-    <!-- ========================================================================= -->
-    <!-- SECTION 6: COMPLETE VERIFIED JAVA DEMO                                    -->
-    <!-- ========================================================================= -->
-    <div class="card">
-      <div class="section-title">
-        <span class="icon">💻</span>
-        <h2>6. Complete Verified Java Demo: RaceConditionAndSyncDemo.java</h2>
-        <span class="unit-tag" style="background: #e0e7ff; color: var(--primary);">Verified Java 17 Demo</span>
-      </div>
-      <p>
-        The following self-contained Java program proves the race condition by comparing an unsynchronized counter
-        against a synchronized counter:
-      </p>
-
-      <div class="code-block">
-        <div class="code-header">
-          <div class="code-file-badge">RaceConditionAndSyncDemo.java</div>
-          <button class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
-        </div>
-        <pre><code class="language-java"><span class="tag-comment">/**
- * Race Conditions &amp; Thread Synchronization Demonstration
- * 
- * Demonstrates:
- * 1. A Race Condition with shared mutable state (count++)
- * 2. Why count++ is non-atomic (Read - Modify - Write)
- * 3. Fixing the race condition using Java synchronization (synchronized)
- */</span>
-<span class="tag-kw">public class</span> <span class="tag-type">RaceConditionAndSyncDemo</span> {
-
-    <span class="tag-comment">// Case 1: Unsynchronized Counter (Causes Race Condition)</span>
-    <span class="tag-kw">static class</span> <span class="tag-type">UnsafeCounter</span> {
-        <span class="tag-kw">private int</span> count = <span class="tag-num">0</span>;
-
-        <span class="tag-comment">// Non-atomic operation: 3 steps (read, increment, write)</span>
-        <span class="tag-kw">public void</span> <span class="tag-fn">increment</span>() {
-            count++;
-        }
-
-        <span class="tag-kw">public int</span> <span class="tag-fn">getCount</span>() {
-            <span class="tag-kw">return</span> count;
-        }
-    }
-
-    <span class="tag-comment">// Case 2: Synchronized Counter (Thread-Safe)</span>
-    <span class="tag-kw">static class</span> <span class="tag-type">SafeCounter</span> {
-        <span class="tag-kw">private int</span> count = <span class="tag-num">0</span>;
-
-        <span class="tag-comment">// Synchronized: only 1 thread can execute this method at a time</span>
-        <span class="tag-kw">public synchronized void</span> <span class="tag-fn">increment</span>() {
-            count++;
-        }
-
-        <span class="tag-kw">public synchronized int</span> <span class="tag-fn">getCount</span>() {
-            <span class="tag-kw">return</span> count;
-        }
-    }
-
-    <span class="tag-kw">public static void</span> <span class="tag-fn">main</span>(<span class="tag-type">String</span>[] args) <span class="tag-kw">throws</span> <span class="tag-type">InterruptedException</span> {
-        System.out.println(<span class="tag-str">"=========================================================="</span>);
-        System.out.println(<span class="tag-str">"     RACE CONDITIONS &amp; SYNCHRONIZATION DEMONSTRATION      "</span>);
-        System.out.println(<span class="tag-str">"=========================================================="</span>);
-
-        <span class="tag-kw">final int</span> INCREMENTS_PER_THREAD = <span class="tag-num">10000</span>;
-
-        <span class="tag-comment">// --- PART 1: UNSYNCHRONIZED (RACE CONDITION) ---</span>
-        System.out.println(<span class="tag-str">"\n--- PART 1: Unsafe Counter (No Synchronization) ---"</span>);
-        <span class="tag-type">UnsafeCounter</span> unsafeCounter = <span class="tag-kw">new</span> <span class="tag-type">UnsafeCounter</span>();
-
-        <span class="tag-type">Thread</span> t1 = <span class="tag-kw">new</span> <span class="tag-type">Thread</span>(() -&gt; {
-            <span class="tag-kw">for</span> (<span class="tag-kw">int</span> i = <span class="tag-num">0</span>; i &lt; INCREMENTS_PER_THREAD; i++) unsafeCounter.<span class="tag-fn">increment</span>();
-        });
-
-        <span class="tag-type">Thread</span> t2 = <span class="tag-kw">new</span> <span class="tag-type">Thread</span>(() -&gt; {
-            <span class="tag-kw">for</span> (<span class="tag-kw">int</span> i = <span class="tag-num">0</span>; i &lt; INCREMENTS_PER_THREAD; i++) unsafeCounter.<span class="tag-fn">increment</span>();
-        });
-
-        t1.<span class="tag-fn">start</span>();
-        t2.<span class="tag-fn">start</span>();
-        t1.<span class="tag-fn">join</span>();
-        t2.<span class="tag-fn">join</span>();
-
-        System.out.println(<span class="tag-str">"  Expected Count: "</span> + (INCREMENTS_PER_THREAD * <span class="tag-num">2</span>));
-        System.out.println(<span class="tag-str">"  Actual Count  : "</span> + unsafeCounter.<span class="tag-fn">getCount</span>());
-        <span class="tag-kw">if</span> (unsafeCounter.<span class="tag-fn">getCount</span>() &lt; INCREMENTS_PER_THREAD * <span class="tag-num">2</span>) {
-            System.out.println(<span class="tag-str">"  &gt;&gt; RACE CONDITION DETECTED! Lost updates occurred."</span>);
-        }
-
-        <span class="tag-comment">// --- PART 2: SYNCHRONIZED (THREAD-SAFE) ---</span>
-        System.out.println(<span class="tag-str">"\n--- PART 2: Safe Counter (With Synchronization) ---"</span>);
-        <span class="tag-type">SafeCounter</span> safeCounter = <span class="tag-kw">new</span> <span class="tag-type">SafeCounter</span>();
-
-        <span class="tag-type">Thread</span> t3 = <span class="tag-kw">new</span> <span class="tag-type">Thread</span>(() -&gt; {
-            <span class="tag-kw">for</span> (<span class="tag-kw">int</span> i = <span class="tag-num">0</span>; i &lt; INCREMENTS_PER_THREAD; i++) safeCounter.<span class="tag-fn">increment</span>();
-        });
-
-        <span class="tag-type">Thread</span> t4 = <span class="tag-kw">new</span> <span class="tag-type">Thread</span>(() -&gt; {
-            <span class="tag-kw">for</span> (<span class="tag-kw">int</span> i = <span class="tag-num">0</span>; i &lt; INCREMENTS_PER_THREAD; i++) safeCounter.<span class="tag-fn">increment</span>();
-        });
-
-        t3.<span class="tag-fn">start</span>();
-        t4.<span class="tag-fn">start</span>();
-        t3.<span class="tag-fn">join</span>();
-        t4.<span class="tag-fn">join</span>();
-
-        System.out.println(<span class="tag-str">"  Expected Count: "</span> + (INCREMENTS_PER_THREAD * <span class="tag-num">2</span>));
-        System.out.println(<span class="tag-str">"  Actual Count  : "</span> + safeCounter.<span class="tag-fn">getCount</span>());
-        System.out.println(<span class="tag-str">"  &gt;&gt; SUCCESS: Synchronized access guaranteed 100% correctness!"</span>);
-        System.out.println(<span class="tag-str">"=========================================================="</span>);
-    }
-}</code></pre>
-      </div>
-
-      <!-- Live Actual Execution Output -->
-      <h4 style="color: var(--primary-dark); margin: 18px 0 8px 0;">Actual Execution Console Output:</h4>
-      <div class="output-box">
-==========================================================
-     RACE CONDITIONS &amp; SYNCHRONIZATION DEMONSTRATION      
-==========================================================
-
---- PART 1: Unsafe Counter (No Synchronization) ---
-  Expected Count: 20000
-  Actual Count  : <span class="out-red">12289</span>
-  <span class="out-red">&gt;&gt; RACE CONDITION DETECTED! Lost updates occurred.</span>
-
---- PART 2: Safe Counter (With Synchronization) ---
-  Expected Count: 20000
-  Actual Count  : <span class="out-green">20000</span>
-  <span class="out-green">&gt;&gt; SUCCESS: Synchronized access guaranteed 100% correctness!</span>
-==========================================================
-      </div>
-    </div>
-
-    <!-- ========================================================================= -->
-    <!-- SECTION 7: COMMON PITFALLS & MISTAKES                                     -->
-    <!-- ========================================================================= -->
-    <div class="card">
-      <div class="section-title">
-        <span class="icon">⚠️</span>
-        <h2>7. Common Pitfalls &amp; Mistakes to Avoid</h2>
-        <span class="unit-tag" style="background: #fef2f2; color: #991b1b;">Crucial Rules</span>
-      </div>
-
-      <div class="grid-2">
-        <div style="background: #fffbeb; border: 1.5px solid #fde68a; border-radius: 12px; padding: 20px;">
-          <h4 style="color: #92400e; margin-bottom: 8px;">❌ Pitfall 1: Assuming 1 line in Java is Atomic</h4>
-          <p style="font-size: 0.9rem; color: #78350f; line-height: 1.6;">
-            Writing <code>count++</code> or <code>count += 5</code> looks like a single instruction, but translates to 3 or more CPU instructions. Without synchronization, context switches between read and write cause silent data loss.
-          </p>
-        </div>
-
-        <div style="background: #fffbeb; border: 1.5px solid #fde68a; border-radius: 12px; padding: 20px;">
-          <h4 style="color: #92400e; margin-bottom: 8px;">❌ Pitfall 2: Synchronizing on Different Lock Objects</h4>
-          <p style="font-size: 0.9rem; color: #78350f; line-height: 1.6;">
-            If Thread 1 locks on <code>objectA</code> and Thread 2 locks on <code>objectB</code>, there is <strong>zero mutual exclusion</strong>! Both threads acquire their own separate locks and enter the critical section simultaneously.
-          </p>
-        </div>
-
-        <div style="background: #fffbeb; border: 1.5px solid #fde68a; border-radius: 12px; padding: 20px;">
-          <h4 style="color: #92400e; margin-bottom: 8px;">❌ Pitfall 3: Over-Synchronization</h4>
-          <p style="font-size: 0.9rem; color: #78350f; line-height: 1.6;">
-            Synchronizing entire classes or methods that perform slow I/O or network calls forces all threads into sequential bottlenecks, destroying multi-core performance gains. Keep synchronized sections as short as possible.
-          </p>
-        </div>
-
-        <div style="background: #fffbeb; border: 1.5px solid #fde68a; border-radius: 12px; padding: 20px;">
-          <h4 style="color: #92400e; margin-bottom: 8px;">❌ Pitfall 4: Synchronizing Only the Write, Not the Read</h4>
-          <p style="font-size: 0.9rem; color: #78350f; line-height: 1.6;">
-            If you synchronize <code>increment()</code> but leave <code>getCount()</code> unsynchronized, reader threads can observe stale, half-written data due to CPU caching. Both reads and writes must be synchronized on the same lock.
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <!-- ========================================================================= -->
-    <!-- SECTION 8: FREQUENTLY ASKED QUESTIONS & INTERVIEW CONCEPTS                -->
-    <!-- ========================================================================= -->
-    <div class="card">
-      <div class="section-title">
-        <span class="icon">🎓</span>
-        <h2>8. Frequently Asked Questions &amp; Interview Concepts</h2>
-        <span class="unit-tag" style="background: #e0e7ff; color: var(--primary);">Interview Preparation</span>
-      </div>
-      <p style="margin-bottom: 16px;">
-        Click any question to reveal the comprehensive interview-grade answer:
-      </p>
-
-      <div class="qa-box">
-        <div class="qa-q" onclick="toggleQA(this)">
-          <span>Q1. What is a Race Condition in Java?</span>
-          <span>▼</span>
-        </div>
-        <div class="qa-a">
-          <strong>Answer:</strong> A <strong>Race Condition</strong> is a concurrency bug where the final outcome of an operation depends on the non-deterministic timing, order, or execution speed of multiple threads accessing shared mutable state without proper synchronization.
-        </div>
-      </div>
-
-      <div class="qa-box">
-        <div class="qa-q" onclick="toggleQA(this)">
-          <span>Q2. Why is the increment operator (count++) not thread-safe?</span>
-          <span>▼</span>
-        </div>
-        <div class="qa-a">
-          <strong>Answer:</strong> Because <code>count++</code> is <strong>not atomic</strong>. It is composed of three distinct bytecode instructions: (1) read value from memory into register, (2) add 1 to the register, and (3) write updated value back to memory. If a thread is preempted between the read and write steps, other threads read stale data and overwrite the value, leading to lost updates.
-        </div>
-      </div>
-
-      <div class="qa-box">
-        <div class="qa-q" onclick="toggleQA(this)">
-          <span>Q3. What is an Intrinsic Lock (Monitor Lock) in Java?</span>
-          <span>▼</span>
-        </div>
-        <div class="qa-a">
-          <strong>Answer:</strong> In Java, every single object instantiated on the Heap implicitly contains an internal synchronization entity called an <strong>Intrinsic Lock</strong> or <strong>Monitor Lock</strong>. When a thread enters a <code>synchronized</code> block guarded by that object, it claims ownership of that object's lock. Any other thread attempting to synchronize on that same object is blocked until the lock is released.
-        </div>
-      </div>
-
-      <div class="qa-box">
-        <div class="qa-q" onclick="toggleQA(this)">
-          <span>Q4. What state does a thread transition to when waiting for an intrinsic lock?</span>
-          <span>▼</span>
-        </div>
-        <div class="qa-a">
-          <strong>Answer:</strong> The thread transitions to the <strong><code>BLOCKED</code></strong> state (defined in <code>java.lang.Thread.State.BLOCKED</code>). In this state, the thread consumes 0% CPU while parked by the JVM. As soon as the lock holder exits the synchronized block, the JVM awakens a blocked thread and transitions it back to <code>RUNNABLE</code>.
-        </div>
-      </div>
-
-      <div class="qa-box">
-        <div class="qa-q" onclick="toggleQA(this)">
-          <span>Q5. Does Java release an intrinsic lock if an unhandled Exception is thrown inside synchronized?</span>
-          <span>▼</span>
-        </div>
-        <div class="qa-a">
-          <strong>Answer:</strong> <strong>Yes!</strong> This is one of the greatest safety features of the <code>synchronized</code> keyword. The JVM automatically generates a bytecode `monitorexit` instruction inside a hidden finally block. Even if a <code>RuntimeException</code> or `Error` occurs inside the synchronized block, the lock is guaranteed to be released, preventing permanent lock freezes.
-        </div>
-      </div>
-    </div>
-
-    <!-- ========================================================================= -->
-    <!-- SECTION 9: CORE SUMMARY & KEY TAKEAWAYS                                   -->
-    <!-- ========================================================================= -->
-    <div class="card" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-color: #86efac;">
-      <h3 style="color: #166534; margin-bottom: 12px; font-size: 1.25rem;">📌 Core Summary &amp; Key Takeaways</h3>
-      <ul style="padding-left: 20px; color: #14532d; line-height: 1.8; font-size: 0.95rem;">
-        <li><strong>Root Cause:</strong> Shared Mutable State without synchronization leads to race conditions.</li>
-        <li><strong>Non-Atomicity:</strong> <code>count++</code> is 3 steps (read-modify-write); thread preemption causes lost updates.</li>
-        <li><strong>Critical Section:</strong> Code accessing shared mutable state that must execute with Mutual Exclusion.</li>
-        <li><strong>Intrinsic Locks:</strong> Every Java object has a built-in monitor lock used by <code>synchronized</code>.</li>
-        <li><strong>Automatic Lock Release:</strong> Synchronized locks are released normally on exit or automatically on exceptions.</li>
-      </ul>
-    </div>
-
-    <!-- Bottom Page Navigation -->
-    <div class="page-nav">
-      <a href="thread_lifecycle.html" class="nav-btn-link">← Prev: Thread Lifecycle &amp; States</a>
-      <a href="../index.html" class="nav-btn-link">🏠 Java Curriculum Index</a>
-      <a href="synchronized_methods_blocks.html" class="nav-btn-link">Next: Synchronized Methods &amp; Blocks →</a>
-    </div>
-  </div>
-
-  <!-- Interactive Scripts -->
-  <script>
-    // Copy Code Helper
-    function copyCode(btn) {
-      const codeBlock = btn.closest('.code-block');
-      const codeEl = codeBlock.querySelector('code, pre');
-      const text = codeEl ? codeEl.innerText : '';
-      navigator.clipboard.writeText(text).then(() => {
-        const orig = btn.innerText;
-        btn.innerText = '✓ Copied!';
-        btn.classList.add('copied');
-        setTimeout(() => {
-          btn.innerText = orig;
-          btn.classList.remove('copied');
-        }, 2000);
-      });
-    }
-
-    // QA Accordion Toggle
-    function toggleQA(el) {
-      const ans = el.nextElementSibling;
-      const arrow = el.querySelector('span:last-child');
-      if (ans.style.display === 'none' || !ans.style.display) {
-        ans.style.display = 'block';
-        if (arrow) arrow.innerText = '▲';
-      } else {
-        ans.style.display = 'none';
-        if (arrow) arrow.innerText = '▼';
-      }
-    }
-
-    // Initialize all QA answers to hidden
-    document.addEventListener("DOMContentLoaded", () => {
-      document.querySelectorAll('.qa-a').forEach(a => a.style.display = 'none');
-    });
-
-    // Step Simulator
-    let simStep = 0;
-    const simSteps = [
-      `[T0: Initial State]
-Shared RAM count = 10.
-Thread 1 (Core 1) & Thread 2 (Core 2) are ready to execute count++.`,
-
-      `[T1: Thread 1 Reads]
-• Thread 1 executes ILOAD: reads count from RAM into its local register.
-• Thread 1 local register = 10.
-• Shared count in RAM = 10.
-• (Now OS preempts Thread 1 and gives CPU to Thread 2!)`,
-
-      `[T2: Thread 2 Reads]
-• Thread 2 executes ILOAD: reads count from RAM into its local register.
-• Thread 2 local register = 10.
-• Both threads now believe count is 10!`,
-
-      `[T3: Thread 2 Increments and Writes]
-• Thread 2 adds 1: local register = 11.
-• Thread 2 writes 11 back to RAM (ISTORE).
-• Shared count in RAM = 11. Thread 2 finished.`,
-
-      `[T4: Thread 1 Resumes & OVERWRITES!]
-• Thread 1 wakes up with its old register value: 10 + 1 = 11.
-• Thread 1 writes 11 to RAM (ISTORE).
-• Shared count in RAM = 11!
-⚠️ BUG: Two threads incremented, but final count is 11 instead of 12! ONE UPDATE WAS LOST!`
-    ];
-
-    function nextSimStep() {
-      if (simStep < simSteps.length - 1) {
-        simStep++;
-        document.getElementById('sim-step-num').innerText = `${simStep} / 4`;
-        document.getElementById('sim-box').innerText = simSteps[simStep];
-      }
-    }
-
-    function resetSimStep() {
-      simStep = 0;
-      document.getElementById('sim-step-num').innerText = `0 / 4`;
-      document.getElementById('sim-box').innerText = simSteps[0];
-    }
-  </script>
-</body>
-
-</html>
-
+<section class="card" style="background:#ecfdf5;border-color:#86efac">
+<h2 style="color:#166534;margin-top:0">Key takeaway</h2>
+<p><strong>One shared account → one monitor lock → one withdrawal operation at a time.</strong></p>
+<p>Without synchronization, overlapping balance checks and updates can cause a race condition. With <code>synchronized</code>, the balance check and deduction are protected as one critical section.</p>
+</section>
+<div class="footer">Java Multithreading • Race Conditions &amp; Synchronization • Bank Account Case Study</div>
+</div>
+<script>
+let step=0,balance=5000,owner="Free",logs=[];
+const events=[
+["Rahul (T1) acquires the account monitor lock.","Rahul (T1)","Rahul entered the synchronized withdraw() method. Pooja must wait for this same lock."],
+["Rahul checks ₹5,000 and withdraws ₹4,000.","Rahul (T1)","Rahul's withdrawal succeeds. New balance: ₹1,000. Rahul still owns the lock until the method exits."],
+["Rahul exits the method; Java releases the lock.","Free","The monitor lock is now free. Pooja can compete to acquire it."],
+["Pooja (T2) acquires the lock and checks the balance.","Pooja (T2)","Pooja sees the updated balance of ₹1,000 — not the old ₹5,000."],
+["Pooja's ₹3,000 request is rejected; method exits.","Free","Insufficient balance. The balance remains ₹1,000. Pooja exits and releases the lock."]
+];
+function render(){document.getElementById("balance").textContent="₹"+balance.toLocaleString("en-IN");document.getElementById("owner").textContent=owner;document.getElementById("status").textContent=step===0?"Press “Next step” to begin.":events[step-1][0];document.getElementById("log").textContent=logs.length?logs.join("\n"):"Ready: Rahul requests ₹4,000; Pooja requests ₹3,000."}
+function nextStep(){if(step>=events.length)return;step++;if(step===2)balance=1000;owner=events[step-1][1];logs.push("Step "+step+": "+events[step-1][2]);render()}
+function resetSim(){step=0;balance=5000;owner="Free";logs=[];render()}
+render();
+</script>
+</body></html>
