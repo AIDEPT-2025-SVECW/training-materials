@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deadlock in Java — Cause, Visual Diagram &amp; Prevention</title>
+<style>
+:root{
+  --navy:#172554;
+  --blue:#2563eb;
+  --blue2:#dbeafe;
+  --green:#15803d;
+  --green2:#dcfce7;
+  --red:#b91c1c;
+  --red2:#fee2e2;
+  --amber:#b45309;
+  --amber2:#fef3c7;
+  --purple:#6d28d9;
+  --ink:#172033;
+  --muted:#526078;
+  --line:#dbe3ef;
+  --paper:#f5f7fb;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.65 system-ui,-apple-system,Segoe UI,sans-serif}
+.container{max-width:1120px;margin:auto;padding:20px 18px 50px}
+
+.top-nav{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.nav-pill{display:inline-flex;align-items:center;gap:6px;background:#fff;color:var(--navy);text-decoration:none;padding:8px 16px;border-radius:99px;font-weight:700;font-size:.9rem;border:1px solid var(--line);box-shadow:0 3px 10px #1725540a;transition:.2s}
+.nav-pill:hover{background:var(--blue);color:#fff;border-color:var(--blue)}
+.unit-badge{background:#fff;color:#3730a3;padding:6px 14px;border-radius:99px;font-size:.85rem;font-weight:700;border:1px solid #c7d2fe}
+
+.hero{background:linear-gradient(125deg,#172554,#4338ca,#991b1b);color:#fff;border-radius:22px;padding:36px 28px;text-align:center;box-shadow:0 14px 35px #17255422}
+.hero h1{font-size:clamp(1.8rem,4vw,2.65rem);line-height:1.15;margin:0 0 12px}
+.hero p{max-width:860px;margin:0 auto 18px;color:#e0e7ff}
+.pills{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.pill{background:#ffffff20;border:1px solid #ffffff55;padding:5px 12px;border-radius:99px;font-size:.85rem}
+
+.card{background:#fff;border:1px solid var(--line);border-radius:17px;padding:26px;margin:22px 0;box-shadow:0 5px 18px #1725540b}
+.heading{display:flex;align-items:center;gap:12px;border-bottom:2px solid #eef2f7;padding-bottom:12px;margin-bottom:18px;flex-wrap:wrap}
+.heading .num{background:#e0e7ff;color:#3730a3;border-radius:12px;padding:6px 12px;font-weight:800}
+.heading h2{margin:0;color:var(--navy);font-size:1.35rem}
+.lead{color:var(--muted);font-size:.92rem}
+
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.panel{padding:17px;border-radius:14px;border:1px solid var(--line);background:#fbfdff}
+.danger{background:var(--red2);border-color:#fecaca}
+.success{background:var(--green2);border-color:#bbf7d0}
+.info{background:var(--blue2);border-color:#bfdbfe}
+.warn{background:var(--amber2);border-color:#fde68a}
+
+h3{margin:0 0 8px;color:var(--navy)}
+p{margin:9px 0}
+ul,ol{padding-left:22px}
+li{margin:6px 0}
+
+.tag{display:inline-block;padding:3px 10px;border-radius:99px;font-weight:700;font-size:.8rem}
+.tag.red{background:#fee2e2;color:#991b1b}
+.tag.green{background:#dcfce7;color:#166534}
+.tag.blue{background:#dbeafe;color:#1e40af}
+.tag.amber{background:#fef3c7;color:#92400e}
+
+code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;background:#eef2ff;color:#312e81;padding:2px 6px;border-radius:5px;font-size:.92em}
+.code-block{margin:14px 0;border-radius:13px;overflow:hidden;border:1px solid #1e293b;background:#0b1220}
+.code-bar{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:#111c32;border-bottom:1px solid #1e293b;color:#cbd5e1;font:600 .86rem ui-monospace,Consolas,monospace}
+.copy-btn{border:1px solid #334155;background:#1e293b;color:#f8fafc;padding:5px 12px;border-radius:8px;font-size:.8rem;font-weight:700;cursor:pointer}
+.copy-btn:hover{background:var(--blue);border-color:var(--blue)}
+pre{background:#0b1220;color:#e5edf8;padding:18px;margin:0;overflow:auto;font:13.5px/1.6 ui-monospace,Consolas,monospace;white-space:pre}
+pre code{background:none;color:inherit;padding:0}
+.output-box{background:#091426;color:#cbd5e1;border-radius:12px;padding:16px 18px;font:13.5px/1.6 ui-monospace,Consolas,monospace;overflow:auto;white-space:pre;border:1px solid #1e293b}
+
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:.94rem}
+th,td{border:1px solid var(--line);padding:10px 12px;text-align:left;vertical-align:top}
+th{background:#eff4ff;color:#1e3a8a}
+
+.callout{border-left:5px solid var(--blue);background:#eff6ff;padding:14px 17px;border-radius:8px;margin:14px 0}
+.callout.redline{border-color:var(--red);background:#fff1f2}
+.callout.greenline{border-color:var(--green);background:#f0fdf4}
+.callout.amberline{border-color:var(--amber);background:#fffbeb}
+
+.media-figure{margin:18px 0 6px;padding:16px;border-radius:14px;border:1px solid var(--line);background:#fbfdff}
+.media-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.media-head strong{color:var(--navy);font-size:1rem}
+.media-link{display:inline-block;padding:5px 11px;border-radius:8px;background:#eef2ff;color:#312e81;text-decoration:none;font-size:.82rem;font-weight:700;border:1px solid #c7d2fe}
+.media-link:hover{background:var(--blue);color:#fff;border-color:var(--blue)}
+.media-figure img{width:100%;height:auto;max-height:620px;object-fit:contain;display:block;border-radius:10px;border:1px solid var(--line);background:#fff}
+.media-caption{margin:10px 0 0;color:var(--muted);font-size:.92rem;line-height:1.55}
+
+.precaution-card{border:1px solid var(--line);border-left:5px solid var(--green);border-radius:12px;padding:16px 18px;margin:12px 0;background:#fcfefe}
+.precaution-title{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.precaution-title h3{margin:0;color:var(--navy);font-size:1.06rem}
+
+.controls{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
+button.btn{border:0;background:var(--blue);color:#fff;padding:10px 16px;border-radius:9px;font-weight:700;cursor:pointer;font-size:.92rem}
+button.btn:hover{filter:brightness(1.06)}
+button.btn.secondary{background:#475569}
+button.btn.mode{background:#e2e8f0;color:#1e293b}
+button.btn.mode.active-unsafe{background:var(--red);color:#fff}
+button.btn.mode.active-safe{background:var(--green);color:#fff}
+
+.sim-box{background:#f8fafc;border:1px solid var(--line);border-radius:14px;padding:18px}
+.sim-status{font-weight:700;margin:12px 0;padding:12px 14px;border-radius:10px;background:#fff;border:1px solid var(--line);color:var(--navy);min-height:50px}
+.sim-log{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px;font:13.5px/1.6 ui-monospace,Consolas,monospace;white-space:pre-line;color:#1e293b}
+.metric-val{font-size:1.25rem;font-weight:800;color:var(--navy)}
+
+details{border:1px solid var(--line);border-radius:11px;padding:12px 16px;margin:10px 0;background:#fbfdff}
+details summary{cursor:pointer;color:var(--navy)}
+details[open]{background:#fff}
+
+.page-nav{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:24px}
+.footer{color:var(--muted);text-align:center;font-size:.88rem;padding:18px 0 0}
+
+@media(max-width:760px){
+  .grid,.grid3{grid-template-columns:1fr}
+  .card{padding:18px}
+  .hero{padding:28px 18px}
+  table{font-size:.84rem}
+  th,td{padding:8px}
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <nav class="top-nav" aria-label="Top navigation">
+    <a class="nav-pill" href="../index.html">← Back to Java Index</a>
+    <span class="unit-badge">Multi-Threading • Deadlock &amp; Prevention</span>
+  </nav>
+
+  <header class="hero">
+    <h1>Deadlock in Java — Why It Occurs &amp; How to Prevent It</h1>
+    <p>When synchronization protects a single account, it stops race conditions. When two threads acquire two locks in opposite order, they freeze each other forever. Learn how deadlock happens and every precaution to prevent it.</p>
+    <div class="pills">
+      <span class="pill">Deadlock Definition</span>
+      <span class="pill">Circular Wait</span>
+      <span class="pill">4 Coffman Conditions</span>
+      <span class="pill">Lock Ordering</span>
+      <span class="pill">ReentrantLock tryLock()</span>
+      <span class="pill">Deadlock vs Starvation vs Livelock</span>
+    </div>
+  </header>
+
+  <!-- SECTION 01 -->
+  <section class="card">
+    <div class="heading"><span class="num">01</span><h2>What is a Deadlock Situation?</h2></div>
+    <p>A <strong>deadlock</strong> occurs when <strong>two or more threads are permanently blocked</strong> because each thread is holding a lock that another thread needs, and neither thread can proceed until the other releases its lock.</p>
+
+    <div class="grid">
+      <div class="panel info">
+        <h3>🏦 Real-World Banking Example</h3>
+        <p>Continuing our bank account story with two separate accounts:</p>
+        <ul>
+          <li><strong>Rahul's Account (ID 101):</strong> ₹10,000 balance <span class="tag blue">Lock A</span></li>
+          <li><strong>Pooja's Account (ID 102):</strong> ₹8,000 balance <span class="tag amber">Lock B</span></li>
+        </ul>
+      </div>
+      <div class="panel warn">
+        <h3>⚡ Two Simultaneous UPI / Fund Transfers</h3>
+        <p><strong>Thread 1 (Transfer-1):</strong> Transfer ₹2,000 from <strong>Rahul → Pooja</strong><br><span class="lead">Locks Rahul (A) first, then tries to lock Pooja (B).</span></p>
+        <p><strong>Thread 2 (Transfer-2):</strong> Transfer ₹1,500 from <strong>Pooja → Rahul</strong><br><span class="lead">Locks Pooja (B) first, then tries to lock Rahul (A).</span></p>
+      </div>
+    </div>
+
+    <div class="callout redline">
+      <strong>What happens at runtime when a Java deadlock strikes?</strong>
+      <ul>
+        <li><strong>No Exception is thrown:</strong> Java will <em>not</em> throw an error like <code>DeadlockException</code>.</li>
+        <li><strong>Program hangs indefinitely:</strong> Both non-daemon threads stay in the <code>BLOCKED</code> state forever, so the JVM never terminates.</li>
+        <li><strong>Near 0% CPU usage:</strong> Unlike an infinite loop, deadlocked threads simply sleep waiting for a lock release that never happens.</li>
+      </ul>
+    </div>
+
+    <p><strong>Everyday Indian road analogy:</strong> Think of two cars meeting nose-to-nose on a narrow single-lane flyover where neither car has space to reverse. Neither driver is broken, yet neither can move forward until the other gives way — both stay stuck indefinitely.</p>
+  </section>
+
+  <!-- SECTION 02 -->
+  <section class="card">
+    <div class="heading"><span class="num">02</span><h2>Why Does Deadlock Occur? (Visual Diagram &amp; 4 Conditions)</h2></div>
+    <p>Deadlock is triggered by an unfortunate <strong>thread interleaving</strong> where locks are acquired in opposite order:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Step</th>
+          <th>Thread 1 (Transfer-1: Rahul → Pooja)</th>
+          <th>Thread 2 (Transfer-2: Pooja → Rahul)</th>
+          <th>Lock A (Rahul)</th>
+          <th>Lock B (Pooja)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td>Acquires <strong>Lock A (Rahul)</strong></td>
+          <td>—</td>
+          <td><span class="tag blue">Held by T1</span></td>
+          <td><span class="tag green">Free</span></td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td>Working / paused briefly</td>
+          <td>Acquires <strong>Lock B (Pooja)</strong></td>
+          <td><span class="tag blue">Held by T1</span></td>
+          <td><span class="tag amber">Held by T2</span></td>
+        </tr>
+        <tr>
+          <td>3</td>
+          <td>Tries to acquire <strong>Lock B</strong> → <span class="tag red">BLOCKED</span></td>
+          <td>Working / paused briefly</td>
+          <td><span class="tag blue">Held by T1</span></td>
+          <td><span class="tag amber">Held by T2</span></td>
+        </tr>
+        <tr>
+          <td>4</td>
+          <td>Still <span class="tag red">BLOCKED forever</span> (keeps holding A)</td>
+          <td>Tries to acquire <strong>Lock A</strong> → <span class="tag red">BLOCKED forever</span></td>
+          <td colspan="2"><strong style="color:var(--red)">DEADLOCK! Circular Wait Cycle formed (T1 ↔ T2)</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <figure class="media-figure">
+      <div class="media-head">
+        <strong>Visual Guide — Deadlock Cause (Circular Wait) vs. Prevention (Consistent Lock Ordering)</strong>
+        <a class="media-link" href="deadlock_diagram.jpg" target="_blank" rel="noopener">🔍 View Full Image</a>
+      </div>
+      <img src="deadlock_diagram.jpg" alt="Deadlock in Java Cause vs Prevention Infographic">
+      <figcaption class="media-caption">
+        <strong>Left (Why Deadlock Occurs):</strong> Thread 1 holds <code>Lock A (Rahul)</code> and waits for <code>Lock B</code>, while Thread 2 holds <code>Lock B (Pooja)</code> and waits for <code>Lock A</code> — creating a closed cycle where both remain <code>BLOCKED</code> forever.
+        <strong>Right (How Ordering Fixes It):</strong> When both threads strictly acquire <code>Lock A</code> before <code>Lock B</code>, no cycle can form and both transfers finish cleanly.
+      </figcaption>
+    </figure>
+
+    <h3>The 4 Necessary Conditions (Coffman Conditions)</h3>
+    <p>Computer science proves that a deadlock happens <strong>if and only if all 4 conditions hold simultaneously</strong>. Eliminating <em>even one</em> condition makes deadlock impossible:</p>
+
+    <div class="grid">
+      <div class="panel">
+        <h3>1. Mutual Exclusion</h3>
+        <p>Locks cannot be shared at the same time — only one thread can own an object's <code>synchronized</code> monitor lock at any moment.</p>
+      </div>
+      <div class="panel">
+        <h3>2. Hold and Wait</h3>
+        <p>A thread keeps holding at least one acquired lock (e.g., <code>Lock A</code>) while sitting blocked waiting to acquire a second lock (<code>Lock B</code>).</p>
+      </div>
+      <div class="panel">
+        <h3>3. No Preemption</h3>
+        <p>The JVM never forcibly strips a monitor lock away from a thread. Only the owning thread can release its lock by exiting the synchronized block.</p>
+      </div>
+      <div class="panel danger">
+        <h3>4. Circular Wait <span class="tag red">Key Trigger</span></h3>
+        <p>A closed chain exists: Thread 1 waits for a resource held by Thread 2, and Thread 2 waits for a resource held by Thread 1 (<code>T1 → T2 → T1</code>).</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 03 -->
+  <section class="card">
+    <div class="heading"><span class="num">03</span><h2>Deadlock Code Example &amp; Interactive Simulator</h2></div>
+    <p>Look how innocent the transfer method below appears — yet because parameters are swapped (<code>transfer(rahul, pooja)</code> vs <code>transfer(pooja, rahul)</code>), nested locking locks in reverse order:</p>
+
+    <div class="code-block">
+      <div class="code-bar">
+        <span>BankDeadlockDemo.java (Buggy Opposite-Order Locking)</span>
+        <button type="button" class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+      </div>
+      <pre><code>class TransferAccount {
+    final String owner;
+    int balance;
+
+    TransferAccount(String owner, int balance) {
+        this.owner = owner;
+        this.balance = balance;
+    }
+}
+
+public class BankDeadlockDemo {
+    static void unsafeTransfer(TransferAccount from, TransferAccount to, int amount) {
+        synchronized (from) { // Thread acquires 1st lock
+            System.out.println(Thread.currentThread().getName() + " locked " + from.owner);
+            try { Thread.sleep(50); } catch (InterruptedException ignored) {}
+
+            System.out.println(Thread.currentThread().getName() + " waiting for " + to.owner + "...");
+            synchronized (to) { // Deadlock happens right here!
+                from.balance -= amount;
+                to.balance += amount;
+                System.out.println("Transferred Rs." + amount);
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        TransferAccount rahul = new TransferAccount("Rahul", 10000);
+        TransferAccount pooja = new TransferAccount("Pooja", 8000);
+
+        // Thread 1 locks Rahul first, then waits for Pooja
+        new Thread(() -&gt; unsafeTransfer(rahul, pooja, 2000), "Transfer-1").start();
+        // Thread 2 locks Pooja first, then waits for Rahul (REVERSE ORDER!)
+        new Thread(() -&gt; unsafeTransfer(pooja, rahul, 1500), "Transfer-2").start();
+    }
+}</code></pre>
+    </div>
+
+    <div class="callout amberline">
+      <strong>Note before running:</strong> <code>BankDeadlockDemo</code> intentionally deadlocks — both threads print <code>"waiting for ..."</code> and hang forever. Press <strong>Ctrl + C</strong> (or Stop in your IDE) to terminate it.
+    </div>
+
+    <h3>Interactive Deadlock vs. Ordered-Lock Simulator</h3>
+    <p>Switch between <strong>Unsafe Order</strong> and <strong>Safe Lock Ordering (ID 101 → 102)</strong>, then click <strong>Next Step →</strong> to watch thread states and lock ownership change:</p>
+
+    <div class="sim-box">
+      <div class="controls">
+        <button type="button" id="btnUnsafe" class="btn mode active-unsafe" onclick="setMode('unsafe')">⚠️ Unsafe Mode (Causes Deadlock)</button>
+        <button type="button" id="btnSafe" class="btn mode" onclick="setMode('safe')">🛡️ Safe Mode (Lock Order: ID 101 → 102)</button>
+      </div>
+
+      <div class="grid">
+        <div class="panel">
+          <div class="lead">Lock A — Rahul (ID 101) | Balance: <strong id="balA">₹10,000</strong></div>
+          <div class="metric-val" id="lockA">Free</div>
+          <p class="lead" style="margin-bottom:0">Transfer-1 State: <strong id="t1State">READY</strong></p>
+        </div>
+        <div class="panel">
+          <div class="lead">Lock B — Pooja (ID 102) | Balance: <strong id="balB">₹8,000</strong></div>
+          <div class="metric-val" id="lockB">Free</div>
+          <p class="lead" style="margin-bottom:0">Transfer-2 State: <strong id="t2State">READY</strong></p>
+        </div>
+      </div>
+
+      <div class="sim-status" id="simStatus">Unsafe Mode active. Click “Next step →” to see opposite-order locking deadlock.</div>
+      <div class="controls">
+        <button type="button" class="btn" id="btnNext" onclick="nextSimStep()">Next step →</button>
+        <button type="button" class="btn secondary" onclick="resetSim()">Reset</button>
+      </div>
+      <div class="sim-log" id="simLog">Ready: Transfer-1 sends ₹2,000 (Rahul → Pooja); Transfer-2 sends ₹1,500 (Pooja → Rahul).</div>
+    </div>
+  </section>
+
+  <!-- SECTION 04 -->
+  <section class="card">
+    <div class="heading"><span class="num">04</span><h2>Precautions to Take Care Of to Avoid Deadlock</h2></div>
+    <p>Preventing deadlocks requires deliberate discipline whenever threads acquire multiple locks. Follow these core precautions:</p>
+
+    <div class="precaution-card">
+      <div class="precaution-title">
+        <h3>1. Enforce Consistent Global Lock Ordering (Most Effective)</h3>
+        <span class="tag green">Breaks Circular Wait</span>
+      </div>
+      <p>Whenever multiple locks must be acquired together, establish one strict global rule so <strong>every thread always acquires them in the same order</strong>.</p>
+      <p><strong>How to do it in Java:</strong> Compare unique account IDs (<code>from.getId() &lt; to.getId()</code>) so Transfer-1 and Transfer-2 <em>both</em> lock <code>ID 101 (Rahul)</code> first and <code>ID 102 (Pooja)</code> second. If IDs are unavailable, sort using <code>System.identityHashCode(obj)</code> with a tie-breaker lock for hash collisions.</p>
+    </div>
+
+    <div class="precaution-card">
+      <div class="precaution-title">
+        <h3>2. Avoid Nested Locks Whenever Possible</h3>
+        <span class="tag green">Breaks Hold &amp; Wait</span>
+      </div>
+      <p>Never acquire a second lock inside an already-held <code>synchronized</code> block unless strictly required for atomicity. Keep synchronized sections minimal: lock Resource A, read/update it quickly, <strong>exit and release Lock A</strong>, and only then acquire Lock B.</p>
+    </div>
+
+    <div class="precaution-card">
+      <div class="precaution-title">
+        <h3>3. Use Timed Locks with <code>ReentrantLock.tryLock(timeout)</code></h3>
+        <span class="tag blue">Breaks No Preemption / Hold &amp; Wait</span>
+      </div>
+      <p>Unlike <code>synchronized</code> (which blocks forever without timeout), <code>java.util.concurrent.locks.ReentrantLock</code> lets a thread wait up to a bounded time:</p>
+      <ul>
+        <li>Try <code>lockB.tryLock(50, TimeUnit.MILLISECONDS)</code>.</li>
+        <li>If it returns <code>false</code>, immediately <strong>release <code>lockA.unlock()</code> inside <code>finally</code></strong>, pause briefly with slight random jitter, and retry later cleanly.</li>
+      </ul>
+    </div>
+
+    <div class="precaution-card">
+      <div class="precaution-title">
+        <h3>4. Never Call External / Alien Methods Inside a Synchronized Block ("Open Calls")</h3>
+        <span class="tag amber">Prevents Hidden Cycles</span>
+      </div>
+      <p>Calling an external callback, listener, repository hook, or non-<code>final</code> overridden method while holding a lock is dangerous — that external method might acquire another lock in reverse order without your knowledge. Compute or copy state under the lock, release the lock, then invoke the external call.</p>
+    </div>
+
+    <div class="precaution-card">
+      <div class="precaution-title">
+        <h3>5. Never Synchronize on Public Objects, String Literals, or Boxed Integers</h3>
+        <span class="tag red">Avoid Accidental Lock Sharing</span>
+      </div>
+      <p>String literals (e.g. <code>synchronized("LOCK")</code>) are interned globally in the String Constant Pool, and small boxed values (<code>Integer.valueOf(10)</code>) are cached! Completely unrelated classes could synchronize on the exact same instance and create hidden deadlocks. Always use <code>private final Object lock = new Object();</code> or clear domain entities.</p>
+    </div>
+
+    <div class="precaution-card">
+      <div class="precaution-title">
+        <h3>6. Prefer High-Level Concurrency Utilities &amp; Independent Tasks</h3>
+        <span class="tag green">Modern Java Best Practice</span>
+      </div>
+      <p>Use lock-safe utilities from <code>java.util.concurrent</code> such as <code>ConcurrentHashMap</code>, <code>AtomicInteger</code>, and <code>BlockingQueue</code> instead of manual nested synchronization. Also beware of <strong>Thread-Starvation Deadlock</strong> in an <code>ExecutorService</code>: never let a task running inside a small fixed thread pool block waiting for a sub-task submitted to that same pool.</p>
+    </div>
+
+    <div class="callout">
+      <strong>How to detect a deadlock if an application hangs in production?</strong><br>
+      Run <code>jps</code> to find the Java Process ID (PID), then run <code>jstack &lt;pid&gt;</code> in your terminal. The JVM thread dump automatically inspects monitor chains and prints <code>"Found one Java-level deadlock:"</code> with exact class names and line numbers! Programmatically, you can also check <code>ManagementFactory.getThreadMXBean().findDeadlockedThreads()</code>.
+    </div>
+  </section>
+
+  <!-- SECTION 05 -->
+  <section class="card">
+    <div class="heading"><span class="num">05</span><h2>Complete Verified Fix: DeadlockPreventionDemo.java</h2></div>
+    <p>Below is a complete, runnable Java 17 program showing both <strong>Consistent Lock Ordering</strong> (<code>synchronized</code> on sorted account IDs) and <strong>Timed Backoff Locking</strong> (<code>ReentrantLock.tryLock</code> with random jitter backoff):</p>
+
+    <div class="code-block">
+      <div class="code-bar">
+        <span>DeadlockPreventionDemo.java (Compiles &amp; Runs Safely)</span>
+        <button type="button" class="copy-btn" onclick="copyCode(this)">📋 Copy Code</button>
+      </div>
+      <pre><code>import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
+
+public class DeadlockPreventionDemo {
+
+    static class BankAccount {
+        private final int id;
+        private final String owner;
+        private int balance;
+        private final ReentrantLock lock = new ReentrantLock();
+
+        public BankAccount(int id, String owner, int balance) {
+            this.id = id;
+            this.owner = owner;
+            this.balance = balance;
+        }
+
+        public int getId() { return id; }
+        public String getOwner() { return owner; }
+        public int getBalance() { return balance; }
+        public void debit(int amount) { balance -= amount; }
+        public void credit(int amount) { balance += amount; }
+    }
+
+    // PRECAUTION 1: Consistent Global Lock Ordering (using synchronized)
+    public static void transferOrdered(BankAccount from, BankAccount to, int amount) {
+        if (from.getId() == to.getId()) {
+            return; // Self-transfer guard
+        }
+        // Global ordering: always acquire the lower account ID lock first
+        BankAccount firstLock = (from.getId() &lt; to.getId()) ? from : to;
+        BankAccount secondLock = (from.getId() &lt; to.getId()) ? to : from;
+
+        synchronized (firstLock) {
+            try { Thread.sleep(40); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+
+            synchronized (secondLock) {
+                if (from.getBalance() &gt;= amount) {
+                    from.debit(amount);
+                    to.credit(amount);
+                    System.out.println("  [Ordered][" + Thread.currentThread().getName() + "] Transferred Rs."
+                            + amount + " from " + from.getOwner() + " to " + to.getOwner());
+                } else {
+                    System.out.println("  [Ordered][" + Thread.currentThread().getName() + "] Insufficient balance for " + from.getOwner());
+                }
+            }
+        }
+    }
+
+    // PRECAUTION 2: Timed tryLock() with Backoff (using ReentrantLock)
+    public static boolean transferWithTimeout(BankAccount from, BankAccount to, int amount) {
+        if (from.getId() == to.getId()) {
+            return false;
+        }
+        for (int attempt = 1; attempt &lt;= 6; attempt++) {
+            boolean gotFirst = false;
+            boolean gotSecond = false;
+            try {
+                gotFirst = from.lock.tryLock(50, TimeUnit.MILLISECONDS);
+                if (gotFirst) {
+                    Thread.sleep(20);
+                    gotSecond = to.lock.tryLock(50, TimeUnit.MILLISECONDS);
+                    if (gotSecond) {
+                        if (from.getBalance() &gt;= amount) {
+                            from.debit(amount);
+                            to.credit(amount);
+                            System.out.println("  [tryLock][" + Thread.currentThread().getName() + "] Transferred Rs."
+                                    + amount + " from " + from.getOwner() + " to " + to.getOwner()
+                                    + " (attempt " + attempt + ")");
+                        }
+                        return true;
+                    }
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return false;
+            } finally {
+                if (gotSecond) to.lock.unlock();
+                if (gotFirst) from.lock.unlock();
+            }
+
+            // Randomized backoff avoids lockstep retries (prevents Livelock)
+            try { Thread.sleep(15 + (long) (Math.random() * 35)); }
+            catch (InterruptedException e) { Thread.currentThread().interrupt(); return false; }
+        }
+        System.out.println("  [tryLock][" + Thread.currentThread().getName() + "] Could not complete transfer safely after retries.");
+        return false;
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+        System.out.println("==========================================================");
+        System.out.println("       DEADLOCK PREVENTION IN JAVA: SAFE TRANSFERS        ");
+        System.out.println("==========================================================");
+
+        // PART 1: Safe Global Lock Ordering
+        BankAccount rahul = new BankAccount(101, "Rahul", 10000);
+        BankAccount pooja = new BankAccount(102, "Pooja", 8000);
+
+        System.out.println("\n--- Part 1: Consistent Lock Ordering (ID 101 -&gt; ID 102) ---");
+        Thread t1 = new Thread(() -&gt; transferOrdered(rahul, pooja, 2000), "Transfer-1");
+        Thread t2 = new Thread(() -&gt; transferOrdered(pooja, rahul, 1500), "Transfer-2");
+        t1.start(); t2.start();
+        t1.join(); t2.join();
+        System.out.println("  Final Balances -&gt; Rahul: Rs." + rahul.getBalance() + ", Pooja: Rs." + pooja.getBalance());
+
+        // PART 2: Timed Locks with tryLock()
+        BankAccount amit = new BankAccount(201, "Amit", 6000);
+        BankAccount neha = new BankAccount(202, "Neha", 5000);
+
+        System.out.println("\n--- Part 2: ReentrantLock tryLock() with Timeout &amp; Retry ---");
+        Thread t3 = new Thread(() -&gt; transferWithTimeout(amit, neha, 1000), "Transfer-3");
+        Thread t4 = new Thread(() -&gt; transferWithTimeout(neha, amit, 500), "Transfer-4");
+        t3.start(); t4.start();
+        t3.join(); t4.join();
+        System.out.println("  Final Balances -&gt; Amit: Rs." + amit.getBalance() + ", Neha: Rs." + neha.getBalance());
+
+        System.out.println("\n==========================================================");
+        System.out.println("All concurrent opposite transfers completed without deadlock!");
+        System.out.println("==========================================================");
+    }
+}</code></pre>
+    </div>
+
+    <div class="code-label"><strong>Verified Console Output (Java 17):</strong></div>
+    <div class="output-box">==========================================================
+       DEADLOCK PREVENTION IN JAVA: SAFE TRANSFERS        
+==========================================================
+
+--- Part 1: Consistent Lock Ordering (ID 101 -&gt; ID 102) ---
+  [Ordered][Transfer-1] Transferred Rs.2000 from Rahul to Pooja
+  [Ordered][Transfer-2] Transferred Rs.1500 from Pooja to Rahul
+  Final Balances -&gt; Rahul: Rs.9500, Pooja: Rs.8500
+
+--- Part 2: ReentrantLock tryLock() with Timeout &amp; Retry ---
+  [tryLock][Transfer-3] Transferred Rs.1000 from Amit to Neha (attempt 2)
+  [tryLock][Transfer-4] Transferred Rs.500 from Neha to Amit (attempt 3)
+  Final Balances -&gt; Amit: Rs.5500, Neha: Rs.5500
+
+==========================================================
+All concurrent opposite transfers completed without deadlock!
+==========================================================</div>
+  </section>
+
+  <!-- SECTION 06 -->
+  <section class="card">
+    <div class="heading"><span class="num">06</span><h2>Deadlock vs. Starvation vs. Livelock</h2></div>
+    <p>Deadlock is part of three classic <strong>liveness hazards</strong> in Java concurrency. Notice how they differ in thread state and CPU usage:</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Hazard</th>
+          <th>Thread State</th>
+          <th>CPU Usage</th>
+          <th>Why It Happens</th>
+          <th>How to Prevent</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Deadlock</strong></td>
+          <td><code>BLOCKED</code> forever</td>
+          <td>~0% (idle hang)</td>
+          <td>Circular wait: threads hold locks and wait forever for each other's locks.</td>
+          <td>Consistent lock ordering, no nested locks, <code>tryLock(timeout)</code>.</td>
+        </tr>
+        <tr>
+          <td><strong>Starvation</strong></td>
+          <td><code>RUNNABLE</code> / Waiting</td>
+          <td>Moderate–High</td>
+          <td>One thread is perpetually denied CPU or lock access because greedy/high-priority threads keep cutting ahead.</td>
+          <td>Use fair locks (<code>new ReentrantLock(true)</code>), avoid priority abuse, release locks quickly.</td>
+        </tr>
+        <tr>
+          <td><strong>Livelock</strong></td>
+          <td><code>RUNNABLE</code> (active!)</td>
+          <td>High (~100% loop)</td>
+          <td>Threads are not blocked — they actively retry/back off in lockstep (like two polite people stepping side-to-side in a corridor) and make zero progress.</td>
+          <td>Add randomized delay (jitter) before retrying <code>tryLock()</code>, as shown in Part 2 above.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- SECTION 07 -->
+  <section class="card">
+    <div class="heading"><span class="num">07</span><h2>Quick Revision Questions</h2></div>
+    <details>
+      <summary><strong>Q1. Can a deadlock occur if there is only one shared lock?</strong></summary>
+      <p>No. At least two locks (or resources) acquired by two threads are required for Circular Wait. Even if one thread re-enters its own lock, Java locks are <strong>reentrant</strong>, so a thread cannot deadlock with itself on a single monitor.</p>
+    </details>
+    <details>
+      <summary><strong>Q2. Why doesn't the JVM throw a DeadlockException at runtime?</strong></summary>
+      <p>Acquiring locks is completely legal at runtime, and deciding whether a blocked wait will resolve or never resolve is expensive in general. Instead of throwing automatically, Java gives tools like <code>jstack</code> and <code>ThreadMXBean</code> to diagnose deadlocks.</p>
+    </details>
+    <details>
+      <summary><strong>Q3. Which single precaution prevents most real-world deadlocks in Java?</strong></summary>
+      <p><strong>Consistent Global Lock Ordering</strong> (e.g., always locking lower <code>id</code> first). Because every thread requests locks in the exact same sequence, a Circular Wait cycle can never form.</p>
+    </details>
+    <details>
+      <summary><strong>Q4. Why do we put <code>unlock()</code> inside a <code>finally</code> block when using <code>ReentrantLock</code>?</strong></summary>
+      <p>Unlike <code>synchronized</code>, <code>ReentrantLock</code> does not unlock automatically when leaving the block. Putting <code>unlock()</code> inside <code>finally</code> ensures locks are released even if an exception is thrown.</p>
+    </details>
+    <details>
+      <summary><strong>Q5. Why did <code>DeadlockPreventionDemo</code> use <code>Math.random()</code> inside the <code>tryLock</code> retry delay?</strong></summary>
+      <p>Adding randomized jitter prevents both threads from timing out and retrying in identical lockstep — which prevents a <strong>livelock</strong>.</p>
+    </details>
+  </section>
+
+  <!-- TAKEAWAY -->
+  <section class="card" style="background:#ecfdf5;border-color:#86efac">
+    <h2 style="color:#166534;margin-top:0">Key Takeaway</h2>
+    <p><strong>Opposite Lock Order → Circular Wait → Deadlock!</strong></p>
+    <p>When locking two or more resources, <strong>always enforce one strict global lock order</strong>, avoid unnecessary nested locks and alien calls inside synchronized blocks, or use <code>ReentrantLock.tryLock(timeout)</code> with randomized retry backoff so your threads never freeze forever.</p>
+  </section>
+
+  <nav class="page-nav" aria-label="Lesson navigation">
+    <a class="nav-pill" href="interthread_communication.html">← Prev: Inter-Thread Communication</a>
+    <a class="nav-pill" href="../index.html">🏠 Java Curriculum Index</a>
+    <a class="nav-pill" href="executor_framework_threadpools.html">Next: Executor Framework &amp; Thread Pools →</a>
+  </nav>
+
+  <div class="footer">Java Multi-Threading • Deadlock Causes, Visual Guide &amp; Precautions</div>
+</div>
+
+<script>
+let mode = "unsafe";
+let simStep = 0;
+
+const scenarios = {
+  unsafe: {
+    initMsg: "Unsafe Mode active. Click “Next step →” to see opposite-order locking deadlock.",
+    initLog: "Ready: Transfer-1 sends ₹2,000 (Rahul → Pooja); Transfer-2 sends ₹1,500 (Pooja → Rahul).",
+    steps: [
+      {
+        lockA: "Locked by Transfer-1", lockB: "Free", t1: "RUNNABLE (holds A)", t2: "READY",
+        balA: "₹10,000", balB: "₹8,000",
+        status: "Step 1: Transfer-1 acquires Lock A (Rahul).",
+        log: "Step 1: Transfer-1 entered synchronized(Rahul). Now it needs Pooja (Lock B)."
+      },
+      {
+        lockA: "Locked by Transfer-1", lockB: "Locked by Transfer-2", t1: "RUNNABLE (holds A)", t2: "RUNNABLE (holds B)",
+        balA: "₹10,000", balB: "₹8,000",
+        status: "Step 2: Context switch! Transfer-2 acquires Lock B (Pooja) in reverse order.",
+        log: "Step 2: Transfer-2 entered synchronized(Pooja). Both threads now hold one lock!"
+      },
+      {
+        lockA: "Locked by Transfer-1", lockB: "Locked by Transfer-2", t1: "BLOCKED 🔒 (wants B)", t2: "RUNNABLE (holds B)",
+        balA: "₹10,000", balB: "₹8,000",
+        status: "Step 3: Transfer-1 requests Lock B (Pooja) and enters BLOCKED state.",
+        log: "Step 3: Transfer-1 cannot proceed without Lock B, and it does NOT release Lock A."
+      },
+      {
+        lockA: "Locked by Transfer-1", lockB: "Locked by Transfer-2", t1: "BLOCKED 🔒 forever", t2: "BLOCKED 🔒 forever",
+        balA: "₹10,000", balB: "₹8,000",
+        status: "Step 4: DEADLOCK! Transfer-2 requests Lock A (Rahul) → both threads hang forever!",
+        log: "Step 4: Circular Wait formed (T1 waits for B, T2 waits for A). CPU ~0%, JVM stuck!"
+      }
+    ]
+  },
+  safe: {
+    initMsg: "Safe Ordering active (Both sort IDs: 101 Rahul → 102 Pooja). Click “Next step →”.",
+    initLog: "Ready: Global lock order enforced (Lock A ID 101 first, Lock B ID 102 second).",
+    steps: [
+      {
+        lockA: "Locked by Transfer-1", lockB: "Free", t1: "RUNNABLE (holds A)", t2: "READY",
+        balA: "₹10,000", balB: "₹8,000",
+        status: "Step 1: Transfer-1 acquires lower ID first → Lock A (Rahul, 101).",
+        log: "Step 1: Transfer-1 locks ID 101 (Rahul). Pooja (102) is still free."
+      },
+      {
+        lockA: "Locked by Transfer-1", lockB: "Free", t1: "RUNNABLE (holds A)", t2: "BLOCKED (waits for A)",
+        balA: "₹10,000", balB: "₹8,000",
+        status: "Step 2: Transfer-2 ALSO starts with ID 101 (Rahul) and waits cleanly — does NOT lock B!",
+        log: "Step 2: Because Lock B (Pooja) remains FREE, no circular wait can form!"
+      },
+      {
+        lockA: "Locked by Transfer-1", lockB: "Locked by Transfer-1", t1: "RUNNABLE (holds A & B)", t2: "BLOCKED (waits for A)",
+        balA: "₹8,000", balB: "₹10,000",
+        status: "Step 3: Transfer-1 acquires Lock B (Pooja, 102) and transfers ₹2,000 cleanly.",
+        log: "Step 3: Transfer-1 holds both locks: Rahul → ₹8,000, Pooja → ₹10,000."
+      },
+      {
+        lockA: "Free", lockB: "Free", t1: "TERMINATED ✓", t2: "RUNNABLE (waking up)",
+        balA: "₹8,000", balB: "₹10,000",
+        status: "Step 4: Transfer-1 exits synchronized blocks and releases BOTH Lock B and Lock A.",
+        log: "Step 4: All locks released cleanly; Transfer-2 can now acquire Lock A (101)."
+      },
+      {
+        lockA: "Free (released)", lockB: "Free (released)", t1: "TERMINATED ✓", t2: "TERMINATED ✓",
+        balA: "₹9,500", balB: "₹8,500",
+        status: "Step 5: Transfer-2 locks 101 → 102, transfers ₹1,500, and finishes! Zero Deadlock ✓",
+        log: "Step 5: Success! Final Balances -> Rahul: ₹9,500, Pooja: ₹8,500."
+      }
+    ]
+  }
+};
+
+const logs = [];
+
+function setMode(newMode) {
+  mode = newMode;
+  document.getElementById("btnUnsafe").className = "btn mode" + (mode === "unsafe" ? " active-unsafe" : "");
+  document.getElementById("btnSafe").className = "btn mode" + (mode === "safe" ? " active-safe" : "");
+  resetSim();
+}
+
+function renderSim() {
+  const sc = scenarios[mode];
+  if (simStep === 0) {
+    document.getElementById("lockA").textContent = "Free";
+    document.getElementById("lockB").textContent = "Free";
+    document.getElementById("t1State").textContent = "READY";
+    document.getElementById("t2State").textContent = "READY";
+    document.getElementById("balA").textContent = "₹10,000";
+    document.getElementById("balB").textContent = "₹8,000";
+    document.getElementById("simStatus").textContent = sc.initMsg;
+    document.getElementById("simLog").textContent = sc.initLog;
+  } else {
+    const s = sc.steps[simStep - 1];
+    document.getElementById("lockA").textContent = s.lockA;
+    document.getElementById("lockB").textContent = s.lockB;
+    document.getElementById("t1State").textContent = s.t1;
+    document.getElementById("t2State").textContent = s.t2;
+    document.getElementById("balA").textContent = s.balA;
+    document.getElementById("balB").textContent = s.balB;
+    document.getElementById("simStatus").textContent = s.status;
+    document.getElementById("simLog").textContent = logs.join("\n");
+  }
+  document.getElementById("btnNext").disabled = simStep >= sc.steps.length;
+}
+
+function nextSimStep() {
+  const sc = scenarios[mode];
+  if (simStep >= sc.steps.length) return;
+  simStep++;
+  logs.push(sc.steps[simStep - 1].log);
+  renderSim();
+}
+
+function resetSim() {
+  simStep = 0;
+  logs.length = 0;
+  renderSim();
+}
+
+function copyCode(btn) {
+  const block = btn.closest(".code-block");
+  const code = block ? block.querySelector("code") : null;
+  if (!code) return;
+  navigator.clipboard.writeText(code.innerText).then(() => {
+    const orig = btn.innerText;
+    btn.innerText = "✓ Copied!";
+    setTimeout(() => { btn.innerText = orig; }, 1800);
+  });
+}
+
+resetSim();
+</script>
+</body>
+</html>
