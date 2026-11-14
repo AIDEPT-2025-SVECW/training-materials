@@ -76,6 +76,12 @@ function showDriverDetails(driverType) {
             title: '🌉 Type 1: JDBC-ODBC Bridge Driver',
             content: `
                 <h3>JDBC-ODBC Bridge Driver</h3>
+                <div style="text-align:center; margin-bottom:15px; background:#f8fafc; padding:12px; border-radius:10px; border:1px solid #e2e8f0;">
+                    <img src="Type1-driver.png" alt="Type 1 Driver Architecture" style="max-width:100%; height:auto; max-height:340px; border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,0.08); cursor:pointer;" onclick="openLightbox('Type1-driver.png', 'Type 1 Driver Architecture')" />
+                    <div style="margin-top:8px;">
+                        <a href="Type1-driver.png" target="_blank" rel="noopener" class="view-full-btn" style="display:inline-block; font-size:0.85em; padding:4px 12px;">🔍 View Full Image</a>
+                    </div>
+                </div>
                 <div class="info-card">
                     <h4>How it works:</h4>
                     <p>This driver translates JDBC calls into ODBC calls and sends them to the ODBC driver.</p>
@@ -110,6 +116,12 @@ Connection conn = DriverManager.getConnection(
             title: '🔧 Type 2: Native-API Driver',
             content: `
                 <h3>Native-API Driver (Partly Java Driver)</h3>
+                <div style="text-align:center; margin-bottom:15px; background:#f8fafc; padding:12px; border-radius:10px; border:1px solid #e2e8f0;">
+                    <img src="Type2-Driver.png" alt="Type 2 Driver Architecture" style="max-width:100%; height:auto; max-height:340px; border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,0.08); cursor:pointer;" onclick="openLightbox('Type2-Driver.png', 'Type 2 Driver Architecture')" />
+                    <div style="margin-top:8px;">
+                        <a href="Type2-Driver.png" target="_blank" rel="noopener" class="view-full-btn" style="display:inline-block; font-size:0.85em; padding:4px 12px;">🔍 View Full Image</a>
+                    </div>
+                </div>
                 <div class="info-card">
                     <h4>How it works:</h4>
                     <p>This driver uses database-specific native libraries to communicate with the database.</p>
@@ -146,6 +158,12 @@ Connection conn = DriverManager.getConnection(
             title: '🌐 Type 3: Network Protocol Driver',
             content: `
                 <h3>Network Protocol Driver (Pure Java Driver)</h3>
+                <div style="text-align:center; margin-bottom:15px; background:#f8fafc; padding:12px; border-radius:10px; border:1px solid #e2e8f0;">
+                    <img src="Type3-Driver.png" alt="Type 3 Driver Architecture" style="max-width:100%; height:auto; max-height:340px; border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,0.08); cursor:pointer;" onclick="openLightbox('Type3-Driver.png', 'Type 3 Driver Architecture')" />
+                    <div style="margin-top:8px;">
+                        <a href="Type3-Driver.png" target="_blank" rel="noopener" class="view-full-btn" style="display:inline-block; font-size:0.85em; padding:4px 12px;">🔍 View Full Image</a>
+                    </div>
+                </div>
                 <div class="info-card">
                     <h4>How it works:</h4>
                     <p>This driver uses middleware application server that converts JDBC calls into database-specific calls.</p>
@@ -183,6 +201,12 @@ Connection conn = DriverManager.getConnection(
             title: '⚡ Type 4: Pure Java Driver',
             content: `
                 <h3>Pure Java Driver (Direct-to-Database)</h3>
+                <div style="text-align:center; margin-bottom:15px; background:#f8fafc; padding:12px; border-radius:10px; border:1px solid #e2e8f0;">
+                    <img src="Type4-Driver.png" alt="Type 4 Driver Architecture" style="max-width:100%; height:auto; max-height:340px; border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,0.08); cursor:pointer;" onclick="openLightbox('Type4-Driver.png', 'Type 4 Driver Architecture')" />
+                    <div style="margin-top:8px;">
+                        <a href="Type4-Driver.png" target="_blank" rel="noopener" class="view-full-btn" style="display:inline-block; font-size:0.85em; padding:4px 12px;">🔍 View Full Image</a>
+                    </div>
+                </div>
                 <div class="info-card">
                     <h4>How it works:</h4>
                     <p>This driver directly converts JDBC calls into database-specific network protocol calls.</p>
